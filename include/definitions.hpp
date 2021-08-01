@@ -201,6 +201,9 @@
 #define DEF_ERR_INVALID_ARG_STR (std::string)"[Error] Invalid arg. "
 #define DEF_ERR_JSMN_RETURNED_NOT_SUCCESS_STR "[Error] jsmn returned NOT success. "
 
+//log
+#define DEF_LOG_BUFFER_LINES 512
+#define DEF_LOG_DISPLAYED_LINES 23
 
 //thread
 #define DEF_STACKSIZE (64 * 1024)
