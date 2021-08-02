@@ -134,6 +134,9 @@ void Sem_init(void)
 			var_scroll_speed = 0.5;
 		if(var_num_of_app_start < 0)
 			var_num_of_app_start = 0;
+		
+		var_top_lcd_brightness = var_lcd_brightness;
+		var_bottom_lcd_brightness = var_lcd_brightness;
 	}
 
 	if(var_model == "OLD 2DS")//OLD 2DS doesn't support high resolution mode
@@ -146,7 +149,6 @@ void Sem_init(void)
 	sem_update_thread = threadCreate(Sem_update_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
 	sem_worker_thread = threadCreate(Sem_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
 	sem_record_thread = threadCreate(Sem_record_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
-
 	if(var_model == "NEW 2DS XL" || var_model == "NEW 3DS XL" || var_model == "NEW 3DS")
 		sem_encode_thread = threadCreate(Sem_encode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 2, false);
 	else
@@ -835,6 +837,8 @@ void Sem_main(void)
 					else if (key.h_touch && sem_bar_selected[0] && key.touch_x >= 10 && key.touch_x <= 309)
 					{
 						var_lcd_brightness = (key.touch_x / 2) + 10;
+						var_top_lcd_brightness = var_lcd_brightness;
+						var_bottom_lcd_brightness = var_lcd_brightness;
 						sem_change_brightness_request = true;
 						var_need_reflesh = true;
 					}
@@ -1147,6 +1151,7 @@ void Sem_record_thread(void* arg)
 		if (sem_record_request)
 		{
 			APT_SetAppCpuTimeLimit(80);
+			mode = sem_selected_recording_mode;
 			if(mode == 0)
 			{
 				rec_width = 400;
