@@ -1,5 +1,7 @@
 #pragma once
 
+#define _POSIX_THREADS
+
 //settings
 #define DEF_MAIN_DIR (std::string)"/GUI_sample/"
 #define DEF_UPDATE_DIR_PREFIX (std::string)"/3ds/GUI_sample_ver_"
