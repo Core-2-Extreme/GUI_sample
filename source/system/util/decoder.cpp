@@ -195,7 +195,7 @@ Result_with_string Util_audio_decoder_init(int num_of_audio_tracks, int session)
 	return result;
 }
 
-Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_tracks, int session)
+Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_tracks, int num_of_threads, int thread_type, int session)
 {
 	int ffmpeg_result = 0;
 	Result_with_string result;
@@ -231,6 +231,24 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 
 		util_video_decoder_context[session][i]->lowres = low_resolution;
 		util_video_decoder_context[session][i]->flags = AV_CODEC_FLAG_OUTPUT_CORRUPT;
+		util_video_decoder_context[session][i]->thread_count = num_of_threads;
+		if(thread_type == DEF_DECODER_THREAD_TYPE_AUTO)
+		{
+			if(util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_FRAME_THREADS)
+				util_video_decoder_context[session][i]->thread_type = FF_THREAD_FRAME;
+			else if(util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_SLICE_THREADS)
+				util_video_decoder_context[session][i]->thread_type = FF_THREAD_SLICE;
+		}
+		else if(thread_type == DEF_DECODER_THREAD_TYPE_SLICE && util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_SLICE_THREADS)
+			util_video_decoder_context[session][i]->thread_type = FF_THREAD_SLICE;
+		else if(thread_type == DEF_DECODER_THREAD_TYPE_FRAME && util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_FRAME_THREADS)
+			util_video_decoder_context[session][i]->thread_type = FF_THREAD_FRAME;
+		else
+		{
+			util_video_decoder_context[session][i]->thread_type = 0;
+			util_video_decoder_context[session][i]->thread_count = 1;
+		}
+
 		ffmpeg_result = avcodec_open2(util_video_decoder_context[session][i], util_video_decoder_codec[session][i], NULL);
 		if(ffmpeg_result != 0)
 		{
@@ -268,10 +286,11 @@ void Util_audio_decoder_get_info(int* bitrate, int* sample_rate, int* ch, std::s
 	*duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;
 }
 
-void Util_video_decoder_get_info(int* width, int* height, double* framerate, std::string* format_name, double* duration, int video_index, int session)
+void Util_video_decoder_get_info(int* width, int* height, double* framerate, std::string* format_name, double* duration, int* thread_type, int video_index, int session)
 {
 	*width = util_video_decoder_context[session][video_index]->width;
 	*height = util_video_decoder_context[session][video_index]->height;
+	*thread_type = util_video_decoder_context[session][video_index]->thread_type;
 	*framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->avg_frame_rate.den;
 	*format_name = util_video_decoder_codec[session][video_index]->long_name;
 	*duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;
