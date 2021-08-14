@@ -1,7 +1,5 @@
 #include "headers.hpp"
 
-#include "sub_app0.hpp"
-
 bool sapp0_main_run = false;
 bool sapp0_thread_run = false;
 bool sapp0_already_init = false;
@@ -119,7 +117,7 @@ void Sapp0_init(void)
 	sapp0_status = var_model;
 	var_need_reflesh = true;
 
-	if(var_model == "NEW 2DS XL" || var_model == "NEW 3DS XL" || var_model == "NEW 3DS")
+	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_3DSXL)
 		sapp0_init_thread = threadCreate(Sapp0_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
@@ -149,7 +147,7 @@ void Sapp0_init(void)
 			gspWaitForVBlank();
 	}
 
-	if(!(var_model == "NEW 2DS XL" || var_model == "NEW 3DS XL" || var_model == "NEW 3DS"))
+	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_3DSXL))
 		APT_SetAppCpuTimeLimit(10);
 
 	Sapp0_resume();
@@ -217,23 +215,39 @@ void Sapp0_main(void)
 	{
 		var_need_reflesh = false;
 		Draw_frame_ready();
-		Draw_screen_ready(0, back_color);
 
-		Draw(sapp0_msg[0], 0, 20, 0.5, 0.5, color);
-		if(Util_log_query_log_show_flag())
-			Util_log_draw();
+		if(var_turn_on_top_lcd)
+		{
+			Draw_screen_ready(0, back_color);
 
-		Draw_top_ui();
+			Draw(sapp0_msg[0], 0, 20, 0.5, 0.5, color);
+			if(Util_log_query_log_show_flag())
+				Util_log_draw();
 
-		Draw_screen_ready(1, back_color);
+			Draw_top_ui();
 
-		Draw(DEF_SAPP0_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+			if(var_3d_mode)
+			{
+				Draw_screen_ready(2, back_color);
 
-		if(Util_err_query_error_show_flag())
-			Util_err_draw();
+				if(Util_log_query_log_show_flag())
+					Util_log_draw();
 
-		Draw_bot_ui();
-		Draw_touch_pos();
+				Draw_top_ui();
+			}
+		}
+		
+		if(var_turn_on_bottom_lcd)
+		{
+			Draw_screen_ready(1, back_color);
+
+			Draw(DEF_SAPP0_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+
+			if(Util_err_query_error_show_flag())
+				Util_err_draw();
+
+			Draw_bot_ui();
+		}
 
 		Draw_apply_draw();
 	}
