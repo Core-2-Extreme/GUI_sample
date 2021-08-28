@@ -11,6 +11,10 @@ struct Image_data
 {
 	C2D_Image c2d = { .tex = NULL, };
 	Tex3DS_SubTexture* subtex = NULL;
+	double x = -1;
+	double y = -1;
+	double x_size = -1;
+	double y_size = -1;
 };
 
 struct Hid_info
