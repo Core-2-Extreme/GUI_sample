@@ -40,12 +40,12 @@ int Draw_convert_to_pos(int height, int width, int img_height, int img_width, in
 	return pos * pixel_size;
 }
 
-Result_with_string Draw_set_texture_data(Image_data* c2d_image, u8* buf, int pic_width, int pic_height, int tex_size_x, int tex_size_y, GPU_TEXCOLOR color_format)
+Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_width, int pic_height, int tex_size_x, int tex_size_y, GPU_TEXCOLOR color_format)
 {
-	return Draw_set_texture_data(c2d_image, buf, pic_width, pic_height, 0, 0, tex_size_x, tex_size_y, color_format);
+	return Draw_set_texture_data(image, buf, pic_width, pic_height, 0, 0, tex_size_x, tex_size_y, color_format);
 }
 
-Result_with_string Draw_set_texture_data(Image_data* c2d_image, u8* buf, int pic_width, int pic_height, int parse_start_width, int parse_start_height, int tex_size_x, int tex_size_y, GPU_TEXCOLOR color_format)
+Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_width, int pic_height, int parse_start_width, int parse_start_height, int tex_size_x, int tex_size_y, GPU_TEXCOLOR color_format)
 {
 	int x_max = 0;
 	int y_max = 0;
@@ -101,13 +101,13 @@ Result_with_string Draw_set_texture_data(Image_data* c2d_image, u8* buf, int pic
 	if (tex_size_x < x_max)
 		x_max = tex_size_x;
 
-	c2d_image->subtex->width = (u16)x_max;
-	c2d_image->subtex->height = (u16)y_max;
-	c2d_image->subtex->left = 0.0;
-	c2d_image->subtex->top = 1.0;
-	c2d_image->subtex->right = x_max / (float)tex_size_x;
-	c2d_image->subtex->bottom = 1.0 - y_max / (float)tex_size_y;
-	c2d_image->c2d.subtex = c2d_image->subtex;
+	image->subtex->width = (u16)x_max;
+	image->subtex->height = (u16)y_max;
+	image->subtex->left = 0.0;
+	image->subtex->top = 1.0;
+	image->subtex->right = x_max / (float)tex_size_x;
+	image->subtex->bottom = 1.0 - y_max / (float)tex_size_y;
+	image->c2d.subtex = image->subtex;
 
 	if(pixel_size == 2)
 	{
@@ -115,7 +115,7 @@ Result_with_string Draw_set_texture_data(Image_data* c2d_image, u8* buf, int pic
 		{
 			for(int i = 0; i < x_max; i += 2)
 			{
-				memcpy_asm_4b(&(((u8*)c2d_image->c2d.tex->data)[c3d_pos + c3d_offset]), &(((u8*)buf)[Draw_convert_to_pos(k + parse_start_height, i + parse_start_width, pic_height, pic_width, pixel_size)]));
+				memcpy_asm_4b(&(((u8*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(((u8*)buf)[Draw_convert_to_pos(k + parse_start_height, i + parse_start_width, pic_height, pic_width, pixel_size)]));
 				c3d_pos += increase_list_x[count[0]];
 				count[0]++;
 			}
@@ -131,8 +131,8 @@ Result_with_string Draw_set_texture_data(Image_data* c2d_image, u8* buf, int pic
 		{
 			for(int i = 0; i < x_max; i += 2)
 			{
-				memcpy_asm_4b(&(((u8*)c2d_image->c2d.tex->data)[c3d_pos + c3d_offset]), &(((u8*)buf)[Draw_convert_to_pos(k + parse_start_height, i + parse_start_width, pic_height, pic_width, pixel_size)]));
-				memcpy(&(((u8*)c2d_image->c2d.tex->data)[c3d_pos + c3d_offset + 4]), &(((u8*)buf)[Draw_convert_to_pos(k + parse_start_height, i + parse_start_width, pic_height, pic_width, pixel_size) + 4]), 2);
+				memcpy_asm_4b(&(((u8*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(((u8*)buf)[Draw_convert_to_pos(k + parse_start_height, i + parse_start_width, pic_height, pic_width, pixel_size)]));
+				memcpy(&(((u8*)image->c2d.tex->data)[c3d_pos + c3d_offset + 4]), &(((u8*)buf)[Draw_convert_to_pos(k + parse_start_height, i + parse_start_width, pic_height, pic_width, pixel_size) + 4]), 2);
 				c3d_pos += increase_list_x[count[0]];
 				count[0]++;
 			}
@@ -143,60 +143,60 @@ Result_with_string Draw_set_texture_data(Image_data* c2d_image, u8* buf, int pic
 		}
 	}
 
-	C3D_TexFlush(c2d_image->c2d.tex);
+	C3D_TexFlush(image->c2d.tex);
 
 	return result;
 }
 
-void Draw_c2d_image_set_filter(Image_data* c2d_image, bool filter)
+void Draw_c2d_image_set_filter(Image_data* image, bool filter)
 {
 	if(filter)
-		C3D_TexSetFilter(c2d_image->c2d.tex, GPU_LINEAR, GPU_LINEAR);
+		C3D_TexSetFilter(image->c2d.tex, GPU_LINEAR, GPU_LINEAR);
 	else
-		C3D_TexSetFilter(c2d_image->c2d.tex, GPU_NEAREST, GPU_NEAREST);
+		C3D_TexSetFilter(image->c2d.tex, GPU_NEAREST, GPU_NEAREST);
 }
 
-Result_with_string Draw_c2d_image_init(Image_data* c2d_image, int tex_size_x, int tex_size_y, GPU_TEXCOLOR color_format)
+Result_with_string Draw_c2d_image_init(Image_data* image, int tex_size_x, int tex_size_y, GPU_TEXCOLOR color_format)
 {
 	Result_with_string result;
 
-	c2d_image->subtex = (Tex3DS_SubTexture*)linearAlloc(sizeof(Tex3DS_SubTexture*));
-	c2d_image->c2d.tex = (C3D_Tex*)linearAlloc(sizeof(C3D_Tex*));
-	if(c2d_image->subtex == NULL || c2d_image->c2d.tex == NULL)
+	image->subtex = (Tex3DS_SubTexture*)linearAlloc(sizeof(Tex3DS_SubTexture*));
+	image->c2d.tex = (C3D_Tex*)linearAlloc(sizeof(C3D_Tex*));
+	if(image->subtex == NULL || image->c2d.tex == NULL)
 	{
-		linearFree(c2d_image->subtex);
-		linearFree(c2d_image->c2d.tex);
-		c2d_image->subtex = NULL;
-		c2d_image->c2d.tex = NULL;
+		linearFree(image->subtex);
+		linearFree(image->c2d.tex);
+		image->subtex = NULL;
+		image->c2d.tex = NULL;
 		result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
 		result.string = DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
 	}
-	c2d_image->c2d.subtex = c2d_image->subtex;
+	image->c2d.subtex = image->subtex;
 
-	if (!C3D_TexInit(c2d_image->c2d.tex, (u16)tex_size_x, (u16)tex_size_y, color_format))
+	if (!C3D_TexInit(image->c2d.tex, (u16)tex_size_x, (u16)tex_size_y, color_format))
 	{
 		result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
 		result.string = DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
 		return result;
 	}
 
-	C3D_TexSetFilter(c2d_image->c2d.tex, GPU_LINEAR, GPU_LINEAR);
-	c2d_image->c2d.tex->border = 0xFFFFFF;
-	C3D_TexSetWrap(c2d_image->c2d.tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
+	C3D_TexSetFilter(image->c2d.tex, GPU_LINEAR, GPU_LINEAR);
+	image->c2d.tex->border = 0xFFFFFF;
+	C3D_TexSetWrap(image->c2d.tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
 
 
 	return result;
 }
 
-void Draw_c2d_image_free(Image_data c2d_image)
+void Draw_c2d_image_free(Image_data image)
 {
-	linearFree(c2d_image.c2d.tex->data);
-	linearFree(c2d_image.c2d.tex);
-	linearFree(c2d_image.subtex);
-	c2d_image.c2d.tex->data = NULL;
-	c2d_image.c2d.tex = NULL;
-	c2d_image.c2d.subtex = NULL;
-	c2d_image.subtex = NULL;
+	linearFree(image.c2d.tex->data);
+	linearFree(image.c2d.tex);
+	linearFree(image.subtex);
+	image.c2d.tex->data = NULL;
+	image.c2d.tex = NULL;
+	image.c2d.subtex = NULL;
+	image.subtex = NULL;
 }
 
 void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888)
@@ -478,6 +478,20 @@ void Draw_texture(C2D_Image image, int abgr8888, float x, float y, float x_size,
 			C2D_DrawImage(image, &c2d_parameter, &tint);
 		}
 	}
+}
+
+void Draw_texture(Image_data* image, float x, float y, float x_size, float y_size)
+{
+	Draw_texture(image, DEF_DRAW_NO_COLOR, x, y, x_size, y_size);
+}
+
+void Draw_texture(Image_data* image, int abgr8888, float x, float y, float x_size, float y_size)
+{
+	image->x = x;
+	image->y = y;
+	image->x_size = x_size;
+	image->y_size = y_size;
+	Draw_texture(image->c2d, abgr8888, x, y, x_size, y_size);
 }
 
 void Draw_line(float x_0, float y_0, int abgr8888_0, float x_1, float y_1, int abgr8888_1, float width)
