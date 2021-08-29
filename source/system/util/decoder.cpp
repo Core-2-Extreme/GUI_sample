@@ -6,35 +6,34 @@ extern "C" {
 #include "libswresample/swresample.h"
 }
 
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
 
 extern "C" void memcpy_asm(u8*, u8*, int);
 
-int util_audio_decoder_stream_num[2][DEF_DECODER_MAX_AUDIO_TRACKS];
-AVPacket* util_audio_decoder_packet[2][DEF_DECODER_MAX_AUDIO_TRACKS];
-AVPacket* util_audio_decoder_cache_packet[2][DEF_DECODER_MAX_AUDIO_TRACKS];
-AVFrame* util_audio_decoder_raw_data[2][DEF_DECODER_MAX_AUDIO_TRACKS];
-AVCodecContext* util_audio_decoder_context[2][DEF_DECODER_MAX_AUDIO_TRACKS];
-const AVCodec* util_audio_decoder_codec[2][DEF_DECODER_MAX_AUDIO_TRACKS];
-SwrContext* util_audio_decoder_swr_context[2][DEF_DECODER_MAX_AUDIO_TRACKS];
+int util_audio_decoder_stream_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
+AVPacket* util_audio_decoder_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
+AVPacket* util_audio_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
+AVFrame* util_audio_decoder_raw_data[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
+AVCodecContext* util_audio_decoder_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
+const AVCodec* util_audio_decoder_codec[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
+SwrContext* util_audio_decoder_swr_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
 
 bool util_video_decoder_mvd_first = false;
-bool util_video_decoder_lock[2][DEF_DECODER_MAX_VIDEO_TRACKS * 3];
-int util_video_decoder_buffer_num[2][DEF_DECODER_MAX_VIDEO_TRACKS];
-int util_video_decoder_ready_buffer_num[2][DEF_DECODER_MAX_VIDEO_TRACKS];
-int util_video_decoder_stream_num[2][DEF_DECODER_MAX_VIDEO_TRACKS];
+bool util_video_decoder_lock[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS * 3];
+int util_video_decoder_buffer_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
+int util_video_decoder_ready_buffer_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
+int util_video_decoder_stream_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 int util_video_decoder_mvd_packet_size = 0;
 u8* util_video_decoder_mvd_raw_data = NULL;
 u8* util_video_decoder_mvd_packet = NULL;
-AVPacket* util_video_decoder_packet[2][DEF_DECODER_MAX_VIDEO_TRACKS];
-AVPacket* util_video_decoder_cache_packet[2][DEF_DECODER_MAX_VIDEO_TRACKS];
-AVFrame* util_video_decoder_raw_data[2][DEF_DECODER_MAX_VIDEO_TRACKS * 3];
-AVCodecContext* util_video_decoder_context[2][DEF_DECODER_MAX_VIDEO_TRACKS];
-const AVCodec* util_video_decoder_codec[2][DEF_DECODER_MAX_VIDEO_TRACKS];
+AVPacket* util_video_decoder_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
+AVPacket* util_video_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
+AVFrame* util_video_decoder_raw_data[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS * 3];
+AVCodecContext* util_video_decoder_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
+const AVCodec* util_video_decoder_codec[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 MVDSTD_Config util_decoder_mvd_config;
 
-AVFormatContext* util_decoder_format_context[2] = { NULL, NULL, };
+AVFormatContext* util_decoder_format_context[DEF_DECODER_MAX_SESSIONS] = { NULL, NULL, };
 
 Result_with_string Util_mvd_video_decoder_init(int session)
 {

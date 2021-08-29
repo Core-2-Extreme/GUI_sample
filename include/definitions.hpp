@@ -1,7 +1,5 @@
 #pragma once
 
-#define _POSIX_THREADS
-
 //settings
 #define DEF_MAIN_DIR (std::string)"/GUI_sample/"
 #define DEF_UPDATE_DIR_PREFIX (std::string)"/3ds/GUI_sample_ver_"
@@ -166,10 +164,15 @@
 //decoder 
 #define DEF_DECODER_MAX_AUDIO_TRACKS 8
 #define DEF_DECODER_MAX_VIDEO_TRACKS 2
+#define DEF_DECODER_MAX_SESSIONS 2
 #define DEF_DECODER_THREAD_TYPE_NONE 0
 #define DEF_DECODER_THREAD_TYPE_FRAME 1
 #define DEF_DECODER_THREAD_TYPE_SLICE 2
 #define DEF_DECODER_THREAD_TYPE_AUTO 3
+#define STB_IMAGE_IMPLEMENTATION
+
+//encoder
+#define DEF_ENCODER_MAX_SESSIONS 2
 
 //error num
 #define DEF_ERR_SUMMARY 0
@@ -207,6 +210,9 @@
 #define DEF_EXFONT_INIT_STR (std::string)"Exfont/Init"
 #define DEF_EXFONT_EXIT_STR (std::string)"Exfont/Exit"
 #define DEF_EXFONT_LOAD_FONT_THREAD_STR (std::string)"Exfont/Load font thread"
+
+//fake pthread
+#define _POSIX_THREADS
 
 //hid
 #define DEF_HID_INIT_STR (std::string)"Hid/Init"
