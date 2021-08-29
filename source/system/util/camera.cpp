@@ -3,7 +3,7 @@
 bool util_cam_init = false;
 u32 util_cam_buffer_size = 0;
 int util_cam_width = 640;
-int util_cam_height = 640;
+int util_cam_height = 480;
 
 Result_with_string Util_cam_init(std::string color_format)
 {
