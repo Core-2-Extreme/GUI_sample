@@ -119,7 +119,7 @@
 
 
 //menu
-#define DEF_MENU_NUM_OF_MSG 3
+#define DEF_MENU_NUM_OF_MSG 5
 #define DEF_MENU_MAIN_STR (std::string)"Menu/Main"
 #define DEF_MENU_INIT_STR (std::string)"Menu/Init"
 #define DEF_MENU_EXIT_STR (std::string)"Menu/Exit"
@@ -127,6 +127,11 @@
 #define DEF_MENU_UPDATE_THREAD_STR (std::string)"Menu/Update thread"
 #define DEF_MENU_SEND_APP_INFO_STR (std::string)"Menu/Send app info thread"
 #define DEF_MENU_CHECK_INTERNET_STR (std::string)"Menu/Check internet thread"
+#define DEF_MENU_EXIST_MSG 0
+#define DEF_MENU_CONFIRM_MSG 1
+#define DEF_MENU_CANCEL_MSG 2
+#define DEF_MENU_NEW_VERSION_MSG 3
+#define DEF_MENU_HOW_TO_UPDATE_MSG 4
 
 //setting menu
 #define DEF_SEM_NUM_OF_MSG 59
