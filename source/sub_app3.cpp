@@ -44,13 +44,6 @@ void Sapp3_init_thread(void* arg)
 	Util_log_save(DEF_SAPP3_INIT_STR, "Thread started.");
 	Result_with_string result;
 	
-	sapp3_status = "Loading messages...";
-	var_need_reflesh = true;
-
-	result = Util_load_msg("sapp3_" + var_lang + ".txt", sapp3_msg, DEF_SAPP3_NUM_OF_MSG);
-	if(result.code != 0)
-		Util_log_save(DEF_SAPP3_INIT_STR, "Util_load_msg()..." + result.string + result.error_description, result.code);
-
 	sapp3_status = "Starting threads...";
 	var_need_reflesh = true;
 
@@ -66,7 +59,6 @@ void Sapp3_init_thread(void* arg)
 void Sapp3_exit_thread(void* arg)
 {
 	Util_log_save(DEF_SAPP3_EXIT_STR, "Thread started.");
-	u64 time_out = 10000000000;
 
 	sapp3_thread_suspend = false;
 	sapp3_thread_run = false;
@@ -74,15 +66,16 @@ void Sapp3_exit_thread(void* arg)
 	sapp3_status = "Exiting threads...";
 	var_need_reflesh = true;
 
-	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_init_thread, time_out));	
+	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_init_thread, DEF_THREAD_WAIT_TIME));	
 
 	sapp3_status += ".";
 	var_need_reflesh = true;
 
-	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_worker_thread, time_out));
+	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_worker_thread, DEF_THREAD_WAIT_TIME));
 
 	sapp3_status = "Cleaning up...";
-	
+	var_need_reflesh = true;
+
 	threadFree(sapp3_init_thread);
 	threadFree(sapp3_worker_thread);
 
@@ -108,16 +101,21 @@ void Sapp3_suspend(void)
 	Menu_resume();
 }
 
+Result_with_string Sapp3_load_msg(void)
+{
+	return Util_load_msg("sapp3_" + var_lang + ".txt", sapp3_msg, DEF_SAPP3_NUM_OF_MSG);
+}
+
 void Sapp3_init(void)
 {
 	Util_log_save(DEF_SAPP3_INIT_STR, "Initializing...");
 	int color = DEF_DRAW_BLACK;
 	int back_color = DEF_DRAW_WHITE;
 
-	sapp3_status = var_model;
+	sapp3_status = "";
 	var_need_reflesh = true;
 
-	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_3DSXL)
+	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_3DSXL) && var_core_2_available)
 		sapp3_init_thread = threadCreate(Sapp3_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
@@ -147,7 +145,7 @@ void Sapp3_init(void)
 			gspWaitForVBlank();
 	}
 
-	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_3DSXL))
+	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_3DSXL) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
 	Sapp3_resume();

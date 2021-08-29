@@ -1,7 +1,5 @@
 #include "headers.hpp"
 
-#include "sub_app0.hpp"
-
 bool sapp0_main_run = false;
 bool sapp0_thread_run = false;
 bool sapp0_already_init = false;
@@ -46,13 +44,6 @@ void Sapp0_init_thread(void* arg)
 	Util_log_save(DEF_SAPP0_INIT_STR, "Thread started.");
 	Result_with_string result;
 	
-	sapp0_status = "Loading messages...";
-	var_need_reflesh = true;
-
-	result = Util_load_msg("sapp0_" + var_lang + ".txt", sapp0_msg, DEF_SAPP0_NUM_OF_MSG);
-	if(result.code != 0)
-		Util_log_save(DEF_SAPP0_INIT_STR, "Util_load_msg()..." + result.string + result.error_description, result.code);
-
 	sapp0_status = "Starting threads...";
 	var_need_reflesh = true;
 
@@ -68,7 +59,6 @@ void Sapp0_init_thread(void* arg)
 void Sapp0_exit_thread(void* arg)
 {
 	Util_log_save(DEF_SAPP0_EXIT_STR, "Thread started.");
-	u64 time_out = 10000000000;
 
 	sapp0_thread_suspend = false;
 	sapp0_thread_run = false;
@@ -76,14 +66,15 @@ void Sapp0_exit_thread(void* arg)
 	sapp0_status = "Exiting threads...";
 	var_need_reflesh = true;
 
-	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_init_thread, time_out));	
+	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_init_thread, DEF_THREAD_WAIT_TIME));	
 
 	sapp0_status += ".";
 	var_need_reflesh = true;
 
-	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_worker_thread, time_out));
+	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_worker_thread, DEF_THREAD_WAIT_TIME));
 
 	sapp0_status = "Cleaning up...";
+	var_need_reflesh = true;
 	
 	threadFree(sapp0_init_thread);
 	threadFree(sapp0_worker_thread);
@@ -110,16 +101,21 @@ void Sapp0_suspend(void)
 	Menu_resume();
 }
 
+Result_with_string Sapp0_load_msg(void)
+{
+	return Util_load_msg("sapp0_" + var_lang + ".txt", sapp0_msg, DEF_SAPP0_NUM_OF_MSG);
+}
+
 void Sapp0_init(void)
 {
 	Util_log_save(DEF_SAPP0_INIT_STR, "Initializing...");
 	int color = DEF_DRAW_BLACK;
 	int back_color = DEF_DRAW_WHITE;
 
-	sapp0_status = var_model;
+	sapp0_status = "";
 	var_need_reflesh = true;
 
-	if(var_model == "NEW 2DS XL" || var_model == "NEW 3DS XL" || var_model == "NEW 3DS")
+	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_3DSXL) && var_core_2_available)
 		sapp0_init_thread = threadCreate(Sapp0_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
@@ -149,7 +145,7 @@ void Sapp0_init(void)
 			gspWaitForVBlank();
 	}
 
-	if(!(var_model == "NEW 2DS XL" || var_model == "NEW 3DS XL" || var_model == "NEW 3DS"))
+	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_3DSXL) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
 	Sapp0_resume();
@@ -217,23 +213,39 @@ void Sapp0_main(void)
 	{
 		var_need_reflesh = false;
 		Draw_frame_ready();
-		Draw_screen_ready(0, back_color);
 
-		Draw(sapp0_msg[0], 0, 20, 0.5, 0.5, color);
-		if(Util_log_query_log_show_flag())
-			Util_log_draw();
+		if(var_turn_on_top_lcd)
+		{
+			Draw_screen_ready(0, back_color);
 
-		Draw_top_ui();
+			Draw(sapp0_msg[0], 0, 20, 0.5, 0.5, color);
+			if(Util_log_query_log_show_flag())
+				Util_log_draw();
 
-		Draw_screen_ready(1, back_color);
+			Draw_top_ui();
 
-		Draw(DEF_SAPP0_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+			if(var_3d_mode)
+			{
+				Draw_screen_ready(2, back_color);
 
-		if(Util_err_query_error_show_flag())
-			Util_err_draw();
+				if(Util_log_query_log_show_flag())
+					Util_log_draw();
 
-		Draw_bot_ui();
-		Draw_touch_pos();
+				Draw_top_ui();
+			}
+		}
+		
+		if(var_turn_on_bottom_lcd)
+		{
+			Draw_screen_ready(1, back_color);
+
+			Draw(DEF_SAPP0_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+
+			if(Util_err_query_error_show_flag())
+				Util_err_draw();
+
+			Draw_bot_ui();
+		}
 
 		Draw_apply_draw();
 	}

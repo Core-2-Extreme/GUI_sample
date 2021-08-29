@@ -1,6 +1,38 @@
 ﻿#include "headers.hpp"
 
 #include "system/setting_menu.hpp"
+#include "system/menu.hpp"
+#ifdef DEF_ENABLE_SUB_APP0
+#include "sub_app0.hpp"
+#endif
+
+#ifdef DEF_ENABLE_SUB_APP1
+#include "sub_app1.hpp"
+#endif
+
+#ifdef DEF_ENABLE_SUB_APP2
+#include "sub_app2.hpp"
+#endif
+
+#ifdef DEF_ENABLE_SUB_APP3
+#include "sub_app3.hpp"
+#endif
+
+#ifdef DEF_ENABLE_SUB_APP4
+#include "sub_app4.hpp"
+#endif
+
+#ifdef DEF_ENABLE_SUB_APP5
+#include "sub_app5.hpp"
+#endif
+
+#ifdef DEF_ENABLE_SUB_APP6
+#include "sub_app6.hpp"
+#endif
+
+#ifdef DEF_ENABLE_SUB_APP7
+#include "sub_app7.hpp"
+#endif
 
 bool sem_main_run = false;
 bool sem_already_init = false;
@@ -38,8 +70,12 @@ double sem_touch_x_move_left = 0.0;
 double sem_touch_y_move_left = 0.0;
 std::string sem_msg[DEF_SEM_NUM_OF_MSG];
 std::string sem_newest_ver_data[6];//0 newest version number, 1 3dsx available, 2 cia available, 3 3dsx dl url, 4 cia dl url, 5 patch note
-
 Thread sem_update_thread, sem_worker_thread, sem_record_thread, sem_encode_thread;
+
+void Sem_encode_thread(void* arg);
+void Sem_record_thread(void* arg);
+void Sem_worker_thread(void* arg);
+void Sem_update_thread(void* arg);
 
 bool Sem_query_init_flag(void)
 {
@@ -51,6 +87,14 @@ bool Sem_query_running_flag(void)
 	return sem_main_run;
 }
 
+void Sem_resume(void)
+{
+	sem_thread_suspend = false;
+	sem_main_run = true;
+	var_need_reflesh = true;
+	Menu_suspend();
+}
+
 void Sem_suspend(void)
 {
 	Menu_resume();
@@ -58,12 +102,9 @@ void Sem_suspend(void)
 	sem_main_run = false;
 }
 
-void Sem_resume(void)
+Result_with_string Sem_load_msg(void)
 {
-	sem_thread_suspend = false;
-	sem_main_run = true;
-	var_need_reflesh = true;
-	Menu_suspend();
+	return Util_load_msg("sem_" + var_lang + ".txt", sem_msg, DEF_SEM_NUM_OF_MSG);
 }
 
 void Sem_init(void)
@@ -1320,8 +1361,52 @@ void Sem_worker_thread(void* arg)
 	{
 		if (sem_reload_msg_request)
 		{
-			result = Util_load_msg("sem_" + var_lang + ".txt", sem_msg, DEF_SEM_NUM_OF_MSG);
-			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Util_load_msg()..." + result.string + result.error_description, result.code);
+			result = Sem_load_msg();
+			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sem_load_msg()..." + result.string + result.error_description, result.code);
+
+			result = Menu_load_msg();
+			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Menu_load_msg()..." + result.string + result.error_description, result.code);
+			
+			#ifdef DEF_ENABLE_SUB_APP0
+			result = Sapp0_load_msg();
+			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp0_load_msg()..." + result.string + result.error_description, result.code);
+			#endif
+
+			#ifdef DEF_ENABLE_SUB_APP1
+			result = Sapp1_load_msg();
+			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp1_load_msg()..." + result.string + result.error_description, result.code);
+			#endif
+
+			#ifdef DEF_ENABLE_SUB_APP2
+			result = Sapp2_load_msg();
+			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp2_load_msg()..." + result.string + result.error_description, result.code);
+			#endif
+
+			#ifdef DEF_ENABLE_SUB_APP3
+			result = Sapp3_load_msg();
+			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp3_load_msg()..." + result.string + result.error_description, result.code);
+			#endif
+
+			#ifdef DEF_ENABLE_SUB_APP4
+			result = Sapp4_load_msg();
+			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp4_load_msg()..." + result.string + result.error_description, result.code);
+			#endif
+
+			#ifdef DEF_ENABLE_SUB_APP5
+			result = Sapp5_load_msg();
+			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp5_load_msg()..." + result.string + result.error_description, result.code);
+			#endif
+
+			#ifdef DEF_ENABLE_SUB_APP6
+			result = Sapp6_load_msg();
+			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp6_load_msg()..." + result.string + result.error_description, result.code);
+			#endif
+
+			#ifdef DEF_ENABLE_SUB_APP7
+			result = Sapp7_load_msg();
+			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp7_load_msg()..." + result.string + result.error_description, result.code);
+			#endif
+
 			sem_reload_msg_request = false;
 		}
 		else if(sem_change_brightness_request)
