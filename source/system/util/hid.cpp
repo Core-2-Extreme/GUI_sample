@@ -1,6 +1,6 @@
 #include "headers.hpp"
 
-bool hid_scan_hid_thread_run = false;
+bool hid_thread_run = false;
 bool hid_key_A_press = false;
 bool hid_key_B_press = false;
 bool hid_key_X_press = false;
@@ -59,20 +59,27 @@ int hid_pre_touch_pos_y = 0;
 int hid_touch_pos_y_moved = 0;
 int hid_held_time = 0;
 int hid_count = 0;
-std::string hid_scan_hid_thread_string = "Hid/Scan hid thread";
-Thread hid_scan_hid_thread;
+Thread hid_scan_thread;
 
 void Util_hid_init(void)
 {
-	hid_scan_hid_thread_run = true;
-	hid_scan_hid_thread = threadCreate(Util_hid_scan_hid_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, -1, false);
+	Util_log_save(DEF_HID_INIT_STR, "Initializing...");
+
+	hid_thread_run = true;
+	hid_scan_thread = threadCreate(Util_hid_scan_hid_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 0, false);
+
+	Util_log_save(DEF_HID_INIT_STR, "Initialized.");
 }
 
 void Util_hid_exit(void)
 {
-	hid_scan_hid_thread_run = false;
-	threadJoin(hid_scan_hid_thread, 10000000000);
-	threadFree(hid_scan_hid_thread);
+	Util_log_save(DEF_HID_EXIT_STR, "Exiting...");
+
+	hid_thread_run = false;
+	threadJoin(hid_scan_thread, DEF_THREAD_WAIT_TIME);
+	threadFree(hid_scan_thread);
+
+	Util_log_save(DEF_HID_EXIT_STR, "Exited.");
 }
 
 bool Util_hid_is_pressed(Hid_info hid_state, Image_data image)
@@ -214,7 +221,7 @@ void Util_hid_key_flag_reset(void)
 
 void Util_hid_scan_hid_thread(void* arg)
 {
-	Util_log_save(hid_scan_hid_thread_string, "Thread started.");
+	Util_log_save(DEF_HID_SCAN_THREAD_STR, "Thread started.");
 
 	u32 kDown;
 	u32 kHeld;
@@ -222,7 +229,7 @@ void Util_hid_scan_hid_thread(void* arg)
 	circlePosition circle_pos;
 	Result_with_string result;
 
-	while (hid_scan_hid_thread_run)
+	while (hid_thread_run)
 	{
 		hidScanInput();
 		hidTouchRead(&touch_pos);
@@ -480,6 +487,6 @@ void Util_hid_scan_hid_thread(void* arg)
 
 		gspWaitForVBlank();
 	}
-	Util_log_save(hid_scan_hid_thread_string, "Thread exit");
+	Util_log_save(DEF_HID_SCAN_THREAD_STR, "Thread exit");
 	threadExit(0);
 }

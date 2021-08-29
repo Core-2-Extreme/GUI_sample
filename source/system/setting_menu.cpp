@@ -199,7 +199,6 @@ void Sem_init(void)
 void Sem_exit(void)
 {
 	Util_log_save(DEF_SEM_EXIT_STR, "Exiting...");
-	u64 time_out = 10000000000;
 	int log_num;
 	var_num_of_app_start++;
 	std::string data = "<0>" + var_lang + "</0><1>" + std::to_string(var_lcd_brightness) + "</1><2>" + std::to_string(var_time_to_turn_off_lcd)
@@ -217,10 +216,10 @@ void Sem_exit(void)
 	result = Util_file_save_to_file("settings.txt", DEF_MAIN_DIR, (u8*)data.c_str(), data.length(), true);
 	Util_log_add(log_num, result.string, result.code);
 
-	Util_log_save(DEF_SEM_EXIT_STR, "threadJoin()...", threadJoin(sem_update_thread, time_out));
-	Util_log_save(DEF_SEM_EXIT_STR, "threadJoin()...", threadJoin(sem_worker_thread, time_out));
-	Util_log_save(DEF_SEM_EXIT_STR, "threadJoin()...", threadJoin(sem_encode_thread, time_out));
-	Util_log_save(DEF_SEM_EXIT_STR, "threadJoin()...", threadJoin(sem_record_thread, time_out));
+	Util_log_save(DEF_SEM_EXIT_STR, "threadJoin()...", threadJoin(sem_update_thread, DEF_THREAD_WAIT_TIME));
+	Util_log_save(DEF_SEM_EXIT_STR, "threadJoin()...", threadJoin(sem_worker_thread, DEF_THREAD_WAIT_TIME));
+	Util_log_save(DEF_SEM_EXIT_STR, "threadJoin()...", threadJoin(sem_encode_thread, DEF_THREAD_WAIT_TIME));
+	Util_log_save(DEF_SEM_EXIT_STR, "threadJoin()...", threadJoin(sem_record_thread, DEF_THREAD_WAIT_TIME));
 
 	threadFree(sem_update_thread);
 	threadFree(sem_worker_thread);

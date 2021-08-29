@@ -143,17 +143,6 @@
 #define DEF_SEM_ENCODE_THREAD_STR (std::string)"Sem/Encode thread"
 #define DEF_SEM_RECORD_THREAD_STR (std::string)"Sem/Record thread"
 
-//explorer
-#define DEF_EXPL_INIT_STR (std::string)"Expl/Init"
-#define DEF_EXPL_EXIT_STR (std::string)"Expl/Exit"
-#define DEF_EXPL_READ_DIR_THREAD_STR (std::string)"Expl/Read dir thread"
-
-//external font
-#define DEF_EXFONT_NUM_OF_FONT_NAME 50
-#define DEF_EXFONT_INIT_STR (std::string)"Exfont/Init"
-#define DEF_EXFONT_EXIT_STR (std::string)"Exfont/Exit"
-#define DEF_EXFONT_LOAD_FONT_THREAD_STR (std::string)"Exfont/Load font thread"
-
 //draw
 #define DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS 128
 
@@ -206,6 +195,23 @@
 #define DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] ffmpeg returned NOT success. "
 #define DEF_ERR_INVALID_ARG_STR (std::string)"[Error] Invalid arg. "
 #define DEF_ERR_JSMN_RETURNED_NOT_SUCCESS_STR "[Error] jsmn returned NOT success. "
+
+//explorer
+#define DEF_EXPL_MAX_FILES 256
+#define DEF_EXPL_INIT_STR (std::string)"Expl/Init"
+#define DEF_EXPL_EXIT_STR (std::string)"Expl/Exit"
+#define DEF_EXPL_READ_DIR_THREAD_STR (std::string)"Expl/Read dir thread"
+
+//external font
+#define DEF_EXFONT_NUM_OF_FONT_NAME 50
+#define DEF_EXFONT_INIT_STR (std::string)"Exfont/Init"
+#define DEF_EXFONT_EXIT_STR (std::string)"Exfont/Exit"
+#define DEF_EXFONT_LOAD_FONT_THREAD_STR (std::string)"Exfont/Load font thread"
+
+//hid
+#define DEF_HID_INIT_STR (std::string)"Hid/Init"
+#define DEF_HID_EXIT_STR (std::string)"Hid/Exit"
+#define DEF_HID_SCAN_THREAD_STR (std::string)"Hid/Scan thread"
 
 //log
 #define DEF_LOG_BUFFER_LINES 512
