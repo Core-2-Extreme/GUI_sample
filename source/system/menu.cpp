@@ -496,9 +496,15 @@ void Menu_main(void)
 			if(menu_check_exit_request)
 			{
 				if (key.p_a)
+				{
 					menu_must_exit = true;
+					var_need_reflesh = true;
+				}
 				else if (key.p_b)
+				{
 					menu_check_exit_request = false;
+					var_need_reflesh = true;
+				}
 			}
 			else
 			{
