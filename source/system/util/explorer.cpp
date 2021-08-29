@@ -14,6 +14,8 @@ std::string util_expl_files[DEF_EXPL_MAX_FILES];
 std::string util_expl_type[DEF_EXPL_MAX_FILES];
 Thread util_expl_read_dir_thread;
 
+void Util_expl_read_dir_thread(void* arg);
+
 std::string Util_expl_query_current_patch(void)
 {
 	return util_expl_current_patch;
