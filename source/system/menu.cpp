@@ -43,6 +43,9 @@ int menu_icon_texture_num[9] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, };
 std::string menu_msg[DEF_MENU_NUM_OF_MSG];
 Thread menu_worker_thread, menu_send_app_info_thread, menu_check_connectivity_thread, menu_update_thread;
 C2D_Image menu_icon_image[10];
+Image_data menu_sapp_icon[8];
+Image_data menu_sapp_close_icon[8];
+Image_data menu_sem_icon;
 
 int Menu_check_free_ram(void);
 void Menu_get_system_info(void);
@@ -214,6 +217,13 @@ void Menu_init(void)
 	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
 	#endif
 
+	for(int i = 0; i < 8; i++)
+	{
+		menu_sapp_icon[i].c2d = var_square_image[0];
+		menu_sapp_close_icon[i].c2d = var_square_image[0];
+	}
+	menu_sem_icon.c2d = var_square_image[0];
+
 	Menu_get_system_info();
 
 	Menu_resume();
@@ -321,14 +331,14 @@ void Menu_main(void)
 
 			if(menu_check_exit_request)
 			{
-				Draw(menu_msg[0], 90.0, 105.0, 0.5, 0.5, color);
-				Draw(menu_msg[1], 130.0, 140.0, 0.5, 0.5, DEF_DRAW_GREEN);
-				Draw(menu_msg[2], 210.0, 140.0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw(menu_msg[DEF_MENU_EXIST_MSG], 90.0, 105.0, 0.5, 0.5, color);
+				Draw(menu_msg[DEF_MENU_CONFIRM_MSG], 130.0, 140.0, 0.5, 0.5, DEF_DRAW_GREEN);
+				Draw(menu_msg[DEF_MENU_CANCEL_MSG], 210.0, 140.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			else if(menu_update_available)
 			{
-				Draw(menu_msg[3], 10.0, 30.0, 0.7, 0.7, DEF_DRAW_RED);
-				Draw(menu_msg[4], 10.0, 60.0, 0.5, 0.5, color);
+				Draw(menu_msg[DEF_MENU_NEW_VERSION_MSG], 10.0, 30.0, 0.7, 0.7, DEF_DRAW_RED);
+				Draw(menu_msg[DEF_MENU_HOW_TO_UPDATE_MSG], 10.0, 60.0, 0.5, 0.5, color);
 			}
 
 			if(Util_log_query_log_show_flag())
@@ -339,7 +349,7 @@ void Menu_main(void)
 			Draw_screen_ready(1, back_color);
 
 			#ifdef DEF_ENABLE_SUB_APP0
-			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 0.0, 0.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_icon[0], DEF_DRAW_WEAK_AQUA, 0.0, 0.0, 60.0, 60.0);
 
 			#ifdef DEF_SAPP0_ENABLE_ICON
 			Draw_texture(menu_icon_image[0], 0.0, 0.0, 60.0, 60.0);
@@ -350,12 +360,12 @@ void Menu_main(void)
 
 			if(Sapp0_query_init_flag())
 			{
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 45.0, 0.0, 15.0, 15.0);
+				Draw_texture(&menu_sapp_close_icon[0], DEF_DRAW_WEAK_RED, 45.0, 0.0, 15.0, 15.0);
 				Draw("X", 47.5, 0.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP1
-			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 80.0, 0.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_icon[1], DEF_DRAW_WEAK_AQUA, 80.0, 0.0, 60.0, 60.0);
 
 			#ifdef DEF_SAPP1_ENABLE_ICON
 			Draw_texture(menu_icon_image[1], 80.0, 0.0, 60.0, 60.0);
@@ -366,12 +376,12 @@ void Menu_main(void)
 
 			if(Sapp1_query_init_flag())
 			{
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 125.0, 0.0, 15.0, 15.0);
+				Draw_texture(&menu_sapp_close_icon[1], DEF_DRAW_WEAK_RED, 125.0, 0.0, 15.0, 15.0);
 				Draw("X", 127.5, 0.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP2
-			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 160.0, 0.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_icon[2], DEF_DRAW_WEAK_AQUA, 160.0, 0.0, 60.0, 60.0);
 
 			#ifdef DEF_SAPP2_ENABLE_ICON
 			Draw_texture(menu_icon_image[2], 160.0, 0.0, 60.0, 60.0);
@@ -382,12 +392,12 @@ void Menu_main(void)
 
 			if(Sapp2_query_init_flag())
 			{
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 205.0, 0.0, 15.0, 15.0);
+				Draw_texture(&menu_sapp_close_icon[2], DEF_DRAW_WEAK_RED, 205.0, 0.0, 15.0, 15.0);
 				Draw("X", 207.5, 0.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP3
-			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 240.0, 0.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_icon[3], DEF_DRAW_WEAK_AQUA, 240.0, 0.0, 60.0, 60.0);
 
 			#ifdef DEF_SAPP3_ENABLE_ICON
 			Draw_texture(menu_icon_image[3], 240.0, 0.0, 60.0, 60.0);
@@ -398,12 +408,12 @@ void Menu_main(void)
 
 			if(Sapp3_query_init_flag())
 			{
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 285.0, 0.0, 15.0, 15.0);
+				Draw_texture(&menu_sapp_close_icon[3], DEF_DRAW_WEAK_RED, 285.0, 0.0, 15.0, 15.0);
 				Draw("X", 287.5, 0.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP4
-			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 0.0, 80.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_icon[4], DEF_DRAW_WEAK_AQUA, 0.0, 80.0, 60.0, 60.0);
 
 			#ifdef DEF_SAPP4_ENABLE_ICON
 			Draw_texture(menu_icon_image[4], 0.0, 80.0, 60.0, 60.0);
@@ -414,12 +424,12 @@ void Menu_main(void)
 
 			if(Sapp4_query_init_flag())
 			{
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 45.0, 80.0, 15.0, 15.0);
+				Draw_texture(&menu_sapp_close_icon[4], DEF_DRAW_WEAK_RED, 45.0, 80.0, 15.0, 15.0);
 				Draw("X", 47.5, 80.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP5
-			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 80.0, 80.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_icon[5], DEF_DRAW_WEAK_AQUA, 80.0, 80.0, 60.0, 60.0);
 
 			#ifdef DEF_SAPP5_ENABLE_ICON
 			Draw_texture(menu_icon_image[5], 80.0, 80.0, 60.0, 60.0);
@@ -430,12 +440,12 @@ void Menu_main(void)
 
 			if(Sapp5_query_init_flag())
 			{
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 125.0, 80.0, 15.0, 15.0);
+				Draw_texture(&menu_sapp_close_icon[5], DEF_DRAW_WEAK_RED, 125.0, 80.0, 15.0, 15.0);
 				Draw("X", 127.5, 80.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP6
-			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 160.0, 80.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_icon[6], DEF_DRAW_WEAK_AQUA, 160.0, 80.0, 60.0, 60.0);
 
 			#ifdef DEF_SAPP6_ENABLE_ICON
 			Draw_texture(menu_icon_image[6], 160.0, 80.0, 60.0, 60.0);
@@ -446,12 +456,12 @@ void Menu_main(void)
 
 			if(Sapp6_query_init_flag())
 			{
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 205.0, 80.0, 15.0, 15.0);
+				Draw_texture(&menu_sapp_close_icon[6], DEF_DRAW_WEAK_RED, 205.0, 80.0, 15.0, 15.0);
 				Draw("X", 207.5, 80.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP7
-			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 240.0, 80.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_icon[7], DEF_DRAW_WEAK_AQUA, 240.0, 80.0, 60.0, 60.0);
 
 			#ifdef DEF_SAPP7_ENABLE_ICON
 			Draw_texture(menu_icon_image[7], 240.0, 80.0, 60.0, 60.0);
@@ -462,12 +472,12 @@ void Menu_main(void)
 
 			if(Sapp7_query_init_flag())
 			{
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 285.0, 80.0, 15.0, 15.0);
+				Draw_texture(&menu_sapp_close_icon[7], DEF_DRAW_WEAK_RED, 285.0, 80.0, 15.0, 15.0);
 				Draw("X", 287.5, 80.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 
-			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 260.0, 170.0, 60.0, 60.0);
+			Draw_texture(&menu_sem_icon, DEF_DRAW_WEAK_AQUA, 260.0, 170.0, 60.0, 60.0);
 
 			#ifdef DEF_SEM_ENABLE_ICON
 			Draw_texture(menu_icon_image[8 + var_night_mode], 260.0, 170.0, 60.0, 60.0);
@@ -516,9 +526,9 @@ void Menu_main(void)
 				else if (key.p_select)
 					Util_log_set_log_show_flag(!Util_log_query_log_show_flag());
 				#ifdef DEF_ENABLE_SUB_APP0
-				else if (key.p_touch && key.touch_x >= 45 && key.touch_x <= 59 && key.touch_y >= 0 && key.touch_y <= 14 && Sapp0_query_init_flag())
+				else if (Util_hid_is_pressed(key, menu_sapp_close_icon[0]) && Sapp0_query_init_flag())
 					Sapp0_exit();
-				else if (key.p_touch && key.touch_x >= 0 && key.touch_x <= 59 && key.touch_y >= 0 && key.touch_y <= 59)
+				else if (Util_hid_is_pressed(key, menu_sapp_icon[0]))
 				{
 					if (!Sapp0_query_init_flag())
 						Sapp0_init();
@@ -527,9 +537,9 @@ void Menu_main(void)
 				}
 				#endif
 				#ifdef DEF_ENABLE_SUB_APP1
-				else if (key.p_touch && key.touch_x >= 125 && key.touch_x <= 139 && key.touch_y >= 0 && key.touch_y <= 14 && Sapp1_query_init_flag())
+				else if (Util_hid_is_pressed(key, menu_sapp_close_icon[1]) && Sapp1_query_init_flag())
 					Sapp1_exit();
-				else if (key.p_touch && key.touch_x >= 80 && key.touch_x <= 139 && key.touch_y >= 0 && key.touch_y <= 59)
+				else if (Util_hid_is_pressed(key, menu_sapp_icon[1]))
 				{
 					if (!Sapp1_query_init_flag())
 						Sapp1_init();
@@ -538,9 +548,9 @@ void Menu_main(void)
 				}
 				#endif
 				#ifdef DEF_ENABLE_SUB_APP2
-				else if (key.p_touch && key.touch_x >= 205 && key.touch_x <= 219 && key.touch_y >= 0 && key.touch_y <= 14 && Sapp2_query_init_flag())
+				else if (Util_hid_is_pressed(key, menu_sapp_close_icon[2]) && Sapp2_query_init_flag())
 					Sapp2_exit();
-				else if (key.p_touch && key.touch_x >= 160 && key.touch_x <= 219 && key.touch_y >= 0 && key.touch_y <= 59)
+				else if (Util_hid_is_pressed(key, menu_sapp_icon[2]))
 				{
 					if (!Sapp2_query_init_flag())
 						Sapp2_init();
@@ -549,9 +559,9 @@ void Menu_main(void)
 				}
 				#endif
 				#ifdef DEF_ENABLE_SUB_APP3
-				else if (key.p_touch && key.touch_x >= 285 && key.touch_x <= 299 && key.touch_y >= 0 && key.touch_y <= 14 && Sapp3_query_init_flag())
+				else if (Util_hid_is_pressed(key, menu_sapp_close_icon[3]) && Sapp3_query_init_flag())
 					Sapp3_exit();
-				else if (key.p_touch && key.touch_x >= 240 && key.touch_x <= 299 && key.touch_y >= 0 && key.touch_y <= 59)
+				else if (Util_hid_is_pressed(key, menu_sapp_icon[3]))
 				{
 					if (!Sapp3_query_init_flag())
 						Sapp3_init();
@@ -560,9 +570,9 @@ void Menu_main(void)
 				}
 				#endif
 				#ifdef DEF_ENABLE_SUB_APP4
-				else if (key.p_touch && key.touch_x >= 45 && key.touch_x <= 59 && key.touch_y >= 80 && key.touch_y <= 94 && Sapp4_query_init_flag())
+				else if (Util_hid_is_pressed(key, menu_sapp_close_icon[4]) && Sapp4_query_init_flag())
 					Sapp4_exit();
-				else if (key.p_touch && key.touch_x >= 0 && key.touch_x <= 59 && key.touch_y >= 80 && key.touch_y <= 139)
+				else if (Util_hid_is_pressed(key, menu_sapp_icon[4]))
 				{
 					if (!Sapp4_query_init_flag())
 						Sapp4_init();
@@ -571,9 +581,9 @@ void Menu_main(void)
 				}
 				#endif
 				#ifdef DEF_ENABLE_SUB_APP5
-				else if (key.p_touch && key.touch_x >= 125 && key.touch_x <= 139 && key.touch_y >= 80 && key.touch_y <= 94 && Sapp5_query_init_flag())
+				else if (Util_hid_is_pressed(key, menu_sapp_close_icon[5]) && Sapp5_query_init_flag())
 					Sapp5_exit();
-				else if (key.p_touch && key.touch_x >= 80 && key.touch_x <= 139 && key.touch_y >= 80 && key.touch_y <= 139)
+				else if (Util_hid_is_pressed(key, menu_sapp_icon[5]))
 				{
 					if (!Sapp5_query_init_flag())
 						Sapp5_init();
@@ -582,9 +592,9 @@ void Menu_main(void)
 				}
 				#endif
 				#ifdef DEF_ENABLE_SUB_APP6
-				else if (key.p_touch && key.touch_x >= 205 && key.touch_x <= 219 && key.touch_y >= 80 && key.touch_y <= 94 && Sapp6_query_init_flag())
+				else if (Util_hid_is_pressed(key, menu_sapp_close_icon[6]) && Sapp6_query_init_flag())
 					Sapp6_exit();
-				else if (key.p_touch && key.touch_x >= 160 && key.touch_x <= 219 && key.touch_y >= 80 && key.touch_y <= 139)
+				else if (Util_hid_is_pressed(key, menu_sapp_icon[6]))
 				{
 					if (!Sapp6_query_init_flag())
 						Sapp6_init();
@@ -593,9 +603,9 @@ void Menu_main(void)
 				}
 				#endif
 				#ifdef DEF_ENABLE_SUB_APP7
-				else if (key.p_touch && key.touch_x >= 285 && key.touch_x <= 299 && key.touch_y >= 80 && key.touch_y <= 94 && Sapp7_query_init_flag())
+				else if (Util_hid_is_pressed(key, menu_sapp_close_icon[7]) && Sapp7_query_init_flag())
 					Sapp7_exit();
-				else if (key.p_touch && key.touch_x >= 240 && key.touch_x <= 299 && key.touch_y >= 80 && key.touch_y <= 139)
+				else if (Util_hid_is_pressed(key, menu_sapp_icon[7]))
 				{
 					if (!Sapp7_query_init_flag())
 						Sapp7_init();
@@ -603,7 +613,7 @@ void Menu_main(void)
 						Sapp7_resume();
 				}
 				#endif
-				else if (key.p_touch && key.touch_x >= 260 && key.touch_x <= 319 && key.touch_y >= 170 && key.touch_y <= 229)
+				else if (Util_hid_is_pressed(key, menu_sem_icon))
 				{
 					if (!Sem_query_init_flag())
 						Sem_init();
