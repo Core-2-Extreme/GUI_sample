@@ -256,8 +256,6 @@ void Sapp3_main(void)
 		Util_err_main(key);
 	else
 	{
-		if(key.p_touch || key.h_touch)
-			var_need_reflesh = true;
 		if (key.p_start || (key.p_touch && key.touch_x >= 110 && key.touch_x <= 230 && key.touch_y >= 220 && key.touch_y <= 240))
 			Sapp3_suspend();
 	}

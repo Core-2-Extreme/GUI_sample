@@ -1,4 +1,4 @@
-#include "headers.hpp"
+#include "system/headers.hpp"
 
 bool sapp0_main_run = false;
 bool sapp0_thread_run = false;
@@ -256,8 +256,6 @@ void Sapp0_main(void)
 		Util_err_main(key);
 	else
 	{
-		if(key.p_touch || key.h_touch)
-			var_need_reflesh = true;
 		if (key.p_start || (key.p_touch && key.touch_x >= 110 && key.touch_x <= 230 && key.touch_y >= 220 && key.touch_y <= 240))
 			Sapp0_suspend();
 	}
