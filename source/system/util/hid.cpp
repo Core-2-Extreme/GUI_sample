@@ -83,10 +83,8 @@ void Util_hid_exit(void)
 }
 
 bool Util_hid_is_pressed(Hid_info hid_state, Image_data image)
-{
-	if(image.x < 0 || image.y < 0 || image.x_size < 1 || image.y_size < 1)
-		return false;
-	else if(hid_state.p_touch && hid_state.touch_x >= image.x && hid_state.touch_x <= (image.x + image.x_size - 1)
+{	
+	if(hid_state.p_touch && hid_state.touch_x >= image.x && hid_state.touch_x <= (image.x + image.x_size - 1)
 	&& hid_state.touch_y >= image.y && hid_state.touch_y <= (image.y + image.y_size - 1))
 		return true;
 	else
@@ -95,9 +93,7 @@ bool Util_hid_is_pressed(Hid_info hid_state, Image_data image)
 
 bool Util_hid_is_held(Hid_info hid_state, Image_data image)
 {
-	if(image.x < 0 || image.y < 0 || image.x_size < 1 || image.y_size < 1)
-		return false;
-	else if(hid_state.h_touch && hid_state.touch_x >= image.x && hid_state.touch_x <= (image.x + image.x_size - 1)
+	if(hid_state.h_touch && hid_state.touch_x >= image.x && hid_state.touch_x <= (image.x + image.x_size - 1)
 	&& hid_state.touch_y >= image.y && hid_state.touch_y <= (image.y + image.y_size - 1))
 		return true;
 	else

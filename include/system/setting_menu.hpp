@@ -12,6 +12,8 @@ Result_with_string Sem_load_msg(void);
 
 void Sem_init(void);
 
+void Sem_draw_init(void);
+
 void Sem_exit(void);
 
 void Sem_main(void);

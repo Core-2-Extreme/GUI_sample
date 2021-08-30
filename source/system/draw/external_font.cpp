@@ -688,6 +688,7 @@ void Exfont_load_font_thread(void* arg)
                 {
                     result = Exfont_load_exfont(i);
 					Util_log_save(DEF_EXFONT_LOAD_FONT_THREAD_STR, "Exfont_load_exfont()..." + result.string + result.error_description, result.code);
+                    var_need_reflesh = true;
                 }
             }
             exfont_load_external_font_request = false;
@@ -697,7 +698,10 @@ void Exfont_load_font_thread(void* arg)
             for(int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
             {
                 if(!exfont_request_external_font_state[i] && exfont_loaded_external_font[i])
+                {
 					Exfont_unload_exfont(i);
+                    var_need_reflesh = true;
+                }
             }
             exfont_unload_external_font_request = false;
         }
@@ -709,6 +713,7 @@ void Exfont_load_font_thread(void* arg)
                 {
 					result = Draw_load_system_font(i);
 					Util_log_save(DEF_EXFONT_LOAD_FONT_THREAD_STR, "Draw_load_system_font()..." + result.string + result.error_description, result.code);
+                    var_need_reflesh = true;
                     if(result.code == 0 || i == var_system_region)
                         exfont_loaded_system_font[i] = true;
                 }
@@ -722,6 +727,7 @@ void Exfont_load_font_thread(void* arg)
                 if(!exfont_request_system_font_state[i] && exfont_loaded_system_font[i])
                 {
 					Draw_free_system_font(i);
+                    var_need_reflesh = true;
                     exfont_loaded_system_font[i] = false;
                 }
             }
