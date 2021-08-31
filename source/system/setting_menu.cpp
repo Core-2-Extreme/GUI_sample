@@ -326,7 +326,7 @@ void Sem_main(void)
 			{
 				//Back
 				Draw_texture(&sem_back_button, DEF_DRAW_WEAK_RED, 0.0, draw_y + sem_y_offset, 40, 25);
-				Draw(sem_msg[30], 0.0, draw_y + sem_y_offset + 5.0, 0.6, 0.6, color);
+				Draw(sem_msg[DEF_SEM_BACK_MSG], 0.0, draw_y + sem_y_offset + 5.0, 0.6, 0.6, color);
 			}
 		}
 
@@ -341,45 +341,45 @@ void Sem_main(void)
 		{
 			//Update
 			Draw_texture(&sem_menu_button[DEF_SEM_MENU_UPDATE], DEF_DRAW_WEAK_AQUA, 0, 0, 240, 20);
-			Draw(sem_msg[0], 0, 0, 0.75, 0.75, color);
+			Draw(sem_msg[DEF_SEM_UPDATE_MSG], 0, 0, 0.75, 0.75, color);
 
 			//Lang
 			Draw_texture(&sem_menu_button[DEF_SEM_MENU_LANGAGES], DEF_DRAW_WEAK_AQUA, 0, 25, 240, 20);
-			Draw(sem_msg[1], 0, 25, 0.75, 0.75, color);
+			Draw(sem_msg[DEF_SEM_LANGAGES_MSG], 0, 25, 0.75, 0.75, color);
 
 			//LCD
 			Draw_texture(&sem_menu_button[DEF_SEM_MENU_LCD], DEF_DRAW_WEAK_AQUA, 0, 50, 240, 20);
-			Draw(sem_msg[2], 0, 50, 0.75, 0.75, color);
+			Draw(sem_msg[DEF_SEM_LCD_MSG], 0, 50, 0.75, 0.75, color);
 
 			//Control
 			Draw_texture(&sem_menu_button[DEF_SEM_MENU_CONTROL], DEF_DRAW_WEAK_AQUA, 0, 75, 240, 20);
-			Draw(sem_msg[3], 0, 75, 0.75, 0.75, color);
+			Draw(sem_msg[DEF_SEM_CONTROL_MSG], 0, 75, 0.75, 0.75, color);
 
 			//Font
 			Draw_texture(&sem_menu_button[DEF_SEM_MENU_FONT], DEF_DRAW_WEAK_AQUA, 0, 100, 240, 20);
-			Draw(sem_msg[4], 0, 100, 0.75, 0.75, color);
+			Draw(sem_msg[DEF_SEM_FONT_MSG], 0, 100, 0.75, 0.75, color);
 
 			//Wireless
 			Draw_texture(&sem_menu_button[DEF_SEM_MENU_WIFI], DEF_DRAW_WEAK_AQUA, 0, 125, 240, 20);
-			Draw(sem_msg[5], 0, 125, 0.75, 0.75, color);
+			Draw(sem_msg[DEF_SEM_WIFI_MSG], 0, 125, 0.75, 0.75, color);
 
 			//Advanced
 			Draw_texture(&sem_menu_button[DEF_SEM_MENU_ADVANCED], DEF_DRAW_WEAK_AQUA, 0, 150, 240, 20);
-			Draw(sem_msg[6], 0, 150, 0.75, 0.75, color);
+			Draw(sem_msg[DEF_SEM_ADVANCED_MSG], 0, 150, 0.75, 0.75, color);
 
 			//Battery
 			Draw_texture(&sem_menu_button[DEF_SEM_MENU_BATTERY], DEF_DRAW_WEAK_AQUA, 0, 175, 240, 20);
-			Draw(sem_msg[7], 0, 175, 0.75, 0.75, color);
+			Draw(sem_msg[DEF_SEM_BATTERY_MSG], 0, 175, 0.75, 0.75, color);
 
 			//Screen recording
 			Draw_texture(&sem_menu_button[DEF_SEM_MENU_RECORDING], DEF_DRAW_WEAK_AQUA, 0, 200, 240, 20);
-			Draw(sem_msg[49], 0, 200, 0.75, 0.75, color);
+			Draw(sem_msg[DEF_SEM_RECORDING_MSG], 0, 200, 0.75, 0.75, color);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_UPDATE)
 		{
 			//Check for updates
 			Draw_texture(&sem_check_update_button, DEF_DRAW_WEAK_AQUA, 10, 25, 240, 20);
-			Draw(sem_msg[8], 10, 25, 0.75, 0.75, color);
+			Draw(sem_msg[DEF_SEM_CHECK_UPDATE_MSG], 10, 25, 0.75, 0.75, color);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES)
 		{
@@ -387,11 +387,11 @@ void Sem_main(void)
 
 			//English
 			Draw_texture(&sem_english_button, DEF_DRAW_WEAK_AQUA, 10, 25, 240, 20);
-			Draw(sem_msg[9], 10, 25, 0.75, 0.75, (var_lang == "en") ? DEF_DRAW_RED : color);
+			Draw(sem_msg[DEF_SEM_ENGLISH_MSG], 10, 25, 0.75, 0.75, (var_lang == "en") ? DEF_DRAW_RED : color);
 
 			//Japanese
 			Draw_texture(&sem_japanese_button, DEF_DRAW_WEAK_AQUA, 10, 50, 240, 20);
-			Draw(sem_msg[10], 10, 50, 0.75, 0.75, (var_lang == "jp") ? DEF_DRAW_RED : color);
+			Draw(sem_msg[DEF_SEM_JAPANESE_MSG], 10, 50, 0.75, 0.75, (var_lang == "jp") ? DEF_DRAW_RED : color);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)
 		{
@@ -425,45 +425,45 @@ void Sem_main(void)
 				cache_color[1] = DEF_DRAW_WEAK_BLACK;
 
 			//Night mode
-			Draw(sem_msg[11], 0, 25, 0.5, 0.5, color);
+			Draw(sem_msg[DEF_SEM_NIGHT_MODE_MSG], 0, 25, 0.5, 0.5, color);
 			//ON
 			Draw_texture(&sem_night_mode_on_button, DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
-			Draw(sem_msg[12], 10, 40, 0.65, 0.65, var_night_mode ? DEF_DRAW_RED : color);
+			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.65, 0.65, var_night_mode ? DEF_DRAW_RED : color);
 			//OFF
 			Draw_texture(&sem_night_mode_off_button, DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
-			Draw(sem_msg[13], 110, 40, 0.65, 0.65, var_night_mode ? color : DEF_DRAW_RED);
+			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.65, 0.65, var_night_mode ? color : DEF_DRAW_RED);
 			//Flash
 			Draw_texture(&sem_flash_mode_button, DEF_DRAW_WEAK_AQUA, 210, 40, 50, 20);
-			Draw(sem_msg[14], 210, 40, 0.65, 0.65, var_flash_mode ? DEF_DRAW_RED : color);
+			Draw(sem_msg[DEF_SEM_FLASH_MSG], 210, 40, 0.65, 0.65, var_flash_mode ? DEF_DRAW_RED : color);
 
 			//Screen brightness
-			Draw(sem_msg[15] + std::to_string(var_lcd_brightness), 0, 65, 0.5, 0.5, color);
+			Draw(sem_msg[DEF_SEM_BRIGHTNESS_MSG] + std::to_string(var_lcd_brightness), 0, 65, 0.5, 0.5, color);
 			//Bar
 			Draw_texture(&sem_screen_brightness_slider, DEF_DRAW_WEAK_RED, 10, 87.5, 300, 5);
 			Draw_texture(&sem_screen_brightness_bar, color, (var_lcd_brightness - 10) * 2, 80, 4, 20);
 
 			//Time to turn off LCDs
-			Draw(sem_msg[16] + std::to_string(var_time_to_turn_off_lcd) + sem_msg[17], 0, 105, 0.5, 0.5, color);
+			Draw(sem_msg[DEF_SEM_LCD_OFF_TIME_0_MSG] + std::to_string(var_time_to_turn_off_lcd) + sem_msg[DEF_SEM_LCD_OFF_TIME_1_MSG], 0, 105, 0.5, 0.5, color);
 			//Bar
 			Draw_texture(&sem_screen_off_time_slider, DEF_DRAW_WEAK_RED, 10, 127.5, 300, 5);
 			Draw_texture(&sem_screen_off_time_bar, color, (var_time_to_turn_off_lcd), 120, 4, 20);
 
 			//Screen mode
-			Draw(sem_msg[54], 0, 145, 0.5, 0.5, color);
+			Draw(sem_msg[DEF_SEM_LCD_MODE_MSG], 0, 145, 0.5, 0.5, color);
 			//800px
 			Draw_texture(&sem_800px_mode_button, DEF_DRAW_WEAK_AQUA, 10, 160, 90, 20);
-			Draw(sem_msg[56], 10, 160, 0.65, 0.65, var_high_resolution_mode ? DEF_DRAW_RED : cache_color[0]);
+			Draw(sem_msg[DEF_SEM_800PX_MSG], 10, 160, 0.65, 0.65, var_high_resolution_mode ? DEF_DRAW_RED : cache_color[0]);
 			//3D
 			Draw_texture(&sem_3d_mode_button, DEF_DRAW_WEAK_AQUA, 110, 160, 90, 20);
-			Draw(sem_msg[57], 110, 160, 0.65, 0.65, var_3d_mode ? DEF_DRAW_RED : cache_color[1]);
+			Draw(sem_msg[DEF_SEM_3D_MSG], 110, 160, 0.65, 0.65, var_3d_mode ? DEF_DRAW_RED : cache_color[1]);
 			//Nothing
 			Draw_texture(&sem_400px_mode_button, DEF_DRAW_WEAK_AQUA, 210, 160, 90, 20);
-			Draw(sem_msg[58], 210, 160, 0.65, 0.65, (var_high_resolution_mode || var_3d_mode) ? cache_color[2] : DEF_DRAW_RED);
+			Draw(sem_msg[DEF_SEM_400PX_MSG], 210, 160, 0.65, 0.65, (var_high_resolution_mode || var_3d_mode) ? cache_color[2] : DEF_DRAW_RED);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_CONTROL)
 		{
 			//Scroll speed
-			Draw(sem_msg[18] + std::to_string(var_scroll_speed), 0, 25, 0.5, 0.5, color);
+			Draw(sem_msg[DEF_SEM_SCROLL_SPEED_MSG] + std::to_string(var_scroll_speed), 0, 25, 0.5, 0.5, color);
 			//Bar
 			Draw_texture(&sem_scroll_speed_slider, DEF_DRAW_WEAK_RED, 10, 47.5, 300, 5);
 			Draw_texture(&sem_scroll_speed_bar, color, (var_scroll_speed * 300), 40, 4, 20);
@@ -490,19 +490,19 @@ void Sem_main(void)
 
 				//JPN
 				Draw_texture(&sem_system_font_button[0], DEF_DRAW_WEAK_AQUA, 10, 30 + sem_y_offset, 200, 20);
-				Draw(sem_msg[19], 10, 30 + sem_y_offset, 0.75, 0.75, cache_color[0]);
+				Draw(sem_msg[DEF_SEM_JAPANESE_FONT_MSG], 10, 30 + sem_y_offset, 0.75, 0.75, cache_color[0]);
 
 				//CHN
 				Draw_texture(&sem_system_font_button[1], DEF_DRAW_WEAK_AQUA, 10, 50 + sem_y_offset, 200, 20);
-				Draw(sem_msg[20], 10, 50 + sem_y_offset, 0.75, 0.75, cache_color[1]);
+				Draw(sem_msg[DEF_SEM_CHINESE_FONT_MSG], 10, 50 + sem_y_offset, 0.75, 0.75, cache_color[1]);
 
 				//KOR
 				Draw_texture(&sem_system_font_button[2], DEF_DRAW_WEAK_AQUA, 10, 70 + sem_y_offset, 200, 20);
-				Draw(sem_msg[21], 10, 70 + sem_y_offset, 0.75, 0.75, cache_color[2]);
+				Draw(sem_msg[DEF_SEM_KOREAN_FONT_MSG], 10, 70 + sem_y_offset, 0.75, 0.75, cache_color[2]);
 
 				//TWN
 				Draw_texture(&sem_system_font_button[3], DEF_DRAW_WEAK_AQUA, 10, 90 + sem_y_offset, 200, 20);
-				Draw(sem_msg[22], 10, 90 + sem_y_offset, 0.75, 0.75, cache_color[3]);
+				Draw(sem_msg[DEF_SEM_TAIWANESE_FONT_MSG], 10, 90 + sem_y_offset, 0.75, 0.75, cache_color[3]);
 			}
 
 			if (130 + sem_y_offset >= -30 && 130 + sem_y_offset <= 240)
@@ -515,11 +515,11 @@ void Sem_main(void)
 
 				//Load all
 				Draw_texture(&sem_load_all_ex_font_button, DEF_DRAW_WEAK_RED, 10, 130 + sem_y_offset, 100, 20);
-				Draw(sem_msg[23], 10, 130 + sem_y_offset, 0.65, 0.65, cache_color[0]);
+				Draw(sem_msg[DEF_SEM_LOAD_ALL_FONT_MSG], 10, 130 + sem_y_offset, 0.65, 0.65, cache_color[0]);
 
 				//Unload all
 				Draw_texture(&sem_unload_all_ex_font_button, DEF_DRAW_WEAK_YELLOW, 110, 130 + sem_y_offset, 100, 20);
-				Draw(sem_msg[24], 110, 130 + sem_y_offset, 0.65, 0.65, cache_color[0]);
+				Draw(sem_msg[DEF_SEM_UNLOAD_ALL_FONT_MSG], 110, 130 + sem_y_offset, 0.65, 0.65, cache_color[0]);
 			}
 
 			draw_x = 10.0;
@@ -552,47 +552,47 @@ void Sem_main(void)
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_WIFI)
 		{
 			//Wifi
-			Draw(sem_msg[47], 0, 25, 0.5, 0.5, color);
+			Draw(sem_msg[DEF_SEM_WIFI_MODE_MSG], 0, 25, 0.5, 0.5, color);
 			//ON
 			Draw_texture(&sem_wifi_on_button, DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
-			Draw(sem_msg[12], 10, 40, 0.75, 0.75, var_wifi_enabled ? DEF_DRAW_RED : color);
+			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.75, 0.75, var_wifi_enabled ? DEF_DRAW_RED : color);
 			//OFF
 			Draw_texture(&sem_wifi_off_button, DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
-			Draw(sem_msg[13], 110, 40, 0.75, 0.75, var_wifi_enabled ? color : DEF_DRAW_RED);
+			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.75, 0.75, var_wifi_enabled ? color : DEF_DRAW_RED);
 
 			//Connected SSID
-			Draw(sem_msg[48] + var_connected_ssid, 0, 65, 0.4, 0.4, color);
+			Draw(sem_msg[DEF_SEM_CONNECTED_SSID_MSG] + var_connected_ssid, 0, 65, 0.4, 0.4, color);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_ADVANCED)
 		{
 			//Allow send app info
-			Draw(sem_msg[25], 0, 25, 0.5, 0.5, color);
+			Draw(sem_msg[DEF_SEM_SEND_INFO_MODE_MSG], 0, 25, 0.5, 0.5, color);
 			//Allow
 			Draw_texture(&sem_allow_send_info_button, DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
-			Draw(sem_msg[26], 10, 40, 0.75, 0.75, var_allow_send_app_info ? DEF_DRAW_RED : color);
+			Draw(sem_msg[DEF_SEM_ALLOW_MSG], 10, 40, 0.75, 0.75, var_allow_send_app_info ? DEF_DRAW_RED : color);
 			//Deny
 			Draw_texture(&sem_deny_send_info_button, DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
-			Draw(sem_msg[27], 110, 40, 0.75, 0.75, var_allow_send_app_info ? color : DEF_DRAW_RED);
+			Draw(sem_msg[DEF_SEM_DENY_MSG], 110, 40, 0.75, 0.75, var_allow_send_app_info ? color : DEF_DRAW_RED);
 
 			//Debug mode
-			Draw(sem_msg[28], 0, 65, 0.5, 0.5, color);
+			Draw(sem_msg[DEF_SEM_DEBUG_MODE_MSG], 0, 65, 0.5, 0.5, color);
 			//ON
 			Draw_texture(&sem_debug_mode_on_button, DEF_DRAW_WEAK_AQUA, 10, 80, 90, 20);
-			Draw(sem_msg[12], 10, 80, 0.75, 0.75, var_debug_mode ? DEF_DRAW_RED : color);
+			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 80, 0.75, 0.75, var_debug_mode ? DEF_DRAW_RED : color);
 			//OFF
 			Draw_texture(&sem_debug_mode_off_button, DEF_DRAW_WEAK_AQUA, 110, 80, 90, 20);
-			Draw(sem_msg[13], 110, 80, 0.75, 0.75, var_debug_mode ? color : DEF_DRAW_RED);
+			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 80, 0.75, 0.75, var_debug_mode ? color : DEF_DRAW_RED);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_BATTERY)
 		{
 			//Eco mode
-			Draw(sem_msg[29], 0, 25, 0.5, 0.5, color);
+			Draw(sem_msg[DEF_SEM_ECO_MODE_MSG], 0, 25, 0.5, 0.5, color);
 			//ON
 			Draw_texture(&sem_eco_mode_on_button, DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
-			Draw(sem_msg[12], 10, 40, 0.75, 0.75, var_eco_mode ? DEF_DRAW_RED : color);
+			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.75, 0.75, var_eco_mode ? DEF_DRAW_RED : color);
 			//OFF
 			Draw_texture(&sem_eco_mode_off_button, DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
-			Draw(sem_msg[13], 110, 40, 0.75, 0.75, var_eco_mode ? color : DEF_DRAW_RED);
+			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.75, 0.75, var_eco_mode ? color : DEF_DRAW_RED);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_RECORDING)
 		{
@@ -603,18 +603,18 @@ void Sem_main(void)
 			
 			//Record both screen
 			Draw_texture(&sem_record_both_lcd_button, DEF_DRAW_WEAK_AQUA, 10, 25, 240, 20);
-			Draw(sem_msg[sem_record_request ? 53 : 50], 10, 25, 0.6, 0.6, cache_color[0]);
+			Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTH_LCD_MSG], 10, 25, 0.6, 0.6, cache_color[0]);
 
 			//Record top screen
 			Draw_texture(&sem_record_top_lcd_button, DEF_DRAW_WEAK_AQUA, 10, 60, 240, 20);
-			Draw(sem_msg[sem_record_request ? 53 : 51], 10, 60, 0.6, 0.6, cache_color[0]);
+			Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_TOP_LCD_MSG], 10, 60, 0.6, 0.6, cache_color[0]);
 
 			//Record bottom screen
 			Draw_texture(&sem_record_bottom_lcd_button, DEF_DRAW_WEAK_AQUA, 10, 95, 240, 20);
-			Draw(sem_msg[sem_record_request ? 53 : 52], 10, 95, 0.6, 0.6, cache_color[0]);
+			Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTTOM_LCD_MSG], 10, 95, 0.6, 0.6, cache_color[0]);
 
 			if(var_high_resolution_mode)
-				Draw(sem_msg[55], 10, 120, 0.5, 0.5, DEF_DRAW_RED);
+				Draw(sem_msg[DEF_SEM_CANNOT_RECORD_MSG], 10, 120, 0.5, 0.5, DEF_DRAW_RED);
 		}
 
 		if (sem_show_patch_note_request)
@@ -624,16 +624,16 @@ void Sem_main(void)
 			Draw_texture(&sem_close_updater_button, DEF_DRAW_WEAK_WHITE, 160, 200, 145, 15);
 
 			if(sem_update_progress == 0)//checking...
-				Draw(sem_msg[31], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
+				Draw(sem_msg[DEF_SEM_CHECKING_UPDATE_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
 			else if(sem_update_progress == -1)//failed
-				Draw(sem_msg[32], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
+				Draw(sem_msg[DEF_SEM_CHECKING_UPDATE_FAILED_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
 			else if (sem_update_progress == 1)//success
 			{
-				Draw(sem_msg[33 + sem_new_version_available], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
+				Draw(sem_msg[sem_new_version_available ? DEF_SEM_UP_TO_DATE_MSG : DEF_SEM_NEW_VERSION_AVAILABLE_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
 				Draw(sem_newest_ver_data[5], 17.5, 35, 0.45, 0.45, DEF_DRAW_BLACK);
 			}
-			Draw(sem_msg[36], 17.5, 200, 0.4, 0.4, DEF_DRAW_BLACK);
-			Draw(sem_msg[35], 162.5, 200, 0.4, 0.4, DEF_DRAW_BLACK);
+			Draw(sem_msg[DEF_SEM_SELECT_EDITION_MSG], 17.5, 200, 0.4, 0.4, DEF_DRAW_BLACK);
+			Draw(sem_msg[DEF_SEM_CLOSE_UPDATER_MSG], 162.5, 200, 0.4, 0.4, DEF_DRAW_BLACK);
 		}
 		if (sem_select_ver_request)
 		{
@@ -645,23 +645,23 @@ void Sem_main(void)
 
 			//3dsx
 			if(sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
-				Draw(sem_msg[37], 17.5, 15, 0.8, 0.8, DEF_DRAW_RED);
+				Draw(sem_msg[DEF_SEM_3DSX_MSG], 17.5, 15, 0.8, 0.8, DEF_DRAW_RED);
 			else if(sem_newest_ver_data[1] == "1")
-				Draw(sem_msg[37], 17.5, 15, 0.8, 0.8, DEF_DRAW_BLACK);
+				Draw(sem_msg[DEF_SEM_3DSX_MSG], 17.5, 15, 0.8, 0.8, DEF_DRAW_BLACK);
 			else
-				Draw(sem_msg[37], 17.5, 15, 0.8, 0.8, DEF_DRAW_WEAK_BLACK);
+				Draw(sem_msg[DEF_SEM_3DSX_MSG], 17.5, 15, 0.8, 0.8, DEF_DRAW_WEAK_BLACK);
 
 			//cia
 			if(sem_selected_edition_num == DEF_SEM_EDTION_CIA)
-				Draw(sem_msg[38], 17.5, 45, 0.8, 0.8, DEF_DRAW_RED);
+				Draw(sem_msg[DEF_SEM_CIA_MSG], 17.5, 45, 0.8, 0.8, DEF_DRAW_RED);
 			else if(sem_newest_ver_data[2] == "1")
-				Draw(sem_msg[38], 17.5, 45, 0.8, 0.8, DEF_DRAW_BLACK);
+				Draw(sem_msg[DEF_SEM_CIA_MSG], 17.5, 45, 0.8, 0.8, DEF_DRAW_BLACK);
 			else
-				Draw(sem_msg[38], 17.5, 45, 0.8, 0.8, DEF_DRAW_WEAK_BLACK);
+				Draw(sem_msg[DEF_SEM_CIA_MSG], 17.5, 45, 0.8, 0.8, DEF_DRAW_WEAK_BLACK);
 
 			if (sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
 			{
-				Draw(sem_msg[39], 17.5, 140, 0.5, 0.5, DEF_DRAW_BLACK);
+				Draw(sem_msg[DEF_SEM_FILE_PATH_MSG], 17.5, 140, 0.5, 0.5, DEF_DRAW_BLACK);
 				Draw("sdmc:" + DEF_UPDATE_DIR_PREFIX + sem_newest_ver_data[0] + "/" + DEF_UPDATE_FILE_PREFIX + ".3dsx", 17.5, 150, 0.45, 0.45, DEF_DRAW_RED);
 			}
 
@@ -669,27 +669,27 @@ void Sem_main(void)
 			{
 				//downloading...
 				Draw(std::to_string(sem_dled_size / 1024.0 / 1024.0).substr(0, 4) + "MB(" + std::to_string(sem_dled_size / 1024) + "KB)", 17.5, 180, 0.4, 0.4, DEF_DRAW_BLACK);
-				Draw(sem_msg[40], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
+				Draw(sem_msg[DEF_SEM_DOWNLOADING_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
 			}
 			else if(sem_update_progress == 3)
 			{
 				//installing...
 				Draw(std::to_string(sem_installed_size / 1024.0 / 1024.0).substr(0, 4) + "MB/" + std::to_string(sem_total_cia_size / 1024.0 / 1024.0).substr(0, 4) + "MB", 17.5, 180, 0.4, 0.4, DEF_DRAW_BLACK);
-				Draw(sem_msg[41], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
+				Draw(sem_msg[DEF_SEM_INSTALLING_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
 			}
 			else if (sem_update_progress == 4)
 			{
 				//success
-				Draw(sem_msg[42], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
-				Draw(sem_msg[44], 17.5, 180, 0.45, 0.45, DEF_DRAW_BLACK);
+				Draw(sem_msg[DEF_SEM_SUCCESS_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
+				Draw(sem_msg[DEF_SEM_RESTART_MSG], 17.5, 180, 0.45, 0.45, DEF_DRAW_BLACK);
 				Draw_texture(&sem_close_app_button, DEF_DRAW_YELLOW, 250, 180, 55.0, 20.0);
-				Draw(sem_msg[46], 250, 180, 0.375, 0.375, DEF_DRAW_BLACK);
+				Draw(sem_msg[DEF_SEM_CLOSE_APP_MSG], 250, 180, 0.375, 0.375, DEF_DRAW_BLACK);
 			}
 			else if (sem_update_progress == -2)
-				Draw(sem_msg[43], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
+				Draw(sem_msg[DEF_SEM_FAILURE_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
 
-			Draw(sem_msg[45], 162.5, 200, 0.4, 0.4, DEF_DRAW_BLACK);
-			Draw(sem_msg[35], 17.5, 200, 0.45, 0.45, DEF_DRAW_BLACK);
+			Draw(sem_msg[DEF_SEM_DL_INSTALL_MSG], 162.5, 200, 0.4, 0.4, DEF_DRAW_BLACK);
+			Draw(sem_msg[DEF_SEM_BACK_TO_PATCH_NOTE_MSG], 17.5, 200, 0.45, 0.45, DEF_DRAW_BLACK);
 		}
 
 		if(Util_err_query_error_show_flag())
@@ -1476,6 +1476,7 @@ void Sem_update_thread(void* arg)
 				sem_update_progress = 2;
 				url = sem_newest_ver_data[3 + sem_selected_edition_num];
 			}
+			var_need_reflesh = true;
 
 			sem_dled_size = 0;
 			offset = 0;
@@ -1518,6 +1519,7 @@ void Sem_update_thread(void* arg)
 						sem_update_progress = -1;
 					else if (sem_dl_file_request)
 						sem_update_progress = -2;
+					var_need_reflesh = true;
 				}
 				else
 				{
@@ -1550,6 +1552,7 @@ void Sem_update_thread(void* arg)
 						}
 
 						sem_update_progress = 1;
+						var_need_reflesh = true;
 					}
 					else if (sem_dl_file_request)
 					{
@@ -1557,6 +1560,7 @@ void Sem_update_thread(void* arg)
 						if (sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
 							sem_update_progress = 4;
 
+						var_need_reflesh = true;
 						if (sem_selected_edition_num == DEF_SEM_EDTION_CIA)
 						{
 							sem_total_cia_size = sem_dled_size;
@@ -1590,6 +1594,7 @@ void Sem_update_thread(void* arg)
 								sem_update_progress = 4;
 							else
 								sem_update_progress = -2;
+							var_need_reflesh = true;
 						}
 					}
 				}
