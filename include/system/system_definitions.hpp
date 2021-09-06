@@ -187,6 +187,9 @@
 #define DEF_HID_EXIT_STR (std::string)"Hid/Exit"
 #define DEF_HID_SCAN_THREAD_STR (std::string)"Hid/Scan thread"
 
+//http
+#define DEF_HTTP_POST_BUFFER_SIZE 0x100000
+
 //log
 #define DEF_LOG_BUFFER_LINES 512
 #define DEF_LOG_DISPLAYED_LINES 23
