@@ -92,6 +92,43 @@ Result_with_string Util_converter_yuv420p_to_bgr565(u8* yuv420p, u8** bgr565, in
 	return result;
 }
 
+Result_with_string Util_converter_yuv420p_to_bgr888(u8* yuv420p, u8** bgr888, int width, int height)
+{
+    int index = 0;
+    u8* ybase = yuv420p;
+    u8* ubase = yuv420p + width * height;
+    u8* vbase = yuv420p + width * height + width * height / 4;
+	Result_with_string result;
+
+	*bgr888 = (u8*)malloc(width * height * 3);
+	if(*bgr888 == NULL)
+	{
+		result.code = DEF_ERR_OUT_OF_MEMORY;
+		result.string = DEF_ERR_OUT_OF_MEMORY_STR;
+		return result;
+	}
+	
+	u8 Y[4], U, V;
+	if(true)
+	{
+		for (int y = 0; y < height; y++)
+		{
+			for (int x = 0; x < width; x++)
+			{
+				//YYYYYYYYUUVV
+				Y[0] = *ybase++;
+				U = ubase[y / 2 * width / 2 + (x / 2)];
+				V = vbase[y / 2 * width / 2 + (x / 2)];
+				
+				*(*bgr888 + index++) = YUV2B(Y[0], U);
+				*(*bgr888 + index++) = YUV2G(Y[0], U, V);
+				*(*bgr888 + index++) = YUV2R(Y[0], V);
+			}
+		}
+	}
+	return result;
+}
+
 void Util_converter_rgb888_to_bgr888(u8* buf, int width, int height)
 {
 	int offset = 0;
