@@ -51,15 +51,16 @@ bool sem_change_brightness_request = false;
 bool sem_dl_file_request = false;
 bool sem_scroll_mode = false;
 bool sem_back_button_selected, sem_scroll_bar_selected, sem_menu_button_selected[9], sem_check_update_button_selected,
-sem_english_button_selected, sem_japanese_button_selected, sem_night_mode_on_button_selected, sem_night_mode_off_button_selected,
-sem_flash_mode_button_selected, sem_screen_brightness_slider_selected, sem_screen_brightness_bar_selected, sem_screen_off_time_slider_selected,
-sem_screen_off_time_bar_selected, sem_800px_mode_button_selected, sem_3d_mode_button_selected, sem_400px_mode_button_selected,
-sem_scroll_speed_slider_selected, sem_scroll_speed_bar_selected, sem_system_font_button_selected[4], sem_load_all_ex_font_button_selected,
-sem_unload_all_ex_font_button_selected, sem_ex_font_button_selected[DEF_EXFONT_NUM_OF_FONT_NAME], sem_wifi_on_button_selected,
-sem_wifi_off_button_selected, sem_allow_send_info_button_selected, sem_deny_send_info_button_selected, sem_debug_mode_on_button_selected,
-sem_debug_mode_off_button_selected, sem_eco_mode_on_button_selected, sem_eco_mode_off_button_selected, sem_record_both_lcd_button_selected,
-sem_record_top_lcd_button_selected, sem_record_bottom_lcd_button_selected, sem_select_edtion_button_selected, sem_close_updater_button_selected,
-sem_3dsx_button_selected, sem_cia_button_selected, sem_dl_install_button_selected, sem_back_to_patch_note_button_selected, sem_close_app_button_selected = false;
+sem_english_button_selected, sem_japanese_button_selected, sem_hungarian_button_selected, sem_chinese_button_selected, sem_italian_button_selected,
+sem_night_mode_on_button_selected, sem_night_mode_off_button_selected, sem_flash_mode_button_selected, sem_screen_brightness_slider_selected,
+sem_screen_brightness_bar_selected, sem_screen_off_time_slider_selected, sem_screen_off_time_bar_selected, sem_800px_mode_button_selected,
+sem_3d_mode_button_selected, sem_400px_mode_button_selected, sem_scroll_speed_slider_selected, sem_scroll_speed_bar_selected,
+sem_system_font_button_selected[4], sem_load_all_ex_font_button_selected, sem_unload_all_ex_font_button_selected,
+sem_ex_font_button_selected[DEF_EXFONT_NUM_OF_FONT_NAME], sem_wifi_on_button_selected, sem_wifi_off_button_selected,
+sem_allow_send_info_button_selected, sem_deny_send_info_button_selected, sem_debug_mode_on_button_selected, sem_debug_mode_off_button_selected,
+sem_eco_mode_on_button_selected, sem_eco_mode_off_button_selected, sem_record_both_lcd_button_selected, sem_record_top_lcd_button_selected,
+sem_record_bottom_lcd_button_selected, sem_select_edtion_button_selected, sem_close_updater_button_selected, sem_3dsx_button_selected,
+sem_cia_button_selected, sem_dl_install_button_selected, sem_back_to_patch_note_button_selected, sem_close_app_button_selected = false;
 u8* sem_yuv420p = NULL;
 u32 sem_dled_size = 0;
 int sem_rec_width = 400;
@@ -79,9 +80,10 @@ std::string sem_msg[DEF_SEM_NUM_OF_MSG];
 std::string sem_newest_ver_data[6];//0 newest version number, 1 3dsx available, 2 cia available, 3 3dsx dl url, 4 cia dl url, 5 patch note
 Thread sem_update_thread, sem_worker_thread, sem_record_thread, sem_encode_thread;
 Image_data sem_back_button, sem_scroll_bar, sem_menu_button[9], sem_check_update_button, sem_english_button, sem_japanese_button,
-sem_night_mode_on_button, sem_night_mode_off_button, sem_flash_mode_button, sem_screen_brightness_slider, sem_screen_brightness_bar,
-sem_screen_off_time_slider, sem_screen_off_time_bar, sem_800px_mode_button, sem_3d_mode_button, sem_400px_mode_button,
-sem_scroll_speed_slider, sem_scroll_speed_bar, sem_system_font_button[4], sem_load_all_ex_font_button, sem_unload_all_ex_font_button,
+sem_hungarian_button, sem_chinese_button, sem_italian_button, sem_night_mode_on_button, sem_night_mode_off_button,
+sem_flash_mode_button, sem_screen_brightness_slider, sem_screen_brightness_bar, sem_screen_off_time_slider,
+sem_screen_off_time_bar, sem_800px_mode_button, sem_3d_mode_button, sem_400px_mode_button, sem_scroll_speed_slider,
+sem_scroll_speed_bar, sem_system_font_button[4], sem_load_all_ex_font_button, sem_unload_all_ex_font_button,
 sem_ex_font_button[DEF_EXFONT_NUM_OF_FONT_NAME], sem_wifi_on_button, sem_wifi_off_button, sem_allow_send_info_button,
 sem_deny_send_info_button, sem_debug_mode_on_button, sem_debug_mode_off_button, sem_eco_mode_on_button, sem_eco_mode_off_button,
 sem_record_both_lcd_button, sem_record_top_lcd_button, sem_record_bottom_lcd_button, sem_select_edtion_button, sem_close_updater_button,
@@ -117,9 +119,9 @@ void Sem_suspend(void)
 	sem_main_run = false;
 }
 
-Result_with_string Sem_load_msg(void)
+Result_with_string Sem_load_msg(std::string lang)
 {
-	return Util_load_msg("sem_" + var_lang + ".txt", sem_msg, DEF_SEM_NUM_OF_MSG);
+	return Util_load_msg("sem_" + lang + ".txt", sem_msg, DEF_SEM_NUM_OF_MSG);
 }
 
 void Sem_init(void)
@@ -132,6 +134,10 @@ void Sem_init(void)
 	u32 read_size = 0;
 	std::string data[11];
 	Result_with_string result;
+	
+	//create directory
+	Util_file_save_to_file(".", DEF_MAIN_DIR, NULL, 0, false);
+	Util_file_save_to_file(".", DEF_MAIN_DIR + "screen_recording/", NULL, 0, false);
 
 	if(CFGU_SecureInfoGetRegion(&region) == 0)
 	{
@@ -167,7 +173,7 @@ void Sem_init(void)
 		var_high_resolution_mode = (data[9] == "1");
 		var_3d_mode = (data[10] == "1");
 
-		if(var_lang != "jp" && var_lang != "en")
+		if(var_lang != "jp" && var_lang != "en" && var_lang != "hu" && var_lang != "zh-cn" && var_lang != "it")
 			var_lang = "en";
 		if(var_lcd_brightness < 15 || var_lcd_brightness > 163)
 			var_lcd_brightness = 100;
@@ -218,6 +224,9 @@ void Sem_draw_init(void)
 	sem_check_update_button.c2d = var_square_image[0];
 	sem_english_button.c2d = var_square_image[0];
 	sem_japanese_button.c2d = var_square_image[0];
+	sem_hungarian_button.c2d = var_square_image[0];
+	sem_chinese_button.c2d = var_square_image[0];
+	sem_italian_button.c2d = var_square_image[0];
 	sem_night_mode_on_button.c2d = var_square_image[0];
 	sem_night_mode_off_button.c2d = var_square_image[0];
 	sem_flash_mode_button.c2d = var_square_image[0];
@@ -335,7 +344,12 @@ void Sem_main(void)
 			{
 				//Back
 				Draw_texture(&sem_back_button, sem_back_button_selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 0.0, draw_y + sem_y_offset, 40, 25);
-				Draw(sem_msg[DEF_SEM_BACK_MSG], 0.0, draw_y + sem_y_offset + 5.0, 0.6, 0.6, color);
+				if (var_lang == "hu")
+					Draw(sem_msg[DEF_SEM_BACK_MSG], 0.0, draw_y + sem_y_offset + 5.0, 0.475, 0.475, color);
+				else if (var_lang == "it")
+					Draw(sem_msg[DEF_SEM_BACK_MSG], 0.0, draw_y + sem_y_offset + 5.0, 0.45, 0.45, color);
+				else
+					Draw(sem_msg[DEF_SEM_BACK_MSG], 0.0, draw_y + sem_y_offset + 5.0, 0.6, 0.6, color);
 			}
 		}
 
@@ -476,6 +490,18 @@ void Sem_main(void)
 			//Japanese
 			Draw_texture(&sem_japanese_button, sem_japanese_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 50, 240, 20);
 			Draw(sem_msg[DEF_SEM_JAPANESE_MSG], 10, 50, 0.75, 0.75, (var_lang == "jp") ? DEF_DRAW_RED : color);
+
+			//Hungarian
+			Draw_texture(&sem_hungarian_button, sem_hungarian_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 75, 240, 20);
+			Draw(sem_msg[DEF_SEM_HUNGARIAN_MSG], 10, 75, 0.75, 0.75, (var_lang == "hu") ? DEF_DRAW_RED : color);
+
+			//Chinese
+			Draw_texture(&sem_chinese_button, sem_chinese_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 100, 240, 20);
+			Draw(sem_msg[DEF_SEM_CHINESE_MSG], 10, 100, 0.75, 0.75, (var_lang == "zh-cn") ? DEF_DRAW_RED : color);
+
+			//Italian
+			Draw_texture(&sem_italian_button, sem_italian_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 125, 240, 20);
+			Draw(sem_msg[DEF_SEM_ITALIAN_MSG], 10, 125, 0.75, 0.75, (var_lang == "it") ? DEF_DRAW_RED : color);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)
 		{
@@ -687,15 +713,24 @@ void Sem_main(void)
 			
 			//Record both screen
 			Draw_texture(&sem_record_both_lcd_button, sem_record_both_lcd_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 25, 240, 20);
-			Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTH_LCD_MSG], 10, 25, 0.6, 0.6, cache_color[0]);
+			if(var_lang == "it")
+				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTH_LCD_MSG], 10, 25, 0.475, 0.475, cache_color[0]);
+			else
+				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTH_LCD_MSG], 10, 25, 0.6, 0.6, cache_color[0]);
 
 			//Record top screen
 			Draw_texture(&sem_record_top_lcd_button, sem_record_top_lcd_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 60, 240, 20);
-			Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_TOP_LCD_MSG], 10, 60, 0.6, 0.6, cache_color[0]);
+			if(var_lang == "it")
+				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_TOP_LCD_MSG], 10, 60, 0.475, 0.475, cache_color[0]);
+			else
+				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_TOP_LCD_MSG], 10, 60, 0.6, 0.6, cache_color[0]);
 
 			//Record bottom screen
 			Draw_texture(&sem_record_bottom_lcd_button, sem_record_bottom_lcd_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 95, 240, 20);
-			Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTTOM_LCD_MSG], 10, 95, 0.6, 0.6, cache_color[0]);
+			if(var_lang == "it")
+				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTTOM_LCD_MSG], 10, 95, 0.475, 0.475, cache_color[0]);
+			else
+				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTTOM_LCD_MSG], 10, 95, 0.6, 0.6, cache_color[0]);
 
 			if(var_high_resolution_mode)
 				Draw(sem_msg[DEF_SEM_CANNOT_RECORD_MSG], 10, 120, 0.5, 0.5, DEF_DRAW_RED);
@@ -864,6 +899,39 @@ void Sem_main(void)
 				else if(Util_hid_is_released(key, sem_japanese_button) && sem_japanese_button_selected)
 				{
 					var_lang = "jp";
+					sem_reload_msg_request = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, sem_hungarian_button))
+				{
+					sem_hungarian_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, sem_hungarian_button) && sem_hungarian_button_selected)
+				{
+					var_lang = "hu";
+					sem_reload_msg_request = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, sem_chinese_button))
+				{
+					sem_chinese_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, sem_chinese_button) && sem_chinese_button_selected)
+				{
+					var_lang = "zh-cn";
+					sem_reload_msg_request = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, sem_italian_button))
+				{
+					sem_italian_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, sem_italian_button) && sem_italian_button_selected)
+				{
+					var_lang = "it";
 					sem_reload_msg_request = true;
 					var_need_reflesh = true;
 				}
@@ -1280,6 +1348,7 @@ void Sem_main(void)
 			if(sem_back_button_selected || sem_scroll_bar_selected || sem_check_update_button_selected || sem_close_updater_button_selected 
 			|| sem_select_edtion_button_selected || sem_3dsx_button_selected || sem_cia_button_selected || sem_back_to_patch_note_button_selected
 			|| sem_dl_install_button_selected || sem_close_app_button_selected || sem_english_button_selected || sem_japanese_button_selected
+			|| sem_hungarian_button_selected || sem_chinese_button_selected || sem_italian_button_selected
 			|| sem_night_mode_on_button_selected || sem_night_mode_off_button_selected || sem_flash_mode_button_selected || sem_screen_brightness_bar_selected
 			|| sem_screen_off_time_bar_selected || sem_800px_mode_button_selected || sem_3d_mode_button_selected || sem_400px_mode_button_selected
 			|| sem_scroll_speed_bar_selected || sem_wifi_on_button_selected || sem_wifi_off_button_selected || sem_allow_send_info_button_selected
@@ -1291,6 +1360,7 @@ void Sem_main(void)
 			sem_back_button_selected = sem_scroll_bar_selected = sem_check_update_button_selected = sem_close_updater_button_selected
 			= sem_select_edtion_button_selected = sem_3dsx_button_selected = sem_cia_button_selected = sem_back_to_patch_note_button_selected
 			= sem_dl_install_button_selected = sem_close_app_button_selected = sem_english_button_selected = sem_japanese_button_selected
+			= sem_hungarian_button_selected = sem_chinese_button_selected = sem_italian_button_selected
 			= sem_night_mode_on_button_selected = sem_night_mode_off_button_selected = sem_flash_mode_button_selected = sem_screen_brightness_bar_selected
 			= sem_screen_off_time_bar_selected = sem_800px_mode_button_selected = sem_3d_mode_button_selected = sem_400px_mode_button_selected
 			= sem_scroll_speed_bar_selected = sem_wifi_on_button_selected = sem_wifi_off_button_selected = sem_allow_send_info_button_selected
@@ -1409,8 +1479,6 @@ void Sem_record_thread(void* arg)
 	Result_with_string result;
 	TickCounter counter;
 	APT_CheckNew3DS(&new_3ds);
-
-	Util_file_save_to_file(".", DEF_MAIN_DIR + "screen_recording/", NULL, 0, false);//create directory
 	osTickCounterStart(&counter);
 
 	while (sem_thread_run)
@@ -1592,50 +1660,100 @@ void Sem_worker_thread(void* arg)
 	{
 		if (sem_reload_msg_request)
 		{
-			result = Sem_load_msg();
+			result = Sem_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sem_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sem_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sem_load_msg()..." + result.string + result.error_description, result.code);
+			}
 
-			result = Menu_load_msg();
+			result = Menu_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Menu_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Menu_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Menu_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			
 			#ifdef DEF_ENABLE_SUB_APP0
-			result = Sapp0_load_msg();
+			result = Sapp0_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp0_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sapp0_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp0_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP1
-			result = Sapp1_load_msg();
+			result = Sapp1_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp1_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sapp1_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp1_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP2
-			result = Sapp2_load_msg();
+			result = Sapp2_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp2_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sapp2_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp2_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP3
-			result = Sapp3_load_msg();
+			result = Sapp3_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp3_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sapp3_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp4_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP4
-			result = Sapp4_load_msg();
+			result = Sapp4_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp4_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sapp4_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp4_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP5
-			result = Sapp5_load_msg();
+			result = Sapp5_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp5_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sapp5_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp5_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP6
-			result = Sapp6_load_msg();
+			result = Sapp6_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp6_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sapp6_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp6_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP7
-			result = Sapp7_load_msg();
+			result = Sapp7_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp7_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sapp7_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp7_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			#endif
 
 			sem_reload_msg_request = false;
