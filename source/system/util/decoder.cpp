@@ -40,14 +40,15 @@ Result_with_string Util_mvd_video_decoder_init(int session)
 	int width = 0;
 	int height = 0;
 	Result_with_string result;
+	width = util_video_decoder_context[session][0]->width;
+	height = util_video_decoder_context[session][0]->height;
 
-	result.code = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264, MVD_OUTPUT_BGR565, MVD_DEFAULT_WORKBUF_SIZE * 2, NULL);
+	result.code = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264, MVD_OUTPUT_BGR565, width * height * 9, NULL);
+	//result.code = mvdstdInit(MVDMODE_VIDEOPROCESSING, (MVDSTD_InputFormat)0x00180001, MVD_OUTPUT_BGR565, width * height * 9, NULL);
 	if(result.code != 0)
 		result.string = "mvdstdInit() failed. ";
 	else
 	{
-		width = util_video_decoder_context[session][0]->width;
-		height = util_video_decoder_context[session][0]->height;
 		if(width % 16 != 0)
 			width += 16 - width % 16;
 		if(height % 16 != 0)
@@ -294,8 +295,22 @@ void Util_audio_decoder_get_info(int* bitrate, int* sample_rate, int* ch, std::s
 	*duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;
 }
 
-void Util_video_decoder_get_info(int* width, int* height, double* framerate, std::string* format_name, double* duration, int* thread_type, int video_index, int session)
+void Util_video_decoder_get_info(int* width, int* height, double* framerate, std::string* format_name, double* duration, int* thread_type, int* sar_width, int* sar_height, int video_index, int session)
 {
+	//Util_log_save("debug", std::to_string(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->sample_aspect_ratio.num) + ":" + std::to_string(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->sample_aspect_ratio.den));
+	AVRational sar = av_guess_sample_aspect_ratio(util_decoder_format_context[session], util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]], NULL);
+	//Util_log_save("debug", std::to_string(sar.num) + ":" + std::to_string(sar.den));
+	if(sar.num == 0 && sar.den == 1)
+	{
+		*sar_width = 1;
+		*sar_height = 1;
+	}
+	else
+	{
+		*sar_width = sar.num;
+		*sar_height = sar.den;
+	}
+
 	*width = util_video_decoder_context[session][video_index]->width;
 	*height = util_video_decoder_context[session][video_index]->height;
 	*thread_type = util_video_decoder_context[session][video_index]->thread_type;
@@ -648,6 +663,7 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 	{
 		mvdstdGenerateDefaultConfig(&util_decoder_mvd_config, *width, *height, *width, *height, NULL, NULL, NULL);
 		util_decoder_mvd_config.physaddr_outdata0 = osConvertVirtToPhys(util_video_decoder_mvd_raw_data);
+		//util_decoder_mvd_config.output_type = (MVDSTD_OutputFormat)0x00040000;
 
 		//set extra data
 		offset = 0;
@@ -694,6 +710,7 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 	}
 
 	result.code = mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, 0, NULL);
+	//Util_log_save("debug", "mvdstdProcessVideoFrame", result.code);
 
 	if(util_video_decoder_mvd_first)
 	{
