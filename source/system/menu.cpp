@@ -90,8 +90,12 @@ void Menu_check_core_thread(void* arg)
 
 void Menu_init(void)
 {
-	Result_with_string result;
+	u8 data = -1;
+	u8 region = 0;
+	u8 model = 0;
+	u32 read_size = 0;
 	Thread core_2, core_3;
+	Result_with_string result;
 
 	Util_log_init();
 	Util_log_save(DEF_MENU_INIT_STR, "Initializing..." + DEF_CURRENT_APP_VER);
@@ -111,6 +115,43 @@ void Menu_init(void)
 	Util_log_save(DEF_MENU_INIT_STR, "amInit()...", amInit());
 	Util_log_save(DEF_MENU_INIT_STR, "ndspInit()...", ndspInit());//0xd880A7FA
 	Util_log_save(DEF_MENU_INIT_STR, "APT_SetAppCpuTimeLimit()...", APT_SetAppCpuTimeLimit(30));
+
+	//create directory
+	Util_file_save_to_file(".", DEF_MAIN_DIR, NULL, 0, false);
+	Util_file_save_to_file(".", DEF_MAIN_DIR + "screen_recording/", NULL, 0, false);
+
+	if(Util_file_load_from_file("fake_model.txt", DEF_MAIN_DIR, &data, 1, &read_size).code == 0 && data <= 5)
+	{
+		var_fake_model = true;
+		var_model = data;
+	}
+
+	if(CFGU_SecureInfoGetRegion(&region) == 0)
+	{
+		if(region == CFG_REGION_CHN)
+			var_system_region = 1;
+		else if(region == CFG_REGION_KOR)
+			var_system_region = 2;
+		else if(region == CFG_REGION_TWN)
+			var_system_region = 3;
+		else
+			var_system_region = 0;
+	}
+
+	if(CFGU_GetSystemModel(&model) == 0)
+	{
+		Util_log_save(DEF_MENU_INIT_STR, "Model : " + var_model_name[model]);
+		if(!var_fake_model)
+			var_model = model;
+	}
+	else
+		Util_log_save(DEF_MENU_INIT_STR, "Model : Unknown");
+
+	if(var_fake_model)
+		Util_log_save(DEF_MENU_INIT_STR, "Using fake model : " + var_model_name[var_model]);
+
+	if(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DSXL || var_model == CFG_MODEL_3DS)
+		osSetSpeedupEnable(false);
 
 	Sem_init();
 	Sem_suspend();
