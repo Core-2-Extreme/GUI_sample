@@ -13,6 +13,9 @@ C2D_Image util_draw_eco_image[2];
 std::string util_draw_japanese_kanji[3000];
 std::string util_draw_simple_chinese[6300];
 TickCounter util_draw_frame_time_stopwatch;
+Image_data util_draw_bot_ui;
+
+extern "C" void memcpy_asm(u8*, u8*, int);
 
 double Draw_query_frametime(void)
 {
@@ -75,7 +78,7 @@ Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int 
 
 	for(int i = 0; i < pic_height / 8; i++)
 	{
-		memcpy((void*)((u8*)image->c2d.tex->data + tex_offset), buf + buffer_offset, pic_width * 8 * pixel_size);
+		memcpy_asm(((u8*)image->c2d.tex->data + tex_offset), buf + buffer_offset, pic_width * 8 * pixel_size);
 		tex_offset += tex_size_x * pixel_size * 8;
 		buffer_offset += pic_width * pixel_size * 8;
 	}
@@ -205,12 +208,12 @@ Result_with_string Draw_c2d_image_init(Image_data* image, int tex_size_x, int te
 {
 	Result_with_string result;
 
-	image->subtex = (Tex3DS_SubTexture*)linearAlloc(sizeof(Tex3DS_SubTexture*));
-	image->c2d.tex = (C3D_Tex*)linearAlloc(sizeof(C3D_Tex*));
+	image->subtex = (Tex3DS_SubTexture*)Util_safe_linear_alloc(sizeof(Tex3DS_SubTexture*));
+	image->c2d.tex = (C3D_Tex*)Util_safe_linear_alloc(sizeof(C3D_Tex*));
 	if(image->subtex == NULL || image->c2d.tex == NULL)
 	{
-		linearFree(image->subtex);
-		linearFree(image->c2d.tex);
+		Util_safe_linear_free(image->subtex);
+		Util_safe_linear_free(image->c2d.tex);
 		image->subtex = NULL;
 		image->c2d.tex = NULL;
 		result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
@@ -235,9 +238,9 @@ Result_with_string Draw_c2d_image_init(Image_data* image, int tex_size_x, int te
 
 void Draw_c2d_image_free(Image_data image)
 {
-	linearFree(image.c2d.tex->data);
-	linearFree(image.c2d.tex);
-	linearFree(image.subtex);
+	Util_safe_linear_free(image.c2d.tex->data);
+	Util_safe_linear_free(image.c2d.tex);
+	Util_safe_linear_free(image.subtex);
 	image.c2d.tex->data = NULL;
 	image.c2d.tex = NULL;
 	image.c2d.subtex = NULL;
@@ -485,8 +488,13 @@ void Draw_top_ui(void)
 
 void Draw_bot_ui(void)
 {
-	Draw_texture(var_square_image[0], DEF_DRAW_BLACK, 0.0, 225.0, 320.0, 15.0);
+	Draw_texture(&util_draw_bot_ui, DEF_DRAW_BLACK, 0.0, 225.0, 320.0, 15.0);
 	Draw("▽", 155.0, 220.0, 0.75, 0.75, DEF_DRAW_WHITE);
+}
+
+Image_data* Draw_get_bot_ui_button(void)
+{
+	return &util_draw_bot_ui;
 }
 
 void Draw_texture(C2D_Image image, float x, float y, float x_size, float y_size)
@@ -649,6 +657,7 @@ Result_with_string Draw_init(bool wide, bool _3d)
 
 	result = Draw_load_kanji_samples();
 
+	util_draw_bot_ui.c2d = var_square_image[0];
 	return result;
 }
 

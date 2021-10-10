@@ -256,8 +256,21 @@ void Sapp7_main(void)
 		Util_err_main(key);
 	else
 	{
-		if (key.p_start || (key.p_touch && key.touch_x >= 110 && key.touch_x <= 230 && key.touch_y >= 220 && key.touch_y <= 240))
+		if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
+		{
+			Draw_get_bot_ui_button()->selected = true;
+			var_need_reflesh = true;
+		}
+		else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
 			Sapp7_suspend();
+	}
+
+	if(!key.p_touch && !key.h_touch)
+	{
+		if(Draw_get_bot_ui_button()->selected)
+			var_need_reflesh = true;
+
+		Draw_get_bot_ui_button()->selected = false;
 	}
 
 	if(Util_log_query_log_show_flag())
