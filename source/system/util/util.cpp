@@ -2,6 +2,8 @@
 
 Handle util_safe_linear_memory_mutex = -1;
 
+extern "C" void memcpy_asm(u8*, u8*, int);
+
 Result_with_string Util_parse_file(std::string source_data, int num_of_items, std::string out_data[])
 {
 	Result_with_string result;
@@ -144,7 +146,7 @@ void Util_exit(void)
 	svcCloseHandle(util_safe_linear_memory_mutex);
 }
 
-void* Util_safe_linear_alloc(int size)
+void* Util_safe_linear_alloc(size_t size)
 {
 	void* pointer = NULL;
 
@@ -155,9 +157,69 @@ void* Util_safe_linear_alloc(int size)
 	return pointer;
 }
 
+void* __attribute__((optimize("O0"))) Util_safe_linear_realloc(void* pointer, size_t size)
+{
+	void* new_ptr = NULL;
+	u32 pointer_size = 0;
+
+	if(size == 0)
+	{
+		Util_safe_linear_free(pointer);
+		return pointer;
+	}
+	if(!pointer)
+		return Util_safe_linear_alloc(size);
+
+	new_ptr = Util_safe_linear_alloc(size);
+	if(new_ptr)
+	{
+		svcWaitSynchronization(util_safe_linear_memory_mutex, U64_MAX);
+		pointer_size = linearGetSize(pointer);
+		svcReleaseMutex(util_safe_linear_memory_mutex);
+		
+		if(size > pointer_size)
+			memcpy_asm((u8*)new_ptr, (u8*)pointer, pointer_size);
+		else
+			memcpy_asm((u8*)new_ptr, (u8*)pointer, size);
+
+		Util_safe_linear_free(pointer);
+	}
+	return new_ptr;
+}
+
 void Util_safe_linear_free(void* pointer)
 {
 	svcWaitSynchronization(util_safe_linear_memory_mutex, U64_MAX);
 	linearFree(pointer);
 	svcReleaseMutex(util_safe_linear_memory_mutex);
+}
+
+u32 Util_check_free_linear_space(void)
+{
+	u32 space = 0;
+	svcWaitSynchronization(util_safe_linear_memory_mutex, U64_MAX);
+	space = linearSpaceFree();
+	svcReleaseMutex(util_safe_linear_memory_mutex);
+	return space;
+}
+
+u32 Util_check_free_ram(void)
+{
+	u8* malloc_check[2000];
+	u32 count;
+
+	for (int i = 0; i < 2000; i++)
+		malloc_check[i] = NULL;
+
+	for (count = 0; count < 2000; count++)
+	{
+		malloc_check[count] = (u8*)malloc(0x186A0);// 100KB
+		if (malloc_check[count] == NULL)
+			break;
+	}
+
+	for (u32 i = 0; i <= count; i++)
+		free(malloc_check[i]);
+
+	return count * 100 * 1024;//return free B
 }

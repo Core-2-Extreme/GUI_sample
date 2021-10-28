@@ -12,6 +12,12 @@ void Util_init(void);
 
 void Util_exit(void);
 
-void* Util_safe_linear_alloc(int size);
+void* Util_safe_linear_alloc(size_t size);
+
+void* Util_safe_linear_realloc(void* pointer, size_t size);
 
 void Util_safe_linear_free(void* pointer);
+
+u32 Util_check_free_linear_space(void);
+
+u32 Util_check_free_ram(void);
