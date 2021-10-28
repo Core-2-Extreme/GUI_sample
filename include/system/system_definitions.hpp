@@ -17,7 +17,7 @@
 #define DEF_MENU_HOW_TO_UPDATE_MSG 4
 
 //setting menu
-#define DEF_SEM_NUM_OF_MSG 63
+#define DEF_SEM_NUM_OF_MSG 65
 #define DEF_SEM_ENABLE_ICON
 //#define DEF_SEM_ENABLE_NAME
 #define DEF_SEM_ICON_PATH (std::string)"romfs:/gfx/draw/icon/sem_icon.t3x"
@@ -112,6 +112,8 @@
 #define DEF_SEM_CHINESE_MSG 60
 #define DEF_SEM_ITALIAN_MSG 61
 #define DEF_SEM_FAKE_MODEL_MSG 62
+#define DEF_SEM_SPANISH_MSG 63
+#define DEF_SEM_ROMANIAN_MSG 64
 
 //abgr8888 color
 #define DEF_DRAW_RED 0xFF0000FF
@@ -152,6 +154,7 @@
 #define DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS 0xFFFFFFFA
 #define DEF_ERR_INVALID_ARG 0xFFFFFFF9
 #define DEF_ERR_JSMN_RETURNED_NOT_SUCCESS 0xFFFFFFF8
+#define DEF_ERR_TRY_AGAIN 0xFFFFFFF7
 
 #define DEF_ERR_OTHER_STR (std::string)"[Error] Something went wrong. "
 #define DEF_ERR_OUT_OF_MEMORY_STR (std::string)"[Error] Out of memory. "
@@ -160,7 +163,8 @@
 #define DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] stb image returned NOT success. "
 #define DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] ffmpeg returned NOT success. "
 #define DEF_ERR_INVALID_ARG_STR (std::string)"[Error] Invalid arg. "
-#define DEF_ERR_JSMN_RETURNED_NOT_SUCCESS_STR "[Error] jsmn returned NOT success. "
+#define DEF_ERR_JSMN_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] jsmn returned NOT success. "
+#define DEF_ERR_TRY_AGAIN_STR (std::string)"[Error] Try again later. "
 
 //error
 #define DEF_ERR_INIT_STR (std::string)"Err/Init"
@@ -173,7 +177,11 @@
 #define DEF_EXPL_READ_DIR_THREAD_STR (std::string)"Expl/Read dir thread"
 
 //external font
-#define DEF_EXFONT_NUM_OF_FONT_NAME 50
+#define DEF_EXFONT_NUM_OF_FONT_NAME 52
+#define DEF_EXFONT_NUM_OF_ONE_BYTE_FONT 1
+#define DEF_EXFONT_NUM_OF_TWO_BYTES_FONT 12
+#define DEF_EXFONT_NUM_OF_THREE_BYTES_FONT 37
+#define DEF_EXFONT_NUM_OF_FOUR_BYTES_FONT 2
 #define DEF_EXFONT_INIT_STR (std::string)"Exfont/Init"
 #define DEF_EXFONT_EXIT_STR (std::string)"Exfont/Exit"
 #define DEF_EXFONT_LOAD_FONT_THREAD_STR (std::string)"Exfont/Load font thread"
