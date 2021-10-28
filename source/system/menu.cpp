@@ -331,6 +331,7 @@ void Menu_exit(void)
 	threadFree(menu_check_connectivity_thread);
 	threadFree(menu_send_app_info_thread);
 	threadFree(menu_update_thread);
+	Util_log_exit();
 
 	Util_exit();
 	fsExit();
@@ -377,8 +378,16 @@ void Menu_main(void)
 			if(menu_check_exit_request)
 			{
 				Draw(menu_msg[DEF_MENU_EXIST_MSG], 90.0, 105.0, 0.5, 0.5, color);
-				Draw(menu_msg[DEF_MENU_CONFIRM_MSG], 130.0, 140.0, 0.5, 0.5, DEF_DRAW_GREEN);
-				Draw(menu_msg[DEF_MENU_CANCEL_MSG], 210.0, 140.0, 0.5, 0.5, DEF_DRAW_RED);
+				if(var_lang == "ro")
+				{
+					Draw(menu_msg[DEF_MENU_CONFIRM_MSG], 130.0, 140.0, 0.4, 0.4, DEF_DRAW_GREEN);
+					Draw(menu_msg[DEF_MENU_CANCEL_MSG], 210.0, 140.0, 0.4, 0.4, DEF_DRAW_RED);
+				}
+				else
+				{
+					Draw(menu_msg[DEF_MENU_CONFIRM_MSG], 130.0, 140.0, 0.5, 0.5, DEF_DRAW_GREEN);
+					Draw(menu_msg[DEF_MENU_CANCEL_MSG], 210.0, 140.0, 0.5, 0.5, DEF_DRAW_RED);
+				}
 			}
 			else if(menu_update_available)
 			{
@@ -882,32 +891,11 @@ void Menu_get_system_info(void)
 	if (var_debug_mode)
 	{
 		//check free RAM
-		var_free_ram = Menu_check_free_ram();
-		var_free_linear_ram = linearSpaceFree();
+		var_free_ram = Util_check_free_ram();
+		var_free_linear_ram = Util_check_free_linear_space();
 	}
 
 	sprintf(var_status, "%02dfps %04d/%02d/%02d %02d:%02d:%02d ", (int)Draw_query_fps(), var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
-}
-
-int Menu_check_free_ram(void)
-{
-	u8* malloc_check[2000];
-	int count;
-
-	for (int i = 0; i < 2000; i++)
-		malloc_check[i] = NULL;
-
-	for (count = 0; count < 2000; count++)
-	{
-		malloc_check[count] = (u8*)malloc(0x186A0);// 100KB
-		if (malloc_check[count] == NULL)
-			break;
-	}
-
-	for (int i = 0; i <= count; i++)
-		free(malloc_check[i]);
-
-	return count * 100;//return free KB
 }
 
 void Menu_send_app_info_thread(void* arg)
@@ -963,6 +951,8 @@ void Menu_check_connectivity_thread(void* arg)
 
 		count++;
 	}
+
+	free(http_buffer);
 	Util_log_save(DEF_MENU_CHECK_INTERNET_STR, "Thread exit.");
 	threadExit(0);
 }
@@ -1062,6 +1052,8 @@ void Menu_update_thread(void* arg)
 				menu_update_available = true;
 		}
 	}
+
+	free(http_buffer);
 
 	Util_log_save(DEF_MENU_UPDATE_THREAD_STR, "Thread exit.");
 	threadExit(0);
