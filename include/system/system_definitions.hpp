@@ -115,6 +115,11 @@
 #define DEF_SEM_SPANISH_MSG 63
 #define DEF_SEM_ROMANIAN_MSG 64
 
+
+//camera
+#define DEF_CAM_OUT_YUV422 0
+#define DEF_CAM_OUT_RGB565 1
+
 //abgr8888 color
 #define DEF_DRAW_RED 0xFF0000FF
 #define DEF_DRAW_GREEN 0xFF00FF00
@@ -146,6 +151,7 @@
 #define DEF_ERR_CODE 3
 
 //error code
+#define DEF_SUCCESS 0x0
 #define DEF_ERR_OTHER 0xFFFFFFFF
 #define DEF_ERR_OUT_OF_MEMORY 0xFFFFFFFE
 #define DEF_ERR_OUT_OF_LINEAR_MEMORY 0xFFFFFFFD
@@ -155,6 +161,8 @@
 #define DEF_ERR_INVALID_ARG 0xFFFFFFF9
 #define DEF_ERR_JSMN_RETURNED_NOT_SUCCESS 0xFFFFFFF8
 #define DEF_ERR_TRY_AGAIN 0xFFFFFFF7
+#define DEF_ERR_ALREADY_INITIALIZED 0xFFFFFFF6
+#define DEF_ERR_NOT_INITIALIZED 0xFFFFFFF5
 
 #define DEF_ERR_OTHER_STR (std::string)"[Error] Something went wrong. "
 #define DEF_ERR_OUT_OF_MEMORY_STR (std::string)"[Error] Out of memory. "
@@ -165,6 +173,8 @@
 #define DEF_ERR_INVALID_ARG_STR (std::string)"[Error] Invalid arg. "
 #define DEF_ERR_JSMN_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] jsmn returned NOT success. "
 #define DEF_ERR_TRY_AGAIN_STR (std::string)"[Error] Try again later. "
+#define DEF_ERR_ALREADY_INITIALIZED_STR (std::string)"[Error] Already initialized. "
+#define DEF_ERR_NOT_INITIALIZED_STR (std::string)"[Error] Not initialized. "
 
 //error
 #define DEF_ERR_INIT_STR (std::string)"Err/Init"
