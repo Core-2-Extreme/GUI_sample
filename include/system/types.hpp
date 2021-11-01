@@ -5,7 +5,7 @@ struct Result_with_string
 {
 	std::string string = "[Success] ";
 	std::string error_description = "";
-	uint code = 0;
+	uint code = DEF_SUCCESS;
 };
 
 struct Image_data
