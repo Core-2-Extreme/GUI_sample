@@ -11,6 +11,7 @@ extern "C"
 
 extern "C" void memcpy_asm(u8*, u8*, int);
 
+bool util_audio_encoder_init[DEF_ENCODER_MAX_SESSIONS];
 int util_audio_pos[DEF_ENCODER_MAX_SESSIONS];
 int util_audio_increase_pts[DEF_ENCODER_MAX_SESSIONS];
 AVPacket* util_audio_encoder_packet[DEF_ENCODER_MAX_SESSIONS];
@@ -20,6 +21,7 @@ const AVCodec* util_audio_encoder_codec[DEF_ENCODER_MAX_SESSIONS];
 SwrContext* util_audio_encoder_swr_context[DEF_ENCODER_MAX_SESSIONS];
 AVStream* util_audio_encoder_stream[DEF_ENCODER_MAX_SESSIONS];
 
+bool util_video_encoder_init[DEF_ENCODER_MAX_SESSIONS];
 int util_video_pos[DEF_ENCODER_MAX_SESSIONS];
 int util_video_increase_pts[DEF_ENCODER_MAX_SESSIONS];
 AVPacket* util_video_encoder_packet[DEF_ENCODER_MAX_SESSIONS];
@@ -28,38 +30,104 @@ AVCodecContext* util_video_encoder_context[DEF_ENCODER_MAX_SESSIONS];
 const AVCodec* util_video_encoder_codec[DEF_ENCODER_MAX_SESSIONS];
 AVStream* util_video_encoder_stream[DEF_ENCODER_MAX_SESSIONS];
 
+bool util_encoder_created_file[DEF_ENCODER_MAX_SESSIONS];
+bool util_encoder_init = false;
 AVFormatContext* util_encoder_format_context[DEF_ENCODER_MAX_SESSIONS];
+
+Result_with_string Util_encoder_init(void)
+{
+	Result_with_string result;
+	if(util_encoder_init)
+		goto already_inited;
+	
+	for(int i = 0; i < DEF_ENCODER_MAX_SESSIONS; i++)
+	{
+		util_audio_encoder_init[i] = false;
+		util_audio_pos[i] = 0;
+		util_audio_increase_pts[i] = 0;
+		util_audio_encoder_packet[i] = NULL;
+		util_audio_encoder_raw_data[i] = NULL;
+		util_audio_encoder_context[i] = NULL;
+		util_audio_encoder_codec[i] = NULL;
+		util_audio_encoder_swr_context[i] = NULL;
+		util_audio_encoder_stream[i] = NULL;
+
+		util_video_encoder_init[i] = false;
+		util_video_pos[i] = 0;
+		util_video_increase_pts[i] = 0;
+		util_video_encoder_packet[i] = NULL;
+		util_video_encoder_raw_data[i] = NULL;
+		util_video_encoder_context[i] = NULL;
+		util_video_encoder_codec[i] = NULL;
+		util_video_encoder_stream[i] = NULL;
+
+		util_encoder_created_file[i] = false;
+		util_encoder_format_context[i] = NULL;
+	}
+
+	util_encoder_init = true;
+	return result;
+
+	already_inited:
+	result.code = DEF_ERR_ALREADY_INITIALIZED;
+	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
+	return result;
+}
 
 Result_with_string Util_encoder_create_output_file(std::string file_name, int session)
 {
 	Result_with_string result;
 	int ffmpeg_result = 0;
 
+	if(!util_encoder_init)
+		goto not_inited;
+
+	if(session < 0 || session >= DEF_ENCODER_MAX_SESSIONS || file_name == "")
+		goto invalid_arg;
+	
+	if(util_encoder_created_file[session])
+		goto already_inited;
+
 	util_encoder_format_context[session] = avformat_alloc_context();
 	if(!util_encoder_format_context[session])
 	{
-		result.error_description = "avformat_alloc_context() failed";
-		goto fail;
+		result.error_description = "[Error] avformat_alloc_context() failed. ";
+		goto ffmpeg_api_failed;
 	}
 
 	util_encoder_format_context[session]->oformat = av_guess_format(NULL, file_name.c_str(), NULL);
 	if(!util_encoder_format_context[session]->oformat)
 	{
-		result.error_description = "av_guess_format() failed";
-		goto fail;
+		result.error_description = "[Error] av_guess_format() failed. ";
+		goto ffmpeg_api_failed;
 	}
 
 	ffmpeg_result = avio_open(&util_encoder_format_context[session]->pb, file_name.c_str(), AVIO_FLAG_READ_WRITE);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "avio_open() failed " + std::to_string(ffmpeg_result);
-		goto fail;
+		result.error_description = "[Error] avio_open() failed. " + std::to_string(ffmpeg_result) + " ";
+		goto ffmpeg_api_failed;
 	}
 
+	util_encoder_created_file[session] = true;
 	return result;
 
-	fail:
+	not_inited:
+	result.code = DEF_ERR_NOT_INITIALIZED;
+	result.string = DEF_ERR_NOT_INITIALIZED_STR;
+	return result;
 
+	invalid_arg:
+	result.code = DEF_ERR_INVALID_ARG;
+	result.string = DEF_ERR_INVALID_ARG_STR;
+	return result;
+	
+	already_inited:
+	result.code = DEF_ERR_ALREADY_INITIALIZED;
+	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
+	return result;
+	
+	ffmpeg_api_failed:
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	avio_close(util_encoder_format_context[session]->pb);
