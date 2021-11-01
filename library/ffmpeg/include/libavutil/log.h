@@ -107,6 +107,11 @@ typedef struct AVClass {
     int parent_log_context_offset;
 
     /**
+     * Return next AVOptions-enabled child or NULL
+     */
+    void* (*child_next)(void *obj, void *prev);
+
+    /**
      * Category used for visualization (like color)
      * This is only set if the category is equal for all objects using this class.
      * available since version (51 << 16 | 56 << 8 | 100)
@@ -124,11 +129,6 @@ typedef struct AVClass {
      * available since version (52.12)
      */
     int (*query_ranges)(struct AVOptionRanges **, void *obj, const char *key, int flags);
-
-    /**
-     * Return next AVOptions-enabled child or NULL
-     */
-    void* (*child_next)(void *obj, void *prev);
 
     /**
      * Iterate over the AVClasses corresponding to potential AVOptions-enabled

@@ -553,21 +553,9 @@ typedef struct AVOutputFormat {
     /**
      * A format-specific function for interleavement.
      * If unset, packets will be interleaved by dts.
-     *
-     * @param s           An AVFormatContext for output. pkt will be added to
-     *                    resp. taken from its packet buffer.
-     * @param[in,out] pkt A packet to be interleaved if has_packet is set;
-     *                    also used to return packets. If no packet is returned
-     *                    (e.g. on error), pkt is blank on return.
-     * @param flush       1 if no further packets are available as input and
-     *                    all remaining packets should be output.
-     * @param has_packet  If set, pkt contains a packet to be interleaved
-     *                    on input; otherwise pkt is blank on input.
-     * @return 1 if a packet was output, 0 if no packet could be output,
-     *         < 0 if an error occurred
      */
-    int (*interleave_packet)(struct AVFormatContext *s, AVPacket *pkt,
-                             int flush, int has_packet);
+    int (*interleave_packet)(struct AVFormatContext *, AVPacket *out,
+                             AVPacket *in, int flush);
     /**
      * Test if the given codec can be stored in this container.
      *
@@ -833,6 +821,8 @@ typedef struct AVIndexEntry {
  */
 #define AV_DISPOSITION_TIMED_THUMBNAILS  0x0800
 
+typedef struct AVStreamInternal AVStreamInternal;
+
 /**
  * To specify text track kind (different from subtitles default).
  */
@@ -1013,6 +1003,12 @@ typedef struct AVStream {
      *
      */
     int pts_wrap_bits;
+
+    /**
+     * An opaque field for libavformat internal usage.
+     * Must not be accessed in any way by callers.
+     */
+    AVStreamInternal *internal;
 } AVStream;
 
 struct AVCodecParserContext *av_stream_get_parser(const AVStream *s);
@@ -1093,6 +1089,8 @@ enum AVDurationEstimationMethod {
     AVFMT_DURATION_FROM_STREAM, ///< Duration estimated from a stream with a known duration
     AVFMT_DURATION_FROM_BITRATE ///< Duration estimated from bitrate (less accurate)
 };
+
+typedef struct AVFormatInternal AVFormatInternal;
 
 /**
  * Format I/O context.
@@ -1561,6 +1559,12 @@ typedef struct AVFormatContext {
      * - decoding: set by user
      */
     char *format_whitelist;
+
+    /**
+     * An opaque field for libavformat internal usage.
+     * Must not be accessed in any way by callers.
+     */
+    AVFormatInternal *internal;
 
     /**
      * IO repositioned flag.
@@ -2260,7 +2264,7 @@ int av_write_frame(AVFormatContext *s, AVPacket *pkt);
  * Write a packet to an output media file ensuring correct interleaving.
  *
  * This function will buffer the packets internally as needed to make sure the
- * packets in the output file are properly interleaved, usually ordered by
+ * packets in the output file are properly interleaved in the order of
  * increasing dts. Callers doing their own interleaving should call
  * av_write_frame() instead of this function.
  *
@@ -2273,10 +2277,10 @@ int av_write_frame(AVFormatContext *s, AVPacket *pkt);
  *            <br>
  *            If the packet is reference-counted, this function will take
  *            ownership of this reference and unreference it later when it sees
- *            fit. If the packet is not reference-counted, libavformat will
- *            make a copy.
- *            The returned packet will be blank (as if returned from
- *            av_packet_alloc()), even on error.
+ *            fit.
+ *            The caller must not access the data through this reference after
+ *            this function returns. If the packet is not reference-counted,
+ *            libavformat will make a copy.
  *            <br>
  *            This parameter can be NULL (at any time, not just at the end), to
  *            flush the interleaving queues.
@@ -2292,9 +2296,10 @@ int av_write_frame(AVFormatContext *s, AVPacket *pkt);
  *            The dts for subsequent packets in one stream must be strictly
  *            increasing (unless the output format is flagged with the
  *            AVFMT_TS_NONSTRICT, then they merely have to be nondecreasing).
- *            @ref AVPacket.duration "duration" should also be set if known.
+ *            @ref AVPacket.duration "duration") should also be set if known.
  *
- * @return 0 on success, a negative AVERROR on error.
+ * @return 0 on success, a negative AVERROR on error. Libavformat will always
+ *         take care of freeing the packet, even if this function fails.
  *
  * @see av_write_frame(), AVFormatContext.max_interleave_delta
  */

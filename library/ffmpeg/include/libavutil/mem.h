@@ -237,15 +237,14 @@ av_alloc_size(1, 2) void *av_malloc_array(size_t nmemb, size_t size);
  * @see av_mallocz()
  * @see av_malloc_array()
  */
-void *av_calloc(size_t nmemb, size_t size) av_malloc_attrib av_alloc_size(1, 2);
+av_alloc_size(1, 2) void *av_mallocz_array(size_t nmemb, size_t size);
 
-#if FF_API_AV_MALLOCZ_ARRAY
 /**
- * @deprecated use av_calloc()
+ * Non-inlined equivalent of av_mallocz_array().
+ *
+ * Created for symmetry with the calloc() C function.
  */
-attribute_deprecated
-void *av_mallocz_array(size_t nmemb, size_t size) av_malloc_attrib av_alloc_size(1, 2);
-#endif
+void *av_calloc(size_t nmemb, size_t size) av_malloc_attrib;
 
 /**
  * Allocate, reallocate, or free a block of memory.
