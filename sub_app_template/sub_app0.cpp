@@ -101,9 +101,9 @@ void Sapp0_suspend(void)
 	Menu_resume();
 }
 
-Result_with_string Sapp0_load_msg(void)
+Result_with_string Sapp0_load_msg(std::string lang)
 {
-	return Util_load_msg("sapp0_" + var_lang + ".txt", sapp0_msg, DEF_SAPP0_NUM_OF_MSG);
+	return  Util_load_msg("sapp0_" + lang + ".txt", sapp0_msg, DEF_SAPP0_NUM_OF_MSG);
 }
 
 void Sapp0_init(void)
@@ -201,7 +201,6 @@ void Sapp0_main(void)
 	int back_color = DEF_DRAW_WHITE;
 	Hid_info key;
 	Util_hid_query_key_state(&key);
-	Util_hid_key_flag_reset();
 
 	if (var_night_mode)
 	{
@@ -256,8 +255,21 @@ void Sapp0_main(void)
 		Util_err_main(key);
 	else
 	{
-		if (key.p_start || (key.p_touch && key.touch_x >= 110 && key.touch_x <= 230 && key.touch_y >= 220 && key.touch_y <= 240))
+		if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
+		{
+			Draw_get_bot_ui_button()->selected = true;
+			var_need_reflesh = true;
+		}
+		else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
 			Sapp0_suspend();
+	}
+
+	if(!key.p_touch && !key.h_touch)
+	{
+		if(Draw_get_bot_ui_button()->selected)
+			var_need_reflesh = true;
+
+		Draw_get_bot_ui_button()->selected = false;
 	}
 
 	if(Util_log_query_log_show_flag())
