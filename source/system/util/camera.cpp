@@ -25,70 +25,70 @@ Result_with_string Util_cam_init(int color_format)
 	result.code = camInit();
 	if (result.code != 0)
 	{
-		result.string = "[Error] camInit() failed. ";
+		result.error_description = "[Error] camInit() failed. ";
 		goto nintendo_api_failed_0;
 	}
 
 	result.code = CAMU_SetOutputFormat(SELECT_ALL, color, CONTEXT_BOTH);
 	if (result.code != 0)
 	{
-		result.string = "[Error] CAMU_SetOutputFormat() failed. ";
+		result.error_description = "[Error] CAMU_SetOutputFormat() failed. ";
 		goto nintendo_api_failed;
 	}
 
 	result.code = CAMU_SetNoiseFilter(SELECT_ALL, true);
 	if (result.code != 0)
 	{
-		result.string = "[Error] CAMU_SetNoiseFilter() failed. ";
+		result.error_description = "[Error] CAMU_SetNoiseFilter() failed. ";
 		goto nintendo_api_failed;
 	}
 
 	result.code = CAMU_SetAutoExposure(SELECT_ALL, true);
 	if (result.code != 0)
 	{
-		result.string = "[Error] CAMU_SetAutoExposure() failed. ";
+		result.error_description = "[Error] CAMU_SetAutoExposure() failed. ";
 		goto nintendo_api_failed;
 	}
 
 	result.code = CAMU_SetWhiteBalance(SELECT_ALL, WHITE_BALANCE_AUTO);
 	if (result.code != 0)
 	{
-		result.string = "[Error] CAMU_SetWhiteBalance() failed. ";
+		result.error_description = "[Error] CAMU_SetWhiteBalance() failed. ";
 		goto nintendo_api_failed;
 	}
 
 	result.code = CAMU_SetPhotoMode(SELECT_ALL, PHOTO_MODE_NORMAL);
 	if (result.code != 0)
 	{
-		result.string = "[Error] CAMU_SetPhotoMode() failed. ";
+		result.error_description = "[Error] CAMU_SetPhotoMode() failed. ";
 		goto nintendo_api_failed;
 	}
 
 	result.code = CAMU_SetTrimming(PORT_BOTH, false);
 	if (result.code != 0)
 	{
-		result.string = "[Error] CAMU_SetTrimming() failed. ";
+		result.error_description = "[Error] CAMU_SetTrimming() failed. ";
 		goto nintendo_api_failed;
 	}
 
 	result.code = CAMU_SetFrameRate(SELECT_ALL, FRAME_RATE_30);
 	if (result.code != 0)
 	{
-		result.string = "[Error] CAMU_SetFrameRate() failed. ";
+		result.error_description = "[Error] CAMU_SetFrameRate() failed. ";
 		goto nintendo_api_failed;
 	}
 
 	result.code = CAMU_SetContrast(SELECT_ALL, CONTRAST_NORMAL);
 	if (result.code != 0)
 	{
-		result.string = "[Error] CAMU_SetContrast() failed. ";
+		result.error_description = "[Error] CAMU_SetContrast() failed. ";
 		goto nintendo_api_failed;
 	}
 
 	result.code = CAMU_SetLensCorrection(SELECT_ALL, LENS_CORRECTION_NORMAL);
 	if (result.code != 0)
 	{
-		result.string = "[Error] CAMU_SetLensCorrection() failed. ";
+		result.error_description = "[Error] CAMU_SetLensCorrection() failed. ";
 		goto nintendo_api_failed;
 	}
 
@@ -97,28 +97,28 @@ Result_with_string Util_cam_init(int color_format)
 	result.code = CAMU_SetSize(SELECT_ALL, SIZE_VGA, CONTEXT_BOTH);
 	if (result.code != 0)
 	{
-		result.string = "[Error] CAMU_SetSize() failed. ";
+		result.error_description = "[Error] CAMU_SetSize() failed. ";
 		goto nintendo_api_failed;
 	}
 
 	result.code = CAMU_GetMaxBytes(&util_cam_buffer_size, width, height);
 	if (result.code != 0)
 	{
-		result.string = "[Error] CAMU_GetMaxBytes() failed. ";
+		result.error_description = "[Error] CAMU_GetMaxBytes() failed. ";
 		goto nintendo_api_failed;
 	}
 
 	result.code = CAMU_SetTransferBytes(PORT_BOTH, util_cam_buffer_size, width, height);
 	if (result.code != 0)
 	{
-		result.string = "[Error] CAMU_SetTransferBytes() failed. ";
+		result.error_description = "[Error] CAMU_SetTransferBytes() failed. ";
 		goto nintendo_api_failed;
 	}
 
 	result.code = CAMU_Activate(SELECT_OUT1);
 	if (result.code != 0)
 	{
-		result.string = "[Error] CAMU_Activate() failed. ";
+		result.error_description = "[Error] CAMU_Activate() failed. ";
 		goto nintendo_api_failed;
 	}
 
@@ -141,6 +141,7 @@ Result_with_string Util_cam_init(int color_format)
 	camExit();
 
 	nintendo_api_failed_0:
+	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 
@@ -151,6 +152,9 @@ Result_with_string Util_cam_take_a_picture(u8** raw_data, int* width, int* heigh
 	if(!util_cam_init)
 		goto not_inited;
 
+	if(!raw_data || !width || !height)
+		goto invalid_arg;
+	
 	free(*raw_data);
 	*raw_data = (u8*)malloc(util_cam_width * util_cam_height * 2);
 	if(*raw_data == NULL)
@@ -159,21 +163,21 @@ Result_with_string Util_cam_take_a_picture(u8** raw_data, int* width, int* heigh
 	result.code = CAMU_StartCapture(PORT_BOTH);
 	if(result.code != 0)
 	{
-		result.string = "[Error] CAMU_StartCapture() failed. ";
+		result.error_description = "[Error] CAMU_StartCapture() failed. ";
 		goto nintendo_api_failed;
 	}
 
 	result.code = CAMU_SetReceiving(&receive, *raw_data, PORT_CAM1, util_cam_width * util_cam_height * 2, (s16)util_cam_buffer_size);
 	if(result.code != 0)
 	{
-		result.string = "[Error] CAMU_SetReceiving() failed. ";
+		result.error_description = "[Error] CAMU_SetReceiving() failed. ";
 		goto nintendo_api_failed;
 	}
 
 	result.code = svcWaitSynchronization(receive, 1000000000);
 	if(result.code != 0)
 	{
-		result.string = "[Error] svcWaitSynchronization() failed. ";
+		result.error_description = "[Error] svcWaitSynchronization() failed. ";
 		goto nintendo_api_failed;
 	}
 
@@ -182,7 +186,7 @@ Result_with_string Util_cam_take_a_picture(u8** raw_data, int* width, int* heigh
 		result.code = CAMU_PlayShutterSound(SHUTTER_SOUND_TYPE_NORMAL);
 		if(result.code != 0)
 		{
-			result.string = "[Error] CAMU_PlayShutterSound() failed. ";
+			result.error_description = "[Error] CAMU_PlayShutterSound() failed. ";
 			goto nintendo_api_failed;
 		}
 	}
@@ -198,12 +202,18 @@ Result_with_string Util_cam_take_a_picture(u8** raw_data, int* width, int* heigh
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
 	return result;
 
+	invalid_arg:
+	result.code = DEF_ERR_INVALID_ARG;
+	result.string = DEF_ERR_INVALID_ARG_STR;
+	return result;
+
 	out_of_memory:
 	result.code = DEF_ERR_OUT_OF_MEMORY;
 	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
 	return result;
 
 	nintendo_api_failed:
+	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	svcCloseHandle(receive);
 	return result;
 }
@@ -237,21 +247,21 @@ Result_with_string Util_cam_set_resolution(int width, int height)
 	result.code = CAMU_SetSize(SELECT_ALL, size, CONTEXT_BOTH);
 	if (result.code != 0)
 	{
-		result.string = "[Error] CAMU_SetSize() failed. ";
+		result.error_description = "[Error] CAMU_SetSize() failed. ";
 		goto nintendo_api_failed;
 	}
 
 	result.code = CAMU_GetMaxBytes(&util_cam_buffer_size, width, height);
 	if (result.code != 0)
 	{
-		result.string = "[Error] CAMU_GetMaxBytes() failed. ";
+		result.error_description = "[Error] CAMU_GetMaxBytes() failed. ";
 		goto nintendo_api_failed;
 	}
 
 	result.code = CAMU_SetTransferBytes(PORT_BOTH, util_cam_buffer_size, width, height);
 	if (result.code != 0)
 	{
-		result.string = "[Error] CAMU_SetTransferBytes() failed. ";
+		result.error_description = "[Error] CAMU_SetTransferBytes() failed. ";
 		goto nintendo_api_failed;
 	}
 
@@ -271,13 +281,15 @@ Result_with_string Util_cam_set_resolution(int width, int height)
 	return result;
 
 	nintendo_api_failed:
+	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 
 void Util_cam_exit(void)
 {
-	if(util_cam_init)
-		camExit();
+	if(!util_cam_init)
+		return;
 	
+	camExit();
 	util_cam_init = false;
 }
