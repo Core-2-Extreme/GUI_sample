@@ -44,6 +44,7 @@
 #define DEF_SAPP0_INIT_STR (std::string)"Sapp0/Init"
 #define DEF_SAPP0_EXIT_STR (std::string)"Sapp0/Exit"
 #define DEF_SAPP0_WORKER_THREAD_STR (std::string)"Sapp0/Worker thread"
+#define DEF_SAPP0_HID_THREAD_STR (std::string)"Sapp0/Hid thread"
 
 //sample app 1
 #define DEF_SAPP1_NUM_OF_MSG 1
@@ -56,6 +57,7 @@
 #define DEF_SAPP1_INIT_STR (std::string)"Sapp1/Init"
 #define DEF_SAPP1_EXIT_STR (std::string)"Sapp1/Exit"
 #define DEF_SAPP1_WORKER_THREAD_STR (std::string)"Sapp1/Worker thread"
+#define DEF_SAPP1_HID_THREAD_STR (std::string)"Sapp1/Hid thread"
 
 //sample app 2
 #define DEF_SAPP2_NUM_OF_MSG 1
@@ -68,6 +70,7 @@
 #define DEF_SAPP2_INIT_STR (std::string)"Sapp2/Init"
 #define DEF_SAPP2_EXIT_STR (std::string)"Sapp2/Exit"
 #define DEF_SAPP2_WORKER_THREAD_STR (std::string)"Sapp2/Worker thread"
+#define DEF_SAPP2_HID_THREAD_STR (std::string)"Sapp2/Hid thread"
 
 //sample app 3
 #define DEF_SAPP3_NUM_OF_MSG 1
@@ -80,6 +83,7 @@
 #define DEF_SAPP3_INIT_STR (std::string)"Sapp3/Init"
 #define DEF_SAPP3_EXIT_STR (std::string)"Sapp3/Exit"
 #define DEF_SAPP3_WORKER_THREAD_STR (std::string)"Sapp3/Worker thread"
+#define DEF_SAPP3_HID_THREAD_STR (std::string)"Sapp3/Hid thread"
 
 //sample app 4
 #define DEF_SAPP4_NUM_OF_MSG 1
@@ -92,6 +96,7 @@
 #define DEF_SAPP4_INIT_STR (std::string)"Sapp4/Init"
 #define DEF_SAPP4_EXIT_STR (std::string)"Sapp4/Exit"
 #define DEF_SAPP4_WORKER_THREAD_STR (std::string)"Sapp4/Worker thread"
+#define DEF_SAPP4_HID_THREAD_STR (std::string)"Sapp4/Hid thread"
 
 //sample app 5
 #define DEF_SAPP5_NUM_OF_MSG 1
@@ -104,6 +109,7 @@
 #define DEF_SAPP5_INIT_STR (std::string)"Sapp5/Init"
 #define DEF_SAPP5_EXIT_STR (std::string)"Sapp5/Exit"
 #define DEF_SAPP5_WORKER_THREAD_STR (std::string)"Sapp5/Worker thread"
+#define DEF_SAPP5_HID_THREAD_STR (std::string)"Sapp5/Hid thread"
 
 //sample app 6
 #define DEF_SAPP6_NUM_OF_MSG 1
@@ -116,6 +122,7 @@
 #define DEF_SAPP6_INIT_STR (std::string)"Sapp6/Init"
 #define DEF_SAPP6_EXIT_STR (std::string)"Sapp6/Exit"
 #define DEF_SAPP6_WORKER_THREAD_STR (std::string)"Sapp6/Worker thread"
+#define DEF_SAPP6_HID_THREAD_STR (std::string)"Sapp6/Hid thread"
 
 //sample app 7
 #define DEF_SAPP7_NUM_OF_MSG 1
@@ -128,3 +135,4 @@
 #define DEF_SAPP7_INIT_STR (std::string)"Sapp7/Init"
 #define DEF_SAPP7_EXIT_STR (std::string)"Sapp7/Exit"
 #define DEF_SAPP7_WORKER_THREAD_STR (std::string)"Sapp7/Worker thread"
+#define DEF_SAPP7_HID_THREAD_STR (std::string)"Sapp7/Hid thread"
