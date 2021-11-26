@@ -5,6 +5,8 @@ bool Sapp0_query_init_flag(void);
 
 bool Sapp0_query_running_flag(void);
 
+void Sapp0_hid(Hid_info key);
+
 void Sapp0_resume(void);
 
 void Sapp0_suspend(void);
