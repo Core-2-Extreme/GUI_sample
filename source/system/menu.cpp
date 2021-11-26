@@ -706,12 +706,13 @@ void Menu_main(void)
 void Menu_hid_thread(void* arg)
 {
 	Util_log_save(DEF_MENU_HID_THREAD_STR, "Thread started.");
+	u64 previous_ts = -1;
 	Hid_info key;
 
 	while (menu_thread_run)
 	{
 		Util_hid_query_key_state(&key);
-		if (var_previous_ts != key.ts)
+		if (previous_ts != key.ts)
 		{
 			if(menu_main_run)
 			{
@@ -984,7 +985,7 @@ void Menu_hid_thread(void* arg)
 			else if (Sem_query_running_flag())
 				Sem_hid(key);
 
-			var_previous_ts = key.ts;
+			previous_ts = key.ts;
 		}
 		else
 			usleep(10000);
