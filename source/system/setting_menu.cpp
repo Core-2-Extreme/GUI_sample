@@ -71,7 +71,7 @@ std::string sem_msg[DEF_SEM_NUM_OF_MSG];
 std::string sem_newest_ver_data[6];//0 newest version number, 1 3dsx available, 2 cia available, 3 3dsx dl url, 4 cia dl url, 5 patch note
 Thread sem_update_thread, sem_worker_thread, sem_record_thread, sem_encode_thread;
 Image_data sem_back_button, sem_scroll_bar, sem_menu_button[9], sem_check_update_button, sem_english_button, sem_japanese_button,
-sem_hungarian_button, sem_chinese_button, sem_italian_button, sem_spanish_button, sem_romanian_button, sem_night_mode_on_button,
+sem_hungarian_button, sem_chinese_button, sem_italian_button, sem_spanish_button, sem_romanian_button, sem_polish_button, sem_night_mode_on_button,
 sem_night_mode_off_button, sem_flash_mode_button, sem_screen_brightness_slider, sem_screen_brightness_bar, sem_screen_off_time_slider,
 sem_screen_off_time_bar, sem_800px_mode_button, sem_3d_mode_button, sem_400px_mode_button, sem_scroll_speed_slider,
 sem_scroll_speed_bar, sem_system_font_button[4], sem_load_all_ex_font_button, sem_unload_all_ex_font_button,
@@ -149,7 +149,7 @@ void Sem_init(void)
 			var_3d_mode = (data[10] == "1");
 
 			if(var_lang != "jp" && var_lang != "en" && var_lang != "hu" && var_lang != "zh-cn" && var_lang != "it"
-			&& var_lang != "es" && var_lang != "ro")
+			&& var_lang != "es" && var_lang != "ro" && var_lang != "pl")
 				var_lang = "en";
 			if(var_lcd_brightness < 15 || var_lcd_brightness > 163)
 				var_lcd_brightness = 100;
@@ -205,6 +205,7 @@ void Sem_draw_init(void)
 	sem_italian_button.c2d = var_square_image[0];
 	sem_spanish_button.c2d = var_square_image[0];
 	sem_romanian_button.c2d = var_square_image[0];
+	sem_polish_button.c2d = var_square_image[0];
 	sem_night_mode_on_button.c2d = var_square_image[0];
 	sem_night_mode_off_button.c2d = var_square_image[0];
 	sem_flash_mode_button.c2d = var_square_image[0];
@@ -491,6 +492,10 @@ void Sem_main(void)
 			//Romanian
 			Draw_texture(&sem_romanian_button, sem_romanian_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 175, 240, 20);
 			Draw(sem_msg[DEF_SEM_ROMANIAN_MSG], 10, 175, 0.75, 0.75, (var_lang == "ro") ? DEF_DRAW_RED : color);
+
+			//Polish
+			Draw_texture(&sem_polish_button, sem_polish_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 200, 240, 20);
+			Draw(sem_msg[DEF_SEM_POLISH_MSG], 10, 200, 0.75, 0.75, (var_lang == "pl") ? DEF_DRAW_RED : color);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)
 		{
@@ -527,10 +532,16 @@ void Sem_main(void)
 			Draw(sem_msg[DEF_SEM_NIGHT_MODE_MSG], 0, 25, 0.5, 0.5, color);
 			//ON
 			Draw_texture(&sem_night_mode_on_button, sem_night_mode_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
-			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.65, 0.65, var_night_mode ? DEF_DRAW_RED : color);
+			if(var_lang == "pl")
+				Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.55, 0.55, var_night_mode ? DEF_DRAW_RED : color);
+			else
+				Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.65, 0.65, var_night_mode ? DEF_DRAW_RED : color);
 			//OFF
 			Draw_texture(&sem_night_mode_off_button, sem_night_mode_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
-			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.65, 0.65, var_night_mode ? color : DEF_DRAW_RED);
+			if(var_lang == "pl")
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.55, 0.55, var_night_mode ? color : DEF_DRAW_RED);
+			else
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.65, 0.65, var_night_mode ? color : DEF_DRAW_RED);
 			//Flash
 			Draw_texture(&sem_flash_mode_button, sem_flash_mode_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 210, 40, 50, 20);
 			Draw(sem_msg[DEF_SEM_FLASH_MSG], 210, 40, 0.65, 0.65, var_flash_mode ? DEF_DRAW_RED : color);
@@ -654,10 +665,16 @@ void Sem_main(void)
 			Draw(sem_msg[DEF_SEM_WIFI_MODE_MSG], 0, 25, 0.5, 0.5, color);
 			//ON
 			Draw_texture(&sem_wifi_on_button, sem_wifi_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
-			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.65, 0.65, var_wifi_enabled ? DEF_DRAW_RED : color);
+			if(var_lang == "pl")
+				Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.55, 0.55, var_wifi_enabled ? DEF_DRAW_RED : color);
+			else
+				Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.65, 0.65, var_wifi_enabled ? DEF_DRAW_RED : color);
 			//OFF
 			Draw_texture(&sem_wifi_off_button, sem_wifi_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
-			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.65, 0.65, var_wifi_enabled ? color : DEF_DRAW_RED);
+			if(var_lang == "pl")
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.55, 0.55, var_wifi_enabled ? color : DEF_DRAW_RED);
+			else
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.65, 0.65, var_wifi_enabled ? color : DEF_DRAW_RED);
 
 			//Connected SSID
 			Draw(sem_msg[DEF_SEM_CONNECTED_SSID_MSG] + var_connected_ssid, 0, 65, 0.4, 0.4, color);
@@ -677,10 +694,16 @@ void Sem_main(void)
 			Draw(sem_msg[DEF_SEM_DEBUG_MODE_MSG], 0, 65, 0.5, 0.5, color);
 			//ON
 			Draw_texture(&sem_debug_mode_on_button, sem_debug_mode_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 80, 90, 20);
-			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 80, 0.65, 0.65, var_debug_mode ? DEF_DRAW_RED : color);
+			if(var_lang == "pl")
+				Draw(sem_msg[DEF_SEM_ON_MSG], 10, 80, 0.55, 0.55, var_debug_mode ? DEF_DRAW_RED : color);
+			else
+				Draw(sem_msg[DEF_SEM_ON_MSG], 10, 80, 0.65, 0.65, var_debug_mode ? DEF_DRAW_RED : color);
 			//OFF
 			Draw_texture(&sem_debug_mode_off_button, sem_debug_mode_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 80, 90, 20);
-			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 80, 0.65, 0.65, var_debug_mode ? color : DEF_DRAW_RED);
+			if(var_lang == "pl")
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 80, 0.55, 0.55, var_debug_mode ? color : DEF_DRAW_RED);
+			else
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 80, 0.65, 0.65, var_debug_mode ? color : DEF_DRAW_RED);
 
 			//Fake model
 			Draw(sem_msg[DEF_SEM_FAKE_MODEL_MSG], 0, 105, 0.5, 0.5, color);
@@ -696,10 +719,16 @@ void Sem_main(void)
 			Draw(sem_msg[DEF_SEM_ECO_MODE_MSG], 0, 25, 0.5, 0.5, color);
 			//ON
 			Draw_texture(&sem_eco_mode_on_button, sem_eco_mode_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
-			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.65, 0.65, var_eco_mode ? DEF_DRAW_RED : color);
+			if(var_lang == "pl")
+				Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.55, 0.55, var_eco_mode ? DEF_DRAW_RED : color);
+			else
+				Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.65, 0.65, var_eco_mode ? DEF_DRAW_RED : color);
 			//OFF
 			Draw_texture(&sem_eco_mode_off_button, sem_eco_mode_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
-			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.65, 0.65, var_eco_mode ? color : DEF_DRAW_RED);
+			if(var_lang == "pl")
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.55, 0.55, var_eco_mode ? color : DEF_DRAW_RED);
+			else
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.65, 0.65, var_eco_mode ? color : DEF_DRAW_RED);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_RECORDING)
 		{
@@ -970,6 +999,17 @@ void Sem_hid(Hid_info key)
 				else if(Util_hid_is_released(key, sem_romanian_button) && sem_romanian_button.selected)
 				{
 					var_lang = "ro";
+					sem_reload_msg_request = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, sem_polish_button))
+				{
+					sem_polish_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, sem_polish_button) && sem_polish_button.selected)
+				{
+					var_lang = "pl";
 					sem_reload_msg_request = true;
 					var_need_reflesh = true;
 				}
@@ -1398,7 +1438,7 @@ void Sem_hid(Hid_info key)
 			|| sem_select_edtion_button.selected || sem_3dsx_button.selected || sem_cia_button.selected || sem_back_to_patch_note_button.selected
 			|| sem_dl_install_button.selected || sem_close_app_button.selected || sem_english_button.selected || sem_japanese_button.selected
 			|| sem_hungarian_button.selected || sem_chinese_button.selected || sem_italian_button.selected || sem_spanish_button.selected
-			|| sem_romanian_button.selected
+			|| sem_romanian_button.selected || sem_polish_button.selected
 			|| sem_night_mode_on_button.selected || sem_night_mode_off_button.selected || sem_flash_mode_button.selected || sem_screen_brightness_bar.selected
 			|| sem_screen_off_time_bar.selected || sem_800px_mode_button.selected || sem_3d_mode_button.selected || sem_400px_mode_button.selected
 			|| sem_scroll_speed_bar.selected || sem_wifi_on_button.selected || sem_wifi_off_button.selected || sem_allow_send_info_button.selected
@@ -1412,7 +1452,7 @@ void Sem_hid(Hid_info key)
 			= sem_select_edtion_button.selected = sem_3dsx_button.selected = sem_cia_button.selected = sem_back_to_patch_note_button.selected
 			= sem_dl_install_button.selected = sem_close_app_button.selected = sem_english_button.selected = sem_japanese_button.selected
 			= sem_hungarian_button.selected = sem_chinese_button.selected = sem_italian_button.selected = sem_spanish_button.selected
-			= sem_romanian_button.selected
+			= sem_romanian_button.selected = sem_polish_button.selected
 			= sem_night_mode_on_button.selected = sem_night_mode_off_button.selected = sem_flash_mode_button.selected = sem_screen_brightness_bar.selected
 			= sem_screen_off_time_bar.selected = sem_800px_mode_button.selected = sem_3d_mode_button.selected = sem_400px_mode_button.selected
 			= sem_scroll_speed_bar.selected = sem_wifi_on_button.selected = sem_wifi_off_button.selected = sem_allow_send_info_button.selected
