@@ -23,6 +23,14 @@ Result_with_string Util_decoder_open_file(std::string file_path, int* num_of_aud
 Result_with_string Util_audio_decoder_init(int num_of_audio_tracks, int session);
 
 /**
+ * @brief Set core mask for multi-threaded decoding.
+ * @param frame_threading_cores (in) Core mask for frame decoding.
+ * @param slice_threading_cores (in) Core mask for slice decoding.
+ * @warning Thread dangerous (untested)
+*/
+void Util_video_decoder_set_enabled_cores(bool frame_threading_cores[4], bool slice_threading_cores[4]);
+
+/**
  * @brief Initialize a video decoder.
  * @param low_resolution (in) When non-zero lower video resolution if video codec supports it (1 = 50%, 2 = 25%).
  * @param num_of_video_tracks (in) Number of video tracks.
@@ -226,7 +234,7 @@ Result_with_string Util_mvd_video_decoder_decode(int session);
  * Do nothing if video decoder is not initialized.
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
- * @note Thread safe
+ * @warning Thread dangerous (untested)
 */
 void Util_video_decoder_clear_raw_image(int packet_index, int session);
 
@@ -234,7 +242,7 @@ void Util_video_decoder_clear_raw_image(int packet_index, int session);
  * @brief Clear raw buffer (created by Util_mvd_video_decoder_decode()).
  * Do nothing if mvd video decoder is not initialized.
  * @param session (in) Session number.
- * @note Thread safe
+ * @warning Thread dangerous (untested)
 */
 void Util_mvd_video_decoder_clear_raw_image(int session);
 
@@ -312,7 +320,7 @@ void Util_mvd_video_decoder_skip_image(double* current_pos, int session);
  * @param seek_pos (in) Target pos (in ms).
  * @param flag (in) Seek flag (combination of DEF_DECODER_SEEK_FLAG_*).
  * @param session (in) Session number.
- * @note Thread safe
+ * @warning Thread dangerous (untested)
 */
 Result_with_string Util_decoder_seek(u64 seek_pos, int flag, int session);
 
