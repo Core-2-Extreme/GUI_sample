@@ -33,11 +33,15 @@ int	pthread_mutex_lock(pthread_mutex_t *__mutex)
     while(true)
     {
         result = svcWaitSynchronization((Handle)*__mutex, U64_MAX);
-        if(result == 0xD8E007F7)
-            pthread_mutex_init(__mutex, NULL);
-
         if(result == 0)
             return 0;
+
+        if(result == 0xD8E007F7)
+        {
+            result = pthread_mutex_init(__mutex, NULL);
+            if(result != 0)
+                return -1;
+        }
     }
 }
 
@@ -75,11 +79,15 @@ int	pthread_cond_wait(pthread_cond_t *__cond, pthread_mutex_t *__mutex)
     while(true)
     {
         result = svcWaitSynchronization((Handle)*__cond, U64_MAX);
-        if(result == 0xD8E007F7)
-            pthread_cond_init(__cond, NULL);
-
         if(result == 0)
             return 0;
+
+        if(result == 0xD8E007F7)
+        {
+            result = pthread_cond_init(__cond, NULL);
+            if(result != 0)
+                return -1;
+        }
     }
 }
 
@@ -90,11 +98,20 @@ int	pthread_cond_signal(pthread_cond_t *__cond)
 
 int	pthread_cond_broadcast(pthread_cond_t *__cond)
 {
-    int result = 0;
+    uint result = 0;
     
     while(true)
     {
-        svcSignalEvent((Handle)*__cond);
+        result = svcSignalEvent((Handle)*__cond);
+        if(result == 0xD8E007F7)
+        {
+            result = pthread_cond_init(__cond, NULL);
+            if(result != 0)
+                return -1;
+            else
+                continue;
+        }
+
         result = svcWaitSynchronization((Handle)*__cond, 0);
         if(result == 0)
             return 0;
