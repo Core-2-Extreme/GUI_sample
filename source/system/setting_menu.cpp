@@ -151,7 +151,7 @@ void Sem_init(void)
 			if(var_lang != "jp" && var_lang != "en" && var_lang != "hu" && var_lang != "zh-cn" && var_lang != "it"
 			&& var_lang != "es" && var_lang != "ro" && var_lang != "pl")
 				var_lang = "en";
-			if(var_lcd_brightness < 15 || var_lcd_brightness > 163)
+			if(var_lcd_brightness < 0 || var_lcd_brightness > 180)
 				var_lcd_brightness = 100;
 			if(var_time_to_turn_off_lcd < 10 || var_time_to_turn_off_lcd > 310)
 				var_time_to_turn_off_lcd = 150;
@@ -550,7 +550,7 @@ void Sem_main(void)
 			Draw(sem_msg[DEF_SEM_BRIGHTNESS_MSG] + std::to_string(var_lcd_brightness), 0, 65, 0.5, 0.5, color);
 			//Bar
 			Draw_texture(&sem_screen_brightness_slider, DEF_DRAW_WEAK_RED, 10, 87.5, 300, 5);
-			Draw_texture(&sem_screen_brightness_bar, sem_screen_brightness_bar.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, (var_lcd_brightness - 10) * 2, 80, 4, 20);
+			Draw_texture(&sem_screen_brightness_bar, sem_screen_brightness_bar.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 300 * ((double)(var_lcd_brightness) / 180) + 10, 80, 4, 20);
 
 			//Time to turn off LCDs
 			Draw(sem_msg[DEF_SEM_LCD_OFF_TIME_0_MSG] + std::to_string(var_time_to_turn_off_lcd) + sem_msg[DEF_SEM_LCD_OFF_TIME_1_MSG], 0, 105, 0.5, 0.5, color);
@@ -785,6 +785,9 @@ void Sem_hid(Hid_info key)
 	int menu_button_list[9] = { DEF_SEM_MENU_UPDATE, DEF_SEM_MENU_LANGAGES, DEF_SEM_MENU_LCD, DEF_SEM_MENU_CONTROL,
 	DEF_SEM_MENU_FONT, DEF_SEM_MENU_WIFI, DEF_SEM_MENU_ADVANCED, DEF_SEM_MENU_BATTERY, DEF_SEM_MENU_RECORDING };
 	Result_with_string result;
+
+	if(aptShouldJumpToHome())
+		return;
 
 	if (Util_err_query_error_show_flag())
 		Util_err_main(key);
@@ -1048,16 +1051,18 @@ void Sem_hid(Hid_info key)
 				}
 				else if(Util_hid_is_pressed(key, sem_screen_brightness_bar) || Util_hid_is_pressed(key, sem_screen_brightness_slider))
 				{
-					var_lcd_brightness = (key.touch_x / 2) + 10;
+					var_lcd_brightness = 180 * ((double)(key.touch_x - 10) / 300);
+					//var_lcd_brightness = (key.touch_x / 2) + 10;
 					var_top_lcd_brightness = var_lcd_brightness;
 					var_bottom_lcd_brightness = var_lcd_brightness;
 					sem_change_brightness_request = true;
 					sem_screen_brightness_bar.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 309 && sem_screen_brightness_bar.selected)
+				else if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 310 && sem_screen_brightness_bar.selected)
 				{
-					var_lcd_brightness = (key.touch_x / 2) + 10;
+					var_lcd_brightness = 180 * ((double)(key.touch_x - 10) / 300);
+					//var_lcd_brightness = (key.touch_x / 2) + 10;
 					var_top_lcd_brightness = var_lcd_brightness;
 					var_bottom_lcd_brightness = var_lcd_brightness;
 					sem_change_brightness_request = true;
@@ -1588,7 +1593,7 @@ void Sem_record_thread(void* arg)
 				rec_width = 400;
 				rec_height = 480;
 				if(new_3ds)
-					rec_framerate = 20;
+					rec_framerate = 15;
 				else
 					rec_framerate = 5;
 			}
@@ -1621,11 +1626,17 @@ void Sem_record_thread(void* arg)
 				sem_record_request = false;
 
 			log_num = Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_video_encoder_init()...");
-			result = Util_video_encoder_init(AV_CODEC_ID_MJPEG, rec_width, rec_height, 1500000, rec_framerate, 0);
+			result = Util_video_encoder_init(DEF_ENCODER_VIDEO_CODEC_MJPEG, rec_width, rec_height, 1500000, rec_framerate, 0);
 			Util_log_add(log_num, result.string + result.error_description, result.code);
 			if(result.code != 0)
 				sem_record_request = false;
-			
+
+			log_num = Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_encoder_write_header()...");
+			result = Util_encoder_write_header(0);
+			Util_log_add(log_num, result.string + result.error_description, result.code);
+			if(result.code != 0)
+				sem_record_request = false;
+
 			sem_yuv420p = (u8*)malloc(rec_width * rec_height * 1.5);
 			if(sem_yuv420p == NULL)
 				sem_stop_record_request = true;
@@ -1773,11 +1784,11 @@ void Sem_worker_thread(void* arg)
 			
 			#ifdef DEF_ENABLE_SUB_APP0
 			result = Sapp0_load_msg(var_lang);
-			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp0_load_msg()..." + result.string + result.error_description, result.code);
+			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Vid_load_msg()..." + result.string + result.error_description, result.code);
 			if (result.code != 0)
 			{
 				result = Sapp0_load_msg("en");
-				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp0_load_msg()..." + result.string + result.error_description, result.code);
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Vid_load_msg()..." + result.string + result.error_description, result.code);
 			}
 			#endif
 
@@ -1997,13 +2008,13 @@ void Sem_update_thread(void* arg)
 							free(buffer);
 							buffer = NULL;
 							log_num = Util_log_save(DEF_SEM_UPDATE_THREAD_STR, "Util_file_load_from_file_with_range()...");
-							result = Util_file_load_from_file_with_range(file_name, dir_path, (u8**)buffer, 0x20000, offset, &read_size);
+							result = Util_file_load_from_file_with_range(file_name, dir_path, &buffer, 0x20000, offset, &read_size);
 							Util_log_add(log_num, result.string, result.code);
 							if(result.code != 0 || read_size <= 0)
 								break;
 
 							log_num = Util_log_save(DEF_SEM_UPDATE_THREAD_STR, "FSFILE_Write()...");
-							result.code = FSFILE_Write(am_handle, &write_size, offset, (u8*)buffer, read_size, FS_WRITE_FLUSH);
+							result.code = FSFILE_Write(am_handle, &write_size, offset, buffer, read_size, FS_WRITE_FLUSH);
 							Util_log_add(log_num, "", result.code);
 							if(result.code != 0)
 								break;
