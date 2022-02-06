@@ -663,7 +663,7 @@ void Draw_get_text_size(std::string text, float text_size_x, float text_size_y, 
 
 void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888)
 {
-	Draw(text, x, y, text_size_x, text_size_y, abgr8888, DEF_DRAW_X_ALGIN_LEFT, DEF_DRAW_Y_ALGIN_TOP, 0, 0, DEF_DRAW_BACKGROUND_NONE, var_null_image, DEF_DRAW_NO_COLOR);
+	Draw(text, x, y, text_size_x, text_size_y, abgr8888, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_TOP, 0, 0, DEF_DRAW_BACKGROUND_NONE, var_null_image, DEF_DRAW_NO_COLOR);
 }
 
 void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, int x_align, int y_align,
@@ -689,8 +689,8 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 	if(!util_draw_init)
 		return;
 	
-	if((x_align != DEF_DRAW_X_ALGIN_LEFT && x_align != DEF_DRAW_X_ALGIN_CENTER && x_align != DEF_DRAW_X_ALGIN_RIGHT)
-	|| (y_align != DEF_DRAW_Y_ALGIN_TOP && y_align != DEF_DRAW_Y_ALGIN_CENTER && y_align != DEF_DRAW_Y_ALGIN_BOTTOM)
+	if((x_align != DEF_DRAW_X_ALIGN_LEFT && x_align != DEF_DRAW_X_ALIGN_CENTER && x_align != DEF_DRAW_X_ALIGN_RIGHT)
+	|| (y_align != DEF_DRAW_Y_ALIGN_TOP && y_align != DEF_DRAW_Y_ALIGN_CENTER && y_align != DEF_DRAW_Y_ALIGN_BOTTOM)
 	|| (texture_position != DEF_DRAW_BACKGROUND_NONE && texture_position != DEF_DRAW_BACKGROUND_ENTIRE_BOX && texture_position != DEF_DRAW_BACKGROUND_UNDER_TEXT))
 		return;
 
@@ -712,9 +712,9 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 				used_y_max = height;
 
 			y_offset += used_y_max;
-			if(x_align == DEF_DRAW_X_ALGIN_CENTER)
+			if(x_align == DEF_DRAW_X_ALIGN_CENTER)
 				x_start[lines] = ((box_size_x - used_x) / 2) + x;
-			else if(x_align == DEF_DRAW_X_ALGIN_RIGHT)
+			else if(x_align == DEF_DRAW_X_ALIGN_RIGHT)
 				x_start[lines] = box_size_x - used_x + x;
 
 			used_y_max = 0;
@@ -744,23 +744,23 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 	}
 	used_y_max = y_offset + used_y_max;
 
-	if(x_align == DEF_DRAW_X_ALGIN_CENTER)
+	if(x_align == DEF_DRAW_X_ALIGN_CENTER)
 		x_start[lines] = ((box_size_x - used_x) / 2) + x;
-	else if(x_align == DEF_DRAW_X_ALGIN_RIGHT)
+	else if(x_align == DEF_DRAW_X_ALIGN_RIGHT)
 		x_start[lines] = box_size_x - used_x + x;
-	if(y_align == DEF_DRAW_Y_ALGIN_CENTER)
+	if(y_align == DEF_DRAW_Y_ALIGN_CENTER)
 		y = ((box_size_y - used_y_max) / 2) + y;
-	else if(y_align == DEF_DRAW_Y_ALGIN_BOTTOM)
+	else if(y_align == DEF_DRAW_Y_ALIGN_BOTTOM)
 		y = box_size_y - used_y_max + y;
 	
 	lines++;
 
-	if(x_align == DEF_DRAW_X_ALGIN_LEFT)
+	if(x_align == DEF_DRAW_X_ALIGN_LEFT)
 	{
 		x = original_x;
 		x_min = original_x;
 	}
-	else if(x_align == DEF_DRAW_X_ALGIN_CENTER || x_align == DEF_DRAW_X_ALGIN_RIGHT)
+	else if(x_align == DEF_DRAW_X_ALIGN_CENTER || x_align == DEF_DRAW_X_ALIGN_RIGHT)
 	{
 		x = x_start[line_count];
 		x_min = x_start[0];
@@ -783,9 +783,9 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 		else if (font_list[1][i] == -1)
 		{
 			y += 16.0 * text_size_y * 1.56;
-			if(x_align == DEF_DRAW_X_ALGIN_LEFT)
+			if(x_align == DEF_DRAW_X_ALIGN_LEFT)
 				x = original_x;
-			else if(x_align == DEF_DRAW_X_ALGIN_CENTER || x_align == DEF_DRAW_X_ALGIN_RIGHT)
+			else if(x_align == DEF_DRAW_X_ALIGN_CENTER || x_align == DEF_DRAW_X_ALIGN_RIGHT)
 			{
 				line_count++;
 				x = x_start[line_count];

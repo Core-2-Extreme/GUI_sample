@@ -165,10 +165,10 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
  * @param text_size_x (in) Font size for X direction.
  * @param text_size_y (in) Font size for Y direction.
  * @param abgr8888 (in) Font color.
- * @param x_align (in) DEF_DRAW_X_ALGIN_*.
- * @param y_align (in) DEF_DRAW_Y_ALGIN_*.
- * @param x_size (in) If align is not DEF_DRAW_X_ALGIN_LEFT, virtual box width (in px).
- * @param y_size (in) If align is not DEF_DRAW_Y_ALGIN_TOP, virtual box height (in px).
+ * @param x_align (in) DEF_DRAW_X_ALIGN_*.
+ * @param y_align (in) DEF_DRAW_Y_ALIGN_*.
+ * @param x_size (in) If align is not DEF_DRAW_X_ALIGN_LEFT, virtual box width (in px).
+ * @param y_size (in) If align is not DEF_DRAW_Y_ALIGN_TOP, virtual box height (in px).
  * @warning Thread dangerous (untested)
  * @warning Call it from only drawing thread.
 */
@@ -184,10 +184,10 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
  * @param text_size_x (in) Font size for X direction.
  * @param text_size_y (in) Font size for Y direction.
  * @param abgr8888 (in) Font color.
- * @param x_align (in) DEF_DRAW_X_ALGIN_*.
- * @param y_align (in) DEF_DRAW_Y_ALGIN_*.
- * @param x_size (in) If align is not DEF_DRAW_X_ALGIN_LEFT, virtual box width (in px).
- * @param y_size (in) If align is not DEF_DRAW_Y_ALGIN_TOP, virtual box height (in px).
+ * @param x_align (in) DEF_DRAW_X_ALIGN_*.
+ * @param y_align (in) DEF_DRAW_Y_ALIGN_*.
+ * @param x_size (in) If align is not DEF_DRAW_X_ALIGN_LEFT, virtual box width (in px).
+ * @param y_size (in) If align is not DEF_DRAW_Y_ALIGN_TOP, virtual box height (in px).
  * @param texture_position (in) Background texture position DEF_DRAW_BACKGROUND_*.
  * @param background_image (in) C2D Texture data.
  * @param texture_abgr8888 (in) Texture color.
