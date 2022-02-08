@@ -1146,7 +1146,7 @@ void Exfont_draw_external_fonts(std::string in_string, float texture_x, float te
         }
     }
     *out_width = x_offset;
-    *out_height = 16.0 * texture_size_y;
+    *out_height = 20.0 * texture_size_y;
 }
 
 void Exfont_draw_external_fonts(std::string in_string, float texture_x, float texture_y, float texture_size_x,
