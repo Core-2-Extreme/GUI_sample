@@ -969,7 +969,7 @@ void Menu_get_system_info(void)
 	if(result.code == 0)
 	{
 		MCUHWC_GetBatteryVoltage(&battery_voltage);
-		var_battery_voltage = 5.0 * (battery_voltage / 256); 
+		var_battery_voltage = 5.0 * ((double)battery_voltage / 256); 
 		var_battery_level_raw = battery_level;
 	}
 	else
