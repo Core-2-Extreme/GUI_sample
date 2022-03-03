@@ -962,6 +962,7 @@ void Menu_get_system_info(void)
 {
 	u8 battery_level = -1;
 	u8 battery_voltage = -1;
+	u8 battery_temp = -1;
 	char* ssid = (char*)malloc(512);
 	Result_with_string result;
 
@@ -970,8 +971,10 @@ void Menu_get_system_info(void)
 	if(result.code == 0)
 	{
 		MCUHWC_GetBatteryVoltage(&battery_voltage);
-		var_battery_voltage = 5.0 * ((double)battery_voltage / 256); 
+		MCUHWC_ReadRegister(0x0A, &battery_temp, 1);
+		var_battery_voltage = 5.0 * (battery_voltage / 256.0); 
 		var_battery_level_raw = battery_level;
+		var_battery_temp = battery_temp;
 	}
 	else
 	{
