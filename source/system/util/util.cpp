@@ -12,53 +12,20 @@ extern "C" void memcpy_asm(u8*, u8*, int);
 
 extern "C" void* __wrap_malloc(size_t size)
 {
-	void* ptr = NULL;
 	//Alloc memory on linear ram if requested size is greater than 32KB to prevent slow down (linear alloc is slow).
-	//If allocation failed, try different memory before giving up.
 	if(size > 1024 * 32)
-	{
-		ptr = Util_safe_linear_alloc(size);
-		if(!ptr)
-			ptr = __real_malloc(size);
-	}
+		return Util_safe_linear_alloc(size);
 	else
-	{
-		ptr = __real_malloc(size);
-		if(!ptr)
-			ptr = Util_safe_linear_alloc(size);
-	}
-	return ptr;
+		return __real_malloc(size);
 }
 
 extern "C" void* __wrap_realloc(void* ptr, size_t size)
 {
-	void* new_ptr[2] = { NULL, NULL, };
-
-	//Alloc memory on linear ram if requested size is greater than 32KB 
+	//Alloc memory on linear ram if pointer is null and requested size is greater than 32KB 
 	//or previous pointer is allocated on linear ram to prevent slow down (linear alloc is slow).
-	if(size > 1024 * 32 || (ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))
-		|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
-	{
-		if(!ptr || (ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))
-		|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
-			return Util_safe_linear_realloc(ptr, size);
-		else
-		{
-			//move onto linear ram
-			new_ptr[0] = __real_realloc(ptr, size);
-			if(new_ptr[0])
-			{
-				new_ptr[1] = Util_safe_linear_alloc(size);
-				if(new_ptr[1])
-					memcpy(new_ptr[1], new_ptr[0], size);
-				
-				free(new_ptr[0]);
-				return new_ptr[1];
-			}
-			else
-				return new_ptr[0];
-		}
-	}
+	if(((!ptr && size > 1024 * 32) || (ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))
+	|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE))))
+		return Util_safe_linear_realloc(ptr, size);
 	else
 		return __real_realloc(ptr, size);
 }
@@ -83,22 +50,11 @@ extern "C" void __wrap__free_r(struct _reent *r, void* ptr)
 
 extern "C" void* __wrap_memalign(size_t alignment, size_t size)
 {
-	void* ptr = NULL;
 	//Alloc memory on linear ram if requested size is greater than 32KB to prevent slow down (linear alloc is slow).
-	//If allocation failed, try different memory before giving up.
 	if(size > 1024 * 32)
-	{
-		ptr = Util_safe_linear_align(alignment, size);
-		if(!ptr)
-			ptr = __real_memalign(alignment, size);
-	}
+		return Util_safe_linear_align(alignment, size);
 	else
-	{
-		ptr = __real_memalign(alignment, size);
-		if(!ptr)
-			ptr = Util_safe_linear_align(alignment, size);
-	}
-	return ptr;
+		return __real_memalign(alignment, size);
 }
 
 Result_with_string Util_init(void)
@@ -642,7 +598,7 @@ std::string Util_convert_seconds_to_time(double input_seconds)
 	else
 		time += std::to_string(seconds);
 
-	time += std::to_string(input_seconds - (int)input_seconds).substr(1, 4);
+	time += std::to_string(input_seconds - (int)input_seconds).substr(1, 2);
 	return time;
 }
 
