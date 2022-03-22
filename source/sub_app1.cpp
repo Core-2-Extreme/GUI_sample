@@ -228,7 +228,7 @@ void Sapp1_main(void)
 		back_color = DEF_DRAW_BLACK;
 	}
 
-	if(var_need_reflesh || !var_eco_mode)
+	if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
 	{
 		var_need_reflesh = false;
 		Draw_frame_ready();
