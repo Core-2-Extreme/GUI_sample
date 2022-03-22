@@ -48,21 +48,13 @@ void Sapp7_hid(Hid_info key)
 	else
 	{
 		if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
-		{
 			Draw_get_bot_ui_button()->selected = true;
-			var_need_reflesh = true;
-		}
 		else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
 			Sapp7_suspend();
 	}
 
 	if(!key.p_touch && !key.h_touch)
-	{
-		if(Draw_get_bot_ui_button()->selected)
-			var_need_reflesh = true;
-
 		Draw_get_bot_ui_button()->selected = false;
-	}
 
 	if(Util_log_query_log_show_flag())
 		Util_log_main(key);
@@ -74,7 +66,6 @@ void Sapp7_init_thread(void* arg)
 	Result_with_string result;
 	
 	sapp7_status = "Starting threads...";
-	var_need_reflesh = true;
 
 	sapp7_thread_run = true;
 	sapp7_worker_thread = threadCreate(Sapp7_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
@@ -93,18 +84,12 @@ void Sapp7_exit_thread(void* arg)
 	sapp7_thread_run = false;
 
 	sapp7_status = "Exiting threads...";
-	var_need_reflesh = true;
-
 	Util_log_save(DEF_SAPP7_EXIT_STR, "threadJoin()...", threadJoin(sapp7_init_thread, DEF_THREAD_WAIT_TIME));	
 
 	sapp7_status += ".";
-	var_need_reflesh = true;
-
 	Util_log_save(DEF_SAPP7_EXIT_STR, "threadJoin()...", threadJoin(sapp7_worker_thread, DEF_THREAD_WAIT_TIME));
 
-	sapp7_status = "Cleaning up...";
-	var_need_reflesh = true;
-
+	sapp7_status += "\nCleaning up...";	
 	threadFree(sapp7_init_thread);
 	threadFree(sapp7_worker_thread);
 
@@ -132,17 +117,17 @@ void Sapp7_suspend(void)
 
 Result_with_string Sapp7_load_msg(std::string lang)
 {
-	return Util_load_msg("sapp7_" + lang + ".txt", sapp7_msg, DEF_SAPP7_NUM_OF_MSG);
+	return  Util_load_msg("sapp7_" + lang + ".txt", sapp7_msg, DEF_SAPP7_NUM_OF_MSG);
 }
 
-void Sapp7_init(void)
+void Sapp7_init(bool draw)
 {
 	Util_log_save(DEF_SAPP7_INIT_STR, "Initializing...");
 	int color = DEF_DRAW_BLACK;
 	int back_color = DEF_DRAW_WHITE;
 
+	Util_add_watch(&sapp7_status);
 	sapp7_status = "";
-	var_need_reflesh = true;
 
 	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_3DSXL) && var_core_2_available)
 		sapp7_init_thread = threadCreate(Sapp7_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
@@ -154,24 +139,29 @@ void Sapp7_init(void)
 
 	while(!sapp7_already_init)
 	{
-		if (var_night_mode)
+		if(draw)
 		{
-			color = DEF_DRAW_WHITE;
-			back_color = DEF_DRAW_BLACK;
-		}
+			if (var_night_mode)
+			{
+				color = DEF_DRAW_WHITE;
+				back_color = DEF_DRAW_BLACK;
+			}
 
-		if(var_need_reflesh || !var_eco_mode)
-		{
-			var_need_reflesh = false;
-			Draw_frame_ready();
-			Draw_screen_ready(0, back_color);
-			Draw_top_ui();
-			Draw(sapp7_status, 0, 20, 0.65, 0.65, color);
+			if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
+			{
+				var_need_reflesh = false;
+				Draw_frame_ready();
+				Draw_screen_ready(0, back_color);
+				Draw_top_ui();
+				Draw(sapp7_status, 0, 20, 0.65, 0.65, color);
 
-			Draw_apply_draw();
+				Draw_apply_draw();
+			}
+			else
+				gspWaitForVBlank();
 		}
 		else
-			gspWaitForVBlank();
+			usleep(20000);
 	}
 
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_3DSXL) || !var_core_2_available)
@@ -182,43 +172,46 @@ void Sapp7_init(void)
 	Util_log_save(DEF_SAPP7_INIT_STR, "Initialized.");
 }
 
-void Sapp7_exit(void)
+void Sapp7_exit(bool draw)
 {
 	Util_log_save(DEF_SAPP7_EXIT_STR, "Exiting...");
 
 	int color = DEF_DRAW_BLACK;
 	int back_color = DEF_DRAW_WHITE;
-	u64 time_out = 10000000000;
 
 	sapp7_status = "";
-	var_need_reflesh = true;
-
 	sapp7_exit_thread = threadCreate(Sapp7_exit_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	while(sapp7_already_init)
 	{
-		if (var_night_mode)
+		if(draw)
 		{
-			color = DEF_DRAW_WHITE;
-			back_color = DEF_DRAW_BLACK;
-		}
+			if (var_night_mode)
+			{
+				color = DEF_DRAW_WHITE;
+				back_color = DEF_DRAW_BLACK;
+			}
 
-		if(var_need_reflesh || !var_eco_mode)
-		{
-			var_need_reflesh = false;
-			Draw_frame_ready();
-			Draw_screen_ready(0, back_color);
-			Draw_top_ui();
-			Draw(sapp7_status, 0, 20, 0.65, 0.65, color);
+			if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
+			{
+				var_need_reflesh = false;
+				Draw_frame_ready();
+				Draw_screen_ready(0, back_color);
+				Draw_top_ui();
+				Draw(sapp7_status, 0, 20, 0.65, 0.65, color);
 
-			Draw_apply_draw();
+				Draw_apply_draw();
+			}
+			else
+				gspWaitForVBlank();
 		}
 		else
-			gspWaitForVBlank();
+			usleep(20000);
 	}
 
-	Util_log_save(DEF_SAPP7_EXIT_STR, "threadJoin()...", threadJoin(sapp7_exit_thread, time_out));	
+	Util_log_save(DEF_SAPP7_EXIT_STR, "threadJoin()...", threadJoin(sapp7_exit_thread, DEF_THREAD_WAIT_TIME));	
 	threadFree(sapp7_exit_thread);
+	Util_remove_watch(&sapp7_status);
 	var_need_reflesh = true;
 
 	Util_log_save(DEF_SAPP7_EXIT_STR, "Exited.");

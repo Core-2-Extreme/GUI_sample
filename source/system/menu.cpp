@@ -316,35 +316,35 @@ void Menu_exit(void)
 
 	#ifdef DEF_ENABLE_SUB_APP0
 	if (Sapp0_query_init_flag())
-		Sapp0_exit();
+		Sapp0_exit(false);
 	#endif
 	#ifdef DEF_ENABLE_SUB_APP1
 	if (Sapp1_query_init_flag())
-		Sapp1_exit();
+		Sapp1_exit(false);
 	#endif
 	#ifdef DEF_ENABLE_SUB_APP2
 	if (Sapp2_query_init_flag())
-		Sapp2_exit();
+		Sapp2_exit(false);
 	#endif
 	#ifdef DEF_ENABLE_SUB_APP3
 	if (Sapp3_query_init_flag())
-		Sapp3_exit();
+		Sapp3_exit(false);
 	#endif
 	#ifdef DEF_ENABLE_SUB_APP4
 	if (Sapp4_query_init_flag())
-		Sapp4_exit();
+		Sapp4_exit(false);
 	#endif
 	#ifdef DEF_ENABLE_SUB_APP5
 	if (Sapp5_query_init_flag())
-		Sapp5_exit();
+		Sapp5_exit(false);
 	#endif
 	#ifdef DEF_ENABLE_SUB_APP6
 	if (Sapp6_query_init_flag())
-		Sapp6_exit();
+		Sapp6_exit(false);
 	#endif
 	#ifdef DEF_ENABLE_SUB_APP7
 	if (Sapp7_query_init_flag())
-		Sapp7_exit();
+		Sapp7_exit(false);
 	#endif
 	if (Sem_query_init_flag())
 		Sem_exit();
@@ -595,96 +595,96 @@ void Menu_main(void)
 		#ifdef DEF_ENABLE_SUB_APP0
 		if(menu_init_request[0])
 		{
-			Sapp0_init();
+			Sapp0_init(true);
 			menu_init_request[0] = false;
 		}
 		else if(menu_exit_request[0])
 		{
-			Sapp0_exit();
+			Sapp0_exit(true);
 			menu_exit_request[0] = false;
 		}
 		#endif
 		#ifdef DEF_ENABLE_SUB_APP1
 		if(menu_init_request[1])
 		{
-			Sapp1_init();
+			Sapp1_init(true);
 			menu_init_request[1] = false;
 		}
 		else if(menu_exit_request[1])
 		{
-			Sapp1_exit();
+			Sapp1_exit(true);
 			menu_exit_request[1] = false;
 		}
 		#endif
 		#ifdef DEF_ENABLE_SUB_APP2
 		if(menu_init_request[2])
 		{
-			Sapp2_init();
+			Sapp2_init(true);
 			menu_init_request[2] = false;
 		}
 		else if(menu_exit_request[2])
 		{
-			Sapp2_exit();
+			Sapp2_exit(true);
 			menu_exit_request[2] = false;
 		}
 		#endif
 		#ifdef DEF_ENABLE_SUB_APP3
 		if(menu_init_request[3])
 		{
-			Sapp3_init();
+			Sapp3_init(true);
 			menu_init_request[3] = false;
 		}
 		else if(menu_exit_request[3])
 		{
-			Sapp3_exit();
+			Sapp3_exit(true);
 			menu_exit_request[3] = false;
 		}
 		#endif
 		#ifdef DEF_ENABLE_SUB_APP4
 		if(menu_init_request[4])
 		{
-			Sapp4_init();
+			Sapp4_init(true);
 			menu_init_request[4] = false;
 		}
 		else if(menu_exit_request[4])
 		{
-			Sapp4_exit();
+			Sapp4_exit(true);
 			menu_exit_request[4] = false;
 		}
 		#endif
 		#ifdef DEF_ENABLE_SUB_APP5
 		if(menu_init_request[5])
 		{
-			Sapp5_init();
+			Sapp5_init(true);
 			menu_init_request[5] = false;
 		}
 		else if(menu_exit_request[5])
 		{
-			Sapp5_exit();
+			Sapp5_exit(true);
 			menu_exit_request[5] = false;
 		}
 		#endif
 		#ifdef DEF_ENABLE_SUB_APP6
 		if(menu_init_request[6])
 		{
-			Sapp6_init();
+			Sapp6_init(true);
 			menu_init_request[6] = false;
 		}
 		else if(menu_exit_request[6])
 		{
-			Sapp6_exit();
+			Sapp6_exit(true);
 			menu_exit_request[6] = false;
 		}
 		#endif
 		#ifdef DEF_ENABLE_SUB_APP7
 		if(menu_init_request[7])
 		{
-			Sapp7_init();
+			Sapp7_init(true);
 			menu_init_request[7] = false;
 		}
 		else if(menu_exit_request[7])
 		{
-			Sapp7_exit();
+			Sapp7_exit(true);
 			menu_exit_request[7] = false;
 		}
 		#endif

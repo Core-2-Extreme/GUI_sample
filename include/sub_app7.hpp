@@ -13,8 +13,8 @@ void Sapp7_suspend(void);
 
 Result_with_string Sapp7_load_msg(std::string lang);
 
-void Sapp7_init(void);
+void Sapp7_init(bool draw);
 
-void Sapp7_exit(void);
+void Sapp7_exit(bool draw);
 
 void Sapp7_main(void);
