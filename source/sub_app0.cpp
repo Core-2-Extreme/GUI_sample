@@ -84,13 +84,9 @@ void Sapp0_exit_thread(void* arg)
 	sapp0_thread_run = false;
 
 	sapp0_status = "Exiting threads...";
-	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_init_thread, DEF_THREAD_WAIT_TIME));	
-
-	sapp0_status += ".";
 	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_worker_thread, DEF_THREAD_WAIT_TIME));
 
 	sapp0_status += "\nCleaning up...";	
-	threadFree(sapp0_init_thread);
 	threadFree(sapp0_worker_thread);
 
 	sapp0_already_init = false;
@@ -167,6 +163,8 @@ void Sapp0_init(bool draw)
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_3DSXL) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
+	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_init_thread, DEF_THREAD_WAIT_TIME));	
+	threadFree(sapp0_init_thread);
 	Sapp0_resume();
 
 	Util_log_save(DEF_SAPP0_INIT_STR, "Initialized.");

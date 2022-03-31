@@ -84,13 +84,9 @@ void Sapp5_exit_thread(void* arg)
 	sapp5_thread_run = false;
 
 	sapp5_status = "Exiting threads...";
-	Util_log_save(DEF_SAPP5_EXIT_STR, "threadJoin()...", threadJoin(sapp5_init_thread, DEF_THREAD_WAIT_TIME));	
-
-	sapp5_status += ".";
 	Util_log_save(DEF_SAPP5_EXIT_STR, "threadJoin()...", threadJoin(sapp5_worker_thread, DEF_THREAD_WAIT_TIME));
 
 	sapp5_status += "\nCleaning up...";	
-	threadFree(sapp5_init_thread);
 	threadFree(sapp5_worker_thread);
 
 	sapp5_already_init = false;
@@ -167,6 +163,8 @@ void Sapp5_init(bool draw)
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_3DSXL) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
+	Util_log_save(DEF_SAPP5_EXIT_STR, "threadJoin()...", threadJoin(sapp5_init_thread, DEF_THREAD_WAIT_TIME));	
+	threadFree(sapp5_init_thread);
 	Sapp5_resume();
 
 	Util_log_save(DEF_SAPP5_INIT_STR, "Initialized.");
