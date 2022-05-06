@@ -118,7 +118,7 @@ void Sapp0_init_thread(void* arg)
 	Util_log_save(DEF_SAPP0_INIT_STR, "Draw_texture_init()..." + result.string + result.error_description, result.code);
 	if(result.code == 0)
 	{
-		//Download png fromt the Internet
+		//Download png from the Internet
 		result = Util_curl_dl_data("https://user-images.githubusercontent.com/45873899/167138864-b6a9e25e-2dce-49d0-9b5a-d5986e768ad6.png", &png_data, 1024 * 1024, &dled_size, true, 5);
 		Util_log_save(DEF_SAPP0_INIT_STR, "Util_curl_dl_data()..." + result.string + result.error_description, result.code);
 		if(result.code == 0)
