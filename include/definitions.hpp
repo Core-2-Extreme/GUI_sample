@@ -41,7 +41,7 @@
 //#define DEF_SAPP0_ENABLE_ICON
 #define DEF_SAPP0_ENABLE_NAME
 #define DEF_SAPP0_ICON_PATH (std::string)"romfs:/"
-#define DEF_SAPP0_NAME (std::string)"sample 0"
+#define DEF_SAPP0_NAME (std::string)"draw image\nsample"
 #define DEF_SAPP0_VER (std::string)"v0.0.1"
 #define DEF_SAPP0_MAIN_STR (std::string)"Sapp0/Main"
 #define DEF_SAPP0_INIT_STR (std::string)"Sapp0/Init"
