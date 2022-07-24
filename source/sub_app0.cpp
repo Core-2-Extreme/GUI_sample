@@ -223,6 +223,9 @@ void Sapp0_init(bool draw)
 				Draw_frame_ready();
 				Draw_screen_ready(0, back_color);
 				Draw_top_ui();
+				if(var_monitor_cpu_usage)
+					Draw_cpu_usage_info();
+
 				Draw(sapp0_status, 0, 20, 0.65, 0.65, color);
 
 				Draw_apply_draw();
@@ -270,6 +273,9 @@ void Sapp0_exit(bool draw)
 				Draw_frame_ready();
 				Draw_screen_ready(0, back_color);
 				Draw_top_ui();
+				if(var_monitor_cpu_usage)
+					Draw_cpu_usage_info();
+
 				Draw(sapp0_status, 0, 20, 0.65, 0.65, color);
 
 				Draw_apply_draw();
@@ -323,6 +329,9 @@ void Sapp0_main(void)
 
 			Draw_top_ui();
 
+			if(var_monitor_cpu_usage)
+				Draw_cpu_usage_info();
+
 			if(var_3d_mode)
 			{
 				Draw_screen_ready(2, back_color);
@@ -331,6 +340,10 @@ void Sapp0_main(void)
 					Util_log_draw();
 
 				Draw_top_ui();
+
+				if(var_monitor_cpu_usage)
+					Draw_cpu_usage_info();
+
 			}
 		}
 		
