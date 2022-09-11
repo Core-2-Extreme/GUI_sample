@@ -4,7 +4,7 @@
 #define DEF_MAIN_DIR (std::string)"/GUI_sample/"
 #define DEF_UPDATE_DIR_PREFIX (std::string)"/3ds/GUI_sample_ver_"
 #define DEF_UPDATE_FILE_PREFIX (std::string)"GUI"
-#define DEF_CHECK_INTERNET_URL (std::string)"https://connectivitycheck.gstatic.com/generate_204"
+#define DEF_CHECK_INTERNET_URL (std::string)"http://connectivitycheck.gstatic.com/generate_204"
 #define DEF_SEND_APP_INFO_URL (std::string)"https://script.google.com/macros/s/AKfycbyn_blFyKWXCgJr6NIF8x6ETs7CHRN5FXKYEAAIrzV6jPYcCkI/exec"
 #define DEF_CHECK_UPDATE_URL (std::string)"https://script.google.com/macros/s/AKfycbwvEedP97o8vgfpAG6EzcW6jxZZqFfZaMaqE1V7kCdp9BfuXySfRQ4own5CcFW1JxRBBQ/exec"
 #define DEF_HTTP_USER_AGENT (std::string)"gui template " + DEF_CURRENT_APP_VER
