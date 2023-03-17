@@ -251,7 +251,7 @@ void Sapp2_main(void)
 			if(var_monitor_cpu_usage)
 				Draw_cpu_usage_info();
 
-			if(var_3d_mode)
+			if(Draw_is_3d_mode())
 			{
 				Draw_screen_ready(2, back_color);
 

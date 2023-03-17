@@ -6,7 +6,37 @@ bool sapp1_already_init = false;
 bool sapp1_thread_suspend = true;
 std::string sapp1_msg[DEF_SAPP1_NUM_OF_MSG];
 std::string sapp1_status = "";
+std::string sapp1_selected_path = "";
+std::string sapp1_file_info = "";
 Thread sapp1_init_thread, sapp1_exit_thread, sapp1_worker_thread;
+
+void Sapp1_expl_callback(std::string file_name, std::string dir_path)
+{
+	int file_type = Util_expl_query_type(Util_expl_query_current_file_index());
+	int file_size = Util_expl_query_size(Util_expl_query_current_file_index());
+
+	//Set file info
+	sapp1_selected_path = "User selected : \n" + dir_path + file_name
+	+ "\nPress X button to open file explorer.";
+	sapp1_file_info = "File size : " + std::to_string(file_size / 1024)	+ "KB (" + std::to_string(file_size) + " B)\nType : ";
+
+	if(file_type & DEF_EXPL_TYPE_HIDDEN)
+		sapp1_file_info += "Hidden ";
+	if(file_type & DEF_EXPL_TYPE_READ_ONLY)
+		sapp1_file_info += "Read only ";
+	if(file_type & DEF_EXPL_TYPE_DIR)
+		sapp1_file_info += "Directory ";
+	if(file_type & DEF_EXPL_TYPE_FILE)
+		sapp1_file_info += "File ";
+	if(file_type & DEF_EXPL_TYPE_UNKNOWN)
+		sapp1_file_info += "Unknown ";
+}
+
+void Sapp1_expl_cancel_callback(void)
+{
+	sapp1_selected_path = "Canceled by user.\nPress X button to open file explorer.";
+	sapp1_file_info = "";
+}
 
 void Sapp1_suspend(void);
 
@@ -45,12 +75,21 @@ void Sapp1_hid(Hid_info key)
 {
 	if(Util_err_query_error_show_flag())
 		Util_err_main(key);
+	else if(Util_expl_query_show_flag())//Handle file explorer key input here.
+		Util_expl_main(key);
 	else
 	{
 		if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
 			Draw_get_bot_ui_button()->selected = true;
 		else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
 			Sapp1_suspend();
+		else if (key.p_x)
+		{
+			//Set callbacks and open file explorer.
+			Util_expl_set_callback(Sapp1_expl_callback);
+			Util_expl_set_cancel_callback(Sapp1_expl_cancel_callback);
+			Util_expl_set_show_flag(true);
+		}
 	}
 
 	if(!key.p_touch && !key.h_touch)
@@ -64,11 +103,18 @@ void Sapp1_init_thread(void* arg)
 {
 	Util_log_save(DEF_SAPP1_INIT_STR, "Thread started.");
 	Result_with_string result;
-	
+
 	sapp1_status = "Starting threads...";
 
 	sapp1_thread_run = true;
 	sapp1_worker_thread = threadCreate(Sapp1_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+
+	sapp1_status += "Initializing variables...";
+	//Add to watch to detect value changes, screen will be rerenderd when value is changed.
+	Util_add_watch(&sapp1_selected_path);
+	Util_add_watch(&sapp1_file_info);
+	sapp1_selected_path = "Press X button to open file explorer.";
+	sapp1_file_info = "";
 
 	sapp1_already_init = true;
 
@@ -88,6 +134,10 @@ void Sapp1_exit_thread(void* arg)
 
 	sapp1_status += "\nCleaning up...";	
 	threadFree(sapp1_worker_thread);
+
+	//Remove watch on exit
+	Util_remove_watch(&sapp1_selected_path);
+	Util_remove_watch(&sapp1_file_info);
 
 	sapp1_already_init = false;
 
@@ -242,6 +292,11 @@ void Sapp1_main(void)
 			Draw_screen_ready(0, back_color);
 
 			Draw(sapp1_msg[0], 0, 20, 0.5, 0.5, color);
+
+			//Draw file info
+			Draw(sapp1_selected_path, 0, 40, 0.45, 0.45, color);
+			Draw(sapp1_file_info, 0, 90, 0.45, 0.45, color);
+
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
@@ -250,7 +305,7 @@ void Sapp1_main(void)
 			if(var_monitor_cpu_usage)
 				Draw_cpu_usage_info();
 
-			if(var_3d_mode)
+			if(Draw_is_3d_mode())
 			{
 				Draw_screen_ready(2, back_color);
 
@@ -270,6 +325,9 @@ void Sapp1_main(void)
 			Draw_screen_ready(1, back_color);
 
 			Draw(DEF_SAPP1_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+
+			if(Util_expl_query_show_flag())//Draw file explorer
+				Util_expl_draw();
 
 			if(Util_err_query_error_show_flag())
 				Util_err_draw();

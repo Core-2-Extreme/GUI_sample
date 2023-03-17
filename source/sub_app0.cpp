@@ -100,7 +100,7 @@ void Sapp0_init_thread(void* arg)
 		{
 			//Decoder returns RGB888BE, but 3ds needs RGB888LE so convert it
 			Util_converter_rgb888be_to_rgb888le(buffer, width, height);
-			Draw_set_texture_data(&sapp0_image[0], buffer, width, height, 1024, 1024, picture_format);
+			Draw_set_texture_data(&sapp0_image[0], buffer, width, height);
 		}
 	}
 	free(buffer);
@@ -131,7 +131,7 @@ void Sapp0_init_thread(void* arg)
 			{
 				//Decoder returns RGBA8888BE, but 3ds needs RGBA8888LE so convert it
 				Util_converter_rgba8888be_to_rgba8888le(buffer, width, height);
-				Draw_set_texture_data(&sapp0_image[1], buffer, width, height, 1024, 1024, picture_format);
+				Draw_set_texture_data(&sapp0_image[1], buffer, width, height);
 			}
 		}
 	}
@@ -332,7 +332,7 @@ void Sapp0_main(void)
 			if(var_monitor_cpu_usage)
 				Draw_cpu_usage_info();
 
-			if(var_3d_mode)
+			if(Draw_is_3d_mode())
 			{
 				Draw_screen_ready(2, back_color);
 
