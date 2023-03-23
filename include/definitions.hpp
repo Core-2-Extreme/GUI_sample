@@ -87,7 +87,7 @@
 //#define DEF_SAPP2_ENABLE_ICON
 #define DEF_SAPP2_ENABLE_NAME
 #define DEF_SAPP2_ICON_PATH (std::string)"romfs:/"
-#define DEF_SAPP2_NAME (std::string)"sample 2"
+#define DEF_SAPP2_NAME (std::string)"hardware\nsettings\nsample"
 #define DEF_SAPP2_VER (std::string)"v0.0.1"
 #define DEF_SAPP2_MAIN_STR (std::string)"Sapp2/Main"
 #define DEF_SAPP2_INIT_STR (std::string)"Sapp2/Init"

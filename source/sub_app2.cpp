@@ -1,9 +1,27 @@
 #include "system/headers.hpp"
 
+enum Sapp2_command
+{
+	NONE,
+	SLEEP_WAKE_UP_WITH_SHELL_REQUEST,
+	SLEEP_WAKE_UP_WITH_BUTTON_REQUEST,
+	SLEEP_WAKE_UP_WITH_SHELL_OR_BUTTON_REQUEST,
+	CHANGE_WIFI_STATE_REQUEST,
+	INCREASE_TOP_SCREEN_BRIGHTNESS_REQUEST,
+	DECREASE_TOP_SCREEN_BRIGHTNESS_REQUEST,
+	INCREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST,
+	DECREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST,
+	TURN_TOP_SCREEN_OFF_REQUEST,
+	TURN_BOTTOM_SCREEN_OFF_REQUEST,
+
+	MAX = 0xFF,
+};
+
 bool sapp2_main_run = false;
 bool sapp2_thread_run = false;
 bool sapp2_already_init = false;
 bool sapp2_thread_suspend = true;
+Sapp2_command sapp2_command = NONE;
 std::string sapp2_msg[DEF_SAPP2_NUM_OF_MSG];
 std::string sapp2_status = "";
 Thread sapp2_init_thread, sapp2_exit_thread, sapp2_worker_thread;
@@ -23,15 +41,190 @@ bool Sapp2_query_running_flag(void)
 void Sapp2_worker_thread(void* arg)
 {
 	Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Thread started.");
-	
+	Result_with_string result;
+
 	while (sapp2_thread_run)
 	{
-		if(false)
+		switch (sapp2_command)
 		{
+			case SLEEP_WAKE_UP_WITH_SHELL_REQUEST:
+			{
+				aptSetSleepAllowed(true);
 
+				result = Util_cset_sleep_system(DEF_CSET_WAKE_UP_OPEN_SHELL);
+				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_sleep_system()..." + result.string + result.error_description, result.code);
+
+				sapp2_command = NONE;
+				break;
+			}
+			case SLEEP_WAKE_UP_WITH_BUTTON_REQUEST:
+			{
+				aptSetSleepAllowed(true);
+
+				result = Util_cset_sleep_system(DEF_CSET_WAKE_UP_PRESS_HOME_BUTTON);
+				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_sleep_system()..." + result.string + result.error_description, result.code);
+
+				sapp2_command = NONE;
+				break;
+			}
+			case SLEEP_WAKE_UP_WITH_SHELL_OR_BUTTON_REQUEST:
+			{
+				aptSetSleepAllowed(true);
+
+				result = Util_cset_sleep_system(DEF_CSET_WAKE_UP_OPEN_SHELL | DEF_CSET_WAKE_UP_PRESS_HOME_BUTTON);
+				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_sleep_system()..." + result.string + result.error_description, result.code);
+
+				sapp2_command = NONE;
+				break;
+			}
+			case CHANGE_WIFI_STATE_REQUEST:
+			{
+				result = Util_cset_set_wifi_state(!var_wifi_enabled);
+				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_wifi_state()..." + result.string + result.error_description, result.code);
+				if(result.code == 0)
+					var_wifi_enabled = !var_wifi_enabled;
+
+				sapp2_command = NONE;
+				break;
+			}
+			case INCREASE_TOP_SCREEN_BRIGHTNESS_REQUEST:
+			{
+				//This isn't necessary because screen brightness will be changed automatically
+				//in Menu_worker_thread() if you change the value of var_top_lcd_brightness.
+				/*
+				int brightness = var_top_lcd_brightness;
+				if(brightness + 1 <= 180)
+					brightness++;
+
+				result = Util_cset_set_screen_brightness(true, false, brightness);
+				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
+				if(result.code == 0)
+					var_top_lcd_brightness = brightness;
+				*/
+
+				if(var_top_lcd_brightness + 1 <= 180)
+					var_top_lcd_brightness++;
+
+				sapp2_command = NONE;
+				break;
+			}
+			case DECREASE_TOP_SCREEN_BRIGHTNESS_REQUEST:
+			{
+				//This isn't necessary because screen brightness will be changed automatically
+				//in Menu_worker_thread() if you change the value of var_top_lcd_brightness.
+				/*
+				int brightness = var_top_lcd_brightness;
+				if(brightness - 1 >= 0)
+					brightness--;
+
+				result = Util_cset_set_screen_brightness(true, false, brightness);
+				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
+				if(result.code == 0)
+					var_top_lcd_brightness = brightness;
+				*/
+
+				if(var_top_lcd_brightness - 1 >= 0)
+					var_top_lcd_brightness--;
+
+				sapp2_command = NONE;
+				break;
+			}
+			case INCREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST:
+			{
+				//This isn't necessary because screen brightness will be changed automatically
+				//in Menu_worker_thread() if you change the value of var_bottom_lcd_brightness.
+				/*
+				int brightness = var_bottom_lcd_brightness;
+				if(brightness + 1 <= 180)
+					brightness++;
+
+				result = Util_cset_set_screen_brightness(true, false, brightness);
+				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
+				if(result.code == 0)
+					var_bottom_lcd_brightness = brightness;
+				*/
+
+				if(var_bottom_lcd_brightness + 1 <= 180)
+					var_bottom_lcd_brightness++;
+
+				sapp2_command = NONE;
+				break;
+			}
+			case DECREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST:
+			{
+				//This isn't necessary because screen brightness will be changed automatically
+				//in Menu_worker_thread() if you change the value of var_bottom_lcd_brightness.
+				/*
+				int brightness = var_bottom_lcd_brightness;
+				if(brightness - 1 >= 0)
+					brightness--;
+
+				result = Util_cset_set_screen_brightness(true, false, brightness);
+				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
+				if(result.code == 0)
+					var_bottom_lcd_brightness = brightness;
+				*/
+
+				if(var_bottom_lcd_brightness - 1 >= 0)
+					var_bottom_lcd_brightness--;
+
+				sapp2_command = NONE;
+				break;
+			}
+			case TURN_TOP_SCREEN_OFF_REQUEST:
+			{
+				//This isn't necessary because screen state will be changed automatically
+				//in Menu_worker_thread() if you change the value of var_turn_on_top_lcd.
+				/*
+				result = Util_cset_set_screen_state(true, false, false);
+				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
+				if(result.code == 0)
+					var_turn_on_top_lcd = false;
+
+				usleep(5000000);
+
+				result = Util_cset_set_screen_state(true, false, true);
+				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
+				if(result.code == 0)
+					var_turn_on_top_lcd = true;
+				*/
+
+				var_turn_on_top_lcd = false;
+				usleep(5000000);
+				var_turn_on_top_lcd = true;
+
+				sapp2_command = NONE;
+				break;
+			}
+			case TURN_BOTTOM_SCREEN_OFF_REQUEST:
+			{
+				//This isn't necessary because screen state will be changed automatically
+				//in Menu_worker_thread() if you change the value of var_turn_on_bottom_lcd.
+				/*
+				result = Util_cset_set_screen_state(false, true, false);
+				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
+				if(result.code == 0)
+					var_turn_on_bottom_lcd = false;
+
+				usleep(5000000);
+
+				result = Util_cset_set_screen_state(false, true, true);
+				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
+				if(result.code == 0)
+					var_turn_on_bottom_lcd = true;
+				*/
+
+				var_turn_on_bottom_lcd = false;
+				usleep(5000000);
+				var_turn_on_bottom_lcd = true;
+
+				sapp2_command = NONE;
+				break;
+			}
+			default:
+				usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
+				break;
 		}
-		else
-			usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
 
 		while (sapp2_thread_suspend)
 			usleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
@@ -55,6 +248,30 @@ void Sapp2_hid(Hid_info key)
 			Draw_get_bot_ui_button()->selected = true;
 		else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
 			Sapp2_suspend();
+
+		if(sapp2_command == NONE)
+		{
+			if(key.p_a)
+				sapp2_command = SLEEP_WAKE_UP_WITH_SHELL_REQUEST;
+			else if(key.p_b)
+				sapp2_command = SLEEP_WAKE_UP_WITH_BUTTON_REQUEST;
+			else if(key.p_y)
+				sapp2_command = SLEEP_WAKE_UP_WITH_SHELL_OR_BUTTON_REQUEST;
+			else if(key.p_x)
+				sapp2_command = CHANGE_WIFI_STATE_REQUEST;
+			else if(key.p_c_up || (key.h_c_up && key.held_time >= 18 && key.held_time % 6))
+				sapp2_command = INCREASE_TOP_SCREEN_BRIGHTNESS_REQUEST;
+			else if(key.p_c_down || (key.h_c_down && key.held_time >= 18 && key.held_time % 6))
+				sapp2_command = DECREASE_TOP_SCREEN_BRIGHTNESS_REQUEST;
+			else if(key.p_d_up || (key.h_d_up && key.held_time >= 18 && key.held_time % 6))
+				sapp2_command = INCREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST;
+			else if(key.p_d_down || (key.h_d_down && key.held_time >= 18 && key.held_time % 6))
+				sapp2_command = DECREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST;
+			else if(key.p_l)
+				sapp2_command = TURN_TOP_SCREEN_OFF_REQUEST;
+			else if(key.p_r)
+				sapp2_command = TURN_BOTTOM_SCREEN_OFF_REQUEST;
+		}
 	}
 
 	if(!key.p_touch && !key.h_touch)
@@ -68,11 +285,14 @@ void Sapp2_init_thread(void* arg)
 {
 	Util_log_save(DEF_SAPP2_INIT_STR, "Thread started.");
 	Result_with_string result;
-	
+
 	sapp2_status = "Starting threads...";
 
 	sapp2_thread_run = true;
 	sapp2_worker_thread = threadCreate(Sapp2_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+
+	sapp2_status += "\nInitializing variables...";
+	sapp2_command = NONE;
 
 	sapp2_already_init = true;
 
@@ -206,7 +426,6 @@ void Sapp2_exit(bool draw)
 				if(var_monitor_cpu_usage)
 					Draw_cpu_usage_info();
 
-
 				Draw(sapp2_status, 0, 20, 0.65, 0.65, color);
 
 				Draw_apply_draw();
@@ -244,9 +463,34 @@ void Sapp2_main(void)
 
 		if(var_turn_on_top_lcd)
 		{
+			char msg[64];
 			Draw_screen_ready(0, back_color);
 
-			Draw(sapp2_msg[0], 0, 20, 0.5, 0.5, color);
+			Draw(sapp2_msg[0], 0, 20, 0.45, 0.45, color);
+
+			Draw("Press A to sleep and wake up if you reopen the shell.", 0, 40, 0.425, 0.425, color);
+			Draw("Press B to sleep and wake up if you press the home button.", 0, 50, 0.425, 0.425, color);
+			Draw("Press Y to sleep and wake up if you reopen the shell", 0, 60, 0.425, 0.425, color);
+			Draw("or press the home button.", 0, 70, 0.425, 0.425, color);
+
+			snprintf(msg, sizeof(msg), "Press X to toggle wifi state. Current wifi state : %s", (var_wifi_enabled ? "enable" : "disable"));
+			Draw(msg, 0, 90, 0.425, 0.425, color);
+
+			Draw("Press or hold circle pad up to increase top screen brightness.", 0, 110, 0.425, 0.425, color);
+			Draw("Press or hold circle pad down to decrease top screen brightness.", 0, 120, 0.425, 0.425, color);
+			snprintf(msg, sizeof(msg), "Current top lcd brightness : %d", var_top_lcd_brightness);
+			Draw(msg, 0, 130, 0.425, 0.425, color);
+
+			Draw("Press or hold direction pad up to increase bottom screen brightness.", 0, 150, 0.425, 0.425, color);
+			Draw("Press or hold direction pad down to decrease bottom screen brightness.", 0, 160, 0.425, 0.425, color);
+			snprintf(msg, sizeof(msg), "Current bottom lcd brightness : %d", var_bottom_lcd_brightness);
+			Draw(msg, 0, 170, 0.425, 0.425, color);
+
+			Draw("Press L to turn top screen off. (turn it back on in 5s)", 0, 190, 0.425, 0.425, color);
+			Draw("Press R to turn bottom screen off. (turn it back on in 5s)", 0, 200, 0.425, 0.425, color);
+
+			Draw("Changing screen brightness and state may not work on O2DS.", 0, 220, 0.45, 0.45, DEF_DRAW_RED);
+
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
