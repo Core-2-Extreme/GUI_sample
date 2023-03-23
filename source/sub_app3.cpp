@@ -43,6 +43,10 @@ void Sapp3_worker_thread(void* arg)
 
 void Sapp3_hid(Hid_info key)
 {
+	//Do nothing if app is suspended.
+	if(aptShouldJumpToHome())
+		return;
+
 	if(Util_err_query_error_show_flag())
 		Util_err_main(key);
 	else

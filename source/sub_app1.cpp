@@ -73,6 +73,10 @@ void Sapp1_worker_thread(void* arg)
 
 void Sapp1_hid(Hid_info key)
 {
+	//Do nothing if app is suspended.
+	if(aptShouldJumpToHome())
+		return;
+
 	if(Util_err_query_error_show_flag())
 		Util_err_main(key);
 	else if(Util_expl_query_show_flag())//Handle file explorer key input here.
