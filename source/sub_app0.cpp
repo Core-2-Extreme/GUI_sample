@@ -262,7 +262,7 @@ void Sapp0_init(bool draw)
 			{
 				var_need_reflesh = false;
 				Draw_frame_ready();
-				Draw_screen_ready(0, back_color);
+				Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
 				Draw_top_ui();
 				if(var_monitor_cpu_usage)
 					Draw_cpu_usage_info();
@@ -312,7 +312,7 @@ void Sapp0_exit(bool draw)
 			{
 				var_need_reflesh = false;
 				Draw_frame_ready();
-				Draw_screen_ready(0, back_color);
+				Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
 				Draw_top_ui();
 				if(var_monitor_cpu_usage)
 					Draw_cpu_usage_info();
@@ -354,7 +354,7 @@ void Sapp0_main(void)
 
 		if(var_turn_on_top_lcd)
 		{
-			Draw_screen_ready(0, back_color);
+			Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
 
 			Draw(sapp0_msg[0], 0, 20, 0.5, 0.5, color);
 
@@ -375,7 +375,7 @@ void Sapp0_main(void)
 
 			if(Draw_is_3d_mode())
 			{
-				Draw_screen_ready(2, back_color);
+				Draw_screen_ready(SCREEN_TOP_RIGHT, back_color);
 
 				if(Util_log_query_log_show_flag())
 					Util_log_draw();
@@ -390,7 +390,7 @@ void Sapp0_main(void)
 		
 		if(var_turn_on_bottom_lcd)
 		{
-			Draw_screen_ready(1, back_color);
+			Draw_screen_ready(SCREEN_BOTTOM, back_color);
 
 			Draw(DEF_SAPP0_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
 
