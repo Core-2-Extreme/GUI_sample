@@ -73,7 +73,7 @@ void Sapp0_init_thread(void* arg)
 	int width = 0, height = 0;
 	int dled_size = 0;
 	std::string file_path = "romfs:/gfx/draw/sapp0/sample.jpg";
-	Pixel_format color_format = PIXEL_FORMAT_NONE;
+	Pixel_format color_format = PIXEL_FORMAT_INVALID;
 	Result_with_string result;
 
 	sapp0_status = "Starting threads...";
@@ -129,7 +129,7 @@ void Sapp0_init_thread(void* arg)
 
 
 	sapp0_status += "\nLoading picture from the Internet...";
-	color_format = PIXEL_FORMAT_NONE;
+	color_format = PIXEL_FORMAT_INVALID;
 
 	//Load picture from the Internet.
 
