@@ -3,6 +3,7 @@
 enum Sapp2_command
 {
 	NONE,
+
 	SLEEP_WAKE_UP_WITH_SHELL_REQUEST,
 	SLEEP_WAKE_UP_WITH_BUTTON_REQUEST,
 	SLEEP_WAKE_UP_WITH_SHELL_OR_BUTTON_REQUEST,
@@ -14,17 +15,17 @@ enum Sapp2_command
 	TURN_TOP_SCREEN_OFF_REQUEST,
 	TURN_BOTTOM_SCREEN_OFF_REQUEST,
 
-	MAX = 0xFF,
+	MAX = 0xFFFFFFFF,
 };
 
 bool sapp2_main_run = false;
 bool sapp2_thread_run = false;
 bool sapp2_already_init = false;
 bool sapp2_thread_suspend = true;
-Sapp2_command sapp2_command = NONE;
 std::string sapp2_msg[DEF_SAPP2_NUM_OF_MSG];
 std::string sapp2_status = "";
 Thread sapp2_init_thread, sapp2_exit_thread, sapp2_worker_thread;
+Queue sapp2_command_queue;
 
 void Sapp2_suspend(void);
 
@@ -45,7 +46,19 @@ void Sapp2_worker_thread(void* arg)
 
 	while (sapp2_thread_run)
 	{
-		switch (sapp2_command)
+		u32 event_id = 0;
+
+		result = Util_queue_get(&sapp2_command_queue, &event_id, NULL, DEF_ACTIVE_THREAD_SLEEP_TIME);
+		if(result.code != 0)
+		{
+			//No commands have arrived.
+			continue;
+		}
+
+		//Got a command.
+		Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Received event : " + std::to_string(event_id));
+
+		switch ((Sapp2_command)event_id)
 		{
 			case SLEEP_WAKE_UP_WITH_SHELL_REQUEST:
 			{
@@ -54,7 +67,6 @@ void Sapp2_worker_thread(void* arg)
 				result = Util_cset_sleep_system(DEF_CSET_WAKE_UP_OPEN_SHELL);
 				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_sleep_system()..." + result.string + result.error_description, result.code);
 
-				sapp2_command = NONE;
 				break;
 			}
 			case SLEEP_WAKE_UP_WITH_BUTTON_REQUEST:
@@ -64,7 +76,6 @@ void Sapp2_worker_thread(void* arg)
 				result = Util_cset_sleep_system(DEF_CSET_WAKE_UP_PRESS_HOME_BUTTON);
 				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_sleep_system()..." + result.string + result.error_description, result.code);
 
-				sapp2_command = NONE;
 				break;
 			}
 			case SLEEP_WAKE_UP_WITH_SHELL_OR_BUTTON_REQUEST:
@@ -74,7 +85,6 @@ void Sapp2_worker_thread(void* arg)
 				result = Util_cset_sleep_system(DEF_CSET_WAKE_UP_OPEN_SHELL | DEF_CSET_WAKE_UP_PRESS_HOME_BUTTON);
 				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_sleep_system()..." + result.string + result.error_description, result.code);
 
-				sapp2_command = NONE;
 				break;
 			}
 			case CHANGE_WIFI_STATE_REQUEST:
@@ -84,7 +94,6 @@ void Sapp2_worker_thread(void* arg)
 				if(result.code == 0)
 					var_wifi_enabled = !var_wifi_enabled;
 
-				sapp2_command = NONE;
 				break;
 			}
 			case INCREASE_TOP_SCREEN_BRIGHTNESS_REQUEST:
@@ -105,7 +114,6 @@ void Sapp2_worker_thread(void* arg)
 				if(var_top_lcd_brightness + 1 <= 180)
 					var_top_lcd_brightness++;
 
-				sapp2_command = NONE;
 				break;
 			}
 			case DECREASE_TOP_SCREEN_BRIGHTNESS_REQUEST:
@@ -126,7 +134,6 @@ void Sapp2_worker_thread(void* arg)
 				if(var_top_lcd_brightness - 1 >= 0)
 					var_top_lcd_brightness--;
 
-				sapp2_command = NONE;
 				break;
 			}
 			case INCREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST:
@@ -147,7 +154,6 @@ void Sapp2_worker_thread(void* arg)
 				if(var_bottom_lcd_brightness + 1 <= 180)
 					var_bottom_lcd_brightness++;
 
-				sapp2_command = NONE;
 				break;
 			}
 			case DECREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST:
@@ -168,7 +174,6 @@ void Sapp2_worker_thread(void* arg)
 				if(var_bottom_lcd_brightness - 1 >= 0)
 					var_bottom_lcd_brightness--;
 
-				sapp2_command = NONE;
 				break;
 			}
 			case TURN_TOP_SCREEN_OFF_REQUEST:
@@ -193,7 +198,6 @@ void Sapp2_worker_thread(void* arg)
 				usleep(5000000);
 				var_turn_on_top_lcd = true;
 
-				sapp2_command = NONE;
 				break;
 			}
 			case TURN_BOTTOM_SCREEN_OFF_REQUEST:
@@ -218,11 +222,9 @@ void Sapp2_worker_thread(void* arg)
 				usleep(5000000);
 				var_turn_on_bottom_lcd = true;
 
-				sapp2_command = NONE;
 				break;
 			}
 			default:
-				usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
 				break;
 		}
 
@@ -244,33 +246,38 @@ void Sapp2_hid(Hid_info key)
 		Util_err_main(key);
 	else
 	{
+		Sapp2_command command = NONE;
+
 		if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
 			Draw_get_bot_ui_button()->selected = true;
 		else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
 			Sapp2_suspend();
 
-		if(sapp2_command == NONE)
+		if(key.p_a)
+			command = SLEEP_WAKE_UP_WITH_SHELL_REQUEST;
+		else if(key.p_b)
+			command = SLEEP_WAKE_UP_WITH_BUTTON_REQUEST;
+		else if(key.p_y)
+			command = SLEEP_WAKE_UP_WITH_SHELL_OR_BUTTON_REQUEST;
+		else if(key.p_x)
+			command = CHANGE_WIFI_STATE_REQUEST;
+		else if(key.p_c_up || (key.h_c_up && key.held_time >= 18 && key.held_time % 3 == 0))
+			command = INCREASE_TOP_SCREEN_BRIGHTNESS_REQUEST;
+		else if(key.p_c_down || (key.h_c_down && key.held_time >= 18 && key.held_time % 3 == 0))
+			command = DECREASE_TOP_SCREEN_BRIGHTNESS_REQUEST;
+		else if(key.p_d_up || (key.h_d_up && key.held_time >= 18 && key.held_time % 3 == 0))
+			command = INCREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST;
+		else if(key.p_d_down || (key.h_d_down && key.held_time >= 18 && key.held_time % 3 == 0))
+			command = DECREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST;
+		else if(key.p_l)
+			command = TURN_TOP_SCREEN_OFF_REQUEST;
+		else if(key.p_r)
+			command = TURN_BOTTOM_SCREEN_OFF_REQUEST;
+
+		if(command != NONE)
 		{
-			if(key.p_a)
-				sapp2_command = SLEEP_WAKE_UP_WITH_SHELL_REQUEST;
-			else if(key.p_b)
-				sapp2_command = SLEEP_WAKE_UP_WITH_BUTTON_REQUEST;
-			else if(key.p_y)
-				sapp2_command = SLEEP_WAKE_UP_WITH_SHELL_OR_BUTTON_REQUEST;
-			else if(key.p_x)
-				sapp2_command = CHANGE_WIFI_STATE_REQUEST;
-			else if(key.p_c_up || (key.h_c_up && key.held_time >= 18 && key.held_time % 6))
-				sapp2_command = INCREASE_TOP_SCREEN_BRIGHTNESS_REQUEST;
-			else if(key.p_c_down || (key.h_c_down && key.held_time >= 18 && key.held_time % 6))
-				sapp2_command = DECREASE_TOP_SCREEN_BRIGHTNESS_REQUEST;
-			else if(key.p_d_up || (key.h_d_up && key.held_time >= 18 && key.held_time % 6))
-				sapp2_command = INCREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST;
-			else if(key.p_d_down || (key.h_d_down && key.held_time >= 18 && key.held_time % 6))
-				sapp2_command = DECREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST;
-			else if(key.p_l)
-				sapp2_command = TURN_TOP_SCREEN_OFF_REQUEST;
-			else if(key.p_r)
-				sapp2_command = TURN_BOTTOM_SCREEN_OFF_REQUEST;
+			Result_with_string result = Util_queue_add(&sapp2_command_queue, command, NULL, 100000, QUEUE_OPTION_NONE);
+			Util_log_save(DEF_SAPP2_HID_CALLBACK_STR, "Util_queue_add()..." + result.string + result.error_description, result.code);
 		}
 	}
 
@@ -286,13 +293,16 @@ void Sapp2_init_thread(void* arg)
 	Util_log_save(DEF_SAPP2_INIT_STR, "Thread started.");
 	Result_with_string result;
 
-	sapp2_status = "Starting threads...";
+	sapp2_status = "Initializing queue...";
+
+	//Create the queue for commands.
+	result = Util_queue_create(&sapp2_command_queue, 10);
+	Util_log_save(DEF_SAPP2_INIT_STR, "Util_queue_create()..." + result.string + result.error_description, result.code);
+
+	sapp2_status += "\nStarting threads...";
 
 	sapp2_thread_run = true;
 	sapp2_worker_thread = threadCreate(Sapp2_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
-
-	sapp2_status += "\nInitializing variables...";
-	sapp2_command = NONE;
 
 	sapp2_already_init = true;
 
@@ -312,6 +322,9 @@ void Sapp2_exit_thread(void* arg)
 
 	sapp2_status += "\nCleaning up...";	
 	threadFree(sapp2_worker_thread);
+
+	//Delete the queue.
+	Util_queue_delete(&sapp2_command_queue);
 
 	sapp2_already_init = false;
 
