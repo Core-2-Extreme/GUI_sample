@@ -7,7 +7,7 @@
 #define DEF_CHECK_INTERNET_URL (std::string)"http://connectivitycheck.gstatic.com/generate_204"
 #define DEF_SEND_APP_INFO_URL (std::string)"https://script.google.com/macros/s/AKfycbyn_blFyKWXCgJr6NIF8x6ETs7CHRN5FXKYEAAIrzV6jPYcCkI/exec"
 #define DEF_CHECK_UPDATE_URL (std::string)"https://script.google.com/macros/s/AKfycbwvEedP97o8vgfpAG6EzcW6jxZZqFfZaMaqE1V7kCdp9BfuXySfRQ4own5CcFW1JxRBBQ/exec"
-#define DEF_HTTP_USER_AGENT (std::string)"gui template " + DEF_CURRENT_APP_VER
+#define DEF_HTTP_USER_AGENT (std::string)"gui sample " + DEF_CURRENT_APP_VER
 #define DEF_CURRENT_APP_VER (std::string)"v0.0.1"
 #define DEF_CURRENT_APP_VER_INT 1
 #define DEF_ENABLE_SUB_APP0
