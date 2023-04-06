@@ -102,13 +102,14 @@
 //#define DEF_SAPP3_ENABLE_ICON
 #define DEF_SAPP3_ENABLE_NAME
 #define DEF_SAPP3_ICON_PATH (std::string)"romfs:/"
-#define DEF_SAPP3_NAME (std::string)"sample 3"
+#define DEF_SAPP3_NAME (std::string)"Camera \nand mic\nsample"
 #define DEF_SAPP3_VER (std::string)"v0.0.1"
 #define DEF_SAPP3_MAIN_STR (std::string)"Sapp3/Main"
 #define DEF_SAPP3_INIT_STR (std::string)"Sapp3/Init"
 #define DEF_SAPP3_EXIT_STR (std::string)"Sapp3/Exit"
 #define DEF_SAPP3_HID_CALLBACK_STR (std::string)"Sapp3/Hid callback"
-#define DEF_SAPP3_WORKER_THREAD_STR (std::string)"Sapp3/Worker thread"
+#define DEF_SAPP3_CAMERA_THREAD_STR (std::string)"Sapp3/Camera thread"
+#define DEF_SAPP3_MIC_THREAD_STR (std::string)"Sapp3/Mic thread"
 
 //sample app 4
 #define DEF_SAPP4_NUM_OF_MSG 1
