@@ -48,6 +48,9 @@ void Sapp2_worker_thread(void* arg)
 	{
 		u32 event_id = 0;
 
+		while (sapp2_thread_suspend)
+			usleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
+
 		result = Util_queue_get(&sapp2_command_queue, &event_id, NULL, DEF_ACTIVE_THREAD_SLEEP_TIME);
 		if(result.code != 0)
 		{
@@ -227,9 +230,6 @@ void Sapp2_worker_thread(void* arg)
 			default:
 				break;
 		}
-
-		while (sapp2_thread_suspend)
-			usleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
 	}
 
 	Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Thread exit.");
@@ -276,7 +276,7 @@ void Sapp2_hid(Hid_info key)
 
 		if(command != NONE)
 		{
-			Result_with_string result = Util_queue_add(&sapp2_command_queue, command, NULL, 100000, QUEUE_OPTION_NONE);
+			Result_with_string result = Util_queue_add(&sapp2_command_queue, command, NULL, 10000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST);
 			Util_log_save(DEF_SAPP2_HID_CALLBACK_STR, "Util_queue_add()..." + result.string + result.error_description, result.code);
 		}
 	}
