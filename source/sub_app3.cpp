@@ -309,6 +309,9 @@ void Sapp3_mic_thread(void* arg)
 					result = Util_audio_encoder_encode(size, audio, 0);
 					Util_log_save(DEF_SAPP3_MIC_THREAD_STR, "Util_audio_encoder_encode()..." + result.string + result.error_description, result.code);
 				}
+
+				free(audio);
+				audio = NULL;
 			}
 
 			//Upon receiving stop recording request, close the output file and set mic state to idle.
