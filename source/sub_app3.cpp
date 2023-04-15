@@ -162,8 +162,7 @@ void Sapp3_camera_thread(void* arg)
 							var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
 
 							//6. Save the picture as png.
-							result = Util_image_encoder_encode(path, parameters.converted, parameters.out_width,
-							parameters.out_height, DEF_ENCODER_IMAGE_CODEC_PNG, 0);
+							result = Util_image_encoder_encode(path, parameters.converted, parameters.out_width, parameters.out_height, IMAGE_CODEC_PNG, 0);
 							Util_log_save(DEF_SAPP3_CAMERA_THREAD_STR, "Util_image_encoder_encode()..." + result.string + result.error_description, result.code);
 
 							if(result.code == 0)
@@ -235,13 +234,13 @@ void Sapp3_mic_thread(void* arg)
 					if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
 					{
 						//For new 3ds, codec : mp3, sample rate : 32KHz, bit rate : 128kbps.
-						result = Util_audio_encoder_init(DEF_ENCODER_AUDIO_CODEC_MP3, 32728, 32000, 128000, 0);
+						result = Util_audio_encoder_init(AUDIO_CODEC_MP3, 32728, 32000, 128000, 0);
 						Util_log_save(DEF_SAPP3_MIC_THREAD_STR, "Util_audio_encoder_init()..." + result.string + result.error_description, result.code);
 					}
 					else
 					{
 						//For old 3ds, codec : mp3, sample rate : 16KHz, bit rate : 96kbps.
-						result = Util_audio_encoder_init(DEF_ENCODER_AUDIO_CODEC_MP3, 16384, 16000, 96000, 0);
+						result = Util_audio_encoder_init(AUDIO_CODEC_MP3, 16384, 16000, 96000, 0);
 						Util_log_save(DEF_SAPP3_MIC_THREAD_STR, "Util_audio_encoder_init()..." + result.string + result.error_description, result.code);
 					}
 
