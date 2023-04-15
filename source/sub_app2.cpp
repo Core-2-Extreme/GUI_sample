@@ -67,7 +67,7 @@ void Sapp2_worker_thread(void* arg)
 			{
 				aptSetSleepAllowed(true);
 
-				result = Util_cset_sleep_system(DEF_CSET_WAKE_UP_OPEN_SHELL);
+				result = Util_cset_sleep_system(WAKE_UP_EVENT_OPEN_SHELL);
 				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_sleep_system()..." + result.string + result.error_description, result.code);
 
 				break;
@@ -76,7 +76,7 @@ void Sapp2_worker_thread(void* arg)
 			{
 				aptSetSleepAllowed(true);
 
-				result = Util_cset_sleep_system(DEF_CSET_WAKE_UP_PRESS_HOME_BUTTON);
+				result = Util_cset_sleep_system(WAKE_UP_EVENT_PRESS_HOME_BUTTON);
 				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_sleep_system()..." + result.string + result.error_description, result.code);
 
 				break;
@@ -85,7 +85,7 @@ void Sapp2_worker_thread(void* arg)
 			{
 				aptSetSleepAllowed(true);
 
-				result = Util_cset_sleep_system(DEF_CSET_WAKE_UP_OPEN_SHELL | DEF_CSET_WAKE_UP_PRESS_HOME_BUTTON);
+				result = Util_cset_sleep_system((Wake_up_event)(WAKE_UP_EVENT_OPEN_SHELL | WAKE_UP_EVENT_PRESS_HOME_BUTTON));
 				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_sleep_system()..." + result.string + result.error_description, result.code);
 
 				break;
@@ -523,7 +523,6 @@ void Sapp2_main(void)
 
 				if(var_monitor_cpu_usage)
 					Draw_cpu_usage_info();
-
 			}
 		}
 		

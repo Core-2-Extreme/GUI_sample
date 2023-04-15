@@ -376,12 +376,12 @@ void Sapp3_hid(Hid_info key)
 		if(camera_command != CAM_NONE)
 		{
 			result = Util_queue_add(&sapp3_camera_command_queue, camera_command, NULL, 10000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST);
-			Util_log_save(DEF_SAPP2_HID_CALLBACK_STR, "Util_queue_add()..." + result.string + result.error_description, result.code);
+			Util_log_save(DEF_SAPP3_HID_CALLBACK_STR, "Util_queue_add()..." + result.string + result.error_description, result.code);
 		}
 		if(mic_command != MIC_NONE)
 		{
 			result = Util_queue_add(&sapp3_mic_command_queue, mic_command, NULL, 10000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST);
-			Util_log_save(DEF_SAPP2_HID_CALLBACK_STR, "Util_queue_add()..." + result.string + result.error_description, result.code);
+			Util_log_save(DEF_SAPP3_HID_CALLBACK_STR, "Util_queue_add()..." + result.string + result.error_description, result.code);
 		}
 	}
 
@@ -436,14 +436,14 @@ void Sapp3_init_thread(void* arg)
 		Util_log_save(DEF_SAPP3_INIT_STR, "Draw_texture_init()..." + result.string + result.error_description, result.code);
 	}
 
-	sapp3_status += "Initializing queue...";
+	sapp3_status += "\nInitializing queue...";
 
 	//Create the queues for commands.
 	result = Util_queue_create(&sapp3_camera_command_queue, 10);
-	Util_log_save(DEF_SAPP2_INIT_STR, "Util_queue_create()..." + result.string + result.error_description, result.code);
+	Util_log_save(DEF_SAPP3_INIT_STR, "Util_queue_create()..." + result.string + result.error_description, result.code);
 
 	result = Util_queue_create(&sapp3_mic_command_queue, 10);
-	Util_log_save(DEF_SAPP2_INIT_STR, "Util_queue_create()..." + result.string + result.error_description, result.code);
+	Util_log_save(DEF_SAPP3_INIT_STR, "Util_queue_create()..." + result.string + result.error_description, result.code);
 
 	sapp3_camera_buffer_index = 0;
 	sapp3_camera_state = CAM_IDLE;
@@ -703,7 +703,6 @@ void Sapp3_main(void)
 
 				if(var_monitor_cpu_usage)
 					Draw_cpu_usage_info();
-
 			}
 		}
 		

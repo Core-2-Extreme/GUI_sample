@@ -265,7 +265,6 @@ void Sapp4_main(void)
 
 				if(var_monitor_cpu_usage)
 					Draw_cpu_usage_info();
-
 			}
 		}
 		
