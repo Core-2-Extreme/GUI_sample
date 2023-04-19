@@ -360,10 +360,10 @@ void Sapp0_main(void)
 
 			//Draw texture here.
 			if(sapp0_image[0].subtex)
-				Draw_texture(&sapp0_image[0], 0, 20, sapp0_image[0].subtex->width, sapp0_image[0].subtex->height);
+				Draw_texture(&sapp0_image[0], 0, 40, sapp0_image[0].subtex->width, sapp0_image[0].subtex->height);
 
 			if(sapp0_image[1].subtex)
-				Draw_texture(&sapp0_image[1], 200, 60, sapp0_image[1].subtex->width, sapp0_image[1].subtex->height);
+				Draw_texture(&sapp0_image[1], 200, 100, sapp0_image[1].subtex->width, sapp0_image[1].subtex->height);
 
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();

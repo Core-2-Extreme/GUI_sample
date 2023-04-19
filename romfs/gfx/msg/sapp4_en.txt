@@ -1,1 +1,1 @@
-<0>Sample 4</0>
+<0>Speaker and decoder API sample</0>

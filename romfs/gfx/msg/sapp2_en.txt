@@ -1,1 +1,1 @@
-<0>Sample 2</0>
+<0>Hardware settings API sample</0>

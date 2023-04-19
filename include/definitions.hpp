@@ -102,7 +102,7 @@
 //#define DEF_SAPP3_ENABLE_ICON
 #define DEF_SAPP3_ENABLE_NAME
 #define DEF_SAPP3_ICON_PATH (std::string)"romfs:/"
-#define DEF_SAPP3_NAME (std::string)"Camera \nand mic\nsample"
+#define DEF_SAPP3_NAME (std::string)"Camera\nand mic\nsample"
 #define DEF_SAPP3_VER (std::string)"v0.0.1"
 #define DEF_SAPP3_MAIN_STR (std::string)"Sapp3/Main"
 #define DEF_SAPP3_INIT_STR (std::string)"Sapp3/Init"
@@ -116,7 +116,7 @@
 //#define DEF_SAPP4_ENABLE_ICON
 #define DEF_SAPP4_ENABLE_NAME
 #define DEF_SAPP4_ICON_PATH (std::string)"romfs:/"
-#define DEF_SAPP4_NAME (std::string)"sample 4"
+#define DEF_SAPP4_NAME (std::string)"Speaker\nsample"
 #define DEF_SAPP4_VER (std::string)"v0.0.1"
 #define DEF_SAPP4_MAIN_STR (std::string)"Sapp4/Main"
 #define DEF_SAPP4_INIT_STR (std::string)"Sapp4/Init"

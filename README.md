@@ -10,6 +10,7 @@ Currently this sample application contains following samples :
 * [File explorer sample](https://github.com/Core-2-Extreme/GUI_sample#file-explorer-sample)
 * [Hardware settings sample](https://github.com/Core-2-Extreme/GUI_sample#hardware-settings-sample)
 * [Camera and mic sample](https://github.com/Core-2-Extreme/GUI_sample#camera-and-mic-sample)
+* [Speaker sample](https://github.com/Core-2-Extreme/GUI_sample#speaker-sample)
 
 ### Draw image sample
 This is a sample code to draw images such as .png and .jpg.
@@ -28,7 +29,7 @@ This is a sample code to use file explorer.
 
 <img src="https://raw.githubusercontent.com/Core-2-Extreme/GUI_sample/main/screenshots/sample_app_1.png" width="400" height="480">
 
-Application source code : [`source/sub_app1.cpp`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/source/sub_app1.cpp)
+Application source code : [`source/sub_app1.cpp`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/source/sub_app1.cpp) \
 Used APIs : 
 * [`Util_expl*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/explorer.hpp)
 
@@ -37,7 +38,8 @@ This is a sample code to change hardware settings such as wifi state, screen bri
 
 <img src="https://raw.githubusercontent.com/Core-2-Extreme/GUI_sample/main/screenshots/sample_app_2.png" width="400" height="480">
 
-Application source code : [`source/sub_app2.cpp`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/source/sub_app2.cpp)
+Application source code : [`source/sub_app2.cpp`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/source/sub_app2.cpp) \
+Used APIs : 
 * [`Util_cset*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/change_setting.hpp)
 * [`Util_queue*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/queue.hpp)
 
@@ -46,9 +48,22 @@ This is a sample code to take a picture by using camera and record sound by usin
 
 <img src="https://raw.githubusercontent.com/Core-2-Extreme/GUI_sample/main/screenshots/sample_app_3.png" width="400" height="480">
 
-Application source code : [`source/sub_app3.cpp`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/source/sub_app3.cpp)
+Application source code : [`source/sub_app3.cpp`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/source/sub_app3.cpp) \
+Used APIs : 
 * [`Util_cam*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/camera.hpp)
 * [`Util_converter_convert_color()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/converter.hpp)
 * [`Util_encoder*(), Util_audio_encoder*(), Util_image_encoder_encode()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/encoder.hpp)
 * [`Util_mic*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/mic.hpp)
+* [`Util_queue*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/queue.hpp)
+
+### Speaker sample
+This is a sample code to playback audio.
+
+<img src="https://raw.githubusercontent.com/Core-2-Extreme/GUI_sample/main/screenshots/sample_app_4.png" width="400" height="480">
+
+Application source code : [`source/sub_app4.cpp`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/source/sub_app4.cpp) \
+Used APIs : 
+* [`Util_converter_convert_audio()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/converter.hpp)
+* [`Util_audio_decoder*(), Util_decoder*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/decoder.hpp)
+* [`Util_speaker*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/speaker.hpp)
 * [`Util_queue*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/queue.hpp)

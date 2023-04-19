@@ -1,1 +1,1 @@
-<0>Sample 3</0>
+<0>Camera, mic and encoder API sample</0>
