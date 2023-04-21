@@ -1,4 +1,22 @@
-#include "system/headers.hpp"
+#include "definitions.hpp"
+#include "system/types.hpp"
+
+#include "system/menu.hpp"
+#include "system/variables.hpp"
+
+#include "system/draw/draw.hpp"
+
+#include "system/util/converter.hpp"
+#include "system/util/decoder.hpp"
+#include "system/util/error.hpp"
+#include "system/util/hid.hpp"
+#include "system/util/log.hpp"
+#include "system/util/queue.hpp"
+#include "system/util/speaker.hpp"
+#include "system/util/util.hpp"
+
+//Include myself.
+#include "sub_app4.hpp"
 
 enum Sapp4_command
 {
@@ -51,7 +69,7 @@ void Sapp4_worker_thread(void* arg)
 		u32 event_id = 0;
 
 		while (sapp4_thread_suspend)
-			usleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
+			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
 
 		result = Util_queue_get(&sapp4_command_queue, &event_id, NULL, DEF_ACTIVE_THREAD_SLEEP_TIME * 20);
 		if(result.code == 0)
@@ -196,7 +214,7 @@ void Sapp4_worker_thread(void* arg)
 											//If speaker buffer is full, wait until free space is available.
 											//Also set is_buffer_full flag to break from the decode loop.
 											is_buffer_full = true;
-											usleep(10000);
+											Util_sleep(10000);
 										}
 										else
 										{
@@ -411,7 +429,7 @@ void Sapp4_init(bool draw)
 				gspWaitForVBlank();
 		}
 		else
-			usleep(20000);
+			Util_sleep(20000);
 	}
 
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
@@ -461,7 +479,7 @@ void Sapp4_exit(bool draw)
 				gspWaitForVBlank();
 		}
 		else
-			usleep(20000);
+			Util_sleep(20000);
 	}
 
 	Util_log_save(DEF_SAPP4_EXIT_STR, "threadJoin()...", threadJoin(sapp4_exit_thread, DEF_THREAD_WAIT_TIME));	

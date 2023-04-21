@@ -1,4 +1,18 @@
-#include "system/headers.hpp"
+#include "definitions.hpp"
+#include "system/types.hpp"
+
+#include "system/menu.hpp"
+#include "system/variables.hpp"
+
+#include "system/draw/draw.hpp"
+
+#include "system/util/error.hpp"
+#include "system/util/hid.hpp"
+#include "system/util/log.hpp"
+#include "system/util/util.hpp"
+
+//Include myself.
+#include "sub_app5.hpp"
 
 bool sapp5_main_run = false;
 bool sapp5_thread_run = false;
@@ -31,10 +45,10 @@ void Sapp5_worker_thread(void* arg)
 
 		}
 		else
-			usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
+			Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
 
 		while (sapp5_thread_suspend)
-			usleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
+			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
 	}
 
 	Util_log_save(DEF_SAPP5_WORKER_THREAD_STR, "Thread exit.");
@@ -164,7 +178,7 @@ void Sapp5_init(bool draw)
 				gspWaitForVBlank();
 		}
 		else
-			usleep(20000);
+			Util_sleep(20000);
 	}
 
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
@@ -214,7 +228,7 @@ void Sapp5_exit(bool draw)
 				gspWaitForVBlank();
 		}
 		else
-			usleep(20000);
+			Util_sleep(20000);
 	}
 
 	Util_log_save(DEF_SAPP5_EXIT_STR, "threadJoin()...", threadJoin(sapp5_exit_thread, DEF_THREAD_WAIT_TIME));	

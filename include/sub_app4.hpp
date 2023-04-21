@@ -1,4 +1,6 @@
-#pragma once
+#ifndef SAPP4_HPP
+#define SAPP4_HPP
+
 #include "system/types.hpp"
 
 bool Sapp4_query_init_flag(void);
@@ -18,3 +20,5 @@ void Sapp4_init(bool draw);
 void Sapp4_exit(bool draw);
 
 void Sapp4_main(void);
+
+#endif

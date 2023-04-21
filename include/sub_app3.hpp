@@ -1,4 +1,6 @@
-#pragma once
+#ifndef SAPP3_HPP
+#define SAPP3_HPP
+
 #include "system/types.hpp"
 
 bool Sapp3_query_init_flag(void);
@@ -18,3 +20,5 @@ void Sapp3_init(bool draw);
 void Sapp3_exit(bool draw);
 
 void Sapp3_main(void);
+
+#endif

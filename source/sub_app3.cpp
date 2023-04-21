@@ -1,4 +1,24 @@
-#include "system/headers.hpp"
+#include "definitions.hpp"
+#include "system/types.hpp"
+
+#include "system/menu.hpp"
+#include "system/variables.hpp"
+
+#include "system/draw/draw.hpp"
+
+#include "system/util/camera.hpp"
+#include "system/util/converter.hpp"
+#include "system/util/encoder.hpp"
+#include "system/util/error.hpp"
+#include "system/util/file.hpp"
+#include "system/util/hid.hpp"
+#include "system/util/log.hpp"
+#include "system/util/mic.hpp"
+#include "system/util/queue.hpp"
+#include "system/util/util.hpp"
+
+//Include myself.
+#include "sub_app3.hpp"
 
 enum Sapp3_camera_command
 {
@@ -76,7 +96,7 @@ void Sapp3_camera_thread(void* arg)
 		u32 event_id = 0;
 
 		while (sapp3_thread_suspend)
-			usleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
+			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
 
 		result = Util_queue_get(&sapp3_camera_command_queue, &event_id, NULL, 0);
 		if(result.code == 0)
@@ -181,7 +201,7 @@ void Sapp3_camera_thread(void* arg)
 			else
 			{
 				Util_log_save(DEF_SAPP3_CAMERA_THREAD_STR, "Util_cam_take_a_picture()..." + result.string + result.error_description, result.code);
-				usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
+				Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
 			}
 
 			free(picture);
@@ -189,7 +209,7 @@ void Sapp3_camera_thread(void* arg)
 			sapp3_camera_state = CAM_ENABLED;
 		}
 		else//Nothing to do, just sleep.
-			usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
+			Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
 	}
 
 	Util_log_save(DEF_SAPP3_CAMERA_THREAD_STR, "Thread exit.");
@@ -210,7 +230,7 @@ void Sapp3_mic_thread(void* arg)
 		u32 event_id = 0;
 
 		while (sapp3_thread_suspend)
-			usleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
+			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
 
 		result = Util_queue_get(&sapp3_mic_command_queue, &event_id, NULL, 0);
 		if(result.code == 0)
@@ -293,7 +313,7 @@ void Sapp3_mic_thread(void* arg)
 
 		if(sapp3_mic_state == MIC_RECORDING || sapp3_mic_state == MIC_STOPPING_RECORDING)
 		{
-			usleep(5000);
+			Util_sleep(5000);
 
 			//If remaining buffer is less than 500ms or stop request has been received, encode pcm data to mp3.
 			if(Util_mic_query_remaining_buffer_time() < 500 || sapp3_mic_state == MIC_STOPPING_RECORDING)
@@ -321,7 +341,7 @@ void Sapp3_mic_thread(void* arg)
 			}
 		}
 		else//Nothing to do, just sleep.
-			usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
+			Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
 	}
 
 	Util_encoder_close_output_file(0);
@@ -572,7 +592,7 @@ void Sapp3_init(bool draw)
 				gspWaitForVBlank();
 		}
 		else
-			usleep(20000);
+			Util_sleep(20000);
 	}
 
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
@@ -622,7 +642,7 @@ void Sapp3_exit(bool draw)
 				gspWaitForVBlank();
 		}
 		else
-			usleep(20000);
+			Util_sleep(20000);
 	}
 
 	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_exit_thread, DEF_THREAD_WAIT_TIME));	
