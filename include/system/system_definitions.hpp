@@ -280,7 +280,9 @@
 #define DEF_EXFONT_LOAD_FONT_CALLBACK_STR (std::string)"Exfont/Load font callback"
 
 //fake pthread
+#ifndef _POSIX_THREADS
 #define _POSIX_THREADS
+#endif
 
 //hid
 #define DEF_HID_INIT_STR (std::string)"Hid/Init"

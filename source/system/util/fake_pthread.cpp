@@ -50,7 +50,7 @@ int	pthread_mutex_lock(pthread_mutex_t* __mutex)
 
     while(true)
     {
-        result = svcWaitSynchronization((Handle)*__mutex, U64_MAX);
+        result = svcWaitSynchronization(*(Handle*)__mutex, U64_MAX);
         if(result == 0)
             return 0;
 
@@ -65,28 +65,30 @@ int	pthread_mutex_lock(pthread_mutex_t* __mutex)
 
 int	pthread_mutex_unlock(pthread_mutex_t* __mutex)
 {
-    return svcReleaseMutex((Handle)*__mutex);
+    return svcReleaseMutex(*(Handle*)__mutex);
 }
 
 int	pthread_mutex_destroy(pthread_mutex_t* __mutex)
 {
-    return svcCloseHandle((Handle)*__mutex);
+    return svcCloseHandle(*(Handle*)__mutex);
 }
 
 int	pthread_once(pthread_once_t* __once_control, void (*__init_routine)(void))
 {
     LightLock_Lock(&util_fake_pthread_mutex);
-    if(__once_control->init_executed != 0)
+    if(__once_control->status != 0)
     {
         LightLock_Unlock(&util_fake_pthread_mutex);
         return 0;
     }
 
-    __once_control->is_initialized = 1;
-    __once_control->init_executed = 1;
+    __once_control->status = 1;
     LightLock_Unlock(&util_fake_pthread_mutex);
 
     __init_routine();
+
+    //Only 1 thread can reach here, so we don't need to lock mutex.
+    __once_control->status = 2;
 
     return 0;
 }
@@ -103,7 +105,7 @@ int	pthread_cond_wait(pthread_cond_t* __cond, pthread_mutex_t* __mutex)
 
     while(true)
     {
-        result = svcWaitSynchronization((Handle)*__cond, U64_MAX);
+        result = svcWaitSynchronization(*(Handle*)__cond, U64_MAX);
         if(result == 0)
         {
             pthread_mutex_lock(__mutex);
@@ -121,7 +123,7 @@ int	pthread_cond_wait(pthread_cond_t* __cond, pthread_mutex_t* __mutex)
 
 int	pthread_cond_signal(pthread_cond_t* __cond)
 {
-    return svcSignalEvent((Handle)*__cond);
+    return svcSignalEvent(*(Handle*)__cond);
 }
 
 int	pthread_cond_broadcast(pthread_cond_t* __cond)
@@ -130,7 +132,7 @@ int	pthread_cond_broadcast(pthread_cond_t* __cond)
     
     while(true)
     {
-        result = svcSignalEvent((Handle)*__cond);
+        result = svcSignalEvent(*(Handle*)__cond);
         if(result == 0xD8E007F7)
         {
             result = pthread_cond_init(__cond, NULL);
@@ -140,7 +142,7 @@ int	pthread_cond_broadcast(pthread_cond_t* __cond)
                 continue;
         }
 
-        result = svcWaitSynchronization((Handle)*__cond, 0);
+        result = svcWaitSynchronization(*(Handle*)__cond, 0);
         if(result == 0)
             return 0;
     }
@@ -148,7 +150,7 @@ int	pthread_cond_broadcast(pthread_cond_t* __cond)
 
 int	pthread_cond_destroy(pthread_cond_t* __mutex)
 {
-    return svcCloseHandle((Handle)*__mutex);
+    return svcCloseHandle(*(Handle*)__mutex);
 }
 
 int	pthread_create(pthread_t* __pthread, const pthread_attr_t * __attr, void* (*__start_routine)(void*), void* __arg)
@@ -158,7 +160,7 @@ int	pthread_create(pthread_t* __pthread, const pthread_attr_t * __attr, void* (*
     if(util_fake_pthread_enabled_cores == 0)
         return -1;
 
-    if(__attr && __attr->is_initialized)
+    if(__attr)
         handle = threadCreate((ThreadFunc)__start_routine, __arg, __attr->stacksize, DEF_THREAD_PRIORITY_BELOW_NORMAL, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], true);
     else
         handle = threadCreate((ThreadFunc)__start_routine, __arg, DEF_STACKSIZE, DEF_THREAD_PRIORITY_BELOW_NORMAL, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], true);
@@ -192,12 +194,8 @@ int pthread_attr_init(pthread_attr_t* attr)
     if(!attr)
         return -1;
 
-    attr->is_initialized = true;
     attr->stackaddr = NULL;
     attr->stacksize = DEF_STACKSIZE;
-    attr->contentionscope = PTHREAD_SCOPE_SYSTEM;
-    attr->inheritsched = PTHREAD_INHERIT_SCHED;
-    attr->schedpolicy = SCHED_FIFO;
     attr->schedparam.sched_priority = DEF_THREAD_PRIORITY_LOW;
     attr->detachstate = PTHREAD_CREATE_JOINABLE;
     return 0;
@@ -208,7 +206,7 @@ int pthread_attr_destroy(pthread_attr_t* attr)
     if(!attr)
         return -1;
 
-    attr->is_initialized = false;
+    memset(attr, 0x0, sizeof(pthread_attr_t));
     return 0;
 }
 
