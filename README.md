@@ -1,4 +1,5 @@
 # GUI sample
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/Core-2-Extreme/GUI_sample?color=darkgreen&style=flat-square)
 
 ## What is this?????
 This is a sample application for 3ds homebrew (aka SDK). \
@@ -67,3 +68,27 @@ Used APIs :
 * [`Util_audio_decoder*(), Util_decoder*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/decoder.hpp)
 * [`Util_speaker*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/speaker.hpp)
 * [`Util_queue*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/queue.hpp)
+
+## Build
+You need : 
+* [devkitpro](https://devkitpro.org/wiki/Getting_Started)
+
+If you want to build .cia, then you also need : 
+* [bannertool](https://github.com/Steveice10/bannertool/releases) and [makerom](https://github.com/3DSGuy/Project_CTR/releases) (Copy them in your path e.g. in `{devkitPro_install_dir}\tools\bin`).
+
+If you already have devkitpro, type `{devkitPro_install_dir}\devkitARM\bin\arm-none-eabi-gcc -v`. \
+You should see something like : 
+```
+.....
+.....
+.....
+Thread model: posix
+Supported LTO compression algorithms: zlib zstd
+gcc version 12.2.0 (devkitARM release 60)
+```
+Make sure you have release 60 or later. \
+If you have older devkitpro, update it or compilation will fail.
+
+* Clone this repository
+  * On windows run `build.bat`
+  * On other system, type `make` (`make -j` for faster build)
