@@ -1,6 +1,12 @@
 # GUI sample
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/Core-2-Extreme/GUI_sample?color=darkgreen&style=flat-square)
 
+## Index
+* [What is this?????](https://github.com/Core-2-Extreme/GUI_sample#What-is-this)
+* [What sample code does it have?????](https://github.com/Core-2-Extreme/GUI_sample#What-sample-code-does-it-have)
+* [Build](https://github.com/Core-2-Extreme/GUI_sample#Build)
+* [License](https://github.com/Core-2-Extreme/GUI_sample#License)
+
 ## What is this?????
 This is a sample application for 3ds homebrew (aka SDK). \
 Homebrew application for 3ds such as [Video player for 3DS](https://github.com/Core-2-Extreme/Video_player_for_3DS) and [Battery mark for 3DS](https://github.com/Core-2-Extreme/Battery_mark_for_3DS) are based on this sample code.
@@ -92,3 +98,23 @@ If you have older devkitpro, update it or compilation will fail.
 * Clone this repository
   * On windows run `build.bat`
   * On other system, type `make` (`make -j` for faster build)
+
+## License
+This software is licensed as GNU General Public License v3.0.
+
+Third party libraries are licensed as :
+
+| Library | License |
+| ------- | ------- |
+| [Base64](https://github.com/ReneNyffenegger/cpp-base64/blob/master/LICENSE) | No specific license name               |
+| [citro2d](https://github.com/devkitPro/citro2d/blob/master/LICENSE)         | zlib License                           |
+| [citro3d](https://github.com/devkitPro/citro3d/blob/master/LICENSE)         | zlib License                           |
+| [curl](https://github.com/curl/curl/blob/master/COPYING)                    | No specific license name               |
+| [dav1d](https://github.com/videolan/dav1d/blob/master/COPYING)              | BSD 2-Clause                           |
+| [ffmpeg](https://github.com/FFmpeg/FFmpeg/blob/master/COPYING.GPLv2)        | GNU General Public License v2.0        |
+| [libctru](https://github.com/devkitPro/libctru#license)                     | zlib License                           |
+| [mbedtls](https://github.com/Mbed-TLS/mbedtls/blob/development/LICENSE)     | Apache License 2.0                     |
+| [mp3lame](https://github.com/gypified/libmp3lame/blob/master/COPYING)       | GNU Lesser General Public License v2.0 |
+| [stb_image](https://github.com/nothings/stb/blob/master/LICENSE)            | Public Domain                          |
+| [x264](https://github.com/mirror/x264/blob/master/COPYING)                  | GNU General Public License v2.0        |
+| [zlib](https://github.com/madler/zlib/blob/master/LICENSE)                  | zlib License                           |
