@@ -2,10 +2,10 @@
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/Core-2-Extreme/GUI_sample?color=darkgreen&style=flat-square)
 
 ## Index
-* [What is this?????](https://github.com/Core-2-Extreme/GUI_sample#What-is-this)
-* [What sample code does it have?????](https://github.com/Core-2-Extreme/GUI_sample#What-sample-code-does-it-have)
-* [Build](https://github.com/Core-2-Extreme/GUI_sample#Build)
-* [License](https://github.com/Core-2-Extreme/GUI_sample#License)
+* [What is this?????](https://github.com/Core-2-Extreme/GUI_sample#what-is-this)
+* [What sample code does it have?????](https://github.com/Core-2-Extreme/GUI_sample#what-sample-code-does-it-have)
+* [Build](https://github.com/Core-2-Extreme/GUI_sample#build)
+* [License](https://github.com/Core-2-Extreme/GUI_sample#license)
 
 ## What is this?????
 This is a sample application for 3ds homebrew (aka SDK). \
