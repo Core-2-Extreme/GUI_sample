@@ -41,7 +41,7 @@ bool Sapp0_query_running_flag(void)
 void Sapp0_worker_thread(void* arg)
 {
 	Util_log_save(DEF_SAPP0_WORKER_THREAD_STR, "Thread started.");
-	
+
 	while (sapp0_thread_run)
 	{
 		if(false)
@@ -214,7 +214,7 @@ void Sapp0_exit_thread(void* arg)
 	sapp0_status = "Exiting threads...";
 	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_worker_thread, DEF_THREAD_WAIT_TIME));
 
-	sapp0_status += "\nCleaning up...";	
+	sapp0_status += "\nCleaning up...";
 	threadFree(sapp0_worker_thread);
 
 	//Free texture
@@ -245,7 +245,7 @@ void Sapp0_suspend(void)
 
 Result_with_string Sapp0_load_msg(std::string lang)
 {
-	return  Util_load_msg("sapp0_" + lang + ".txt", sapp0_msg, DEF_SAPP0_NUM_OF_MSG);
+	return Util_load_msg("sapp0_" + lang + ".txt", sapp0_msg, DEF_SAPP0_NUM_OF_MSG);
 }
 
 void Sapp0_init(bool draw)
@@ -298,7 +298,7 @@ void Sapp0_init(bool draw)
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
-	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_init_thread, DEF_THREAD_WAIT_TIME));	
+	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_init_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp0_init_thread);
 	Sapp0_resume();
 
@@ -345,7 +345,7 @@ void Sapp0_exit(bool draw)
 			Util_sleep(20000);
 	}
 
-	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_exit_thread, DEF_THREAD_WAIT_TIME));	
+	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_exit_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp0_exit_thread);
 	Util_remove_watch(&sapp0_status);
 	var_need_reflesh = true;
@@ -403,7 +403,7 @@ void Sapp0_main(void)
 					Draw_cpu_usage_info();
 			}
 		}
-		
+
 		if(var_turn_on_bottom_lcd)
 		{
 			Draw_screen_ready(SCREEN_BOTTOM, back_color);

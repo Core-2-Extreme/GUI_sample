@@ -172,7 +172,7 @@ void Sapp3_camera_thread(void* arg)
 						parameters.in_color_format = PIXEL_FORMAT_RGB565LE;
 						parameters.out_color_format = PIXEL_FORMAT_BGR888;
 
-						result = Util_converter_convert_color(&parameters);	
+						result = Util_converter_convert_color(&parameters);
 						Util_log_save(DEF_SAPP3_CAMERA_THREAD_STR, "Util_converter_convert_color()..." + result.string + result.error_description, result.code);
 
 						if(result.code == 0)
@@ -500,7 +500,7 @@ void Sapp3_exit_thread(void* arg)
 	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_camera_thread, DEF_THREAD_WAIT_TIME));
 	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_mic_thread, DEF_THREAD_WAIT_TIME));
 
-	sapp3_status += "\nCleaning up...";	
+	sapp3_status += "\nCleaning up...";
 	threadFree(sapp3_camera_thread);
 	threadFree(sapp3_mic_thread);
 
@@ -545,7 +545,7 @@ void Sapp3_suspend(void)
 
 Result_with_string Sapp3_load_msg(std::string lang)
 {
-	return  Util_load_msg("sapp3_" + lang + ".txt", sapp3_msg, DEF_SAPP3_NUM_OF_MSG);
+	return Util_load_msg("sapp3_" + lang + ".txt", sapp3_msg, DEF_SAPP3_NUM_OF_MSG);
 }
 
 void Sapp3_init(bool draw)
@@ -598,7 +598,7 @@ void Sapp3_init(bool draw)
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
-	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_init_thread, DEF_THREAD_WAIT_TIME));	
+	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_init_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp3_init_thread);
 	Sapp3_resume();
 
@@ -645,7 +645,7 @@ void Sapp3_exit(bool draw)
 			Util_sleep(20000);
 	}
 
-	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_exit_thread, DEF_THREAD_WAIT_TIME));	
+	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_exit_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp3_exit_thread);
 	Util_remove_watch(&sapp3_status);
 	var_need_reflesh = true;
@@ -724,7 +724,7 @@ void Sapp3_main(void)
 					Draw_cpu_usage_info();
 			}
 		}
-		
+
 		if(var_turn_on_bottom_lcd)
 		{
 			Draw_screen_ready(SCREEN_BOTTOM, back_color);

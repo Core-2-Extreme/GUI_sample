@@ -37,7 +37,7 @@ bool Sapp6_query_running_flag(void)
 void Sapp6_worker_thread(void* arg)
 {
 	Util_log_save(DEF_SAPP6_WORKER_THREAD_STR, "Thread started.");
-	
+
 	while (sapp6_thread_run)
 	{
 		if(false)
@@ -82,7 +82,7 @@ void Sapp6_init_thread(void* arg)
 {
 	Util_log_save(DEF_SAPP6_INIT_STR, "Thread started.");
 	Result_with_string result;
-	
+
 	sapp6_status = "Starting threads...";
 
 	sapp6_thread_run = true;
@@ -104,7 +104,7 @@ void Sapp6_exit_thread(void* arg)
 	sapp6_status = "Exiting threads...";
 	Util_log_save(DEF_SAPP6_EXIT_STR, "threadJoin()...", threadJoin(sapp6_worker_thread, DEF_THREAD_WAIT_TIME));
 
-	sapp6_status += "\nCleaning up...";	
+	sapp6_status += "\nCleaning up...";
 	threadFree(sapp6_worker_thread);
 
 	sapp6_already_init = false;
@@ -131,7 +131,7 @@ void Sapp6_suspend(void)
 
 Result_with_string Sapp6_load_msg(std::string lang)
 {
-	return  Util_load_msg("sapp6_" + lang + ".txt", sapp6_msg, DEF_SAPP6_NUM_OF_MSG);
+	return Util_load_msg("sapp6_" + lang + ".txt", sapp6_msg, DEF_SAPP6_NUM_OF_MSG);
 }
 
 void Sapp6_init(bool draw)
@@ -184,7 +184,7 @@ void Sapp6_init(bool draw)
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
-	Util_log_save(DEF_SAPP6_EXIT_STR, "threadJoin()...", threadJoin(sapp6_init_thread, DEF_THREAD_WAIT_TIME));	
+	Util_log_save(DEF_SAPP6_EXIT_STR, "threadJoin()...", threadJoin(sapp6_init_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp6_init_thread);
 	Sapp6_resume();
 
@@ -231,7 +231,7 @@ void Sapp6_exit(bool draw)
 			Util_sleep(20000);
 	}
 
-	Util_log_save(DEF_SAPP6_EXIT_STR, "threadJoin()...", threadJoin(sapp6_exit_thread, DEF_THREAD_WAIT_TIME));	
+	Util_log_save(DEF_SAPP6_EXIT_STR, "threadJoin()...", threadJoin(sapp6_exit_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp6_exit_thread);
 	Util_remove_watch(&sapp6_status);
 	var_need_reflesh = true;
@@ -281,7 +281,7 @@ void Sapp6_main(void)
 					Draw_cpu_usage_info();
 			}
 		}
-		
+
 		if(var_turn_on_bottom_lcd)
 		{
 			Draw_screen_ready(SCREEN_BOTTOM, back_color);

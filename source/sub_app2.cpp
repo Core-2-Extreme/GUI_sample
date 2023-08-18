@@ -336,7 +336,7 @@ void Sapp2_exit_thread(void* arg)
 	sapp2_status = "Exiting threads...";
 	Util_log_save(DEF_SAPP2_EXIT_STR, "threadJoin()...", threadJoin(sapp2_worker_thread, DEF_THREAD_WAIT_TIME));
 
-	sapp2_status += "\nCleaning up...";	
+	sapp2_status += "\nCleaning up...";
 	threadFree(sapp2_worker_thread);
 
 	//Delete the queue.
@@ -366,7 +366,7 @@ void Sapp2_suspend(void)
 
 Result_with_string Sapp2_load_msg(std::string lang)
 {
-	return  Util_load_msg("sapp2_" + lang + ".txt", sapp2_msg, DEF_SAPP2_NUM_OF_MSG);
+	return Util_load_msg("sapp2_" + lang + ".txt", sapp2_msg, DEF_SAPP2_NUM_OF_MSG);
 }
 
 void Sapp2_init(bool draw)
@@ -419,7 +419,7 @@ void Sapp2_init(bool draw)
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
-	Util_log_save(DEF_SAPP2_EXIT_STR, "threadJoin()...", threadJoin(sapp2_init_thread, DEF_THREAD_WAIT_TIME));	
+	Util_log_save(DEF_SAPP2_EXIT_STR, "threadJoin()...", threadJoin(sapp2_init_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp2_init_thread);
 	Sapp2_resume();
 
@@ -466,7 +466,7 @@ void Sapp2_exit(bool draw)
 			Util_sleep(20000);
 	}
 
-	Util_log_save(DEF_SAPP2_EXIT_STR, "threadJoin()...", threadJoin(sapp2_exit_thread, DEF_THREAD_WAIT_TIME));	
+	Util_log_save(DEF_SAPP2_EXIT_STR, "threadJoin()...", threadJoin(sapp2_exit_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp2_exit_thread);
 	Util_remove_watch(&sapp2_status);
 	var_need_reflesh = true;
@@ -541,7 +541,7 @@ void Sapp2_main(void)
 					Draw_cpu_usage_info();
 			}
 		}
-		
+
 		if(var_turn_on_bottom_lcd)
 		{
 			Draw_screen_ready(SCREEN_BOTTOM, back_color);

@@ -92,7 +92,7 @@ void Sapp4_worker_thread(void* arg)
 					result = Util_decoder_open_file(path, &num_of_audio, &num_of_videos, &num_of_subtitles, 0);
 					Util_log_save(DEF_SAPP4_WORKER_THREAD_STR, "Util_decoder_open_file()..." + result.string + result.error_description, result.code);
 
-					//2. Initialize audio decoder. 
+					//2. Initialize audio decoder.
 					//Since we only interested in audio here, so we only initialize audio decoder.
 					result = Util_audio_decoder_init(num_of_audio, 0);
 					Util_log_save(DEF_SAPP4_WORKER_THREAD_STR, "Util_audio_decoder_init()..." + result.string + result.error_description, result.code);
@@ -242,7 +242,7 @@ void Sapp4_worker_thread(void* arg)
 					else if(type == PACKET_TYPE_SUBTITLE)
 						Util_decoder_skip_subtitle_packet(packet_index, 0);
 
-					//If speaker buffer is full, break and check for new command, then come back here later. 
+					//If speaker buffer is full, break and check for new command, then come back here later.
 					if(is_buffer_full)
 						break;
 					else//If not, read the next packet.
@@ -345,7 +345,7 @@ void Sapp4_exit_thread(void* arg)
 	sapp4_status = "Exiting threads...";
 	Util_log_save(DEF_SAPP4_EXIT_STR, "threadJoin()...", threadJoin(sapp4_worker_thread, DEF_THREAD_WAIT_TIME));
 
-	sapp4_status += "\nCleaning up...";	
+	sapp4_status += "\nCleaning up...";
 	threadFree(sapp4_worker_thread);
 
 	//Exit speaker.
@@ -382,7 +382,7 @@ void Sapp4_suspend(void)
 
 Result_with_string Sapp4_load_msg(std::string lang)
 {
-	return  Util_load_msg("sapp4_" + lang + ".txt", sapp4_msg, DEF_SAPP4_NUM_OF_MSG);
+	return Util_load_msg("sapp4_" + lang + ".txt", sapp4_msg, DEF_SAPP4_NUM_OF_MSG);
 }
 
 void Sapp4_init(bool draw)
@@ -435,7 +435,7 @@ void Sapp4_init(bool draw)
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
-	Util_log_save(DEF_SAPP4_EXIT_STR, "threadJoin()...", threadJoin(sapp4_init_thread, DEF_THREAD_WAIT_TIME));	
+	Util_log_save(DEF_SAPP4_EXIT_STR, "threadJoin()...", threadJoin(sapp4_init_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp4_init_thread);
 	Sapp4_resume();
 
@@ -482,7 +482,7 @@ void Sapp4_exit(bool draw)
 			Util_sleep(20000);
 	}
 
-	Util_log_save(DEF_SAPP4_EXIT_STR, "threadJoin()...", threadJoin(sapp4_exit_thread, DEF_THREAD_WAIT_TIME));	
+	Util_log_save(DEF_SAPP4_EXIT_STR, "threadJoin()...", threadJoin(sapp4_exit_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp4_exit_thread);
 	Util_remove_watch(&sapp4_status);
 	var_need_reflesh = true;
@@ -497,7 +497,7 @@ void Sapp4_main(void)
 	double samples = 0;
 	double current_pos = 0;
 
-	//Calc speaker buffer health. 
+	//Calc speaker buffer health.
 	//Sample format is S16, so 2 bytes per sample.
 	//The buffer health in second is (number_of_samples / sample_rate / num_of_ch).
 	samples = Util_speaker_get_available_buffer_size(0) / 2;
@@ -566,7 +566,7 @@ void Sapp4_main(void)
 					Draw_cpu_usage_info();
 			}
 		}
-		
+
 		if(var_turn_on_bottom_lcd)
 		{
 			Draw_screen_ready(SCREEN_BOTTOM, back_color);
