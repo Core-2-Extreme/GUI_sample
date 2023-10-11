@@ -35,16 +35,19 @@ void Sapp1_expl_callback(std::string file_name, std::string dir_path)
 	+ "\nPress X button to open file explorer.";
 	sapp1_file_info = "File size : " + std::to_string(file_size / 1024)	+ "KB (" + std::to_string(file_size) + " B)\nType : ";
 
-	if(file_type & FILE_TYPE_HIDDEN)
-		sapp1_file_info += "Hidden ";
-	if(file_type & FILE_TYPE_READ_ONLY)
-		sapp1_file_info += "Read only ";
-	if(file_type & FILE_TYPE_DIR)
-		sapp1_file_info += "Directory ";
-	if(file_type & FILE_TYPE_FILE)
-		sapp1_file_info += "File ";
-	if(file_type & FILE_TYPE_NONE)
-		sapp1_file_info += "Unknown ";
+	if(file_type != FILE_TYPE_NONE)
+	{
+		if(file_type & FILE_TYPE_HIDDEN)
+			sapp1_file_info += "Hidden ";
+		if(file_type & FILE_TYPE_READ_ONLY)
+			sapp1_file_info += "Read only ";
+		if(file_type & FILE_TYPE_DIR)
+			sapp1_file_info += "Directory ";
+		if(file_type & FILE_TYPE_FILE)
+			sapp1_file_info += "File ";
+	}
+	else
+		sapp1_file_info = "Unknown ";
 }
 
 void Sapp1_expl_cancel_callback(void)
