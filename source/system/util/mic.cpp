@@ -74,7 +74,7 @@ Result_with_string Util_mic_init(int buffer_size)
 	micExit();
 
 	nintendo_api_failed:
-	Util_safe_linear_free(util_mic_buffer);
+	__real_free(util_mic_buffer);
 	util_mic_buffer = NULL;
 	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
@@ -254,7 +254,7 @@ void Util_mic_exit(void)
 	MICU_SetAllowShellClosed(false);
 	MICU_SetPower(false);
 	micExit();
-	Util_safe_linear_free(util_mic_buffer);
+	__real_free(util_mic_buffer);
 	util_mic_buffer = NULL;
 	util_mic_init = false;
 }
