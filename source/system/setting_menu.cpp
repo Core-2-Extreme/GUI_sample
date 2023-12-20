@@ -279,120 +279,120 @@ void Sem_init(void)
 	if(result.code == 0 || result.code == 0xC8A06C0D)
 		var_wifi_enabled = wifi_state;
 
-	//global
-	Util_add_watch(&sem_y_offset);
-	Util_add_watch(&sem_y_max);
-	Util_add_watch(&sem_selected_menu_mode);
-	Util_add_watch(&sem_scroll_mode);
-	Util_add_watch(&sem_scroll_bar.selected);
+	//Global.
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_y_offset, sizeof(sem_y_offset));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_y_max, sizeof(sem_y_max));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_selected_menu_mode, sizeof(sem_selected_menu_mode));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_scroll_mode, sizeof(sem_scroll_mode));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_scroll_bar.selected, sizeof(sem_scroll_bar.selected));
 
-	Util_add_watch(&sem_back_button.selected);
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_back_button.selected, sizeof(sem_back_button.selected));
 	for(int i = 0; i < 9; i++)
-		Util_add_watch(&sem_menu_button[i].selected);
+		Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_menu_button[i].selected, sizeof(sem_menu_button[i].selected));
 
 
 #if ((DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API) && DEF_SEM_ENABLE_UPDATER)
-	//Updater
-	Util_add_watch(&sem_show_patch_note_request);
-	Util_add_watch(&sem_select_ver_request);
-	Util_add_watch(&sem_dl_file_request);
-	Util_add_watch(&sem_check_update_request);
-	Util_add_watch(&sem_selected_edition_num);
-	Util_add_watch(&sem_installed_size);
-	Util_add_watch((int*)&sem_dled_size);
+	//Updater.
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_show_patch_note_request, sizeof(sem_show_patch_note_request));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_select_ver_request, sizeof(sem_select_ver_request));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_dl_file_request, sizeof(sem_dl_file_request));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_check_update_request, sizeof(sem_check_update_request));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_selected_edition_num, sizeof(sem_selected_edition_num));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_installed_size, sizeof(sem_installed_size));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_dled_size, sizeof(sem_dled_size));
 
-	Util_add_watch(&sem_close_updater_button.selected);
-	Util_add_watch(&sem_select_edtion_button.selected);
-	Util_add_watch(&sem_3dsx_button.selected);
-	Util_add_watch(&sem_cia_button.selected);
-	Util_add_watch(&sem_back_to_patch_note_button.selected);
-	Util_add_watch(&sem_dl_install_button.selected);
-	Util_add_watch(&sem_close_app_button.selected);
-	Util_add_watch(&sem_check_update_button.selected);
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_close_updater_button.selected, sizeof(sem_close_updater_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_select_edtion_button.selected, sizeof(sem_select_edtion_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_3dsx_button.selected, sizeof(sem_3dsx_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_cia_button.selected, sizeof(sem_cia_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_back_to_patch_note_button.selected, sizeof(sem_back_to_patch_note_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_dl_install_button.selected, sizeof(sem_dl_install_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_close_app_button.selected, sizeof(sem_close_app_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_check_update_button.selected, sizeof(sem_check_update_button.selected));
 #endif
 
-	//Languages
-	Util_add_watch(&sem_reload_msg_request);
+	//Languages.
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_reload_msg_request, sizeof(sem_reload_msg_request));
 
-	Util_add_watch(&sem_english_button.selected);
-	Util_add_watch(&sem_japanese_button.selected);
-	Util_add_watch(&sem_hungarian_button.selected);
-	Util_add_watch(&sem_chinese_button.selected);
-	Util_add_watch(&sem_italian_button.selected);
-	Util_add_watch(&sem_spanish_button.selected);
-	Util_add_watch(&sem_romanian_button.selected);
-	Util_add_watch(&sem_polish_button.selected);
-	Util_add_watch(&sem_ryukyuan_button.selected);
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_english_button.selected, sizeof(sem_english_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_japanese_button.selected, sizeof(sem_japanese_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_hungarian_button.selected, sizeof(sem_hungarian_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_chinese_button.selected, sizeof(sem_chinese_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_italian_button.selected, sizeof(sem_italian_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_spanish_button.selected, sizeof(sem_spanish_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_romanian_button.selected, sizeof(sem_romanian_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_polish_button.selected, sizeof(sem_polish_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_ryukyuan_button.selected, sizeof(sem_ryukyuan_button.selected));
 
-	//LCD
-	Util_add_watch(&var_night_mode);
-	Util_add_watch(&var_flash_mode);
-	Util_add_watch(&var_lcd_brightness);
-	Util_add_watch(&var_top_lcd_brightness);
-	Util_add_watch(&var_bottom_lcd_brightness);
-	Util_add_watch(&sem_change_brightness_request);
-	Util_add_watch(&var_time_to_turn_off_lcd);
-	Util_add_watch(&var_time_to_enter_sleep);
-	Util_add_watch((bool*)&var_screen_mode);
+	//LCD.
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &var_night_mode, sizeof(var_night_mode));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &var_flash_mode, sizeof(var_flash_mode));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &var_lcd_brightness, sizeof(var_lcd_brightness));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &var_top_lcd_brightness, sizeof(var_top_lcd_brightness));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &var_bottom_lcd_brightness, sizeof(var_bottom_lcd_brightness));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_change_brightness_request, sizeof(sem_change_brightness_request));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &var_time_to_turn_off_lcd, sizeof(var_time_to_turn_off_lcd));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &var_time_to_enter_sleep, sizeof(var_time_to_enter_sleep));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &var_screen_mode, sizeof(var_screen_mode));
 
-	Util_add_watch(&sem_night_mode_on_button.selected);
-	Util_add_watch(&sem_night_mode_off_button.selected);
-	Util_add_watch(&sem_flash_mode_button.selected);
-	Util_add_watch(&sem_screen_brightness_bar.selected);
-	Util_add_watch(&sem_screen_off_time_bar.selected);
-	Util_add_watch(&sem_sleep_time_bar.selected);
-	Util_add_watch(&sem_800px_mode_button.selected);
-	Util_add_watch(&sem_3d_mode_button.selected);
-	Util_add_watch(&sem_400px_mode_button.selected);
-	Util_add_watch(&sem_auto_mode_button.selected);
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_night_mode_on_button.selected, sizeof(sem_night_mode_on_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_night_mode_off_button.selected, sizeof(sem_night_mode_off_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_flash_mode_button.selected, sizeof(sem_flash_mode_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_screen_brightness_bar.selected, sizeof(sem_screen_brightness_bar.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_screen_off_time_bar.selected, sizeof(sem_screen_off_time_bar.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_sleep_time_bar.selected, sizeof(sem_sleep_time_bar.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_800px_mode_button.selected, sizeof(sem_800px_mode_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_3d_mode_button.selected, sizeof(sem_3d_mode_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_400px_mode_button.selected, sizeof(sem_400px_mode_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_auto_mode_button.selected, sizeof(sem_auto_mode_button.selected));
 
-	//Scroll speed
-	Util_add_watch(&var_scroll_speed);
+	//Scroll speed.
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &var_scroll_speed, sizeof(var_scroll_speed));
 
-	Util_add_watch(&sem_scroll_speed_bar.selected);
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_scroll_speed_bar.selected, sizeof(sem_scroll_speed_bar.selected));
 
 	//Font
-	Util_add_watch(&sem_load_all_ex_font_button.selected);
-	Util_add_watch(&sem_unload_all_ex_font_button.selected);
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_load_all_ex_font_button.selected, sizeof(sem_load_all_ex_font_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_unload_all_ex_font_button.selected, sizeof(sem_unload_all_ex_font_button.selected));
 	for(int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
-		Util_add_watch(&sem_ex_font_button[i].selected);
+		Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_ex_font_button[i].selected, sizeof(sem_ex_font_button[i].selected));
 
-	//Wireless
-	Util_add_watch(&var_wifi_enabled);
+	//Wireless.
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &var_wifi_enabled, sizeof(var_wifi_enabled));
 
-	Util_add_watch(&sem_wifi_on_button.selected);
-	Util_add_watch(&sem_wifi_off_button.selected);
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_wifi_on_button.selected, sizeof(sem_wifi_on_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_wifi_off_button.selected, sizeof(sem_wifi_off_button.selected));
 
-	//Advanced settings
-	Util_add_watch(&var_allow_send_app_info);
-	Util_add_watch(&var_debug_mode);
+	//Advanced settings.
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &var_allow_send_app_info, sizeof(var_allow_send_app_info));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &var_debug_mode, sizeof(var_debug_mode));
 
-	Util_add_watch(&sem_allow_send_info_button.selected);
-	Util_add_watch(&sem_deny_send_info_button.selected);
-	Util_add_watch(&sem_debug_mode_on_button.selected);
-	Util_add_watch(&sem_debug_mode_off_button.selected);
-	Util_add_watch(&sem_use_fake_model_button.selected);
-	Util_add_watch(&sem_dump_log_button.selected);
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_allow_send_info_button.selected, sizeof(sem_allow_send_info_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_deny_send_info_button.selected, sizeof(sem_deny_send_info_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_debug_mode_on_button.selected, sizeof(sem_debug_mode_on_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_debug_mode_off_button.selected, sizeof(sem_debug_mode_off_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_use_fake_model_button.selected, sizeof(sem_use_fake_model_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_dump_log_button.selected, sizeof(sem_dump_log_button.selected));
 
 #if DEF_ENABLE_CPU_MONITOR_API
-	Util_add_watch(&sem_monitor_cpu_usage_on_button.selected);
-	Util_add_watch(&sem_monitor_cpu_usage_off_button.selected);
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_cpu_usage_on_button.selected, sizeof(sem_monitor_cpu_usage_on_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_cpu_usage_off_button.selected, sizeof(sem_monitor_cpu_usage_off_button.selected));
 #endif
 
-	//Battery
-	Util_add_watch(&var_eco_mode);
-	Util_add_watch(&sem_eco_mode_on_button.selected);
-	Util_add_watch(&sem_eco_mode_off_button.selected);
+	//Battery.
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &var_eco_mode, sizeof(var_eco_mode));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_eco_mode_on_button.selected, sizeof(sem_eco_mode_on_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_eco_mode_off_button.selected, sizeof(sem_eco_mode_off_button.selected));
 
 #if (DEF_ENABLE_VIDEO_AUDIO_ENCODER_API && DEF_ENABLE_SW_CONVERTER_API && DEF_SEM_ENABLE_SCREEN_RECORDER)
-	//Screen recording
-	Util_add_watch(&sem_record_request);
-	Util_add_watch(&sem_stop_record_request);
+	//Screen recording.
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_record_request, sizeof(sem_record_request));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_stop_record_request, sizeof(sem_stop_record_request));
 #endif
 
-	Util_add_watch(&sem_record_both_lcd_button.selected);
-	Util_add_watch(&sem_record_top_lcd_button.selected);
-	Util_add_watch(&sem_record_bottom_lcd_button.selected);
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_record_both_lcd_button.selected, sizeof(sem_record_both_lcd_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_record_top_lcd_button.selected, sizeof(sem_record_top_lcd_button.selected));
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_record_bottom_lcd_button.selected, sizeof(sem_record_bottom_lcd_button.selected));
 
 	result.code = Menu_add_worker_thread_callback(Sem_worker_callback);
 	Util_log_save(DEF_SEM_INIT_STR, "Menu_add_worker_thread_callback()...", result.code);
@@ -404,7 +404,7 @@ void Sem_init(void)
 
 void Sem_draw_init(void)
 {
-	Util_add_watch(&Draw_get_bot_ui_button()->selected);
+	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &Draw_get_bot_ui_button()->selected, sizeof(Draw_get_bot_ui_button()->selected));
 	sem_back_button.c2d = var_square_image[0];
 	sem_scroll_bar.c2d = var_square_image[0];
 	sem_english_button.c2d = var_square_image[0];
@@ -511,119 +511,119 @@ void Sem_exit(void)
 	threadFree(sem_record_thread);
 #endif
 
-	//global
-	Util_remove_watch(&Draw_get_bot_ui_button()->selected);
-	Util_remove_watch(&sem_y_offset);
-	Util_remove_watch(&sem_y_max);
-	Util_remove_watch(&sem_selected_menu_mode);
-	Util_remove_watch(&sem_scroll_mode);
-	Util_remove_watch(&sem_scroll_bar.selected);
+	//Global.
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &Draw_get_bot_ui_button()->selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_y_offset);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_y_max);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_selected_menu_mode);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_scroll_mode);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_scroll_bar.selected);
 
-	Util_remove_watch(&sem_back_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_back_button.selected);
 	for(int i = 0; i < 9; i++)
-		Util_remove_watch(&sem_menu_button[i].selected);
+		Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_menu_button[i].selected);
 
 #if ((DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API) && DEF_SEM_ENABLE_UPDATER)
-	//Updater
-	Util_remove_watch(&sem_show_patch_note_request);
-	Util_remove_watch(&sem_select_ver_request);
-	Util_remove_watch(&sem_dl_file_request);
-	Util_remove_watch(&sem_check_update_request);
-	Util_remove_watch(&sem_selected_edition_num);
-	Util_remove_watch(&sem_installed_size);
-	Util_remove_watch((int*)&sem_dled_size);
+	//Updater.
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_show_patch_note_request);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_select_ver_request);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_dl_file_request);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_check_update_request);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_selected_edition_num);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_installed_size);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_dled_size);
 
-	Util_remove_watch(&sem_close_updater_button.selected);
-	Util_remove_watch(&sem_select_edtion_button.selected);
-	Util_remove_watch(&sem_3dsx_button.selected);
-	Util_remove_watch(&sem_cia_button.selected);
-	Util_remove_watch(&sem_back_to_patch_note_button.selected);
-	Util_remove_watch(&sem_dl_install_button.selected);
-	Util_remove_watch(&sem_close_app_button.selected);
-	Util_remove_watch(&sem_check_update_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_close_updater_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_select_edtion_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_3dsx_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_cia_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_back_to_patch_note_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_dl_install_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_close_app_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_check_update_button.selected);
 #endif
 
-	//Languages
-	Util_remove_watch(&sem_reload_msg_request);
+	//Languages.
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_reload_msg_request);
 
-	Util_remove_watch(&sem_english_button.selected);
-	Util_remove_watch(&sem_japanese_button.selected);
-	Util_remove_watch(&sem_hungarian_button.selected);
-	Util_remove_watch(&sem_chinese_button.selected);
-	Util_remove_watch(&sem_italian_button.selected);
-	Util_remove_watch(&sem_spanish_button.selected);
-	Util_remove_watch(&sem_romanian_button.selected);
-	Util_remove_watch(&sem_polish_button.selected);
-	Util_remove_watch(&sem_ryukyuan_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_english_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_japanese_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_hungarian_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_chinese_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_italian_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_spanish_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_romanian_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_polish_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_ryukyuan_button.selected);
 
-	//LCD
-	Util_remove_watch(&var_night_mode);
-	Util_remove_watch(&var_flash_mode);
-	Util_remove_watch(&var_lcd_brightness);
-	Util_remove_watch(&var_top_lcd_brightness);
-	Util_remove_watch(&var_bottom_lcd_brightness);
-	Util_remove_watch(&sem_change_brightness_request);
-	Util_remove_watch(&var_time_to_turn_off_lcd);
-	Util_remove_watch((bool*)&var_screen_mode);
+	//LCD.
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &var_night_mode);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &var_flash_mode);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &var_lcd_brightness);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &var_top_lcd_brightness);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &var_bottom_lcd_brightness);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_change_brightness_request);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &var_time_to_turn_off_lcd);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &var_screen_mode);
 
-	Util_remove_watch(&sem_night_mode_on_button.selected);
-	Util_remove_watch(&sem_night_mode_off_button.selected);
-	Util_remove_watch(&sem_flash_mode_button.selected);
-	Util_remove_watch(&sem_screen_brightness_bar.selected);
-	Util_remove_watch(&sem_screen_off_time_bar.selected);
-	Util_remove_watch(&sem_sleep_time_bar.selected);
-	Util_remove_watch(&sem_800px_mode_button.selected);
-	Util_remove_watch(&sem_3d_mode_button.selected);
-	Util_remove_watch(&sem_400px_mode_button.selected);
-	Util_remove_watch(&sem_auto_mode_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_night_mode_on_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_night_mode_off_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_flash_mode_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_screen_brightness_bar.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_screen_off_time_bar.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_sleep_time_bar.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_800px_mode_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_3d_mode_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_400px_mode_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_auto_mode_button.selected);
 
-	//Scroll speed
-	Util_remove_watch(&var_scroll_speed);
+	//Scroll speed.
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &var_scroll_speed);
 
-	Util_remove_watch(&sem_scroll_speed_bar.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_scroll_speed_bar.selected);
 
-	//Font
-	Util_remove_watch(&sem_load_all_ex_font_button.selected);
-	Util_remove_watch(&sem_unload_all_ex_font_button.selected);
+	//Font.
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_load_all_ex_font_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_unload_all_ex_font_button.selected);
 	for(int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
-		Util_remove_watch(&sem_ex_font_button[i].selected);
+		Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_ex_font_button[i].selected);
 
-	//Wireless
-	Util_remove_watch(&var_wifi_enabled);
+	//Wireless.
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &var_wifi_enabled);
 
-	Util_remove_watch(&sem_wifi_on_button.selected);
-	Util_remove_watch(&sem_wifi_off_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_wifi_on_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_wifi_off_button.selected);
 
-	//Advanced settings
-	Util_remove_watch(&var_allow_send_app_info);
-	Util_remove_watch(&var_debug_mode);
+	//Advanced settings.
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &var_allow_send_app_info);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &var_debug_mode);
 
-	Util_remove_watch(&sem_allow_send_info_button.selected);
-	Util_remove_watch(&sem_deny_send_info_button.selected);
-	Util_remove_watch(&sem_debug_mode_on_button.selected);
-	Util_remove_watch(&sem_debug_mode_off_button.selected);
-	Util_remove_watch(&sem_use_fake_model_button.selected);
-	Util_remove_watch(&sem_dump_log_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_allow_send_info_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_deny_send_info_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_debug_mode_on_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_debug_mode_off_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_use_fake_model_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_dump_log_button.selected);
 
 #if DEF_ENABLE_CPU_MONITOR_API
-	Util_remove_watch(&sem_monitor_cpu_usage_on_button.selected);
-	Util_remove_watch(&sem_monitor_cpu_usage_off_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_cpu_usage_on_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_cpu_usage_off_button.selected);
 #endif
 
-	//Battery
-	Util_remove_watch(&var_eco_mode);
-	Util_remove_watch(&sem_eco_mode_on_button.selected);
-	Util_remove_watch(&sem_eco_mode_off_button.selected);
+	//Battery.
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &var_eco_mode);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_eco_mode_on_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_eco_mode_off_button.selected);
 
 #if (DEF_ENABLE_VIDEO_AUDIO_ENCODER_API && DEF_ENABLE_SW_CONVERTER_API && DEF_SEM_ENABLE_SCREEN_RECORDER)
-	//Screen recording
-	Util_remove_watch(&sem_record_request);
-	Util_remove_watch(&sem_stop_record_request);
+	//Screen recording.
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_record_request);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_stop_record_request);
 #endif
 
-	Util_remove_watch(&sem_record_both_lcd_button.selected);
-	Util_remove_watch(&sem_record_top_lcd_button.selected);
-	Util_remove_watch(&sem_record_bottom_lcd_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_record_both_lcd_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_record_top_lcd_button.selected);
+	Util_remove_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_record_bottom_lcd_button.selected);
 
 	Util_log_save(DEF_SEM_EXIT_STR, "Exited.");
 }
@@ -635,6 +635,7 @@ void Sem_main(void)
 	int cache_color[DEF_EXFONT_NUM_OF_FONT_NAME];
 	double draw_x;
 	double draw_y;
+	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SETTINGS_MENU);
 
 	if (var_night_mode)
 	{
@@ -645,7 +646,8 @@ void Sem_main(void)
 	for(int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		cache_color[i] = color;
 
-	if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
+	//Check if we should update the screen.
+	if(Util_is_watch_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
 	{
 		var_need_reflesh = false;
 		Draw_frame_ready();

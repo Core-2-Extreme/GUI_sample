@@ -11,18 +11,29 @@
 #include "system/util/log.hpp"
 #include "system/util/util.hpp"
 
+extern "C"
+{
+	#include "system/util/string.h"
+}
+
 //Include myself.
 #include "sub_app6.hpp"
+
 
 bool sapp6_main_run = false;
 bool sapp6_thread_run = false;
 bool sapp6_already_init = false;
 bool sapp6_thread_suspend = true;
 std::string sapp6_msg[DEF_SAPP6_NUM_OF_MSG];
-std::string sapp6_status = "";
 Thread sapp6_init_thread, sapp6_exit_thread, sapp6_worker_thread;
+Util_string sapp6_status = { 0, };
 
-void Sapp6_suspend(void);
+
+static void Sapp6_draw_init_exit_message(void);
+static void Sapp6_init_thread(void* arg);
+static void Sapp6_exit_thread(void* arg);
+static void Sapp6_worker_thread(void* arg);
+
 
 bool Sapp6_query_init_flag(void)
 {
@@ -32,27 +43,6 @@ bool Sapp6_query_init_flag(void)
 bool Sapp6_query_running_flag(void)
 {
 	return sapp6_main_run;
-}
-
-void Sapp6_worker_thread(void* arg)
-{
-	Util_log_save(DEF_SAPP6_WORKER_THREAD_STR, "Thread started.");
-
-	while (sapp6_thread_run)
-	{
-		if(false)
-		{
-
-		}
-		else
-			Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
-
-		while (sapp6_thread_suspend)
-			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
-	}
-
-	Util_log_save(DEF_SAPP6_WORKER_THREAD_STR, "Thread exit.");
-	threadExit(0);
 }
 
 void Sapp6_hid(Hid_info key)
@@ -76,41 +66,6 @@ void Sapp6_hid(Hid_info key)
 
 	if(Util_log_query_log_show_flag())
 		Util_log_main(key);
-}
-
-void Sapp6_init_thread(void* arg)
-{
-	Util_log_save(DEF_SAPP6_INIT_STR, "Thread started.");
-	Result_with_string result;
-
-	sapp6_status = "Starting threads...";
-
-	sapp6_thread_run = true;
-	sapp6_worker_thread = threadCreate(Sapp6_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
-
-	sapp6_already_init = true;
-
-	Util_log_save(DEF_SAPP6_INIT_STR, "Thread exit.");
-	threadExit(0);
-}
-
-void Sapp6_exit_thread(void* arg)
-{
-	Util_log_save(DEF_SAPP6_EXIT_STR, "Thread started.");
-
-	sapp6_thread_suspend = false;
-	sapp6_thread_run = false;
-
-	sapp6_status = "Exiting threads...";
-	Util_log_save(DEF_SAPP6_EXIT_STR, "threadJoin()...", threadJoin(sapp6_worker_thread, DEF_THREAD_WAIT_TIME));
-
-	sapp6_status += "\nCleaning up...";
-	threadFree(sapp6_worker_thread);
-
-	sapp6_already_init = false;
-
-	Util_log_save(DEF_SAPP6_EXIT_STR, "Thread exit.");
-	threadExit(0);
 }
 
 void Sapp6_resume(void)
@@ -137,11 +92,12 @@ Result_with_string Sapp6_load_msg(std::string lang)
 void Sapp6_init(bool draw)
 {
 	Util_log_save(DEF_SAPP6_INIT_STR, "Initializing...");
-	int color = DEF_DRAW_BLACK;
-	int back_color = DEF_DRAW_WHITE;
+	Result_with_string result;
 
-	Util_add_watch(&sapp6_status);
-	sapp6_status = "";
+	result.code = Util_string_init(&sapp6_status);
+	Util_log_save(DEF_SAPP6_INIT_STR, "Util_string_init()..." + result.string + result.error_description, result.code);
+
+	Util_add_watch(WATCH_HANDLE_SUB_APP6, &sapp6_status.sequencial_id, sizeof(sapp6_status.sequencial_id));
 
 	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) && var_core_2_available)
 		sapp6_init_thread = threadCreate(Sapp6_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
@@ -154,29 +110,7 @@ void Sapp6_init(bool draw)
 	while(!sapp6_already_init)
 	{
 		if(draw)
-		{
-			if (var_night_mode)
-			{
-				color = DEF_DRAW_WHITE;
-				back_color = DEF_DRAW_BLACK;
-			}
-
-			if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
-			{
-				var_need_reflesh = false;
-				Draw_frame_ready();
-				Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
-				Draw_top_ui();
-				if(var_monitor_cpu_usage)
-					Draw_cpu_usage_info();
-
-				Draw(sapp6_status, 0, 20, 0.65, 0.65, color);
-
-				Draw_apply_draw();
-			}
-			else
-				gspWaitForVBlank();
-		}
+			Sapp6_draw_init_exit_message();
 		else
 			Util_sleep(20000);
 	}
@@ -186,6 +120,8 @@ void Sapp6_init(bool draw)
 
 	Util_log_save(DEF_SAPP6_EXIT_STR, "threadJoin()...", threadJoin(sapp6_init_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp6_init_thread);
+
+	Util_string_clear(&sapp6_status);
 	Sapp6_resume();
 
 	Util_log_save(DEF_SAPP6_INIT_STR, "Initialized.");
@@ -195,45 +131,21 @@ void Sapp6_exit(bool draw)
 {
 	Util_log_save(DEF_SAPP6_EXIT_STR, "Exiting...");
 
-	int color = DEF_DRAW_BLACK;
-	int back_color = DEF_DRAW_WHITE;
-
-	sapp6_status = "";
 	sapp6_exit_thread = threadCreate(Sapp6_exit_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	while(sapp6_already_init)
 	{
 		if(draw)
-		{
-			if (var_night_mode)
-			{
-				color = DEF_DRAW_WHITE;
-				back_color = DEF_DRAW_BLACK;
-			}
-
-			if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
-			{
-				var_need_reflesh = false;
-				Draw_frame_ready();
-				Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
-				Draw_top_ui();
-				if(var_monitor_cpu_usage)
-					Draw_cpu_usage_info();
-
-				Draw(sapp6_status, 0, 20, 0.65, 0.65, color);
-
-				Draw_apply_draw();
-			}
-			else
-				gspWaitForVBlank();
-		}
+			Sapp6_draw_init_exit_message();
 		else
 			Util_sleep(20000);
 	}
 
 	Util_log_save(DEF_SAPP6_EXIT_STR, "threadJoin()...", threadJoin(sapp6_exit_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp6_exit_thread);
-	Util_remove_watch(&sapp6_status);
+
+	Util_remove_watch(WATCH_HANDLE_SUB_APP6, &sapp6_status.sequencial_id);
+	Util_string_free(&sapp6_status);
 	var_need_reflesh = true;
 
 	Util_log_save(DEF_SAPP6_EXIT_STR, "Exited.");
@@ -243,6 +155,7 @@ void Sapp6_main(void)
 {
 	int color = DEF_DRAW_BLACK;
 	int back_color = DEF_DRAW_WHITE;
+	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP6);
 
 	if (var_night_mode)
 	{
@@ -250,7 +163,8 @@ void Sapp6_main(void)
 		back_color = DEF_DRAW_BLACK;
 	}
 
-	if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
+	//Check if we should update the screen.
+	if(Util_is_watch_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
 	{
 		var_need_reflesh = false;
 		Draw_frame_ready();
@@ -298,4 +212,95 @@ void Sapp6_main(void)
 	}
 	else
 		gspWaitForVBlank();
+}
+
+static void Sapp6_draw_init_exit_message(void)
+{
+	int color = DEF_DRAW_BLACK;
+	int back_color = DEF_DRAW_WHITE;
+	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP6);
+
+	if (var_night_mode)
+	{
+		color = DEF_DRAW_WHITE;
+		back_color = DEF_DRAW_BLACK;
+	}
+
+	//Check if we should update the screen.
+	if(Util_is_watch_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	{
+		var_need_reflesh = false;
+		Draw_frame_ready();
+		Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
+		Draw_top_ui();
+		if(var_monitor_cpu_usage)
+			Draw_cpu_usage_info();
+
+		Draw(sapp6_status.buffer, 0, 20, 0.65, 0.65, color);
+
+		Draw_apply_draw();
+	}
+	else
+		gspWaitForVBlank();
+}
+
+static void Sapp6_init_thread(void* arg)
+{
+	Util_log_save(DEF_SAPP6_INIT_STR, "Thread started.");
+	Result_with_string result;
+
+	Util_string_set(&sapp6_status, "Initializing variables...");
+	//Empty.
+
+	Util_string_add(&sapp6_status, "\nInitializing queue...");
+	//Empty.
+
+	Util_string_add(&sapp6_status, "\nStarting threads...");
+	sapp6_thread_run = true;
+	sapp6_worker_thread = threadCreate(Sapp6_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+
+	sapp6_already_init = true;
+
+	Util_log_save(DEF_SAPP6_INIT_STR, "Thread exit.");
+	threadExit(0);
+}
+
+static void Sapp6_exit_thread(void* arg)
+{
+	Util_log_save(DEF_SAPP6_EXIT_STR, "Thread started.");
+
+	sapp6_thread_suspend = false;
+	sapp6_thread_run = false;
+
+	Util_string_set(&sapp6_status, "Exiting threads...");
+	Util_log_save(DEF_SAPP6_EXIT_STR, "threadJoin()...", threadJoin(sapp6_worker_thread, DEF_THREAD_WAIT_TIME));
+
+	Util_string_add(&sapp6_status, "\nCleaning up...");
+	threadFree(sapp6_worker_thread);
+
+	sapp6_already_init = false;
+
+	Util_log_save(DEF_SAPP6_EXIT_STR, "Thread exit.");
+	threadExit(0);
+}
+
+static void Sapp6_worker_thread(void* arg)
+{
+	Util_log_save(DEF_SAPP6_WORKER_THREAD_STR, "Thread started.");
+
+	while (sapp6_thread_run)
+	{
+		if(false)
+		{
+
+		}
+		else
+			Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
+
+		while (sapp6_thread_suspend)
+			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
+	}
+
+	Util_log_save(DEF_SAPP6_WORKER_THREAD_STR, "Thread exit.");
+	threadExit(0);
 }

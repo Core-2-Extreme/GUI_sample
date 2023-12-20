@@ -11,18 +11,29 @@
 #include "system/util/log.hpp"
 #include "system/util/util.hpp"
 
+extern "C"
+{
+	#include "system/util/string.h"
+}
+
 //Include myself.
 #include "sub_app7.hpp"
+
 
 bool sapp7_main_run = false;
 bool sapp7_thread_run = false;
 bool sapp7_already_init = false;
 bool sapp7_thread_suspend = true;
 std::string sapp7_msg[DEF_SAPP7_NUM_OF_MSG];
-std::string sapp7_status = "";
 Thread sapp7_init_thread, sapp7_exit_thread, sapp7_worker_thread;
+Util_string sapp7_status = { 0, };
 
-void Sapp7_suspend(void);
+
+static void Sapp7_draw_init_exit_message(void);
+static void Sapp7_init_thread(void* arg);
+static void Sapp7_exit_thread(void* arg);
+static void Sapp7_worker_thread(void* arg);
+
 
 bool Sapp7_query_init_flag(void)
 {
@@ -32,27 +43,6 @@ bool Sapp7_query_init_flag(void)
 bool Sapp7_query_running_flag(void)
 {
 	return sapp7_main_run;
-}
-
-void Sapp7_worker_thread(void* arg)
-{
-	Util_log_save(DEF_SAPP7_WORKER_THREAD_STR, "Thread started.");
-
-	while (sapp7_thread_run)
-	{
-		if(false)
-		{
-
-		}
-		else
-			Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
-
-		while (sapp7_thread_suspend)
-			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
-	}
-
-	Util_log_save(DEF_SAPP7_WORKER_THREAD_STR, "Thread exit.");
-	threadExit(0);
 }
 
 void Sapp7_hid(Hid_info key)
@@ -76,41 +66,6 @@ void Sapp7_hid(Hid_info key)
 
 	if(Util_log_query_log_show_flag())
 		Util_log_main(key);
-}
-
-void Sapp7_init_thread(void* arg)
-{
-	Util_log_save(DEF_SAPP7_INIT_STR, "Thread started.");
-	Result_with_string result;
-
-	sapp7_status = "Starting threads...";
-
-	sapp7_thread_run = true;
-	sapp7_worker_thread = threadCreate(Sapp7_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
-
-	sapp7_already_init = true;
-
-	Util_log_save(DEF_SAPP7_INIT_STR, "Thread exit.");
-	threadExit(0);
-}
-
-void Sapp7_exit_thread(void* arg)
-{
-	Util_log_save(DEF_SAPP7_EXIT_STR, "Thread started.");
-
-	sapp7_thread_suspend = false;
-	sapp7_thread_run = false;
-
-	sapp7_status = "Exiting threads...";
-	Util_log_save(DEF_SAPP7_EXIT_STR, "threadJoin()...", threadJoin(sapp7_worker_thread, DEF_THREAD_WAIT_TIME));
-
-	sapp7_status += "\nCleaning up...";
-	threadFree(sapp7_worker_thread);
-
-	sapp7_already_init = false;
-
-	Util_log_save(DEF_SAPP7_EXIT_STR, "Thread exit.");
-	threadExit(0);
 }
 
 void Sapp7_resume(void)
@@ -137,11 +92,12 @@ Result_with_string Sapp7_load_msg(std::string lang)
 void Sapp7_init(bool draw)
 {
 	Util_log_save(DEF_SAPP7_INIT_STR, "Initializing...");
-	int color = DEF_DRAW_BLACK;
-	int back_color = DEF_DRAW_WHITE;
+	Result_with_string result;
 
-	Util_add_watch(&sapp7_status);
-	sapp7_status = "";
+	result.code = Util_string_init(&sapp7_status);
+	Util_log_save(DEF_SAPP7_INIT_STR, "Util_string_init()..." + result.string + result.error_description, result.code);
+
+	Util_add_watch(WATCH_HANDLE_SUB_APP7, &sapp7_status.sequencial_id, sizeof(sapp7_status.sequencial_id));
 
 	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) && var_core_2_available)
 		sapp7_init_thread = threadCreate(Sapp7_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
@@ -154,29 +110,7 @@ void Sapp7_init(bool draw)
 	while(!sapp7_already_init)
 	{
 		if(draw)
-		{
-			if (var_night_mode)
-			{
-				color = DEF_DRAW_WHITE;
-				back_color = DEF_DRAW_BLACK;
-			}
-
-			if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
-			{
-				var_need_reflesh = false;
-				Draw_frame_ready();
-				Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
-				Draw_top_ui();
-				if(var_monitor_cpu_usage)
-					Draw_cpu_usage_info();
-
-				Draw(sapp7_status, 0, 20, 0.65, 0.65, color);
-
-				Draw_apply_draw();
-			}
-			else
-				gspWaitForVBlank();
-		}
+			Sapp7_draw_init_exit_message();
 		else
 			Util_sleep(20000);
 	}
@@ -186,6 +120,8 @@ void Sapp7_init(bool draw)
 
 	Util_log_save(DEF_SAPP7_EXIT_STR, "threadJoin()...", threadJoin(sapp7_init_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp7_init_thread);
+
+	Util_string_clear(&sapp7_status);
 	Sapp7_resume();
 
 	Util_log_save(DEF_SAPP7_INIT_STR, "Initialized.");
@@ -195,45 +131,21 @@ void Sapp7_exit(bool draw)
 {
 	Util_log_save(DEF_SAPP7_EXIT_STR, "Exiting...");
 
-	int color = DEF_DRAW_BLACK;
-	int back_color = DEF_DRAW_WHITE;
-
-	sapp7_status = "";
 	sapp7_exit_thread = threadCreate(Sapp7_exit_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	while(sapp7_already_init)
 	{
 		if(draw)
-		{
-			if (var_night_mode)
-			{
-				color = DEF_DRAW_WHITE;
-				back_color = DEF_DRAW_BLACK;
-			}
-
-			if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
-			{
-				var_need_reflesh = false;
-				Draw_frame_ready();
-				Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
-				Draw_top_ui();
-				if(var_monitor_cpu_usage)
-					Draw_cpu_usage_info();
-
-				Draw(sapp7_status, 0, 20, 0.65, 0.65, color);
-
-				Draw_apply_draw();
-			}
-			else
-				gspWaitForVBlank();
-		}
+			Sapp7_draw_init_exit_message();
 		else
 			Util_sleep(20000);
 	}
 
 	Util_log_save(DEF_SAPP7_EXIT_STR, "threadJoin()...", threadJoin(sapp7_exit_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp7_exit_thread);
-	Util_remove_watch(&sapp7_status);
+
+	Util_remove_watch(WATCH_HANDLE_SUB_APP7, &sapp7_status.sequencial_id);
+	Util_string_free(&sapp7_status);
 	var_need_reflesh = true;
 
 	Util_log_save(DEF_SAPP7_EXIT_STR, "Exited.");
@@ -243,6 +155,7 @@ void Sapp7_main(void)
 {
 	int color = DEF_DRAW_BLACK;
 	int back_color = DEF_DRAW_WHITE;
+	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP7);
 
 	if (var_night_mode)
 	{
@@ -250,7 +163,8 @@ void Sapp7_main(void)
 		back_color = DEF_DRAW_BLACK;
 	}
 
-	if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
+	//Check if we should update the screen.
+	if(Util_is_watch_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
 	{
 		var_need_reflesh = false;
 		Draw_frame_ready();
@@ -298,4 +212,95 @@ void Sapp7_main(void)
 	}
 	else
 		gspWaitForVBlank();
+}
+
+static void Sapp7_draw_init_exit_message(void)
+{
+	int color = DEF_DRAW_BLACK;
+	int back_color = DEF_DRAW_WHITE;
+	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP7);
+
+	if (var_night_mode)
+	{
+		color = DEF_DRAW_WHITE;
+		back_color = DEF_DRAW_BLACK;
+	}
+
+	//Check if we should update the screen.
+	if(Util_is_watch_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	{
+		var_need_reflesh = false;
+		Draw_frame_ready();
+		Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
+		Draw_top_ui();
+		if(var_monitor_cpu_usage)
+			Draw_cpu_usage_info();
+
+		Draw(sapp7_status.buffer, 0, 20, 0.65, 0.65, color);
+
+		Draw_apply_draw();
+	}
+	else
+		gspWaitForVBlank();
+}
+
+static void Sapp7_init_thread(void* arg)
+{
+	Util_log_save(DEF_SAPP7_INIT_STR, "Thread started.");
+	Result_with_string result;
+
+	Util_string_set(&sapp7_status, "Initializing variables...");
+	//Empty.
+
+	Util_string_add(&sapp7_status, "\nInitializing queue...");
+	//Empty.
+
+	Util_string_add(&sapp7_status, "\nStarting threads...");
+	sapp7_thread_run = true;
+	sapp7_worker_thread = threadCreate(Sapp7_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+
+	sapp7_already_init = true;
+
+	Util_log_save(DEF_SAPP7_INIT_STR, "Thread exit.");
+	threadExit(0);
+}
+
+static void Sapp7_exit_thread(void* arg)
+{
+	Util_log_save(DEF_SAPP7_EXIT_STR, "Thread started.");
+
+	sapp7_thread_suspend = false;
+	sapp7_thread_run = false;
+
+	Util_string_set(&sapp7_status, "Exiting threads...");
+	Util_log_save(DEF_SAPP7_EXIT_STR, "threadJoin()...", threadJoin(sapp7_worker_thread, DEF_THREAD_WAIT_TIME));
+
+	Util_string_add(&sapp7_status, "\nCleaning up...");
+	threadFree(sapp7_worker_thread);
+
+	sapp7_already_init = false;
+
+	Util_log_save(DEF_SAPP7_EXIT_STR, "Thread exit.");
+	threadExit(0);
+}
+
+static void Sapp7_worker_thread(void* arg)
+{
+	Util_log_save(DEF_SAPP7_WORKER_THREAD_STR, "Thread started.");
+
+	while (sapp7_thread_run)
+	{
+		if(false)
+		{
+
+		}
+		else
+			Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
+
+		while (sapp7_thread_suspend)
+			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
+	}
+
+	Util_log_save(DEF_SAPP7_WORKER_THREAD_STR, "Thread exit.");
+	threadExit(0);
 }

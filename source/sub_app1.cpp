@@ -12,51 +12,33 @@
 #include "system/util/log.hpp"
 #include "system/util/util.hpp"
 
+extern "C"
+{
+	#include "system/util/string.h"
+}
+
 //Include myself.
 #include "sub_app1.hpp"
+
 
 bool sapp1_main_run = false;
 bool sapp1_thread_run = false;
 bool sapp1_already_init = false;
 bool sapp1_thread_suspend = true;
 std::string sapp1_msg[DEF_SAPP1_NUM_OF_MSG];
-std::string sapp1_status = "";
-std::string sapp1_selected_path = "";
-std::string sapp1_file_info = "";
 Thread sapp1_init_thread, sapp1_exit_thread, sapp1_worker_thread;
+Util_string sapp1_status = { 0, };
+Util_string sapp1_selected_path = { 0, };
+Util_string sapp1_file_info = { 0, };
 
-void Sapp1_expl_callback(std::string file_name, std::string dir_path)
-{
-	int file_type = Util_expl_query_type(Util_expl_query_current_file_index());
-	int file_size = Util_expl_query_size(Util_expl_query_current_file_index());
 
-	//Set file info
-	sapp1_selected_path = "User selected : \n" + dir_path + file_name
-	+ "\nPress X button to open file explorer.";
-	sapp1_file_info = "File size : " + std::to_string(file_size / 1024)	+ "KB (" + std::to_string(file_size) + " B)\nType : ";
+static void Sapp1_draw_init_exit_message(void);
+static void Sapp1_init_thread(void* arg);
+static void Sapp1_exit_thread(void* arg);
+static void Sapp1_worker_thread(void* arg);
+static void Sapp1_expl_callback(std::string file_name, std::string dir_path);
+static void Sapp1_expl_cancel_callback(void);
 
-	if(file_type != FILE_TYPE_NONE)
-	{
-		if(file_type & FILE_TYPE_HIDDEN)
-			sapp1_file_info += "Hidden ";
-		if(file_type & FILE_TYPE_READ_ONLY)
-			sapp1_file_info += "Read only ";
-		if(file_type & FILE_TYPE_DIR)
-			sapp1_file_info += "Directory ";
-		if(file_type & FILE_TYPE_FILE)
-			sapp1_file_info += "File ";
-	}
-	else
-		sapp1_file_info = "Unknown ";
-}
-
-void Sapp1_expl_cancel_callback(void)
-{
-	sapp1_selected_path = "Canceled by user.\nPress X button to open file explorer.";
-	sapp1_file_info = "";
-}
-
-void Sapp1_suspend(void);
 
 bool Sapp1_query_init_flag(void)
 {
@@ -66,27 +48,6 @@ bool Sapp1_query_init_flag(void)
 bool Sapp1_query_running_flag(void)
 {
 	return sapp1_main_run;
-}
-
-void Sapp1_worker_thread(void* arg)
-{
-	Util_log_save(DEF_SAPP1_WORKER_THREAD_STR, "Thread started.");
-
-	while (sapp1_thread_run)
-	{
-		if(false)
-		{
-
-		}
-		else
-			Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
-
-		while (sapp1_thread_suspend)
-			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
-	}
-
-	Util_log_save(DEF_SAPP1_WORKER_THREAD_STR, "Thread exit.");
-	threadExit(0);
 }
 
 void Sapp1_hid(Hid_info key)
@@ -121,52 +82,6 @@ void Sapp1_hid(Hid_info key)
 		Util_log_main(key);
 }
 
-void Sapp1_init_thread(void* arg)
-{
-	Util_log_save(DEF_SAPP1_INIT_STR, "Thread started.");
-	Result_with_string result;
-
-	sapp1_status = "Starting threads...";
-
-	sapp1_thread_run = true;
-	sapp1_worker_thread = threadCreate(Sapp1_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
-
-	sapp1_status += "Initializing variables...";
-	//Add to watch to detect value changes, screen will be rerenderd when value is changed.
-	Util_add_watch(&sapp1_selected_path);
-	Util_add_watch(&sapp1_file_info);
-	sapp1_selected_path = "Press X button to open file explorer.";
-	sapp1_file_info = "";
-
-	sapp1_already_init = true;
-
-	Util_log_save(DEF_SAPP1_INIT_STR, "Thread exit.");
-	threadExit(0);
-}
-
-void Sapp1_exit_thread(void* arg)
-{
-	Util_log_save(DEF_SAPP1_EXIT_STR, "Thread started.");
-
-	sapp1_thread_suspend = false;
-	sapp1_thread_run = false;
-
-	sapp1_status = "Exiting threads...";
-	Util_log_save(DEF_SAPP1_EXIT_STR, "threadJoin()...", threadJoin(sapp1_worker_thread, DEF_THREAD_WAIT_TIME));
-
-	sapp1_status += "\nCleaning up...";
-	threadFree(sapp1_worker_thread);
-
-	//Remove watch on exit
-	Util_remove_watch(&sapp1_selected_path);
-	Util_remove_watch(&sapp1_file_info);
-
-	sapp1_already_init = false;
-
-	Util_log_save(DEF_SAPP1_EXIT_STR, "Thread exit.");
-	threadExit(0);
-}
-
 void Sapp1_resume(void)
 {
 	sapp1_thread_suspend = false;
@@ -191,11 +106,12 @@ Result_with_string Sapp1_load_msg(std::string lang)
 void Sapp1_init(bool draw)
 {
 	Util_log_save(DEF_SAPP1_INIT_STR, "Initializing...");
-	int color = DEF_DRAW_BLACK;
-	int back_color = DEF_DRAW_WHITE;
+	Result_with_string result;
 
-	Util_add_watch(&sapp1_status);
-	sapp1_status = "";
+	result.code = Util_string_init(&sapp1_status);
+	Util_log_save(DEF_SAPP1_INIT_STR, "Util_string_init()..." + result.string + result.error_description, result.code);
+
+	Util_add_watch(WATCH_HANDLE_SUB_APP1, &sapp1_status.sequencial_id, sizeof(sapp1_status.sequencial_id));
 
 	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) && var_core_2_available)
 		sapp1_init_thread = threadCreate(Sapp1_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
@@ -208,29 +124,7 @@ void Sapp1_init(bool draw)
 	while(!sapp1_already_init)
 	{
 		if(draw)
-		{
-			if (var_night_mode)
-			{
-				color = DEF_DRAW_WHITE;
-				back_color = DEF_DRAW_BLACK;
-			}
-
-			if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
-			{
-				var_need_reflesh = false;
-				Draw_frame_ready();
-				Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
-				Draw_top_ui();
-				if(var_monitor_cpu_usage)
-					Draw_cpu_usage_info();
-
-				Draw(sapp1_status, 0, 20, 0.65, 0.65, color);
-
-				Draw_apply_draw();
-			}
-			else
-				gspWaitForVBlank();
-		}
+			Sapp1_draw_init_exit_message();
 		else
 			Util_sleep(20000);
 	}
@@ -240,6 +134,8 @@ void Sapp1_init(bool draw)
 
 	Util_log_save(DEF_SAPP1_EXIT_STR, "threadJoin()...", threadJoin(sapp1_init_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp1_init_thread);
+
+	Util_string_clear(&sapp1_status);
 	Sapp1_resume();
 
 	Util_log_save(DEF_SAPP1_INIT_STR, "Initialized.");
@@ -249,45 +145,21 @@ void Sapp1_exit(bool draw)
 {
 	Util_log_save(DEF_SAPP1_EXIT_STR, "Exiting...");
 
-	int color = DEF_DRAW_BLACK;
-	int back_color = DEF_DRAW_WHITE;
-
-	sapp1_status = "";
 	sapp1_exit_thread = threadCreate(Sapp1_exit_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	while(sapp1_already_init)
 	{
 		if(draw)
-		{
-			if (var_night_mode)
-			{
-				color = DEF_DRAW_WHITE;
-				back_color = DEF_DRAW_BLACK;
-			}
-
-			if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
-			{
-				var_need_reflesh = false;
-				Draw_frame_ready();
-				Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
-				Draw_top_ui();
-				if(var_monitor_cpu_usage)
-					Draw_cpu_usage_info();
-
-				Draw(sapp1_status, 0, 20, 0.65, 0.65, color);
-
-				Draw_apply_draw();
-			}
-			else
-				gspWaitForVBlank();
-		}
+			Sapp1_draw_init_exit_message();
 		else
 			Util_sleep(20000);
 	}
 
 	Util_log_save(DEF_SAPP1_EXIT_STR, "threadJoin()...", threadJoin(sapp1_exit_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp1_exit_thread);
-	Util_remove_watch(&sapp1_status);
+
+	Util_remove_watch(WATCH_HANDLE_SUB_APP1, &sapp1_status.sequencial_id);
+	Util_string_free(&sapp1_status);
 	var_need_reflesh = true;
 
 	Util_log_save(DEF_SAPP1_EXIT_STR, "Exited.");
@@ -297,6 +169,7 @@ void Sapp1_main(void)
 {
 	int color = DEF_DRAW_BLACK;
 	int back_color = DEF_DRAW_WHITE;
+	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP1);
 
 	if (var_night_mode)
 	{
@@ -304,7 +177,8 @@ void Sapp1_main(void)
 		back_color = DEF_DRAW_BLACK;
 	}
 
-	if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
+	//Check if we should update the screen.
+	if(Util_is_watch_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
 	{
 		var_need_reflesh = false;
 		Draw_frame_ready();
@@ -315,9 +189,11 @@ void Sapp1_main(void)
 
 			Draw(sapp1_msg[0], 0, 20, 0.5, 0.5, color);
 
-			//Draw file info
-			Draw(sapp1_selected_path, 0, 40, 0.45, 0.45, color);
-			Draw(sapp1_file_info, 0, 90, 0.45, 0.45, color);
+			//Draw file info.
+			if(Util_string_has_data(&sapp1_selected_path))
+				Draw(sapp1_selected_path.buffer, 0, 40, 0.45, 0.45, color);
+			if(Util_string_has_data(&sapp1_file_info))
+				Draw(sapp1_file_info.buffer, 0, 90, 0.45, 0.45, color);
 
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
@@ -347,7 +223,7 @@ void Sapp1_main(void)
 
 			Draw(DEF_SAPP1_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
 
-			if(Util_expl_query_show_flag())//Draw file explorer
+			if(Util_expl_query_show_flag())//Draw file explorer.
 				Util_expl_draw();
 
 			if(Util_err_query_error_show_flag())
@@ -360,4 +236,150 @@ void Sapp1_main(void)
 	}
 	else
 		gspWaitForVBlank();
+}
+
+static void Sapp1_draw_init_exit_message(void)
+{
+	int color = DEF_DRAW_BLACK;
+	int back_color = DEF_DRAW_WHITE;
+	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP1);
+
+	if (var_night_mode)
+	{
+		color = DEF_DRAW_WHITE;
+		back_color = DEF_DRAW_BLACK;
+	}
+
+	//Check if we should update the screen.
+	if(Util_is_watch_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	{
+		var_need_reflesh = false;
+		Draw_frame_ready();
+		Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
+		Draw_top_ui();
+		if(var_monitor_cpu_usage)
+			Draw_cpu_usage_info();
+
+		Draw(sapp1_status.buffer, 0, 20, 0.65, 0.65, color);
+
+		Draw_apply_draw();
+	}
+	else
+		gspWaitForVBlank();
+}
+
+static void Sapp1_init_thread(void* arg)
+{
+	Util_log_save(DEF_SAPP1_INIT_STR, "Thread started.");
+	Result_with_string result;
+
+	Util_string_set(&sapp1_status, "Initializing variables...");
+
+	result.code = Util_string_init(&sapp1_selected_path);
+	Util_log_save(DEF_SAPP1_INIT_STR, "Util_string_init()..." + result.string + result.error_description, result.code);
+	result.code = Util_string_init(&sapp1_file_info);
+	Util_log_save(DEF_SAPP1_INIT_STR, "Util_string_init()..." + result.string + result.error_description, result.code);
+
+	//Add to watch to detect value changes, screen will be rerenderd when value is changed.
+	Util_add_watch(WATCH_HANDLE_SUB_APP1, &sapp1_selected_path.sequencial_id, sizeof(sapp1_selected_path.sequencial_id));
+	Util_add_watch(WATCH_HANDLE_SUB_APP1, &sapp1_file_info.sequencial_id, sizeof(sapp1_file_info.sequencial_id));
+	Util_string_set(&sapp1_selected_path, "Press X button to open file explorer.");
+
+	Util_string_add(&sapp1_status, "\nInitializing queue...");
+	//Empty.
+
+	Util_string_add(&sapp1_status, "\nStarting threads...");
+	sapp1_thread_run = true;
+	sapp1_worker_thread = threadCreate(Sapp1_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+
+	sapp1_already_init = true;
+
+	Util_log_save(DEF_SAPP1_INIT_STR, "Thread exit.");
+	threadExit(0);
+}
+
+static void Sapp1_exit_thread(void* arg)
+{
+	Util_log_save(DEF_SAPP1_EXIT_STR, "Thread started.");
+
+	sapp1_thread_suspend = false;
+	sapp1_thread_run = false;
+
+	Util_string_set(&sapp1_status, "Exiting threads...");
+	Util_log_save(DEF_SAPP1_EXIT_STR, "threadJoin()...", threadJoin(sapp1_worker_thread, DEF_THREAD_WAIT_TIME));
+
+	Util_string_add(&sapp1_status, "\nCleaning up...");
+	threadFree(sapp1_worker_thread);
+
+	//Remove watch on exit.
+	Util_remove_watch(WATCH_HANDLE_SUB_APP1, &sapp1_selected_path.sequencial_id);
+	Util_remove_watch(WATCH_HANDLE_SUB_APP1, &sapp1_file_info.sequencial_id);
+
+	//Free string buffers.
+	Util_string_free(&sapp1_selected_path);
+	Util_string_free(&sapp1_file_info);
+
+	sapp1_already_init = false;
+
+	Util_log_save(DEF_SAPP1_EXIT_STR, "Thread exit.");
+	threadExit(0);
+}
+
+static void Sapp1_worker_thread(void* arg)
+{
+	Util_log_save(DEF_SAPP1_WORKER_THREAD_STR, "Thread started.");
+
+	while (sapp1_thread_run)
+	{
+		if(false)
+		{
+
+		}
+		else
+			Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
+
+		while (sapp1_thread_suspend)
+			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
+	}
+
+	Util_log_save(DEF_SAPP1_WORKER_THREAD_STR, "Thread exit.");
+	threadExit(0);
+}
+
+static void Sapp1_expl_callback(std::string file_name, std::string dir_path)
+{
+	int file_type = Util_expl_query_type(Util_expl_query_current_file_index());
+	int file_size = Util_expl_query_size(Util_expl_query_current_file_index());
+	Util_string temp_string = { 0, };
+
+	if(Util_string_init(&temp_string) == DEF_SUCCESS)
+	{
+		if(file_type != FILE_TYPE_NONE)
+		{
+			if(file_type & FILE_TYPE_HIDDEN)
+				Util_string_add(&temp_string, "Hidden ");
+			if(file_type & FILE_TYPE_READ_ONLY)
+				Util_string_add(&temp_string, "Read only ");
+			if(file_type & FILE_TYPE_DIR)
+				Util_string_add(&temp_string, "Directory ");
+			if(file_type & FILE_TYPE_FILE)
+				Util_string_add(&temp_string, "File ");
+		}
+		else
+			Util_string_set(&temp_string, "Unknown");
+
+		//Set file info.
+		Util_string_format(&sapp1_selected_path, "User selected : \n%s%s\nPress X button to open file explorer.", dir_path.c_str(), file_name.c_str());
+		Util_string_format(&sapp1_file_info, "File size : %dKB (%dB)\nType : %s", (file_size / 1024), file_size, temp_string.buffer);
+	}
+	else
+		Util_string_set(&sapp1_file_info, "Out of memory.");
+
+	Util_string_free(&temp_string);
+}
+
+static void Sapp1_expl_cancel_callback(void)
+{
+	Util_string_set(&sapp1_selected_path, "Canceled by user.\nPress X button to open file explorer.");
+	Util_string_set(&sapp1_file_info, "");
 }

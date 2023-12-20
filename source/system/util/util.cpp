@@ -9,13 +9,11 @@
 #include "system/util/util.hpp"
 
 bool util_safe_linear_alloc_init = false, util_init = false;
-int util_draw_num_of_watch_bool = 0, util_draw_num_of_watch_int = 0, util_draw_num_of_watch_double = 0, util_draw_num_of_watch_string = 0;
 u32 util_max_core_1 = 0;
 LightLock util_safe_linear_alloc_mutex = 1, util_watch_variables_mutex = 1;//Initially unlocked state.
-Watch_bool util_draw_watch_bool[DEF_DRAW_MAX_WATCH_BOOL_VARIABLES];
-Watch_int util_draw_watch_int[DEF_DRAW_MAX_WATCH_INT_VARIABLES];
-Watch_double util_draw_watch_double[DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES];
-Watch_string util_draw_watch_string[DEF_DRAW_MAX_WATCH_STRING_VARIABLES];
+
+u32 util_num_of_watch[WATCH_HANDLE_MAX] = { 0, };
+Watch_data util_watch_data[DEF_MAX_WATCH_VARIABLES];
 
 extern "C" void memcpy_asm(u8*, u8*, int);
 
@@ -137,29 +135,15 @@ Result_with_string Util_init(void)
 
 	LightLock_Init(&util_watch_variables_mutex);
 
-	util_draw_num_of_watch_bool = 0;
-	util_draw_num_of_watch_int = 0;
-	util_draw_num_of_watch_double = 0;
-	util_draw_num_of_watch_string = 0;
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_BOOL_VARIABLES; i++)
+	for(u16 i = 0; i < (uint16_t)WATCH_HANDLE_MAX; i++)
+		util_num_of_watch[i] = 0;
+
+	for(u32 i = 0; i < DEF_MAX_WATCH_VARIABLES; i++)
 	{
-		util_draw_watch_bool[i].address = NULL;
-		util_draw_watch_bool[i].previous_value = false;
-	}
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_INT_VARIABLES; i++)
-	{
-		util_draw_watch_int[i].address = NULL;
-		util_draw_watch_int[i].previous_value = INT32_MAX;
-	}
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES; i++)
-	{
-		util_draw_watch_double[i].address = NULL;
-		util_draw_watch_double[i].previous_value = INT32_MAX;
-	}
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_STRING_VARIABLES; i++)
-	{
-		util_draw_watch_string[i].address = NULL;
-		util_draw_watch_string[i].previous_value = "";
+		util_watch_data[i].original_address = NULL;
+		util_watch_data[i].previous_data = NULL;
+		util_watch_data[i].data_length = 0;
+		util_watch_data[i].handle = WATCH_HANDLE_INVALID;
 	}
 
 	util_init = true;
@@ -177,396 +161,160 @@ void Util_exit(void)
 		return;
 
 	util_init = false;
-	util_draw_num_of_watch_bool = 0;
-	util_draw_num_of_watch_int = 0;
-	util_draw_num_of_watch_double = 0;
-	util_draw_num_of_watch_string = 0;
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_BOOL_VARIABLES; i++)
-	{
-		util_draw_watch_bool[i].address = NULL;
-		util_draw_watch_bool[i].previous_value = false;
-	}
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_INT_VARIABLES; i++)
-	{
-		util_draw_watch_int[i].address = NULL;
-		util_draw_watch_int[i].previous_value = INT32_MAX;
-	}
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES; i++)
-	{
-		util_draw_watch_double[i].address = NULL;
-		util_draw_watch_double[i].previous_value = INTMAX_MAX;
-	}
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_STRING_VARIABLES; i++)
-	{
-		util_draw_watch_string[i].address = NULL;
-		util_draw_watch_string[i].previous_value = "";
-	}
 }
 
-int Util_get_watch_bool_usage(void)
+u32 Util_get_watch_usage(Watch_handle handle)
 {
-	return util_draw_num_of_watch_bool;
-}
-
-int Util_get_watch_int_usage(void)
-{
-	return util_draw_num_of_watch_int;
-}
-
-int Util_get_watch_double_usage(void)
-{
-	return util_draw_num_of_watch_double;
-}
-
-int Util_get_watch_string_usage(void)
-{
-	return util_draw_num_of_watch_string;
-}
-
-bool Util_add_watch(bool* variable)
-{
-	if(!variable)
-		return false;
+	u32 used = 0;
 
 	if(!util_init)
-		return false;
+		return 0;
+
+	if(handle <= WATCH_HANDLE_INVALID || handle >= WATCH_HANDLE_MAX)
+		return 0;
 
 	LightLock_Lock(&util_watch_variables_mutex);
-	if(util_draw_num_of_watch_bool + 1 >= DEF_DRAW_MAX_WATCH_BOOL_VARIABLES)
-	{
-		LightLock_Unlock(&util_watch_variables_mutex);
-		return false;
-	}
+	used = util_num_of_watch[handle];
+	LightLock_Unlock(&util_watch_variables_mutex);
 
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_BOOL_VARIABLES; i++)
+	return used;
+}
+
+u32 Util_get_watch_total_usage(void)
+{
+	u32 used = 0;
+
+	if(!util_init)
+		return 0;
+
+	LightLock_Lock(&util_watch_variables_mutex);
+	for(uint16_t i = 0; i < (uint16_t)WATCH_HANDLE_MAX; i++)
+		used += util_num_of_watch[i];
+
+	LightLock_Unlock(&util_watch_variables_mutex);
+
+	return used;
+}
+
+Result_with_string Util_add_watch(Watch_handle handle, void* variable, u32 length)
+{
+	u32 used = 0;
+	Result_with_string result;
+
+	if(!util_init)
+		goto not_inited;
+
+	if(handle <= WATCH_HANDLE_INVALID || handle >= WATCH_HANDLE_MAX || !variable || length == 0)
+		goto invalid_arg;
+
+	LightLock_Lock(&util_watch_variables_mutex);
+
+	for(uint16_t i = 0; i < (uint16_t)WATCH_HANDLE_MAX; i++)
+		used += util_num_of_watch[i];
+
+	if(used >= DEF_MAX_WATCH_VARIABLES)
+		goto out_of_memory;
+
+	//Search for free space and register it.
+	for(u32 i = 0; i < DEF_MAX_WATCH_VARIABLES; i++)
 	{
-		if(!util_draw_watch_bool[i].address)
+		if(!util_watch_data[i].original_address)
 		{
-			util_draw_watch_bool[i].address = variable;
-			util_draw_watch_bool[i].previous_value = *variable;
-			util_draw_num_of_watch_bool++;
+			util_watch_data[i].previous_data = (void*)malloc(length);
+			if(!util_watch_data[i].previous_data)
+				goto out_of_memory;
+
+			util_watch_data[i].original_address = variable;
+			util_watch_data[i].data_length = length;
+			util_watch_data[i].handle = handle;
+			util_num_of_watch[handle]++;
+
+			memcpy(util_watch_data[i].previous_data, util_watch_data[i].original_address, util_watch_data[i].data_length);
 			break;
 		}
 	}
 
 	LightLock_Unlock(&util_watch_variables_mutex);
-	return true;
+
+	return result;
+
+	not_inited:
+	result.code = DEF_ERR_NOT_INITIALIZED;
+	result.string = DEF_ERR_NOT_INITIALIZED_STR;
+	return result;
+
+	invalid_arg:
+	result.code = DEF_ERR_INVALID_ARG;
+	result.string = DEF_ERR_INVALID_ARG_STR;
+	return result;
+
+	out_of_memory:
+	LightLock_Unlock(&util_watch_variables_mutex);
+	result.code = DEF_ERR_OUT_OF_MEMORY;
+	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
+	return result;
 }
 
-bool Util_add_watch(int* variable)
+void Util_remove_watch(Watch_handle handle, void* variable)
 {
-	if(!variable)
-		return false;
-
 	if(!util_init)
-		return false;
+		return;
+
+	if(handle <= WATCH_HANDLE_INVALID || handle >= WATCH_HANDLE_MAX || !variable)
+		return;
 
 	LightLock_Lock(&util_watch_variables_mutex);
-	if(util_draw_num_of_watch_int + 1 >= DEF_DRAW_MAX_WATCH_INT_VARIABLES)
-	{
-		LightLock_Unlock(&util_watch_variables_mutex);
-		return false;
-	}
 
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_INT_VARIABLES; i++)
+	//Search for specified address and remove it if exists.
+	for(u32 i = 0; i < DEF_MAX_WATCH_VARIABLES; i++)
 	{
-		if(!util_draw_watch_int[i].address)
+		if(util_watch_data[i].original_address == variable && util_watch_data[i].handle == handle)
 		{
-			util_draw_watch_int[i].address = variable;
-			util_draw_watch_int[i].previous_value = *variable;
-			util_draw_num_of_watch_int++;
+			free(util_watch_data[i].previous_data);
+
+			util_watch_data[i].previous_data = NULL;
+			util_watch_data[i].original_address = NULL;
+			util_watch_data[i].data_length = 0;
+			util_watch_data[i].handle = WATCH_HANDLE_INVALID;
+			util_num_of_watch[handle]--;
 			break;
 		}
 	}
 
 	LightLock_Unlock(&util_watch_variables_mutex);
-	return true;
 }
 
-bool Util_add_watch(double* variable)
+bool Util_is_watch_changed(Watch_handle_bit handles)
 {
-	if(!variable)
-		return false;
+	bool is_changed = false;
 
 	if(!util_init)
 		return false;
 
-	LightLock_Lock(&util_watch_variables_mutex);
-	if(util_draw_num_of_watch_double + 1 >= DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES)
-	{
-		LightLock_Unlock(&util_watch_variables_mutex);
-		return false;
-	}
-
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES; i++)
-	{
-		if(!util_draw_watch_double[i].address)
-		{
-			util_draw_watch_double[i].address = variable;
-			util_draw_watch_double[i].previous_value = *variable;
-			util_draw_num_of_watch_double++;
-			break;
-		}
-	}
-
-	LightLock_Unlock(&util_watch_variables_mutex);
-	return true;
-}
-
-bool Util_add_watch(std::string* variable)
-{
-	if(!variable)
-		return false;
-
-	if(!util_init)
-		return false;
-
-	LightLock_Lock(&util_watch_variables_mutex);
-	if(util_draw_num_of_watch_string + 1 >= DEF_DRAW_MAX_WATCH_STRING_VARIABLES)
-	{
-		LightLock_Unlock(&util_watch_variables_mutex);
-		return false;
-	}
-
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_STRING_VARIABLES; i++)
-	{
-		if(!util_draw_watch_string[i].address)
-		{
-			util_draw_watch_string[i].address = variable;
-			util_draw_watch_string[i].previous_value = *variable;
-			util_draw_num_of_watch_string++;
-			break;
-		}
-	}
-
-	LightLock_Unlock(&util_watch_variables_mutex);
-	return true;
-}
-
-void Util_remove_watch(int* variable)
-{
-	int count = 0;
-	if(!variable)
-		return;
-
-	if(!util_init)
-		return;
-
-	LightLock_Lock(&util_watch_variables_mutex);
-	if(util_draw_num_of_watch_int + 1 >= DEF_DRAW_MAX_WATCH_INT_VARIABLES)
-	{
-		LightLock_Unlock(&util_watch_variables_mutex);
-		return;
-	}
-
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_INT_VARIABLES; i++)
-	{
-		if(util_draw_watch_int[i].address == variable)
-		{
-			util_draw_watch_int[i].address = NULL;
-			util_draw_watch_int[i].previous_value = INT32_MAX;
-			util_draw_num_of_watch_int--;
-			break;
-		}
-		else if(util_draw_watch_int[i].address)
-			count++;
-
-		if(count >= util_draw_num_of_watch_int)
-			break;
-	}
-
-	LightLock_Unlock(&util_watch_variables_mutex);
-	return;
-}
-
-void Util_remove_watch(bool* variable)
-{
-	int count = 0;
-	if(!variable)
-		return;
-
-	if(!util_init)
-		return;
-
-	LightLock_Lock(&util_watch_variables_mutex);
-	if(util_draw_num_of_watch_bool + 1 >= DEF_DRAW_MAX_WATCH_BOOL_VARIABLES)
-	{
-		LightLock_Unlock(&util_watch_variables_mutex);
-		return;
-	}
-
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_BOOL_VARIABLES; i++)
-	{
-		if(util_draw_watch_bool[i].address == variable)
-		{
-			util_draw_watch_bool[i].address = NULL;
-			util_draw_watch_bool[i].previous_value = INTMAX_MAX;
-			util_draw_num_of_watch_bool--;
-			break;
-		}
-		else if(util_draw_watch_bool[i].address)
-			count++;
-
-		if(count >= util_draw_num_of_watch_bool)
-			break;
-	}
-
-	LightLock_Unlock(&util_watch_variables_mutex);
-	return;
-}
-
-void Util_remove_watch(double* variable)
-{
-	int count = 0;
-	if(!variable)
-		return;
-
-	if(!util_init)
-		return;
-
-	LightLock_Lock(&util_watch_variables_mutex);
-	if(util_draw_num_of_watch_double + 1 >= DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES)
-	{
-		LightLock_Unlock(&util_watch_variables_mutex);
-		return;
-	}
-
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES; i++)
-	{
-		if(util_draw_watch_double[i].address == variable)
-		{
-			util_draw_watch_double[i].address = NULL;
-			util_draw_watch_double[i].previous_value = INTMAX_MAX;
-			util_draw_num_of_watch_double--;
-			break;
-		}
-		else if(util_draw_watch_double[i].address)
-			count++;
-
-		if(count >= util_draw_num_of_watch_double)
-			break;
-	}
-
-	LightLock_Unlock(&util_watch_variables_mutex);
-	return;
-}
-
-void Util_remove_watch(std::string* variable)
-{
-	int count = 0;
-	if(!variable)
-		return;
-
-	if(!util_init)
-		return;
-
-	LightLock_Lock(&util_watch_variables_mutex);
-	if(util_draw_num_of_watch_string + 1 >= DEF_DRAW_MAX_WATCH_STRING_VARIABLES)
-	{
-		LightLock_Unlock(&util_watch_variables_mutex);
-		return;
-	}
-
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_STRING_VARIABLES; i++)
-	{
-		if(util_draw_watch_string[i].address == variable)
-		{
-			util_draw_watch_string[i].address = NULL;
-			util_draw_watch_string[i].previous_value = "";
-			util_draw_num_of_watch_string--;
-			break;
-		}
-		else if(util_draw_watch_string[i].address)
-			count++;
-
-		if(count >= util_draw_num_of_watch_string)
-			break;
-	}
-
-	LightLock_Unlock(&util_watch_variables_mutex);
-	return;
-}
-
-bool Util_is_watch_changed(void)
-{
-	bool changed = false;
-	int count = 0;
-
-	if(!util_init)
+	if(handles == DEF_WATCH_HANDLE_BIT_NONE)
 		return false;
 
 	LightLock_Lock(&util_watch_variables_mutex);
 
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_BOOL_VARIABLES; i++)
+	//Check if any data that is linked with specified handle were changed.
+	for(u32 i = 0; i < DEF_MAX_WATCH_VARIABLES; i++)
 	{
-		if(util_draw_watch_bool[i].address)
+		if(util_watch_data[i].original_address && util_watch_data[i].handle != WATCH_HANDLE_INVALID
+		&& (handles & (Watch_handle_bit)(1 << util_watch_data[i].handle)))
 		{
-			if(util_draw_watch_bool[i].previous_value != *util_draw_watch_bool[i].address)
+			//This data is linked with specified handle.
+			if(memcmp(util_watch_data[i].previous_data, util_watch_data[i].original_address, util_watch_data[i].data_length) != 0)
 			{
-				util_draw_watch_bool[i].previous_value = *util_draw_watch_bool[i].address;
-				changed = true;
+				//Data was changed, update it.
+				memcpy(util_watch_data[i].previous_data, util_watch_data[i].original_address, util_watch_data[i].data_length);
+				is_changed = true;
 			}
-			count++;
 		}
-
-		if(count >= util_draw_num_of_watch_bool)
-			break;
-	}
-
-	count = 0;
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_INT_VARIABLES; i++)
-	{
-		if(util_draw_watch_int[i].address)
-		{
-			if(util_draw_watch_int[i].previous_value != *util_draw_watch_int[i].address)
-			{
-				util_draw_watch_int[i].previous_value = *util_draw_watch_int[i].address;
-				changed = true;
-			}
-			count++;
-		}
-
-		if(count >= util_draw_num_of_watch_int)
-			break;
-	}
-
-	count = 0;
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES; i++)
-	{
-		if(util_draw_watch_double[i].address)
-		{
-			if(util_draw_watch_double[i].previous_value != *util_draw_watch_double[i].address)
-			{
-				util_draw_watch_double[i].previous_value = *util_draw_watch_double[i].address;
-				changed = true;
-			}
-			count++;
-		}
-
-		if(count >= util_draw_num_of_watch_double)
-			break;
-	}
-
-	count = 0;
-	for(int i = 0; i < DEF_DRAW_MAX_WATCH_STRING_VARIABLES; i++)
-	{
-		if(util_draw_watch_string[i].address)
-		{
-			if(util_draw_watch_string[i].previous_value.length() != util_draw_watch_string[i].address->length()
-			|| util_draw_watch_string[i].previous_value != *util_draw_watch_string[i].address)
-			{
-				util_draw_watch_string[i].previous_value = *util_draw_watch_string[i].address;
-				changed = true;
-			}
-			count++;
-		}
-
-		if(count >= util_draw_num_of_watch_string)
-			break;
 	}
 
 	LightLock_Unlock(&util_watch_variables_mutex);
-	return changed;
+
+	return is_changed;
 }
 
 Result_with_string Util_parse_file(std::string source_data, int expected_items, std::string out_data[])

@@ -348,18 +348,18 @@ void Menu_init(void)
 	}
 	menu_sem_button.c2d = var_square_image[0];
 
-	Util_add_watch(&menu_must_exit);
-	Util_add_watch(&menu_check_exit_request);
-	Util_add_watch(&menu_init_request[8]);
+	Util_add_watch(WATCH_HANDLE_MAIN_MENU, &menu_must_exit, sizeof(menu_must_exit));
+	Util_add_watch(WATCH_HANDLE_MAIN_MENU, &menu_check_exit_request, sizeof(menu_check_exit_request));
+	Util_add_watch(WATCH_HANDLE_MAIN_MENU, &menu_init_request[8], sizeof(menu_init_request[8]));
 
-	Util_add_watch(&menu_sem_button.selected);
+	Util_add_watch(WATCH_HANDLE_MAIN_MENU, &menu_sem_button.selected, sizeof(menu_sem_button.selected));
 	for(int i = 0; i < 8; i++)
 	{
-		Util_add_watch(&menu_init_request[i]);
-		Util_add_watch(&menu_exit_request[i]);
+		Util_add_watch(WATCH_HANDLE_MAIN_MENU, &menu_init_request[i], sizeof(menu_init_request[i]));
+		Util_add_watch(WATCH_HANDLE_MAIN_MENU, &menu_exit_request[i], sizeof(menu_exit_request[i]));
 
-		Util_add_watch(&menu_sapp_button[i].selected);
-		Util_add_watch(&menu_sapp_close_button[i].selected);
+		Util_add_watch(WATCH_HANDLE_MAIN_MENU, &menu_sapp_button[i].selected, sizeof(menu_sapp_button[i].selected));
+		Util_add_watch(WATCH_HANDLE_MAIN_MENU, &menu_sapp_close_button[i].selected, sizeof(menu_sapp_close_button[i].selected));
 	}
 
 	Menu_get_system_info();
@@ -434,18 +434,18 @@ void Menu_exit(void)
 	threadFree(menu_check_connectivity_thread);
 #endif
 
-	Util_remove_watch(&menu_must_exit);
-	Util_remove_watch(&menu_check_exit_request);
-	Util_remove_watch(&menu_init_request[8]);
+	Util_remove_watch(WATCH_HANDLE_MAIN_MENU, &menu_must_exit);
+	Util_remove_watch(WATCH_HANDLE_MAIN_MENU, &menu_check_exit_request);
+	Util_remove_watch(WATCH_HANDLE_MAIN_MENU, &menu_init_request[8]);
 
-	Util_remove_watch(&menu_sem_button.selected);
+	Util_remove_watch(WATCH_HANDLE_MAIN_MENU, &menu_sem_button.selected);
 	for(int i = 0; i < 8; i++)
 	{
-		Util_remove_watch(&menu_init_request[i]);
-		Util_remove_watch(&menu_exit_request[i]);
+		Util_remove_watch(WATCH_HANDLE_MAIN_MENU, &menu_init_request[i]);
+		Util_remove_watch(WATCH_HANDLE_MAIN_MENU, &menu_exit_request[i]);
 
-		Util_remove_watch(&menu_sapp_button[i].selected);
-		Util_remove_watch(&menu_sapp_close_button[i].selected);
+		Util_remove_watch(WATCH_HANDLE_MAIN_MENU, &menu_sapp_button[i].selected);
+		Util_remove_watch(WATCH_HANDLE_MAIN_MENU, &menu_sapp_close_button[i].selected);
 	}
 
 	Util_log_exit();
@@ -562,7 +562,10 @@ void Menu_main(void)
 
 	if (menu_main_run)
 	{
-		if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
+		Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_MAIN_MENU);
+
+		//Check if we should update the screen.
+		if(Util_is_watch_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
 		{
 			var_need_reflesh = false;
 			if (var_night_mode)
