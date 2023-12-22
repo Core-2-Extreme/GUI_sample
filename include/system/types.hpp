@@ -348,13 +348,6 @@ enum Mic_sample_rate
 	MIC_SAMPLE_RATE_MAX,
 };
 
-enum Queue_option
-{
-	QUEUE_OPTION_NONE					= 0,		//Default.
-	QUEUE_OPTION_DO_NOT_ADD_IF_EXIST	= (1 << 1), //Do not add the event if the same event id exist.
-	QUEUE_OPTION_SEND_TO_FRONT			= (1 << 2), //Send an event to the front of the queue, use it for high priority event.
-};
-
 enum Wake_up_event
 {
 	WAKE_UP_EVENT_NONE				= 0,		//No wake up event.
@@ -672,18 +665,6 @@ struct Hid_info
 	int held_time = 0;
 	//Timestamp for this data.
 	u64 ts = 0;
-};
-
-struct Queue
-{
-	bool deleting;					//Whether this queue is being deleted.
-	u32* data;						//Data list.
-	u32* event_id;					//Event id list.
-	s32 max_items;					//Queue capacity.
-	s32 next_index;					//Next free index.
-	s32 reference_count;			//Reference count for this queue.
-	LightEvent receive_wait_event;	//If timeout is not 0, this is used to wait for new message from this queue.
-	LightEvent send_wait_event;		//If timeout is not 0, this is used to wait for available space to send data to this queue.
 };
 
 #endif

@@ -1,9 +1,10 @@
-#ifndef _STRING_H
-#define _STRING_H
+#ifndef _STR_H
+#define _STR_H
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-#define DEF_STRING_INITIAL_CAPACITY 16
+#define DEF_STR_INITIAL_CAPACITY 16
 
 typedef struct
 {
@@ -11,7 +12,7 @@ typedef struct
 	uint32_t capacity;		//Current buffer capacity (without NULL terminator, so (capacity + 1) bytes are allocated).
 	uint32_t length;		//Current string length (without NULL terminator).
 	char* buffer;		    //String buffer.
-} Util_string;
+} Util_str;
 
 /**
  * @brief Initialize a string struct.
@@ -19,7 +20,7 @@ typedef struct
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_string_init(Util_string* string);
+uint32_t Util_str_init(Util_str* string);
 
 /**
  * @brief Free a string struct.
@@ -27,7 +28,7 @@ uint32_t Util_string_init(Util_string* string);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-void Util_string_free(Util_string* string);
+void Util_str_free(Util_str* string);
 
 /**
  * @brief Clear string data.
@@ -35,7 +36,7 @@ void Util_string_free(Util_string* string);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_string_clear(Util_string* string);
+uint32_t Util_str_clear(Util_str* string);
 
 /**
  * @brief Set string data.
@@ -44,7 +45,7 @@ uint32_t Util_string_clear(Util_string* string);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_string_set(Util_string* string, const char* source_string);
+uint32_t Util_str_set(Util_str* string, const char* source_string);
 
 /**
  * @brief Add (append) string data.
@@ -53,7 +54,7 @@ uint32_t Util_string_set(Util_string* string, const char* source_string);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_string_add(Util_string* string, const char* source_string);
+uint32_t Util_str_add(Util_str* string, const char* source_string);
 
 /**
  * @brief Set string data with format.
@@ -63,7 +64,17 @@ uint32_t Util_string_add(Util_string* string, const char* source_string);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_string_format(Util_string* string, const char* format_string, ...);
+uint32_t Util_str_format(Util_str* string, const char* format_string, ...);
+
+/**
+ * @brief va_list version of Util_str_format().
+ * @param string Pointer for target struct.
+ * @param format_string Pointer for format string.
+ * @param args Additional parameters for format_string.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
+ * @note Thread safe
+*/
+uint32_t Util_str_vformat(Util_str* string, const char* format_string, va_list args);
 
 /**
  * @brief Resize string buffer size.
@@ -74,7 +85,7 @@ uint32_t Util_string_format(Util_string* string, const char* format_string, ...)
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_string_resize(Util_string* string, uint32_t new_capacity);
+uint32_t Util_str_resize(Util_str* string, uint32_t new_capacity);
 
 /**
  * @brief Check if struct is valid (so that safe to access the buffer).
@@ -84,7 +95,7 @@ uint32_t Util_string_resize(Util_string* string, uint32_t new_capacity);
  * @return True if struct is valid, otherwise false.
  * @note Thread safe
 */
-bool Util_string_is_valid(Util_string* string);
+bool Util_str_is_valid(Util_str* string);
 
 /**
  * @brief Check if struct is valid and contains at least 1 character.
@@ -94,6 +105,6 @@ bool Util_string_is_valid(Util_string* string);
  * @return True if struct is valid AND contains at least 1 character, otherwise false.
  * @note Thread safe
 */
-bool Util_string_has_data(Util_string* string);
+bool Util_str_has_data(Util_str* string);
 
-#endif //_STRING_H
+#endif //_STR_H

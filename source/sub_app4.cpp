@@ -11,13 +11,13 @@
 #include "system/util/error.hpp"
 #include "system/util/hid.hpp"
 #include "system/util/log.hpp"
-#include "system/util/queue.hpp"
 #include "system/util/speaker.hpp"
 #include "system/util/util.hpp"
 
 extern "C"
 {
-	#include "system/util/string.h"
+	#include "system/util/queue.h"
+	#include "system/util/str.h"
 }
 
 //Include myself.
@@ -50,8 +50,8 @@ double sapp4_last_decoded_pos_ms = 0;
 std::string sapp4_msg[DEF_SAPP4_NUM_OF_MSG];
 Thread sapp4_init_thread, sapp4_exit_thread, sapp4_worker_thread;
 Audio_info sapp4_audio_info;
-Queue sapp4_command_queue;
-Util_string sapp4_status = { 0, };
+Util_queue sapp4_command_queue;
+Util_str sapp4_status = { 0, };
 Sapp4_speaker_state sapp4_speaker_state;
 
 
@@ -101,7 +101,8 @@ void Sapp4_hid(Hid_info key)
 
 		if(command != NONE)
 		{
-			Result_with_string result = Util_queue_add(&sapp4_command_queue, command, NULL, 10000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST);
+			Result_with_string result;
+			result.code = Util_queue_add(&sapp4_command_queue, command, NULL, 10000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST);
 			Util_log_save(DEF_SAPP4_HID_CALLBACK_STR, "Util_queue_add()..." + result.string + result.error_description, result.code);
 		}
 	}
@@ -139,8 +140,8 @@ void Sapp4_init(bool draw)
 	Util_log_save(DEF_SAPP4_INIT_STR, "Initializing...");
 	Result_with_string result;
 
-	result.code = Util_string_init(&sapp4_status);
-	Util_log_save(DEF_SAPP4_INIT_STR, "Util_string_init()..." + result.string + result.error_description, result.code);
+	result.code = Util_str_init(&sapp4_status);
+	Util_log_save(DEF_SAPP4_INIT_STR, "Util_str_init()..." + result.string + result.error_description, result.code);
 
 	Util_add_watch(WATCH_HANDLE_SUB_APP4, &sapp4_status.sequencial_id, sizeof(sapp4_status.sequencial_id));
 
@@ -166,7 +167,7 @@ void Sapp4_init(bool draw)
 	Util_log_save(DEF_SAPP4_EXIT_STR, "threadJoin()...", threadJoin(sapp4_init_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp4_init_thread);
 
-	Util_string_clear(&sapp4_status);
+	Util_str_clear(&sapp4_status);
 	Sapp4_resume();
 
 	Util_log_save(DEF_SAPP4_INIT_STR, "Initialized.");
@@ -190,7 +191,7 @@ void Sapp4_exit(bool draw)
 	threadFree(sapp4_exit_thread);
 
 	Util_remove_watch(WATCH_HANDLE_SUB_APP4, &sapp4_status.sequencial_id);
-	Util_string_free(&sapp4_status);
+	Util_str_free(&sapp4_status);
 	var_need_reflesh = true;
 
 	Util_log_save(DEF_SAPP4_EXIT_STR, "Exited.");
@@ -328,24 +329,24 @@ static void Sapp4_init_thread(void* arg)
 	Util_log_save(DEF_SAPP4_INIT_STR, "Thread started.");
 	Result_with_string result;
 
-	Util_string_set(&sapp4_status, "Initializing variables...");
+	Util_str_set(&sapp4_status, "Initializing variables...");
 	sapp4_speaker_state = SPEAKER_IDLE;
 	sapp4_buffer_health = 0;
 	//Add to watch to detect value changes, screen will be rerenderd when value is changed.
 	Util_add_watch(WATCH_HANDLE_SUB_APP4, &sapp4_buffer_health, sizeof(sapp4_buffer_health));
 	Util_add_watch(WATCH_HANDLE_SUB_APP4, &sapp4_last_decoded_pos_ms, sizeof(sapp4_last_decoded_pos_ms));
 
-	Util_string_add(&sapp4_status, "\nInitializing queue...");
+	Util_str_add(&sapp4_status, "\nInitializing queue...");
 	//Create the queue for commands.
-	result = Util_queue_create(&sapp4_command_queue, 10);
+	result.code = Util_queue_create(&sapp4_command_queue, 10);
 	Util_log_save(DEF_SAPP4_INIT_STR, "Util_queue_create()..." + result.string + result.error_description, result.code);
 
-	Util_string_add(&sapp4_status, "\nInitializing speaker...");
+	Util_str_add(&sapp4_status, "\nInitializing speaker...");
 	//Init speaker.
 	result = Util_speaker_init();
 	Util_log_save(DEF_SAPP4_INIT_STR, "Util_speaker_init()..." + result.string + result.error_description, result.code);
 
-	Util_string_add(&sapp4_status, "\nStarting threads...");
+	Util_str_add(&sapp4_status, "\nStarting threads...");
 	sapp4_thread_run = true;
 	sapp4_worker_thread = threadCreate(Sapp4_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
 
@@ -362,10 +363,10 @@ static void Sapp4_exit_thread(void* arg)
 	sapp4_thread_suspend = false;
 	sapp4_thread_run = false;
 
-	Util_string_set(&sapp4_status, "Exiting threads...");
+	Util_str_set(&sapp4_status, "Exiting threads...");
 	Util_log_save(DEF_SAPP4_EXIT_STR, "threadJoin()...", threadJoin(sapp4_worker_thread, DEF_THREAD_WAIT_TIME));
 
-	Util_string_add(&sapp4_status, "\nCleaning up...");
+	Util_str_add(&sapp4_status, "\nCleaning up...");
 	threadFree(sapp4_worker_thread);
 
 	//Exit speaker.
@@ -396,7 +397,7 @@ static void Sapp4_worker_thread(void* arg)
 		while (sapp4_thread_suspend)
 			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
 
-		result = Util_queue_get(&sapp4_command_queue, &event_id, NULL, DEF_ACTIVE_THREAD_SLEEP_TIME * 20);
+		result.code = Util_queue_get(&sapp4_command_queue, &event_id, NULL, DEF_ACTIVE_THREAD_SLEEP_TIME * 20);
 		if(result.code == 0)
 		{
 			//Got a command.

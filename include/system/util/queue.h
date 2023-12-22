@@ -1,7 +1,26 @@
-#ifndef QUEUE_HPP
-#define QUEUE_HPP
+#ifndef QUEUE_H_
+#define QUEUE_H_
+#include <stdbool.h>
+#include <stdint.h>
 
-#include "system/types.hpp"
+typedef enum
+{
+	QUEUE_OPTION_NONE					= 0,		//Default.
+	QUEUE_OPTION_DO_NOT_ADD_IF_EXIST	= (1 << 1), //Do not add the event if the same event id exist.
+	QUEUE_OPTION_SEND_TO_FRONT			= (1 << 2), //Send an event to the front of the queue, use it for high priority event.
+} Util_queue_option;
+
+typedef struct
+{
+	bool deleting;					//Whether this queue is being deleted.
+	void** data;					//Data list.
+	uint32_t* event_id;				//Event id list.
+	uint32_t max_items;				//Queue capacity.
+	uint32_t next_index;			//Next free index.
+	uint32_t reference_count;		//Reference count for this queue.
+	LightEvent receive_wait_event;	//If timeout is not 0, this is used to wait for new message from this queue.
+	LightEvent send_wait_event;		//If timeout is not 0, this is used to wait for available space to send data to this queue.
+} Util_queue;
 
 /**
  * @brief Create the queue.
@@ -11,7 +30,7 @@
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_queue_create(Queue* queue, int max_items);
+uint32_t Util_queue_create(Util_queue* queue, uint32_t max_items);
 
 /**
  * @brief Add an event to the queue. Data is passed by reference not by copy.
@@ -25,7 +44,7 @@ Result_with_string Util_queue_create(Queue* queue, int max_items);
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_queue_add(Queue* queue, u32 event_id, void* data, s64 wait_us, Queue_option option);
+uint32_t Util_queue_add(Util_queue* queue, uint32_t event_id, void* data, int64_t wait_us, Util_queue_option option);
 
 /**
  * @brief Get an event from the queue. Data is passed by reference not by copy.
@@ -37,7 +56,7 @@ Result_with_string Util_queue_add(Queue* queue, u32 event_id, void* data, s64 wa
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_queue_get(Queue* queue, u32* event_id, void** data, s64 wait_us);
+uint32_t Util_queue_get(Util_queue* queue, uint32_t* event_id, void** data, int64_t wait_us);
 
 /**
  * @brief Check if the specified event exist in the queue.
@@ -46,7 +65,7 @@ Result_with_string Util_queue_get(Queue* queue, u32* event_id, void** data, s64 
  * @param event_id (in) Event id to check.
  * @note Thread safe
 */
-bool Util_queue_check_event_exist(Queue* queue, u32 event_id);
+bool Util_queue_check_event_exist(Util_queue* queue, uint32_t event_id);
 
 /**
  * @brief Check how many spaces left in the queue.
@@ -54,7 +73,7 @@ bool Util_queue_check_event_exist(Queue* queue, u32 event_id);
  * @param queue (in) Pointer for the queue.
  * @note Thread safe
 */
-int Util_queue_get_free_space(Queue* queue);
+uint32_t Util_queue_get_free_space(Util_queue* queue);
 
 /**
  * @brief Delete the queue and if any, free all data in the queue.
@@ -62,6 +81,6 @@ int Util_queue_get_free_space(Queue* queue);
  * @param queue (in) Pointer for the queue.
  * @note Thread safe
 */
-void Util_queue_delete(Queue* queue);
+void Util_queue_delete(Util_queue* queue);
 
-#endif
+#endif //QUEUE_H_

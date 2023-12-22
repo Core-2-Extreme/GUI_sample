@@ -10,12 +10,12 @@
 #include "system/util/error.hpp"
 #include "system/util/hid.hpp"
 #include "system/util/log.hpp"
-#include "system/util/queue.hpp"
 #include "system/util/util.hpp"
 
 extern "C"
 {
-	#include "system/util/string.h"
+	#include "system/util/queue.h"
+	#include "system/util/str.h"
 }
 
 //Include myself.
@@ -47,8 +47,8 @@ bool sapp2_already_init = false;
 bool sapp2_thread_suspend = true;
 std::string sapp2_msg[DEF_SAPP2_NUM_OF_MSG];
 Thread sapp2_init_thread, sapp2_exit_thread, sapp2_worker_thread;
-Queue sapp2_command_queue;
-Util_string sapp2_status = { 0, };
+Util_queue sapp2_command_queue;
+Util_str sapp2_status = { 0, };
 
 
 static void Sapp2_draw_init_exit_message(void);
@@ -107,7 +107,8 @@ void Sapp2_hid(Hid_info key)
 
 		if(command != NONE)
 		{
-			Result_with_string result = Util_queue_add(&sapp2_command_queue, command, NULL, 10000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST);
+			Result_with_string result;
+			result.code = Util_queue_add(&sapp2_command_queue, command, NULL, 10000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST);
 			Util_log_save(DEF_SAPP2_HID_CALLBACK_STR, "Util_queue_add()..." + result.string + result.error_description, result.code);
 		}
 	}
@@ -145,8 +146,8 @@ void Sapp2_init(bool draw)
 	Util_log_save(DEF_SAPP2_INIT_STR, "Initializing...");
 	Result_with_string result;
 
-	result.code = Util_string_init(&sapp2_status);
-	Util_log_save(DEF_SAPP2_INIT_STR, "Util_string_init()..." + result.string + result.error_description, result.code);
+	result.code = Util_str_init(&sapp2_status);
+	Util_log_save(DEF_SAPP2_INIT_STR, "Util_str_init()..." + result.string + result.error_description, result.code);
 
 	Util_add_watch(WATCH_HANDLE_SUB_APP2, &sapp2_status.sequencial_id, sizeof(sapp2_status.sequencial_id));
 
@@ -172,7 +173,7 @@ void Sapp2_init(bool draw)
 	Util_log_save(DEF_SAPP2_EXIT_STR, "threadJoin()...", threadJoin(sapp2_init_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp2_init_thread);
 
-	Util_string_clear(&sapp2_status);
+	Util_str_clear(&sapp2_status);
 	Sapp2_resume();
 
 	Util_log_save(DEF_SAPP2_INIT_STR, "Initialized.");
@@ -196,7 +197,7 @@ void Sapp2_exit(bool draw)
 	threadFree(sapp2_exit_thread);
 
 	Util_remove_watch(WATCH_HANDLE_SUB_APP2, &sapp2_status.sequencial_id);
-	Util_string_free(&sapp2_status);
+	Util_str_free(&sapp2_status);
 	var_need_reflesh = true;
 
 	Util_log_save(DEF_SAPP2_EXIT_STR, "Exited.");
@@ -325,15 +326,15 @@ static void Sapp2_init_thread(void* arg)
 	Util_log_save(DEF_SAPP2_INIT_STR, "Thread started.");
 	Result_with_string result;
 
-	Util_string_set(&sapp2_status, "Initializing variables...");
+	Util_str_set(&sapp2_status, "Initializing variables...");
 	//Empty.
 
-	Util_string_add(&sapp2_status, "\nInitializing queue...");
+	Util_str_add(&sapp2_status, "\nInitializing queue...");
 	//Create the queue for commands.
-	result = Util_queue_create(&sapp2_command_queue, 10);
+	result.code = Util_queue_create(&sapp2_command_queue, 10);
 	Util_log_save(DEF_SAPP2_INIT_STR, "Util_queue_create()..." + result.string + result.error_description, result.code);
 
-	Util_string_add(&sapp2_status, "\nStarting threads...");
+	Util_str_add(&sapp2_status, "\nStarting threads...");
 	sapp2_thread_run = true;
 	sapp2_worker_thread = threadCreate(Sapp2_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
@@ -350,10 +351,10 @@ static void Sapp2_exit_thread(void* arg)
 	sapp2_thread_suspend = false;
 	sapp2_thread_run = false;
 
-	Util_string_set(&sapp2_status, "Exiting threads...");
+	Util_str_set(&sapp2_status, "Exiting threads...");
 	Util_log_save(DEF_SAPP2_EXIT_STR, "threadJoin()...", threadJoin(sapp2_worker_thread, DEF_THREAD_WAIT_TIME));
 
-	Util_string_add(&sapp2_status, "\nCleaning up...");
+	Util_str_add(&sapp2_status, "\nCleaning up...");
 	threadFree(sapp2_worker_thread);
 
 	//Delete the queue.
@@ -377,7 +378,7 @@ static void Sapp2_worker_thread(void* arg)
 		while (sapp2_thread_suspend)
 			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
 
-		result = Util_queue_get(&sapp2_command_queue, &event_id, NULL, DEF_ACTIVE_THREAD_SLEEP_TIME);
+		result.code = Util_queue_get(&sapp2_command_queue, &event_id, NULL, DEF_ACTIVE_THREAD_SLEEP_TIME);
 		if(result.code != 0)
 		{
 			//No commands have arrived.

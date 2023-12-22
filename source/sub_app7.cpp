@@ -13,7 +13,7 @@
 
 extern "C"
 {
-	#include "system/util/string.h"
+	#include "system/util/str.h"
 }
 
 //Include myself.
@@ -26,7 +26,7 @@ bool sapp7_already_init = false;
 bool sapp7_thread_suspend = true;
 std::string sapp7_msg[DEF_SAPP7_NUM_OF_MSG];
 Thread sapp7_init_thread, sapp7_exit_thread, sapp7_worker_thread;
-Util_string sapp7_status = { 0, };
+Util_str sapp7_status = { 0, };
 
 
 static void Sapp7_draw_init_exit_message(void);
@@ -94,8 +94,8 @@ void Sapp7_init(bool draw)
 	Util_log_save(DEF_SAPP7_INIT_STR, "Initializing...");
 	Result_with_string result;
 
-	result.code = Util_string_init(&sapp7_status);
-	Util_log_save(DEF_SAPP7_INIT_STR, "Util_string_init()..." + result.string + result.error_description, result.code);
+	result.code = Util_str_init(&sapp7_status);
+	Util_log_save(DEF_SAPP7_INIT_STR, "Util_str_init()..." + result.string + result.error_description, result.code);
 
 	Util_add_watch(WATCH_HANDLE_SUB_APP7, &sapp7_status.sequencial_id, sizeof(sapp7_status.sequencial_id));
 
@@ -121,7 +121,7 @@ void Sapp7_init(bool draw)
 	Util_log_save(DEF_SAPP7_EXIT_STR, "threadJoin()...", threadJoin(sapp7_init_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp7_init_thread);
 
-	Util_string_clear(&sapp7_status);
+	Util_str_clear(&sapp7_status);
 	Sapp7_resume();
 
 	Util_log_save(DEF_SAPP7_INIT_STR, "Initialized.");
@@ -145,7 +145,7 @@ void Sapp7_exit(bool draw)
 	threadFree(sapp7_exit_thread);
 
 	Util_remove_watch(WATCH_HANDLE_SUB_APP7, &sapp7_status.sequencial_id);
-	Util_string_free(&sapp7_status);
+	Util_str_free(&sapp7_status);
 	var_need_reflesh = true;
 
 	Util_log_save(DEF_SAPP7_EXIT_STR, "Exited.");
@@ -249,13 +249,13 @@ static void Sapp7_init_thread(void* arg)
 	Util_log_save(DEF_SAPP7_INIT_STR, "Thread started.");
 	Result_with_string result;
 
-	Util_string_set(&sapp7_status, "Initializing variables...");
+	Util_str_set(&sapp7_status, "Initializing variables...");
 	//Empty.
 
-	Util_string_add(&sapp7_status, "\nInitializing queue...");
+	Util_str_add(&sapp7_status, "\nInitializing queue...");
 	//Empty.
 
-	Util_string_add(&sapp7_status, "\nStarting threads...");
+	Util_str_add(&sapp7_status, "\nStarting threads...");
 	sapp7_thread_run = true;
 	sapp7_worker_thread = threadCreate(Sapp7_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
@@ -272,10 +272,10 @@ static void Sapp7_exit_thread(void* arg)
 	sapp7_thread_suspend = false;
 	sapp7_thread_run = false;
 
-	Util_string_set(&sapp7_status, "Exiting threads...");
+	Util_str_set(&sapp7_status, "Exiting threads...");
 	Util_log_save(DEF_SAPP7_EXIT_STR, "threadJoin()...", threadJoin(sapp7_worker_thread, DEF_THREAD_WAIT_TIME));
 
-	Util_string_add(&sapp7_status, "\nCleaning up...");
+	Util_str_add(&sapp7_status, "\nCleaning up...");
 	threadFree(sapp7_worker_thread);
 
 	sapp7_already_init = false;

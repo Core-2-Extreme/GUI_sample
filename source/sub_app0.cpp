@@ -16,7 +16,7 @@
 
 extern "C"
 {
-	#include "system/util/string.h"
+	#include "system/util/str.h"
 }
 
 //Include myself.
@@ -29,7 +29,7 @@ bool sapp0_already_init = false;
 bool sapp0_thread_suspend = true;
 std::string sapp0_msg[DEF_SAPP0_NUM_OF_MSG];
 Thread sapp0_init_thread, sapp0_exit_thread, sapp0_worker_thread;
-Util_string sapp0_status = { 0, };
+Util_str sapp0_status = { 0, };
 Image_data sapp0_image[3];
 
 
@@ -98,8 +98,8 @@ void Sapp0_init(bool draw)
 	Util_log_save(DEF_SAPP0_INIT_STR, "Initializing...");
 	Result_with_string result;
 
-	result.code = Util_string_init(&sapp0_status);
-	Util_log_save(DEF_SAPP0_INIT_STR, "Util_string_init()..." + result.string + result.error_description, result.code);
+	result.code = Util_str_init(&sapp0_status);
+	Util_log_save(DEF_SAPP0_INIT_STR, "Util_str_init()..." + result.string + result.error_description, result.code);
 
 	Util_add_watch(WATCH_HANDLE_SUB_APP0, &sapp0_status.sequencial_id, sizeof(sapp0_status.sequencial_id));
 
@@ -125,7 +125,7 @@ void Sapp0_init(bool draw)
 	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_init_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(sapp0_init_thread);
 
-	Util_string_clear(&sapp0_status);
+	Util_str_clear(&sapp0_status);
 	Sapp0_resume();
 
 	Util_log_save(DEF_SAPP0_INIT_STR, "Initialized.");
@@ -149,7 +149,7 @@ void Sapp0_exit(bool draw)
 	threadFree(sapp0_exit_thread);
 
 	Util_remove_watch(WATCH_HANDLE_SUB_APP0, &sapp0_status.sequencial_id);
-	Util_string_free(&sapp0_status);
+	Util_str_free(&sapp0_status);
 	var_need_reflesh = true;
 
 	Util_log_save(DEF_SAPP0_EXIT_STR, "Exited.");
@@ -269,13 +269,13 @@ static void Sapp0_init_thread(void* arg)
 	Pixel_format color_format = PIXEL_FORMAT_INVALID;
 	Result_with_string result;
 
-	Util_string_set(&sapp0_status, "Initializing variables...");
+	Util_str_set(&sapp0_status, "Initializing variables...");
 	//Empty.
 
-	Util_string_add(&sapp0_status, "\nInitializing queue...");
+	Util_str_add(&sapp0_status, "\nInitializing queue...");
 	//Empty.
 
-	Util_string_add(&sapp0_status, "\nLoading picture from romfs...");
+	Util_str_add(&sapp0_status, "\nLoading picture from romfs...");
 	//Load picture from romfs (or SD card).
 
 	//1. Decode a picture.
@@ -319,7 +319,7 @@ static void Sapp0_init_thread(void* arg)
 	buffer = NULL;
 
 
-	Util_string_add(&sapp0_status, "\nLoading picture from the Internet...");
+	Util_str_add(&sapp0_status, "\nLoading picture from the Internet...");
 	color_format = PIXEL_FORMAT_INVALID;
 
 	//Load picture from the Internet.
@@ -372,7 +372,7 @@ static void Sapp0_init_thread(void* arg)
 	free(png_data);
 	png_data = NULL;
 
-	Util_string_add(&sapp0_status, "\nStarting threads...");
+	Util_str_add(&sapp0_status, "\nStarting threads...");
 	sapp0_thread_run = true;
 	sapp0_worker_thread = threadCreate(Sapp0_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
@@ -389,10 +389,10 @@ static void Sapp0_exit_thread(void* arg)
 	sapp0_thread_suspend = false;
 	sapp0_thread_run = false;
 
-	Util_string_set(&sapp0_status, "Exiting threads...");
+	Util_str_set(&sapp0_status, "Exiting threads...");
 	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_worker_thread, DEF_THREAD_WAIT_TIME));
 
-	Util_string_add(&sapp0_status, "\nCleaning up...");
+	Util_str_add(&sapp0_status, "\nCleaning up...");
 	threadFree(sapp0_worker_thread);
 
 	//Free textures.
