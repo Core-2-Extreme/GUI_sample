@@ -600,7 +600,7 @@ static void Sapp3_camera_thread(void* arg)
 						parameters.out_width = width;
 						parameters.out_height = height;
 						parameters.in_color_format = PIXEL_FORMAT_RGB565LE;
-						parameters.out_color_format = PIXEL_FORMAT_BGR888;
+						parameters.out_color_format = PIXEL_FORMAT_RGB888;
 
 						result = Util_converter_convert_color(&parameters);
 						Util_log_save(DEF_SAPP3_CAMERA_THREAD_STR, "Util_converter_convert_color()..." + result.string + result.error_description, result.code);
