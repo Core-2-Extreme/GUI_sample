@@ -13,6 +13,7 @@
 
 
 static uint32_t Util_str_get_optimal_buffer_capacity(Util_str* string);
+static uint32_t Util_str_vformat_internal(Util_str* string, bool is_append, const char* format_string, va_list args);
 
 
 uint32_t Util_str_init(Util_str* string)
@@ -155,7 +156,7 @@ uint32_t Util_str_format(Util_str* string, const char* format_string, ...)
 	va_list args;
 
 	va_start(args, format_string);
-	result = Util_str_vformat(string, format_string, args);
+	result = Util_str_vformat_internal(string, false, format_string, args);
 	va_end(args);
 
 	return result;
@@ -163,42 +164,24 @@ uint32_t Util_str_format(Util_str* string, const char* format_string, ...)
 
 uint32_t Util_str_vformat(Util_str* string, const char* format_string, va_list args)
 {
-	uint32_t new_length = 0;
+	return Util_str_vformat_internal(string, false, format_string, args);
+}
+
+uint32_t Util_str_format_append(Util_str* string, const char* format_string, ...)
+{
 	uint32_t result = DEF_ERR_OTHER;
+	va_list args;
 
-	if(!Util_str_is_valid(string) || !format_string)
-		goto invalid_arg;
+	va_start(args, format_string);
+	result = Util_str_vformat_internal(string, true, format_string, args);
+	va_end(args);
 
-	new_length = vsnprintf(string->buffer, (string->capacity + 1), format_string, args);
-
-	if(new_length > string->capacity)
-	{
-		//We need more buffer, try to enlarge it.
-		result = Util_str_resize(string, new_length);
-		if(result == DEF_SUCCESS)
-		{
-			//Retry it.
-			vsnprintf(string->buffer, (string->capacity + 1), format_string, args);
-		}
-
-		if(result != DEF_SUCCESS)
-			goto error_other;
-	}
-
-	//NULL terminator was added by vsnprintf().
-	string->length = new_length;
-	string->sequencial_id++;
-
-	//Don't waste too much memory.
-	Util_str_resize(string, Util_str_get_optimal_buffer_capacity(string));
-
-	return DEF_SUCCESS;
-
-	invalid_arg:
-	return DEF_ERR_INVALID_ARG;
-
-	error_other:
 	return result;
+}
+
+uint32_t Util_str_vformat_append(Util_str* string, const char* format_string, va_list args)
+{
+	return Util_str_vformat_internal(string, true, format_string, args);
 }
 
 uint32_t Util_str_resize(Util_str* string, uint32_t new_capacity)
@@ -265,4 +248,56 @@ static uint32_t Util_str_get_optimal_buffer_capacity(Util_str* string)
 		optimal_capacity = string->capacity;
 
 	return optimal_capacity;
+}
+
+static uint32_t Util_str_vformat_internal(Util_str* string, bool is_append, const char* format_string, va_list args)
+{
+	char* buffer = NULL;
+	uint32_t remaining_capacity = 0;
+	uint32_t old_length = 0;
+	uint32_t new_length = 0;
+	uint32_t result = DEF_ERR_OTHER;
+
+	if(!Util_str_is_valid(string) || !format_string)
+		goto invalid_arg;
+
+	if(is_append)
+		old_length = string->length;
+	else
+		old_length = 0;
+
+	buffer = (string->buffer + old_length);
+	remaining_capacity = (string->capacity - old_length) + 1;
+
+	new_length = vsnprintf(buffer, remaining_capacity, format_string, args);
+	new_length += old_length;
+
+	if(new_length > string->capacity)
+	{
+		//We need more buffer, try to enlarge it.
+		result = Util_str_resize(string, new_length);
+		if(result != DEF_SUCCESS)
+			goto error_other;
+
+		//Update pointer (since realloc may change pointer)
+		//and remaining size then retry.
+		buffer = (string->buffer + old_length);
+		remaining_capacity = (string->capacity - old_length) + 1;
+		vsnprintf(buffer, remaining_capacity, format_string, args);
+	}
+
+	//NULL terminator was added by vsnprintf().
+	string->length = new_length;
+	string->sequencial_id++;
+
+	//Don't waste too much memory.
+	Util_str_resize(string, Util_str_get_optimal_buffer_capacity(string));
+
+	return DEF_SUCCESS;
+
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
+
+	error_other:
+	return result;
 }

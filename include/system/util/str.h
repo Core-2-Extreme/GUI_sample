@@ -77,6 +77,26 @@ uint32_t Util_str_format(Util_str* string, const char* format_string, ...);
 uint32_t Util_str_vformat(Util_str* string, const char* format_string, va_list args);
 
 /**
+ * @brief Same as Util_str_format() except this will append text instead of overwrite old one.
+ * @param string Pointer for target struct.
+ * @param format_string Pointer for format string.
+ * @param additional_parameters Additional parameters for format_string.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
+ * @note Thread safe
+*/
+uint32_t Util_str_format_append(Util_str* string, const char* format_string, ...);
+
+/**
+ * @brief va_list version of Util_str_format_append().
+ * @param string Pointer for target struct.
+ * @param format_string Pointer for format string.
+ * @param args Additional parameters for format_string.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
+ * @note Thread safe
+*/
+uint32_t Util_str_vformat_append(Util_str* string, const char* format_string, va_list args);
+
+/**
  * @brief Resize string buffer size.
  * @note If new_capacity is less than current string length,
  * string data WILL BE TRUNCATED to length of new_capacity.
