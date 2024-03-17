@@ -101,9 +101,8 @@ void Sapp4_hid(Hid_info key)
 
 		if(command != NONE)
 		{
-			Result_with_string result;
-			result.code = Util_queue_add(&sapp4_command_queue, command, NULL, 10000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST);
-			Util_log_save(DEF_SAPP4_HID_CALLBACK_STR, "Util_queue_add()..." + result.string + result.error_description, result.code);
+			uint32_t result = DEF_ERR_OTHER;
+			DEF_LOG_RESULT_SMART(result, Util_queue_add(&sapp4_command_queue, command, NULL, 10000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 		}
 	}
 
@@ -137,11 +136,10 @@ Result_with_string Sapp4_load_msg(std::string lang)
 
 void Sapp4_init(bool draw)
 {
-	Util_log_save(DEF_SAPP4_INIT_STR, "Initializing...");
-	Result_with_string result;
+	DEF_LOG_STRING("Initializing...");
+	uint32_t result = DEF_ERR_OTHER;
 
-	result.code = Util_str_init(&sapp4_status);
-	Util_log_save(DEF_SAPP4_INIT_STR, "Util_str_init()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp4_status), (result == DEF_SUCCESS), result);
 
 	Util_add_watch(WATCH_HANDLE_SUB_APP4, &sapp4_status.sequencial_id, sizeof(sapp4_status.sequencial_id));
 
@@ -164,18 +162,19 @@ void Sapp4_init(bool draw)
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
-	Util_log_save(DEF_SAPP4_EXIT_STR, "threadJoin()...", threadJoin(sapp4_init_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp4_init_thread, DEF_THREAD_WAIT_TIME), result, result);
 	threadFree(sapp4_init_thread);
 
 	Util_str_clear(&sapp4_status);
 	Sapp4_resume();
 
-	Util_log_save(DEF_SAPP4_INIT_STR, "Initialized.");
+	DEF_LOG_STRING("Initialized.");
 }
 
 void Sapp4_exit(bool draw)
 {
-	Util_log_save(DEF_SAPP4_EXIT_STR, "Exiting...");
+	DEF_LOG_STRING("Exiting...");
+	uint32_t result = DEF_ERR_OTHER;
 
 	sapp4_exit_thread = threadCreate(Sapp4_exit_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
@@ -187,14 +186,14 @@ void Sapp4_exit(bool draw)
 			Util_sleep(20000);
 	}
 
-	Util_log_save(DEF_SAPP4_EXIT_STR, "threadJoin()...", threadJoin(sapp4_exit_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp4_exit_thread, DEF_THREAD_WAIT_TIME), result, result);
 	threadFree(sapp4_exit_thread);
 
 	Util_remove_watch(WATCH_HANDLE_SUB_APP4, &sapp4_status.sequencial_id);
 	Util_str_free(&sapp4_status);
 	var_need_reflesh = true;
 
-	Util_log_save(DEF_SAPP4_EXIT_STR, "Exited.");
+	DEF_LOG_STRING("Exited.");
 }
 
 void Sapp4_main(void)
@@ -326,7 +325,7 @@ static void Sapp4_draw_init_exit_message(void)
 
 static void Sapp4_init_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP4_INIT_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
 	Result_with_string result;
 
 	Util_str_set(&sapp4_status, "Initializing variables...");
@@ -338,13 +337,11 @@ static void Sapp4_init_thread(void* arg)
 
 	Util_str_add(&sapp4_status, "\nInitializing queue...");
 	//Create the queue for commands.
-	result.code = Util_queue_create(&sapp4_command_queue, 10);
-	Util_log_save(DEF_SAPP4_INIT_STR, "Util_queue_create()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result.code, Util_queue_create(&sapp4_command_queue, 10), (result.code == DEF_SUCCESS), result.code);
 
 	Util_str_add(&sapp4_status, "\nInitializing speaker...");
 	//Init speaker.
-	result = Util_speaker_init();
-	Util_log_save(DEF_SAPP4_INIT_STR, "Util_speaker_init()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result, Util_speaker_init(), (result.code == DEF_SUCCESS), result.code);
 
 	Util_str_add(&sapp4_status, "\nStarting threads...");
 	sapp4_thread_run = true;
@@ -352,19 +349,20 @@ static void Sapp4_init_thread(void* arg)
 
 	sapp4_already_init = true;
 
-	Util_log_save(DEF_SAPP4_INIT_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 
 static void Sapp4_exit_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP4_EXIT_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
+	uint32_t result = DEF_ERR_OTHER;
 
 	sapp4_thread_suspend = false;
 	sapp4_thread_run = false;
 
 	Util_str_set(&sapp4_status, "Exiting threads...");
-	Util_log_save(DEF_SAPP4_EXIT_STR, "threadJoin()...", threadJoin(sapp4_worker_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp4_worker_thread, DEF_THREAD_WAIT_TIME), result, result);
 
 	Util_str_add(&sapp4_status, "\nCleaning up...");
 	threadFree(sapp4_worker_thread);
@@ -381,13 +379,13 @@ static void Sapp4_exit_thread(void* arg)
 
 	sapp4_already_init = false;
 
-	Util_log_save(DEF_SAPP4_EXIT_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 
 static void Sapp4_worker_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP4_WORKER_THREAD_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
 	Result_with_string result;
 
 	while (sapp4_thread_run)
@@ -401,7 +399,7 @@ static void Sapp4_worker_thread(void* arg)
 		if(result.code == 0)
 		{
 			//Got a command.
-			Util_log_save(DEF_SAPP4_WORKER_THREAD_STR, "Received event : " + std::to_string(event_id));
+			DEF_LOG_FORMAT("Received event : %" PRIu32, event_id);
 
 			switch((Sapp4_command)event_id)
 			{
@@ -415,13 +413,12 @@ static void Sapp4_worker_thread(void* arg)
 					//char path[] = "/test.mp3";
 
 					//1. Open an input file.
-					result = Util_decoder_open_file(path, &num_of_audio, &num_of_videos, &num_of_subtitles, 0);
-					Util_log_save(DEF_SAPP4_WORKER_THREAD_STR, "Util_decoder_open_file()..." + result.string + result.error_description, result.code);
+					DEF_LOG_RESULT_SMART(result, Util_decoder_open_file(path, &num_of_audio, &num_of_videos, &num_of_subtitles, 0),
+					(result.code == DEF_SUCCESS), result.code);
 
 					//2. Initialize audio decoder.
 					//Since we only interested in audio here, so we only initialize audio decoder.
-					result = Util_audio_decoder_init(num_of_audio, 0);
-					Util_log_save(DEF_SAPP4_WORKER_THREAD_STR, "Util_audio_decoder_init()..." + result.string + result.error_description, result.code);
+					DEF_LOG_RESULT_SMART(result, Util_audio_decoder_init(num_of_audio, 0), (result.code == DEF_SUCCESS), result.code);
 
 					if(result.code == 0)
 					{
@@ -429,8 +426,8 @@ static void Sapp4_worker_thread(void* arg)
 						Util_audio_decoder_get_info(&sapp4_audio_info, 0, 0);
 
 						//4. Set speaker parameters.
-						result = Util_speaker_set_audio_info(0, sapp4_audio_info.ch, sapp4_audio_info.sample_rate);
-						Util_log_save(DEF_SAPP4_WORKER_THREAD_STR, "Util_speaker_set_audio_info()..." + result.string + result.error_description, result.code);
+						DEF_LOG_RESULT_SMART(result, Util_speaker_set_audio_info(0, sapp4_audio_info.ch, sapp4_audio_info.sample_rate),
+						(result.code == DEF_SUCCESS), result.code);
 
 						if(result.code == 0)
 							sapp4_speaker_state = SPEAKER_PLAYING;
@@ -540,23 +537,23 @@ static void Sapp4_worker_thread(void* arg)
 											//If speaker buffer is full, wait until free space is available.
 											//Also set is_buffer_full flag to break from the decode loop.
 											is_buffer_full = true;
-											Util_sleep(10000);
+											Util_sleep(5000);
 										}
 										else
 										{
-											Util_log_save(DEF_SAPP4_WORKER_THREAD_STR, "Util_speaker_add_buffer()..." + result.string + result.error_description, result.code);
+											DEF_LOG_RESULT(Util_speaker_add_buffer, false, result.code);
 											break;
 										}
 									}
 								}
 								else
-									Util_log_save(DEF_SAPP4_WORKER_THREAD_STR, "Util_converter_convert_audio()..." + result.string + result.error_description, result.code);
+									DEF_LOG_RESULT(Util_converter_convert_audio, false, result.code);
 							}
 							else
-								Util_log_save(DEF_SAPP4_WORKER_THREAD_STR, "Util_audio_decoder_decode()..." + result.string + result.error_description, result.code);
+								DEF_LOG_RESULT(Util_audio_decoder_decode, false, result.code);
 						}
 						else
-							Util_log_save(DEF_SAPP4_WORKER_THREAD_STR, "Util_decoder_ready_audio_packet()..." + result.string + result.error_description, result.code);
+							DEF_LOG_RESULT(Util_decoder_ready_audio_packet, false, result.code);
 
 						free(audio);
 						free(parameters.converted);
@@ -575,11 +572,11 @@ static void Sapp4_worker_thread(void* arg)
 						read_packet_result = Util_decoder_read_packet(0);
 				}
 				else
-					Util_log_save(DEF_SAPP4_WORKER_THREAD_STR, "Util_decoder_parse_packet()..." + result.string + result.error_description, result.code);
+					DEF_LOG_RESULT(Util_decoder_parse_packet, false, result.code);
 			}
 		}
 	}
 
-	Util_log_save(DEF_SAPP4_WORKER_THREAD_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }

@@ -1,4 +1,7 @@
 #include "definitions.hpp"
+
+#include <inttypes.h>
+
 #include "system/types.hpp"
 
 #include "system/variables.hpp"
@@ -6,9 +9,14 @@
 #include "system/draw/draw.hpp"
 
 #include "system/util/file.hpp"
+extern "C"
+{
+	#include "system/util/str.h"
+}
 
 //Include myself.
 #include "system/util/log.hpp"
+
 
 bool util_log_show_flag = false;
 bool util_log_init = false;
@@ -16,19 +24,17 @@ int util_log_current_index = 0;
 int util_log_y = 0;
 double util_log_x = 0.0;
 double util_log_uptime_ms = 0.0;
-double util_log_spend_time[DEF_LOG_BUFFER_LINES];
-std::string util_log_logs[DEF_LOG_BUFFER_LINES];
+double util_log_spend_time[DEF_LOG_BUFFER_LINES] = { 0, };
+Util_str util_log_logs[DEF_LOG_BUFFER_LINES] = { 0, };
 TickCounter util_log_uptime_stopwatch;
 LightLock util_log_mutex = 1;//Initially unlocked state.
 
 
-static int Util_log_save_internal(std::string&& place, std::string&& text, int result);
-static void Util_log_add_internal(int log_index, std::string&& text, int result);
+static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, const char* caller, const char* format_string, va_list args);
 
 
-Result_with_string Util_log_init(void)
+uint32_t Util_log_init(void)
 {
-	Result_with_string result;
 	if(util_log_init)
 		goto already_inited;
 
@@ -37,21 +43,19 @@ Result_with_string Util_log_init(void)
 	util_log_y = 0;
 	util_log_x = 0.0;
 	util_log_uptime_ms = 0;
-	for(int i = 0; i < DEF_LOG_BUFFER_LINES; i++)
+	for(uint32_t i = 0; i < DEF_LOG_BUFFER_LINES; i++)
 	{
 		util_log_spend_time[i] = 0;
-		util_log_logs[i] = "";
+		Util_str_init(&util_log_logs[i]);
 	}
 
 	LightLock_Init(&util_log_mutex);
 
 	util_log_init = true;
-	return result;
+	return DEF_SUCCESS;
 
 	already_inited:
-	result.code = DEF_ERR_ALREADY_INITIALIZED;
-	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_ALREADY_INITIALIZED;
 }
 
 void Util_log_exit(void)
@@ -59,30 +63,46 @@ void Util_log_exit(void)
 	if(!util_log_init)
 		return;
 
+	for(uint32_t i = 0; i < DEF_LOG_BUFFER_LINES; i++)
+		Util_str_free(&util_log_logs[i]);
+
 	util_log_init = false;
 }
 
-Result_with_string Util_log_dump(std::string file_name, std::string dir_path)
+uint32_t Util_log_dump(const char* file_name, const char* dir_path)
 {
-	Result_with_string result;
-	std::string log = "";
+	uint32_t result = DEF_ERR_OTHER;
+	Util_str log = { 0, };
+
 	if(!util_log_init)
 		goto not_inited;
 
-	for(int i = 0; i < DEF_LOG_BUFFER_LINES; i++)
+	if(!file_name || !dir_path)
+		goto invalid_arg;
+
+	Util_str_init(&log);
+
+	for(uint32_t i = 0; i < DEF_LOG_BUFFER_LINES; i++)
 	{
-		if(util_log_logs[i] == "")
+		if(!Util_str_has_data(&util_log_logs[i]))
 			continue;
 
-		log += util_log_logs[i] + "\n";
+		Util_str_add(&log, util_log_logs[i].buffer);
+		Util_str_add(&log, "\n");
 	}
 
-	return Util_file_save_to_file(file_name, dir_path, (u8*)log.c_str(), log.length(), true);
+	if(Util_str_has_data(&log))
+		result = Util_file_save_to_file(file_name, dir_path, (uint8_t*)log.buffer, log.length, true).code;
+
+	Util_str_free(&log);
+
+	return result;
 
 	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_NOT_INITIALIZED;
+
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
 }
 
 bool Util_log_query_log_show_flag(void)
@@ -102,24 +122,129 @@ void Util_log_set_log_show_flag(bool flag)
 	var_need_reflesh = true;
 }
 
-int Util_log_save(std::string place, std::string text)
+uint32_t Util_log_format(const char* caller, const char* format_string, ...)
 {
-	return Util_log_save_internal(std::move(place), std::move(text), 1234567890);
+	uint32_t log_index = 0;
+	va_list args;
+
+	va_start(args, format_string);
+	log_index = Util_log_add_internal(DEF_LOG_INDEX_AUTO, false, caller, format_string, args);
+	va_end(args);
+
+	return log_index;
 }
 
-int Util_log_save(std::string place, std::string text, int result)
+uint32_t Util_log_vformat(const char* caller, const char* format_string, va_list args)
 {
-	return Util_log_save_internal(std::move(place), std::move(text), result);
+	return Util_log_add_internal(DEF_LOG_INDEX_AUTO, false, caller, format_string, args);
 }
 
-void Util_log_add(int log_index, std::string text)
+uint32_t Util_log_format_append(uint32_t log_index, bool append_elapsed_time, const char* format_string, ...)
 {
-	Util_log_add_internal(log_index, std::move(text), 1234567890);
+	va_list args;
+
+	va_start(args, format_string);
+	log_index = Util_log_add_internal(log_index, append_elapsed_time, "", format_string, args);
+	va_end(args);
+
+	return log_index;
 }
 
-void Util_log_add(int log_index, std::string text, int result)
+uint32_t Util_log_vformat_append(uint32_t log_index, bool append_elapsed_time, const char* format_string, va_list args)
 {
-	Util_log_add_internal(log_index, std::move(text), result);
+	return Util_log_add_internal(log_index, append_elapsed_time, "", format_string, args);
+}
+
+uint32_t Util_log_save_result(const char* caller, const char* function_name, bool is_success, uint32_t result)
+{
+	if(!function_name || strlen(function_name) == 0)
+	{
+		if(is_success)
+			return Util_log_format(caller, "xxxx()...0x%" PRIX32 " [Success]", result);
+		else
+			return Util_log_format(caller, "xxxx()...0x%" PRIX32 " [Error]", result);
+	}
+	else
+	{
+		if(is_success)
+			return Util_log_format(caller, "%s()...0x%" PRIX32 " [Success]", function_name, result);
+		else
+			return Util_log_format(caller, "%s()...0x%" PRIX32 " [Error]", function_name, result);
+	}
+}
+
+uint32_t Util_log_save_result_start(const char* caller, const char* function_name, bool is_smart_macro)
+{
+	if(!function_name || strlen(function_name) == 0)
+	{
+		if(is_smart_macro)
+			return Util_log_format(caller, "xxxx...");
+		else
+			return Util_log_format(caller, "xxxx()...");
+	}
+	else
+	{
+		if(is_smart_macro)//Smart macro already include "()", so we don't append it here.
+			return Util_log_format(caller, "%s...", function_name);
+		else
+			return Util_log_format(caller, "%s()...", function_name);
+	}
+}
+
+uint32_t Util_log_save_result_end(uint32_t log_index, bool is_success, uint32_t result)
+{
+	if(is_success)
+		return Util_log_format_append(log_index, true, "0x%" PRIX32 " [Success]", result);
+	else
+		return Util_log_format_append(log_index, true, "0x%" PRIX32 " [Error]", result);
+}
+
+uint32_t Util_log_save_bool(const char* caller, const char* symbol_name, bool value)
+{
+	if(!symbol_name || strlen(symbol_name) == 0)
+		return Util_log_format(caller, "%s", (value ? "true" : "false"));
+	else
+		return Util_log_format(caller, "%s : %s", symbol_name, (value ? "true" : "false"));
+}
+
+uint32_t Util_log_save_int(const char* caller, const char* symbol_name, int64_t value)
+{
+	if(!symbol_name || strlen(symbol_name) == 0)
+		return Util_log_format(caller, "%" PRIi64, value);
+	else
+		return Util_log_format(caller, "%s : %" PRIi64, symbol_name, value);
+}
+
+uint32_t Util_log_save_uint(const char* caller, const char* symbol_name, uint64_t value)
+{
+	if(!symbol_name || strlen(symbol_name) == 0)
+		return Util_log_format(caller, "%" PRIu64, value);
+	else
+		return Util_log_format(caller, "%s : %" PRIu64, symbol_name, value);
+}
+
+uint32_t Util_log_save_hex(const char* caller, const char* symbol_name, uint64_t value)
+{
+	if(!symbol_name || strlen(symbol_name) == 0)
+		return Util_log_format(caller, "0x%" PRIx64, value);
+	else
+		return Util_log_format(caller, "%s : 0x%" PRIx64, symbol_name, value);
+}
+
+uint32_t Util_log_save_double(const char* caller, const char* symbol_name, double value)
+{
+	if(!symbol_name || strlen(symbol_name) == 0)
+		return Util_log_format(caller, "%f", value);
+	else
+		return Util_log_format(caller, "%s : %f", symbol_name, value);
+}
+
+uint32_t Util_log_save_string(const char* caller, const char* symbol_name, const char* text)
+{
+	if(!symbol_name || strlen(symbol_name) == 0 || symbol_name[0] == '"')
+		return Util_log_format(caller, "%s", text);
+	else
+		return Util_log_format(caller, "%s : %s", symbol_name, text);
 }
 
 void Util_log_main(Hid_info key)
@@ -178,80 +303,96 @@ void Util_log_draw(void)
 		return;
 	}
 
-	for (int i = 0; i < DEF_LOG_DISPLAYED_LINES; i++)
-		Draw(util_log_logs[util_log_y + i], util_log_x, 10.0 + (i * 10), 0.425, 0.425, DEF_LOG_COLOR);
+	for (uint16_t i = 0; i < DEF_LOG_DISPLAYED_LINES; i++)
+	{
+		if(Util_str_is_valid(&util_log_logs[util_log_y + i]))
+			Draw(util_log_logs[util_log_y + i].buffer, util_log_x, 10.0 + (i * 10), 0.425, 0.425, DEF_LOG_COLOR);
+	}
 }
 
-
-static int Util_log_save_internal(std::string&& place, std::string&& text, int result)
+static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, const char* caller, const char* format_string, va_list args)
 {
-	int return_log_num = 0;
-	char* app_log_cache = NULL;
+	bool is_append = true;
+	char empty_char = '\u0000';
+	char error_msg[] = "(Couldn't format string, this is usually due to out of memory.)";
+	Util_str temp_text = { 0, };
+
 	if(!util_log_init)
-		return -1;
+		return DEF_LOG_INDEX_AUTO;
 
-	app_log_cache = (char*)malloc(place.length() + text.length() + 32);
-	if(!app_log_cache)
-		return -1;
+	if(log_index != DEF_LOG_INDEX_AUTO && log_index >= DEF_LOG_BUFFER_LINES)
+		return DEF_LOG_INDEX_AUTO;
 
-	memset(app_log_cache, 0x0, place.length() + text.length() + 32);
+	if(!caller)
+		caller = &empty_char;
+
+	if(!format_string)
+		format_string = &empty_char;
+
+	Util_str_init(&temp_text);
+	Util_str_vformat(&temp_text, format_string, args);
 
 	LightLock_Lock(&util_log_mutex);
+
+	//Use next index if index is not specified.
+	if(log_index == DEF_LOG_INDEX_AUTO)
+	{
+		log_index = util_log_current_index;
+		//Overwrite the old log in this case.
+		is_append = false;
+	}
+
 	osTickCounterUpdate(&util_log_uptime_stopwatch);
 	util_log_uptime_ms += osTickCounterRead(&util_log_uptime_stopwatch);
 
-	if (result == 1234567890)
-		sprintf(app_log_cache, "[%.5f][%s] %s", util_log_uptime_ms / 1000, place.c_str(), text.c_str());
+	if(is_append)
+	{
+		//For append call, user may want to know the time difference
+		//since first call to this function (with same log_index).
+		//If caller want to do so, append it.
+		if(append_time)
+		{
+			double time_diff_ms = (util_log_uptime_ms - util_log_spend_time[log_index]);
+			Util_str_format_append(&util_log_logs[log_index], "%s (%.2fms)", (Util_str_has_data(&temp_text) ? temp_text.buffer : error_msg), time_diff_ms);
+		}
+		else
+			Util_str_format_append(&util_log_logs[log_index], "%s", (Util_str_has_data(&temp_text) ? temp_text.buffer : error_msg));
+	}
 	else
-		sprintf(app_log_cache, "[%.5f][%s] %s 0x%x", util_log_uptime_ms / 1000, place.c_str(), text.c_str(), result);
+	{
+		bool auto_scroll = false;
 
-	util_log_spend_time[util_log_current_index] = util_log_uptime_ms;
-	util_log_logs[util_log_current_index] = app_log_cache;
-	util_log_current_index++;
-	return_log_num = util_log_current_index;
-	if (util_log_current_index >= DEF_LOG_BUFFER_LINES)
-		util_log_current_index = 0;
+		Util_str_format(&util_log_logs[log_index], "[%.5f][%s] %s", (util_log_uptime_ms / 1000), caller, (Util_str_has_data(&temp_text) ? temp_text.buffer : error_msg));
 
-	if (util_log_current_index < DEF_LOG_DISPLAYED_LINES)
-		util_log_y = 0;
-	else
-		util_log_y = util_log_current_index - DEF_LOG_DISPLAYED_LINES;
+		//Save timestamp for later append call to this log index.
+		util_log_spend_time[log_index] = util_log_uptime_ms;
+
+		//If user sees last log, auto scroll logs.
+		auto_scroll = (util_log_y == (util_log_current_index - DEF_LOG_DISPLAYED_LINES));
+
+		//Increment log index.
+		util_log_current_index++;
+		if (util_log_current_index >= DEF_LOG_BUFFER_LINES)
+			util_log_current_index = 0;
+
+		if(auto_scroll)
+		{
+			if (util_log_current_index < DEF_LOG_DISPLAYED_LINES)
+				util_log_y = 0;
+			else
+				util_log_y = util_log_current_index - DEF_LOG_DISPLAYED_LINES;
+		}
+	}
+
+	//Truncate logs if it's too long.
+	if(util_log_logs[log_index].length > DEF_LOG_MAX_LENGTH)
+		Util_str_resize(&util_log_logs[log_index], DEF_LOG_MAX_LENGTH);
 
 	LightLock_Unlock(&util_log_mutex);
-	free(app_log_cache);
-	app_log_cache = NULL;
+	Util_str_free(&temp_text);
 
 	if(util_log_show_flag)
 		var_need_reflesh = true;
 
-	return (return_log_num - 1);
-}
-
-static void Util_log_add_internal(int log_index, std::string&& text, int result)
-{
-	char* app_log_add_cache = NULL;
-	if(!util_log_init)
-		return;
-
-	if(log_index < 0 || log_index >= DEF_LOG_BUFFER_LINES)
-		return;
-
-	app_log_add_cache = (char*)malloc(text.length() + 32);
-	memset(app_log_add_cache, 0x0, text.length() + 32);
-
-	LightLock_Lock(&util_log_mutex);
-	osTickCounterUpdate(&util_log_uptime_stopwatch);
-	util_log_uptime_ms += osTickCounterRead(&util_log_uptime_stopwatch);
-	LightLock_Unlock(&util_log_mutex);
-
-	if (result != 1234567890)
-		sprintf(app_log_add_cache, "%s0x%x (%.2fms)", text.c_str(), result, (util_log_uptime_ms - util_log_spend_time[log_index]));
-	else
-		sprintf(app_log_add_cache, "%s (%.2fms)", text.c_str(), (util_log_uptime_ms - util_log_spend_time[log_index]));
-
-	util_log_logs[log_index] += app_log_add_cache;
-	free(app_log_add_cache);
-	app_log_add_cache = NULL;
-	if(util_log_show_flag)
-		var_need_reflesh = true;
+	return log_index;
 }

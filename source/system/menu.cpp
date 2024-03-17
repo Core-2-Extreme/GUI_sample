@@ -136,30 +136,31 @@ void Menu_init(void)
 	for(int i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
 		menu_worker_thread_callbacks[i] = NULL;
 
-	result = Util_log_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Util_log_init()...", result.code);
-	Util_log_save(DEF_MENU_INIT_STR, "Initializing..." + DEF_CURRENT_APP_VER);
+	result.code = Util_log_init();
+	DEF_LOG_RESULT(Util_log_init, (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_FORMAT("Initializing...%s", (DEF_CURRENT_APP_VER).c_str());
 
 	osSetSpeedupEnable(true);
 	aptSetSleepAllowed(true);
 	svcSetThreadPriority(CUR_THREAD_HANDLE, DEF_THREAD_PRIORITY_HIGH - 1);
 
-	Util_log_save(DEF_MENU_INIT_STR, "fsInit()...", fsInit());
-	Util_log_save(DEF_MENU_INIT_STR, "acInit()...", acInit());
-	Util_log_save(DEF_MENU_INIT_STR, "aptInit()...", aptInit());
-	Util_log_save(DEF_MENU_INIT_STR, "mcuHwcInit()...", mcuHwcInit());
-	Util_log_save(DEF_MENU_INIT_STR, "ptmuInit()...", ptmuInit());
-	Util_log_save(DEF_MENU_INIT_STR, "romfsInit()...", romfsInit());
-	Util_log_save(DEF_MENU_INIT_STR, "cfguInit()...", cfguInit());
-	Util_log_save(DEF_MENU_INIT_STR, "amInit()...", amInit());
-	Util_log_save(DEF_MENU_INIT_STR, "APT_SetAppCpuTimeLimit()...", APT_SetAppCpuTimeLimit(30));
+	//Init system modules.
+	DEF_LOG_RESULT_SMART(result.code, fsInit(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, acInit(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, aptInit(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, mcuHwcInit(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, ptmuInit(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, romfsInit(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, cfguInit(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, amInit(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, APT_SetAppCpuTimeLimit(30), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Util_safe_linear_alloc_init(), (result.code == DEF_SUCCESS), result.code);
 
-	result = Util_safe_linear_alloc_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Util_safe_linear_alloc_init()...", result.code);
-
-	//create directory
+	//Create directories.
 	Util_file_save_to_file(".", DEF_MAIN_DIR, &dummy, 1, true);
 	Util_file_save_to_file(".", DEF_MAIN_DIR + "screen_recording/", &dummy, 1, true);
+	Util_file_save_to_file(".", DEF_MAIN_DIR + "error/", &dummy, 1, true);
+	Util_file_save_to_file(".", DEF_MAIN_DIR + "logs/", &dummy, 1, true);
 
 	if(Util_file_load_from_file("fake_model.txt", DEF_MAIN_DIR, &data, 1, &read_size).code == 0 && *data <= 5)
 	{
@@ -183,24 +184,23 @@ void Menu_init(void)
 
 	if(CFGU_GetSystemModel(&model) == 0)
 	{
-		Util_log_save(DEF_MENU_INIT_STR, "Model : " + var_model_name[model]);
+		DEF_LOG_FORMAT("Model : %s", var_model_name[model].c_str());
 		if(!var_fake_model)
 			var_model = model;
 	}
 	else
-		Util_log_save(DEF_MENU_INIT_STR, "Model : Unknown");
+		DEF_LOG_STRING("Model : Unknown");
 
 	if(var_fake_model)
-		Util_log_save(DEF_MENU_INIT_STR, "Using fake model : " + var_model_name[var_model]);
+		DEF_LOG_FORMAT("Using fake model : %s", var_model_name[var_model].c_str());
 
 	if(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DSXL || var_model == CFG_MODEL_3DS)
 		osSetSpeedupEnable(false);
 
-	result = Util_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Util_init()...", result.code);
+	//Init our modules.
+	DEF_LOG_RESULT_SMART(result, Util_init(), (result.code == DEF_SUCCESS), result.code);
 
 	Sem_init();
-
 	Sem_suspend();
 
 	if(var_screen_mode == DEF_SEM_SCREEN_AUTO)
@@ -215,7 +215,9 @@ void Menu_init(void)
 	else if(var_screen_mode == DEF_SEM_SCREEN_3D)
 		is_3d = true;
 
-	Util_log_save(DEF_MENU_INIT_STR, "Draw_init()...", Draw_init(is_800px, is_3d).code);
+	DEF_LOG_RESULT_SMART(result, Draw_init(is_800px, is_3d), (result.code == DEF_SUCCESS), result.code);
+
+	//Init screen.
 	Draw_frame_ready();
 	Draw_screen_ready(SCREEN_TOP_LEFT, DEF_DRAW_WHITE);
 	Draw_top_ui();
@@ -224,26 +226,14 @@ void Menu_init(void)
 	Draw_apply_draw();
 	Sem_draw_init();
 
-	result = Util_httpc_init(DEF_HTTP_POST_BUFFER_SIZE);
-	Util_log_save(DEF_MENU_INIT_STR, "Util_httpc_init()...", result.code);
-
-	result = Util_curl_init(DEF_SOCKET_BUFFER_SIZE);
-	Util_log_save(DEF_MENU_INIT_STR, "Util_curl_init()...", result.code);
-
-	result = Util_hid_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Util_hid_init()...", result.code);
-
-	result.code = Util_hid_add_callback(Menu_hid_callback);
-	Util_log_save(DEF_MENU_INIT_STR, "Util_hid_add_callback()...", result.code);
-
-	result = Util_expl_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Util_expl_init()...", result.code);
-
-	result = Exfont_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Exfont_init()...", result.code);
-
-	result = Util_err_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Util_err_init()...", result.code);
+	//Init rest of our modules.
+	DEF_LOG_RESULT_SMART(result, Util_httpc_init(DEF_HTTP_POST_BUFFER_SIZE), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Util_curl_init(DEF_SOCKET_BUFFER_SIZE), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Util_hid_init(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Util_hid_add_callback(Menu_hid_callback), result.code, result.code);
+	DEF_LOG_RESULT_SMART(result, Util_expl_init(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Exfont_init(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Util_err_init(), (result.code == DEF_SUCCESS), result.code);
 
 	for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		Exfont_set_external_font_request_state(i, true);
@@ -258,6 +248,7 @@ void Menu_init(void)
 	menu_update_thread = threadCreate(Menu_update_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, true);
 #endif
 
+	//Check for core availability.
 	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
 	{
 		core_2 = threadCreate(Menu_check_core_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
@@ -287,59 +278,51 @@ void Menu_init(void)
 		menu_send_app_info_thread = threadCreate(Menu_send_app_info_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_LOW, 1, true);
 #endif
 
-	#ifdef DEF_SAPP0_ENABLE_ICON
+	//Load sub application icons.
+#ifdef DEF_SAPP0_ENABLE_ICON
 	menu_icon_texture_num[0] = Draw_get_free_sheet_num();
-	result = Draw_load_texture(DEF_SAPP0_ICON_PATH, menu_icon_texture_num[0], menu_icon_image, 0, 1);
-	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
-	#endif
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP0_ICON_PATH, menu_icon_texture_num[0], menu_icon_image, 0, 1), (result.code == DEF_SUCCESS), result.code);
+#endif
 
-	#ifdef DEF_SAPP1_ENABLE_ICON
+#ifdef DEF_SAPP1_ENABLE_ICON
 	menu_icon_texture_num[1] = Draw_get_free_sheet_num();
-	result = Draw_load_texture(DEF_SAPP1_ICON_PATH, menu_icon_texture_num[1], menu_icon_image, 1, 1);
-	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
-	#endif
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP1_ICON_PATH, menu_icon_texture_num[1], menu_icon_image, 1, 1), (result.code == DEF_SUCCESS), result.code);
+#endif
 
-	#ifdef DEF_SAPP2_ENABLE_ICON
+#ifdef DEF_SAPP2_ENABLE_ICON
 	menu_icon_texture_num[2] = Draw_get_free_sheet_num();
-	result = Draw_load_texture(DEF_SAPP2_ICON_PATH, menu_icon_texture_num[2], menu_icon_image, 2, 1);
-	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
-	#endif
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP2_ICON_PATH, menu_icon_texture_num[2], menu_icon_image, 2, 1), (result.code == DEF_SUCCESS), result.code);
+#endif
 
-	#ifdef DEF_SAPP3_ENABLE_ICON
+#ifdef DEF_SAPP3_ENABLE_ICON
 	menu_icon_texture_num[3] = Draw_get_free_sheet_num();
-	result = Draw_load_texture(DEF_SAPP3_ICON_PATH, menu_icon_texture_num[3], menu_icon_image, 3, 1);
-	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
-	#endif
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP3_ICON_PATH, menu_icon_texture_num[3], menu_icon_image, 3, 1), (result.code == DEF_SUCCESS), result.code);
+#endif
 
-	#ifdef DEF_SAPP4_ENABLE_ICON
+#ifdef DEF_SAPP4_ENABLE_ICON
 	menu_icon_texture_num[4] = Draw_get_free_sheet_num();
-	result = Draw_load_texture(DEF_SAPP4_ICON_PATH, menu_icon_texture_num[4], menu_icon_image, 4, 1);
-	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
-	#endif
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP4_ICON_PATH, menu_icon_texture_num[4], menu_icon_image, 4, 1), (result.code == DEF_SUCCESS), result.code);
+#endif
 
-	#ifdef DEF_SAPP5_ENABLE_ICON
+#ifdef DEF_SAPP5_ENABLE_ICON
 	menu_icon_texture_num[5] = Draw_get_free_sheet_num();
-	result = Draw_load_texture(DEF_SAPP5_ICON_PATH, menu_icon_texture_num[5], menu_icon_image, 5, 1);
-	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
-	#endif
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP5_ICON_PATH, menu_icon_texture_num[5], menu_icon_image, 5, 1), (result.code == DEF_SUCCESS), result.code);
+#endif
 
-	#ifdef DEF_SAPP6_ENABLE_ICON
+#ifdef DEF_SAPP6_ENABLE_ICON
 	menu_icon_texture_num[6] = Draw_get_free_sheet_num();
-	result = Draw_load_texture(DEF_SAPP6_ICON_PATH, menu_icon_texture_num[6], menu_icon_image, 6, 1);
-	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
-	#endif
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP6_ICON_PATH, menu_icon_texture_num[6], menu_icon_image, 6, 1), (result.code == DEF_SUCCESS), result.code);
+#endif
 
-	#ifdef DEF_SAPP7_ENABLE_ICON
+#ifdef DEF_SAPP7_ENABLE_ICON
 	menu_icon_texture_num[7] = Draw_get_free_sheet_num();
-	result = Draw_load_texture(DEF_SAPP7_ICON_PATH, menu_icon_texture_num[7], menu_icon_image, 7, 1);
-	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
-	#endif
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP7_ICON_PATH, menu_icon_texture_num[7], menu_icon_image, 7, 1), (result.code == DEF_SUCCESS), result.code);
+#endif
 
-	#ifdef DEF_SEM_ENABLE_ICON
+#ifdef DEF_SEM_ENABLE_ICON
 	menu_icon_texture_num[8] = Draw_get_free_sheet_num();
-	result = Draw_load_texture(DEF_SEM_ICON_PATH, menu_icon_texture_num[8], menu_icon_image, 8, 2);
-	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
-	#endif
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SEM_ICON_PATH, menu_icon_texture_num[8], menu_icon_image, 8, 2), (result.code == DEF_SUCCESS), result.code);
+#endif
 
 	for(int i = 0; i < 8; i++)
 	{
@@ -365,12 +348,12 @@ void Menu_init(void)
 	Menu_get_system_info();
 
 	Menu_resume();
-	Util_log_save(DEF_MENU_INIT_STR, "Initialized");
+	DEF_LOG_STRING("Initialized.");
 }
 
 void Menu_exit(void)
 {
-	Util_log_save(DEF_MENU_EXIT_STR, "Exiting...");
+	DEF_LOG_STRING("Exiting...");
 	bool draw = !aptShouldClose();
 	Result_with_string result;
 
@@ -422,15 +405,13 @@ void Menu_exit(void)
 	Util_exit();
 	Util_cpu_usage_monitor_exit();
 
-	Util_log_save(DEF_MENU_EXIT_STR, "threadJoin()...", threadJoin(menu_worker_thread, DEF_THREAD_WAIT_TIME));
-
+	DEF_LOG_RESULT_SMART(result.code, threadJoin(menu_worker_thread, DEF_THREAD_WAIT_TIME), (result.code == DEF_SUCCESS), result.code);
 	threadFree(menu_worker_thread);
 
 #if (DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API)
-	Util_log_save(DEF_MENU_EXIT_STR, "threadJoin()...", threadJoin(menu_check_connectivity_thread, DEF_THREAD_WAIT_TIME));
-	Util_log_save(DEF_MENU_EXIT_STR, "threadJoin()...", threadJoin(menu_send_app_info_thread, DEF_THREAD_WAIT_TIME));
-	Util_log_save(DEF_MENU_EXIT_STR, "threadJoin()...", threadJoin(menu_update_thread, DEF_THREAD_WAIT_TIME));
-
+	DEF_LOG_RESULT_SMART(result.code, threadJoin(menu_check_connectivity_thread, DEF_THREAD_WAIT_TIME), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, threadJoin(menu_send_app_info_thread, DEF_THREAD_WAIT_TIME), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, threadJoin(menu_update_thread, DEF_THREAD_WAIT_TIME), (result.code == DEF_SUCCESS), result.code);
 	threadFree(menu_check_connectivity_thread);
 #endif
 
@@ -463,7 +444,7 @@ void Menu_exit(void)
 	amExit();
 	Draw_exit();
 
-	Util_log_save(DEF_MENU_EXIT_STR, "Exited.");
+	DEF_LOG_STRING("Exited.");
 }
 
 bool Menu_add_worker_thread_callback(void (*callback)(void))
@@ -549,11 +530,8 @@ void Menu_main(void)
 	if(is_3d != Draw_is_3d_mode() || is_800px != Draw_is_800px_mode())
 	{
 		Result_with_string result;
-		int log = 0;
 
-		log = Util_log_save(DEF_MENU_MAIN_STR, "Draw_reinit()...");
-		result = Draw_reinit(is_800px, is_3d);
-		Util_log_add(log, result.string + result.error_description, result.code);
+		DEF_LOG_RESULT_SMART(result, Draw_reinit(is_800px, is_3d), (result.code == DEF_SUCCESS), result.code);
 		var_need_reflesh = true;
 	}
 
@@ -1253,7 +1231,7 @@ void Menu_get_system_info(void)
 #if (DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API)
 void Menu_send_app_info_thread(void* arg)
 {
-	Util_log_save(DEF_MENU_SEND_APP_INFO_THREAD_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
 	OS_VersionBin os_ver;
 	bool is_new3ds = false;
 	u8* dl_data = NULL;
@@ -1284,7 +1262,7 @@ void Menu_send_app_info_thread(void* arg)
 	Util_safe_linear_free(dl_data);
 	dl_data = NULL;
 
-	Util_log_save(DEF_MENU_SEND_APP_INFO_THREAD_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 #endif
@@ -1292,7 +1270,7 @@ void Menu_send_app_info_thread(void* arg)
 #if (DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API)
 void Menu_check_connectivity_thread(void* arg)
 {
-	Util_log_save(DEF_MENU_CHECK_INTERNET_THREAD_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
 	u8* http_buffer = NULL;
 #if DEF_ENABLE_HTTPC_API
 	u32 status_code = 0;
@@ -1327,14 +1305,14 @@ void Menu_check_connectivity_thread(void* arg)
 		count++;
 	}
 
-	Util_log_save(DEF_MENU_CHECK_INTERNET_THREAD_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 #endif
 
 void Menu_worker_thread(void* arg)
 {
-	Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
 	int count = 0;
 	u64 previous_ts = 0;
 	Result_with_string result;
@@ -1371,38 +1349,39 @@ void Menu_worker_thread(void* arg)
 		{
 			result = Util_cset_set_screen_state(true, true, false);
 			if(result.code != 0)
-				Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT(Util_cset_set_screen_state, false, result.code);
 		}
 		else if(var_time_to_turn_off_lcd > 0 &&var_afk_time > (var_time_to_turn_off_lcd - 10))
 		{
 			result = Util_cset_set_screen_brightness(true, true, 10);
 			if(result.code != 0)
-				Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT(Util_cset_set_screen_brightness, false, result.code);
 		}
 		else
 		{
 			result = Util_cset_set_screen_state(true, false, var_turn_on_top_lcd);
 			if(result.code != 0)
-				Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT(Util_cset_set_screen_state, false, result.code);
 
 			result = Util_cset_set_screen_state(false, true, var_turn_on_bottom_lcd);
 			if(result.code != 0)
-				Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT(Util_cset_set_screen_state, false, result.code);
 
 			if(var_top_lcd_brightness == var_lcd_brightness && var_bottom_lcd_brightness == var_lcd_brightness)
 			{
 				result = Util_cset_set_screen_brightness(true, true, var_lcd_brightness);
 				if(result.code != 0)
-					Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
+					DEF_LOG_RESULT(Util_cset_set_screen_brightness, false, result.code);
 			}
 			else
 			{
 				result = Util_cset_set_screen_brightness(true, false, var_top_lcd_brightness);
 				if(result.code != 0)
-					Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
+					DEF_LOG_RESULT(Util_cset_set_screen_brightness, false, result.code);
+
 				result = Util_cset_set_screen_brightness(false, true, var_bottom_lcd_brightness);
 				if(result.code != 0)
-					Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
+					DEF_LOG_RESULT(Util_cset_set_screen_brightness, false, result.code);
 			}
 		}
 
@@ -1415,7 +1394,7 @@ void Menu_worker_thread(void* arg)
 				var_afk_time = 0;
 			}
 			else
-				Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_sleep_system()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT(Util_cset_sleep_system, false, result.code);
 		}
 
 		LightLock_Lock(&menu_callback_mutex);
@@ -1431,14 +1410,14 @@ void Menu_worker_thread(void* arg)
 
 		gspWaitForVBlank();
 	}
-	Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 
 #if (DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API)
 void Menu_update_thread(void* arg)
 {
-	Util_log_save(DEF_MENU_UPDATE_THREAD_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
 	u8* http_buffer = NULL;
 #if DEF_ENABLE_CURL_API
 	int dl_size = 0;
@@ -1450,11 +1429,9 @@ void Menu_update_thread(void* arg)
 	Result_with_string result;
 
 #if DEF_ENABLE_CURL_API
-	result = Util_curl_dl_data(DEF_CHECK_UPDATE_URL, &http_buffer, 0x1000, &dl_size, true, 3);
-	Util_log_save(DEF_MENU_UPDATE_THREAD_STR, "Util_curl_dl_data()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(DEF_CHECK_UPDATE_URL, &http_buffer, 0x1000, &dl_size, true, 3), (result.code == DEF_SUCCESS), result.code);
 #else
-	result = Util_httpc_dl_data(DEF_CHECK_UPDATE_URL, &http_buffer, 0x1000, &dl_size, true, 3);
-	Util_log_save(DEF_MENU_UPDATE_THREAD_STR, "Util_httpc_dl_data()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result, Util_httpc_dl_data(DEF_CHECK_UPDATE_URL, &http_buffer, 0x1000, &dl_size, true, 3), (result.code == DEF_SUCCESS), result.code);
 #endif
 
 	if(result.code == 0)
@@ -1473,7 +1450,7 @@ void Menu_update_thread(void* arg)
 	Util_safe_linear_free(http_buffer);
 	http_buffer = NULL;
 
-	Util_log_save(DEF_MENU_UPDATE_THREAD_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 #endif

@@ -91,11 +91,10 @@ Result_with_string Sapp7_load_msg(std::string lang)
 
 void Sapp7_init(bool draw)
 {
-	Util_log_save(DEF_SAPP7_INIT_STR, "Initializing...");
-	Result_with_string result;
+	DEF_LOG_STRING("Initializing...");
+	uint32_t result = DEF_ERR_OTHER;
 
-	result.code = Util_str_init(&sapp7_status);
-	Util_log_save(DEF_SAPP7_INIT_STR, "Util_str_init()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp7_status), (result == DEF_SUCCESS), result);
 
 	Util_add_watch(WATCH_HANDLE_SUB_APP7, &sapp7_status.sequencial_id, sizeof(sapp7_status.sequencial_id));
 
@@ -118,18 +117,19 @@ void Sapp7_init(bool draw)
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
-	Util_log_save(DEF_SAPP7_EXIT_STR, "threadJoin()...", threadJoin(sapp7_init_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp7_init_thread, DEF_THREAD_WAIT_TIME), result, result);
 	threadFree(sapp7_init_thread);
 
 	Util_str_clear(&sapp7_status);
 	Sapp7_resume();
 
-	Util_log_save(DEF_SAPP7_INIT_STR, "Initialized.");
+	DEF_LOG_STRING("Initialized.");
 }
 
 void Sapp7_exit(bool draw)
 {
-	Util_log_save(DEF_SAPP7_EXIT_STR, "Exiting...");
+	DEF_LOG_STRING("Exiting...");
+	uint32_t result = DEF_ERR_OTHER;
 
 	sapp7_exit_thread = threadCreate(Sapp7_exit_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
@@ -141,14 +141,14 @@ void Sapp7_exit(bool draw)
 			Util_sleep(20000);
 	}
 
-	Util_log_save(DEF_SAPP7_EXIT_STR, "threadJoin()...", threadJoin(sapp7_exit_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp7_exit_thread, DEF_THREAD_WAIT_TIME), result, result);
 	threadFree(sapp7_exit_thread);
 
 	Util_remove_watch(WATCH_HANDLE_SUB_APP7, &sapp7_status.sequencial_id);
 	Util_str_free(&sapp7_status);
 	var_need_reflesh = true;
 
-	Util_log_save(DEF_SAPP7_EXIT_STR, "Exited.");
+	DEF_LOG_STRING("Exited.");
 }
 
 void Sapp7_main(void)
@@ -246,8 +246,8 @@ static void Sapp7_draw_init_exit_message(void)
 
 static void Sapp7_init_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP7_INIT_STR, "Thread started.");
-	Result_with_string result;
+	DEF_LOG_STRING("Thread started.");
+	// uint32_t result = DEF_ERR_OTHER;
 
 	Util_str_set(&sapp7_status, "Initializing variables...");
 	//Empty.
@@ -261,32 +261,33 @@ static void Sapp7_init_thread(void* arg)
 
 	sapp7_already_init = true;
 
-	Util_log_save(DEF_SAPP7_INIT_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 
 static void Sapp7_exit_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP7_EXIT_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
+	uint32_t result = DEF_ERR_OTHER;
 
 	sapp7_thread_suspend = false;
 	sapp7_thread_run = false;
 
 	Util_str_set(&sapp7_status, "Exiting threads...");
-	Util_log_save(DEF_SAPP7_EXIT_STR, "threadJoin()...", threadJoin(sapp7_worker_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp7_worker_thread, DEF_THREAD_WAIT_TIME), result, result);
 
 	Util_str_add(&sapp7_status, "\nCleaning up...");
 	threadFree(sapp7_worker_thread);
 
 	sapp7_already_init = false;
 
-	Util_log_save(DEF_SAPP7_EXIT_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 
 static void Sapp7_worker_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP7_WORKER_THREAD_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
 
 	while (sapp7_thread_run)
 	{
@@ -301,6 +302,6 @@ static void Sapp7_worker_thread(void* arg)
 			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
 	}
 
-	Util_log_save(DEF_SAPP7_WORKER_THREAD_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }

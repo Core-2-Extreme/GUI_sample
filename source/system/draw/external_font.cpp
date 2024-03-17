@@ -72,8 +72,7 @@ void Exfont_load_font_callback(void)
 			{
 				if(util_exfont_request_external_font_state[i] && !util_exfont_loaded_external_font[i])
 				{
-					result = Exfont_load_exfont(i);
-					Util_log_save(DEF_EXFONT_LOAD_FONT_CALLBACK_STR, "Exfont_load_exfont()..." + result.string + result.error_description, result.code);
+					DEF_LOG_RESULT_SMART(result, Exfont_load_exfont(i), (result.code == DEF_SUCCESS), result.code);
 					var_need_reflesh = true;
 				}
 			}

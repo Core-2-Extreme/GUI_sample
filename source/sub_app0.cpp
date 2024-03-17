@@ -95,11 +95,10 @@ Result_with_string Sapp0_load_msg(std::string lang)
 
 void Sapp0_init(bool draw)
 {
-	Util_log_save(DEF_SAPP0_INIT_STR, "Initializing...");
-	Result_with_string result;
+	DEF_LOG_STRING("Initializing...");
+	uint32_t result = DEF_ERR_OTHER;
 
-	result.code = Util_str_init(&sapp0_status);
-	Util_log_save(DEF_SAPP0_INIT_STR, "Util_str_init()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp0_status), (result == DEF_SUCCESS), result);
 
 	Util_add_watch(WATCH_HANDLE_SUB_APP0, &sapp0_status.sequencial_id, sizeof(sapp0_status.sequencial_id));
 
@@ -122,18 +121,19 @@ void Sapp0_init(bool draw)
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
-	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_init_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp0_init_thread, DEF_THREAD_WAIT_TIME), result, result);
 	threadFree(sapp0_init_thread);
 
 	Util_str_clear(&sapp0_status);
 	Sapp0_resume();
 
-	Util_log_save(DEF_SAPP0_INIT_STR, "Initialized.");
+	DEF_LOG_STRING("Initialized.");
 }
 
 void Sapp0_exit(bool draw)
 {
-	Util_log_save(DEF_SAPP0_EXIT_STR, "Exiting...");
+	DEF_LOG_STRING("Exiting...");
+	uint32_t result = DEF_ERR_OTHER;
 
 	sapp0_exit_thread = threadCreate(Sapp0_exit_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
@@ -145,14 +145,14 @@ void Sapp0_exit(bool draw)
 			Util_sleep(20000);
 	}
 
-	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_exit_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp0_exit_thread, DEF_THREAD_WAIT_TIME), result, result);
 	threadFree(sapp0_exit_thread);
 
 	Util_remove_watch(WATCH_HANDLE_SUB_APP0, &sapp0_status.sequencial_id);
 	Util_str_free(&sapp0_status);
 	var_need_reflesh = true;
 
-	Util_log_save(DEF_SAPP0_EXIT_STR, "Exited.");
+	DEF_LOG_STRING("Exited.");
 }
 
 void Sapp0_main(void)
@@ -258,12 +258,13 @@ static void Sapp0_draw_init_exit_message(void)
 
 static void Sapp0_init_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP0_INIT_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
 	u8* buffer = NULL;
 	u8* png_data = NULL;
 	int width = 0, height = 0;
 	int dled_size = 0;
 	char file_path[] = "romfs:/gfx/draw/sapp0/sample.jpg";
+	char url[] = "https://user-images.githubusercontent.com/45873899/167138864-b6a9e25e-2dce-49d0-9b5a-d5986e768ad6.png";
 	//If you want to load picture from SD (not from romfs).
 	//char file_path[] = "/test.png";
 	Pixel_format color_format = PIXEL_FORMAT_INVALID;
@@ -279,9 +280,8 @@ static void Sapp0_init_thread(void* arg)
 	//Load picture from romfs (or SD card).
 
 	//1. Decode a picture.
-	result = Util_image_decoder_decode(file_path, &buffer, &width, &height, &color_format);
-	Util_log_save(DEF_SAPP0_INIT_STR, "Util_image_decoder_decode()..." + result.string + result.error_description, result.code);
-	Util_log_save(DEF_SAPP0_INIT_STR, "Picture size : " + std::to_string(width) + "x" + std::to_string(height));
+	DEF_LOG_RESULT_SMART(result, Util_image_decoder_decode(file_path, &buffer, &width, &height, &color_format), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_FORMAT("Picture size : %" PRId32 "x%" PRId32, width, height);
 	if(result.code == 0)
 	{
 		Color_converter_parameters parameters;
@@ -300,12 +300,10 @@ static void Sapp0_init_thread(void* arg)
 		else
 			parameters.out_color_format = PIXEL_FORMAT_RGB565LE;
 
-		Util_converter_convert_color(&parameters);
+		DEF_LOG_RESULT_SMART(result, Util_converter_convert_color(&parameters), (result.code == DEF_SUCCESS), result.code);
 
 		//3. Init tecture, 1024 is texture size, it must be multiple of 2, so 2, 4, 8, 16, 32, 64...etc.
-		result = Draw_texture_init(&sapp0_image[0], 1024, 1024, parameters.out_color_format);
-		Util_log_save(DEF_SAPP0_INIT_STR, "Draw_texture_init()..." + result.string + result.error_description, result.code);
-
+		DEF_LOG_RESULT_SMART(result, Draw_texture_init(&sapp0_image[0], 1024, 1024, parameters.out_color_format), (result.code == DEF_SUCCESS), result.code);
 		if(result.code == 0)
 		{
 			//4. Set raw image data to texture.
@@ -325,14 +323,12 @@ static void Sapp0_init_thread(void* arg)
 	//Load picture from the Internet.
 
 	//1. Download png from the Internet.
-	result = Util_curl_dl_data("https://user-images.githubusercontent.com/45873899/167138864-b6a9e25e-2dce-49d0-9b5a-d5986e768ad6.png", &png_data, 1024 * 1024, &dled_size, true, 5);
-	Util_log_save(DEF_SAPP0_INIT_STR, "Util_curl_dl_data()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(url, &png_data, 1024 * 1024, &dled_size, true, 5), (result.code == DEF_SUCCESS), result.code);
 	if(result.code == 0)
 	{
 		//2. Decode a picture.
-		result = Util_image_decoder_decode(png_data, dled_size, &buffer, &width, &height, &color_format);
-		Util_log_save(DEF_SAPP0_INIT_STR, "Util_image_decoder_decode()..." + result.string + result.error_description, result.code);
-		Util_log_save(DEF_SAPP0_INIT_STR, "Picture size : " + std::to_string(width) + "x" + std::to_string(height));
+		DEF_LOG_RESULT_SMART(result, Util_image_decoder_decode(png_data, dled_size, &buffer, &width, &height, &color_format), (result.code == DEF_SUCCESS), result.code);
+		DEF_LOG_FORMAT("Picture size : %" PRId32 "x%" PRId32, width, height);
 		if(result.code == 0)
 		{
 			Color_converter_parameters parameters;
@@ -351,12 +347,10 @@ static void Sapp0_init_thread(void* arg)
 			else
 				parameters.out_color_format = PIXEL_FORMAT_RGB565LE;
 
-			Util_converter_convert_color(&parameters);
+			DEF_LOG_RESULT_SMART(result, Util_converter_convert_color(&parameters), (result.code == DEF_SUCCESS), result.code);
 
 			//4. Init tecture, 1024 is texture size, it must be multiple of 2, so 2, 4, 8, 16, 32, 64...etc.
-			result = Draw_texture_init(&sapp0_image[1], 1024, 1024, parameters.out_color_format);
-			Util_log_save(DEF_SAPP0_INIT_STR, "Draw_texture_init()..." + result.string + result.error_description, result.code);
-
+			DEF_LOG_RESULT_SMART(result, Draw_texture_init(&sapp0_image[1], 1024, 1024, parameters.out_color_format), (result.code == DEF_SUCCESS), result.code);
 			if(result.code == 0)
 			{
 				//5. Set raw image data to texture.
@@ -378,19 +372,20 @@ static void Sapp0_init_thread(void* arg)
 
 	sapp0_already_init = true;
 
-	Util_log_save(DEF_SAPP0_INIT_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 
 static void Sapp0_exit_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP0_EXIT_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
+	uint32_t result = DEF_ERR_OTHER;
 
 	sapp0_thread_suspend = false;
 	sapp0_thread_run = false;
 
 	Util_str_set(&sapp0_status, "Exiting threads...");
-	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(sapp0_worker_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp0_worker_thread, DEF_THREAD_WAIT_TIME), result, result);
 
 	Util_str_add(&sapp0_status, "\nCleaning up...");
 	threadFree(sapp0_worker_thread);
@@ -401,13 +396,13 @@ static void Sapp0_exit_thread(void* arg)
 
 	sapp0_already_init = false;
 
-	Util_log_save(DEF_SAPP0_EXIT_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 
 static void Sapp0_worker_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP0_WORKER_THREAD_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
 
 	while (sapp0_thread_run)
 	{
@@ -422,6 +417,6 @@ static void Sapp0_worker_thread(void* arg)
 			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
 	}
 
-	Util_log_save(DEF_SAPP0_WORKER_THREAD_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }

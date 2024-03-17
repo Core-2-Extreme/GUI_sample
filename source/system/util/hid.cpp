@@ -330,7 +330,7 @@ void Util_hid_remove_callback(void (*callback)(void))
 
 void Util_hid_scan_hid_thread(void* arg)
 {
-	Util_log_save(DEF_HID_SCAN_THREAD_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
 
 	u32 key_pressed;
 	u32 key_held;
@@ -518,6 +518,6 @@ void Util_hid_scan_hid_thread(void* arg)
 
 		gspWaitForVBlank();
 	}
-	Util_log_save(DEF_HID_SCAN_THREAD_STR, "Thread exit");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }

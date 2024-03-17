@@ -91,11 +91,10 @@ Result_with_string Sapp5_load_msg(std::string lang)
 
 void Sapp5_init(bool draw)
 {
-	Util_log_save(DEF_SAPP5_INIT_STR, "Initializing...");
-	Result_with_string result;
+	DEF_LOG_STRING("Initializing...");
+	uint32_t result = DEF_ERR_OTHER;
 
-	result.code = Util_str_init(&sapp5_status);
-	Util_log_save(DEF_SAPP5_INIT_STR, "Util_str_init()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp5_status), (result == DEF_SUCCESS), result);
 
 	Util_add_watch(WATCH_HANDLE_SUB_APP5, &sapp5_status.sequencial_id, sizeof(sapp5_status.sequencial_id));
 
@@ -118,18 +117,19 @@ void Sapp5_init(bool draw)
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
-	Util_log_save(DEF_SAPP5_EXIT_STR, "threadJoin()...", threadJoin(sapp5_init_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp5_init_thread, DEF_THREAD_WAIT_TIME), result, result);
 	threadFree(sapp5_init_thread);
 
 	Util_str_clear(&sapp5_status);
 	Sapp5_resume();
 
-	Util_log_save(DEF_SAPP5_INIT_STR, "Initialized.");
+	DEF_LOG_STRING("Initialized.");
 }
 
 void Sapp5_exit(bool draw)
 {
-	Util_log_save(DEF_SAPP5_EXIT_STR, "Exiting...");
+	DEF_LOG_STRING("Exiting...");
+	uint32_t result = DEF_ERR_OTHER;
 
 	sapp5_exit_thread = threadCreate(Sapp5_exit_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
@@ -141,14 +141,14 @@ void Sapp5_exit(bool draw)
 			Util_sleep(20000);
 	}
 
-	Util_log_save(DEF_SAPP5_EXIT_STR, "threadJoin()...", threadJoin(sapp5_exit_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp5_exit_thread, DEF_THREAD_WAIT_TIME), result, result);
 	threadFree(sapp5_exit_thread);
 
 	Util_remove_watch(WATCH_HANDLE_SUB_APP5, &sapp5_status.sequencial_id);
 	Util_str_free(&sapp5_status);
 	var_need_reflesh = true;
 
-	Util_log_save(DEF_SAPP5_EXIT_STR, "Exited.");
+	DEF_LOG_STRING("Exited.");
 }
 
 void Sapp5_main(void)
@@ -246,8 +246,8 @@ static void Sapp5_draw_init_exit_message(void)
 
 static void Sapp5_init_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP5_INIT_STR, "Thread started.");
-	Result_with_string result;
+	DEF_LOG_STRING("Thread started.");
+	// uint32_t result = DEF_ERR_OTHER;
 
 	Util_str_set(&sapp5_status, "Initializing variables...");
 	//Empty.
@@ -261,32 +261,33 @@ static void Sapp5_init_thread(void* arg)
 
 	sapp5_already_init = true;
 
-	Util_log_save(DEF_SAPP5_INIT_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 
 static void Sapp5_exit_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP5_EXIT_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
+	uint32_t result = DEF_ERR_OTHER;
 
 	sapp5_thread_suspend = false;
 	sapp5_thread_run = false;
 
 	Util_str_set(&sapp5_status, "Exiting threads...");
-	Util_log_save(DEF_SAPP5_EXIT_STR, "threadJoin()...", threadJoin(sapp5_worker_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp5_worker_thread, DEF_THREAD_WAIT_TIME), result, result);
 
 	Util_str_add(&sapp5_status, "\nCleaning up...");
 	threadFree(sapp5_worker_thread);
 
 	sapp5_already_init = false;
 
-	Util_log_save(DEF_SAPP5_EXIT_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 
 static void Sapp5_worker_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP5_WORKER_THREAD_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
 
 	while (sapp5_thread_run)
 	{
@@ -301,6 +302,6 @@ static void Sapp5_worker_thread(void* arg)
 			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
 	}
 
-	Util_log_save(DEF_SAPP5_WORKER_THREAD_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }

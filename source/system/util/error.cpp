@@ -208,13 +208,13 @@ static void Util_err_save_callback(void)
 			sprintf(file_name, "%04d_%02d_%02d_%02d_%02d_%02d.txt", var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
 			save_data = "\n\n##ERROR MESSAGE##\n" + util_err_summary + "\n" + util_err_description + "\n" + util_err_place + "\n" + util_err_code + "\n";
 
-			result = Util_log_dump(file_name, DEF_MAIN_DIR + "error/");
-			if(result.code != 0)
-				Util_log_save(DEF_ERR_SAVE_CALLBACK, "Util_log_dump()..." + result.string + result.error_description, result.code);
+			result.code = Util_log_dump(file_name, (DEF_MAIN_DIR + "error/").c_str());
+			if(result.code != DEF_SUCCESS)
+				DEF_LOG_RESULT(Util_log_dump, (result.code == DEF_SUCCESS), result.code);
 
 			result = Util_file_save_to_file(file_name, DEF_MAIN_DIR + "error/" , (u8*)save_data.c_str() , save_data.length(), false);
-			if(result.code != 0)
-				Util_log_save(DEF_ERR_SAVE_CALLBACK, "Util_file_save_to_file()..." + result.string + result.error_description, result.code);
+			if(result.code != DEF_SUCCESS)
+				DEF_LOG_RESULT(Util_file_save_to_file, (result.code == DEF_SUCCESS), result.code);
 
 			Util_err_set_error_show_flag(false);
 			util_err_save_request = false;

@@ -609,7 +609,7 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 		}
 		else
 		{
-			//Util_log_save("debug", "avcodec_receive_packet()...", ffmpeg_result);
+			//DEF_LOG_FORMAT("avcodec_receive_packet()...%" PRId32, ffmpeg_result);
 			av_packet_unref(util_audio_encoder_packet[session]);
 		}
 
@@ -715,7 +715,7 @@ Result_with_string Util_video_encoder_encode(u8* raw_image, int session)
 	}
 	else
 	{
-		//Util_log_save("debug", "avcodec_receive_packet()...", ffmpeg_result);
+		//DEF_LOG_FORMAT("avcodec_receive_packet()...%" PRId32, ffmpeg_result);
 		av_packet_unref(util_video_encoder_packet[session]);
 	}
 

@@ -4,13 +4,6 @@
 
 //menu
 #define DEF_MENU_NUM_OF_MSG 5
-#define DEF_MENU_MAIN_STR (std::string)"Menu/Main"
-#define DEF_MENU_INIT_STR (std::string)"Menu/Init"
-#define DEF_MENU_EXIT_STR (std::string)"Menu/Exit"
-#define DEF_MENU_WORKER_THREAD_STR (std::string)"Menu/Worker thread"
-#define DEF_MENU_UPDATE_THREAD_STR (std::string)"Menu/Update thread"
-#define DEF_MENU_SEND_APP_INFO_THREAD_STR (std::string)"Menu/Send app info thread"
-#define DEF_MENU_CHECK_INTERNET_THREAD_STR (std::string)"Menu/Check internet thread"
 
 #define DEF_MENU_NUM_OF_CALLBACKS 32
 
@@ -26,12 +19,6 @@
 //#define DEF_SEM_ENABLE_NAME
 #define DEF_SEM_ICON_PATH (std::string)"romfs:/gfx/draw/icon/sem_icon.t3x"
 #define DEF_SEM_NAME (std::string)"Settings"
-#define DEF_SEM_INIT_STR (std::string)"Sem/Init"
-#define DEF_SEM_EXIT_STR (std::string)"Sem/Exit"
-#define DEF_SEM_WORKER_CALLBACK_STR (std::string)"Sem/Worker callback"
-#define DEF_SEM_UPDATE_THREAD_STR (std::string)"Sem/Update thread"
-#define DEF_SEM_ENCODE_THREAD_STR (std::string)"Sem/Encode thread"
-#define DEF_SEM_RECORD_THREAD_STR (std::string)"Sem/Record thread"
 
 #define DEF_SEM_MENU_TOP -1
 #define DEF_SEM_MENU_UPDATE 0
@@ -135,10 +122,6 @@
 //You need to enable DEF_ENABLE_HTTPC_API **or** DEF_ENABLE_CURL_API as well to use updater
 #define DEF_SEM_ENABLE_UPDATER 1
 
-//CPU usage monitor
-#define DEF_CPU_CALCULATE_THREAD_STR (std::string)"CPU/Calculate thread"
-#define DEF_CPU_COUNTER_THREAD_STR (std::string)"CPU/Counter thread"
-
 //abgr8888 color
 #define DEF_DRAW_RED 0xFF0000FF
 #define DEF_DRAW_GREEN 0xFF00FF00
@@ -203,16 +186,6 @@
 #define DEF_ERR_DECODER_TRY_AGAIN_STR (std::string)"[Error] Try again. "
 #define DEF_ERR_DISABLED_STR (std::string)"[Error] This function is disabled. "
 
-//error
-#define DEF_ERR_INIT_STR (std::string)"Err/Init"
-#define DEF_ERR_EXIT_STR (std::string)"Err/Exit"
-#define DEF_ERR_SAVE_CALLBACK (std::string)"Err/Save callback"
-
-//explorer
-#define DEF_EXPL_INIT_STR (std::string)"Expl/Init"
-#define DEF_EXPL_EXIT_STR (std::string)"Expl/Exit"
-#define DEF_EXPL_READ_DIR_CALLBACK_STR (std::string)"Expl/Read dir callback"
-
 //external font
 #define DEF_EXFONT_NUM_OF_ONE_BYTE_FONT		1
 #define DEF_EXFONT_NUM_OF_TWO_BYTES_FONT	12
@@ -273,9 +246,6 @@
 #define DEF_EXFONT_BLOCK_HALFWIDTH_AND_FULLWIDTH_FORMS				51
 #define DEF_EXFONT_BLOCK_MISCELLANEOUS_SYMBOLS_AND_PICTOGRAPHS		52
 #define DEF_EXFONT_BLOCK_EMOTICONS									53
-#define DEF_EXFONT_INIT_STR (std::string)"Exfont/Init"
-#define DEF_EXFONT_EXIT_STR (std::string)"Exfont/Exit"
-#define DEF_EXFONT_LOAD_FONT_CALLBACK_STR (std::string)"Exfont/Load font callback"
 
 //fake pthread
 #ifndef _POSIX_THREADS
@@ -283,9 +253,6 @@
 #endif
 
 //hid
-#define DEF_HID_INIT_STR (std::string)"Hid/Init"
-#define DEF_HID_EXIT_STR (std::string)"Hid/Exit"
-#define DEF_HID_SCAN_THREAD_STR (std::string)"Hid/Scan thread"
 #define DEF_HID_NUM_OF_CALLBACKS 4
 
 //log

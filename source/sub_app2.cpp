@@ -107,9 +107,10 @@ void Sapp2_hid(Hid_info key)
 
 		if(command != NONE)
 		{
-			Result_with_string result;
-			result.code = Util_queue_add(&sapp2_command_queue, command, NULL, 10000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST);
-			Util_log_save(DEF_SAPP2_HID_CALLBACK_STR, "Util_queue_add()..." + result.string + result.error_description, result.code);
+			uint32_t result = DEF_ERR_OTHER;
+
+			DEF_LOG_RESULT_SMART(result, Util_queue_add(&sapp2_command_queue, command, NULL, 10000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST),
+			(result == DEF_SUCCESS), result);
 		}
 	}
 
@@ -143,11 +144,10 @@ Result_with_string Sapp2_load_msg(std::string lang)
 
 void Sapp2_init(bool draw)
 {
-	Util_log_save(DEF_SAPP2_INIT_STR, "Initializing...");
-	Result_with_string result;
+	DEF_LOG_STRING("Initializing...");
+	uint32_t result = DEF_ERR_OTHER;
 
-	result.code = Util_str_init(&sapp2_status);
-	Util_log_save(DEF_SAPP2_INIT_STR, "Util_str_init()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp2_status), (result == DEF_SUCCESS), result);
 
 	Util_add_watch(WATCH_HANDLE_SUB_APP2, &sapp2_status.sequencial_id, sizeof(sapp2_status.sequencial_id));
 
@@ -170,18 +170,19 @@ void Sapp2_init(bool draw)
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
-	Util_log_save(DEF_SAPP2_EXIT_STR, "threadJoin()...", threadJoin(sapp2_init_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp2_init_thread, DEF_THREAD_WAIT_TIME), result, result);
 	threadFree(sapp2_init_thread);
 
 	Util_str_clear(&sapp2_status);
 	Sapp2_resume();
 
-	Util_log_save(DEF_SAPP2_INIT_STR, "Initialized.");
+	DEF_LOG_STRING("Initialized.");
 }
 
 void Sapp2_exit(bool draw)
 {
-	Util_log_save(DEF_SAPP2_EXIT_STR, "Exiting...");
+	DEF_LOG_STRING("Exiting...");
+	uint32_t result = DEF_ERR_OTHER;
 
 	sapp2_exit_thread = threadCreate(Sapp2_exit_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
@@ -193,14 +194,14 @@ void Sapp2_exit(bool draw)
 			Util_sleep(20000);
 	}
 
-	Util_log_save(DEF_SAPP2_EXIT_STR, "threadJoin()...", threadJoin(sapp2_exit_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp2_exit_thread, DEF_THREAD_WAIT_TIME), result, result);
 	threadFree(sapp2_exit_thread);
 
 	Util_remove_watch(WATCH_HANDLE_SUB_APP2, &sapp2_status.sequencial_id);
 	Util_str_free(&sapp2_status);
 	var_need_reflesh = true;
 
-	Util_log_save(DEF_SAPP2_EXIT_STR, "Exited.");
+	DEF_LOG_STRING("Exited.");
 }
 
 void Sapp2_main(void)
@@ -323,16 +324,15 @@ static void Sapp2_draw_init_exit_message(void)
 
 static void Sapp2_init_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP2_INIT_STR, "Thread started.");
-	Result_with_string result;
+	DEF_LOG_STRING("Thread started.");
+	uint32_t result = DEF_ERR_OTHER;
 
 	Util_str_set(&sapp2_status, "Initializing variables...");
 	//Empty.
 
 	Util_str_add(&sapp2_status, "\nInitializing queue...");
 	//Create the queue for commands.
-	result.code = Util_queue_create(&sapp2_command_queue, 10);
-	Util_log_save(DEF_SAPP2_INIT_STR, "Util_queue_create()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result, Util_queue_create(&sapp2_command_queue, 10), (result == DEF_SUCCESS), result);
 
 	Util_str_add(&sapp2_status, "\nStarting threads...");
 	sapp2_thread_run = true;
@@ -340,19 +340,20 @@ static void Sapp2_init_thread(void* arg)
 
 	sapp2_already_init = true;
 
-	Util_log_save(DEF_SAPP2_INIT_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 
 static void Sapp2_exit_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP2_EXIT_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
+	uint32_t result = DEF_ERR_OTHER;
 
 	sapp2_thread_suspend = false;
 	sapp2_thread_run = false;
 
 	Util_str_set(&sapp2_status, "Exiting threads...");
-	Util_log_save(DEF_SAPP2_EXIT_STR, "threadJoin()...", threadJoin(sapp2_worker_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp2_worker_thread, DEF_THREAD_WAIT_TIME), result, result);
 
 	Util_str_add(&sapp2_status, "\nCleaning up...");
 	threadFree(sapp2_worker_thread);
@@ -362,13 +363,13 @@ static void Sapp2_exit_thread(void* arg)
 
 	sapp2_already_init = false;
 
-	Util_log_save(DEF_SAPP2_EXIT_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 
 static void Sapp2_worker_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
 	Result_with_string result;
 
 	while (sapp2_thread_run)
@@ -386,7 +387,7 @@ static void Sapp2_worker_thread(void* arg)
 		}
 
 		//Got a command.
-		Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Received event : " + std::to_string(event_id));
+		DEF_LOG_FORMAT("Received event : %" PRIu32, event_id);
 
 		switch ((Sapp2_command)event_id)
 		{
@@ -394,8 +395,7 @@ static void Sapp2_worker_thread(void* arg)
 			{
 				aptSetSleepAllowed(true);
 
-				result = Util_cset_sleep_system(WAKE_UP_EVENT_OPEN_SHELL);
-				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_sleep_system()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT_SMART(result, Util_cset_sleep_system(WAKE_UP_EVENT_OPEN_SHELL), (result.code == DEF_SUCCESS), result.code);
 
 				break;
 			}
@@ -403,8 +403,7 @@ static void Sapp2_worker_thread(void* arg)
 			{
 				aptSetSleepAllowed(true);
 
-				result = Util_cset_sleep_system(WAKE_UP_EVENT_PRESS_HOME_BUTTON);
-				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_sleep_system()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT_SMART(result, Util_cset_sleep_system(WAKE_UP_EVENT_PRESS_HOME_BUTTON), (result.code == DEF_SUCCESS), result.code);
 
 				break;
 			}
@@ -412,15 +411,14 @@ static void Sapp2_worker_thread(void* arg)
 			{
 				aptSetSleepAllowed(true);
 
-				result = Util_cset_sleep_system((Wake_up_event)(WAKE_UP_EVENT_OPEN_SHELL | WAKE_UP_EVENT_PRESS_HOME_BUTTON));
-				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_sleep_system()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT_SMART(result, Util_cset_sleep_system((Wake_up_event)(WAKE_UP_EVENT_OPEN_SHELL | WAKE_UP_EVENT_PRESS_HOME_BUTTON)),
+				(result.code == DEF_SUCCESS), result.code);
 
 				break;
 			}
 			case CHANGE_WIFI_STATE_REQUEST:
 			{
-				result = Util_cset_set_wifi_state(!var_wifi_enabled);
-				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_wifi_state()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT_SMART(result, Util_cset_set_wifi_state(!var_wifi_enabled), (result.code == DEF_SUCCESS), result.code);
 				if(result.code == 0)
 					var_wifi_enabled = !var_wifi_enabled;
 
@@ -435,14 +433,17 @@ static void Sapp2_worker_thread(void* arg)
 				if(brightness + 1 <= 180)
 					brightness++;
 
-				result = Util_cset_set_screen_brightness(true, false, brightness);
-				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_brightness(true, false, brightness), (result.code == DEF_SUCCESS), result.code);
 				if(result.code == 0)
 					var_top_lcd_brightness = brightness;
 				*/
 
 				if(var_top_lcd_brightness + 1 <= 180)
+				{
 					var_top_lcd_brightness++;
+					//Update brightness value on the screen.
+					var_need_reflesh = true;
+				}
 
 				break;
 			}
@@ -455,14 +456,17 @@ static void Sapp2_worker_thread(void* arg)
 				if(brightness - 1 >= 0)
 					brightness--;
 
-				result = Util_cset_set_screen_brightness(true, false, brightness);
-				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_brightness(true, false, brightness), (result.code == DEF_SUCCESS), result.code);
 				if(result.code == 0)
 					var_top_lcd_brightness = brightness;
 				*/
 
 				if(var_top_lcd_brightness - 1 >= 0)
+				{
 					var_top_lcd_brightness--;
+					//Update brightness value on the screen.
+					var_need_reflesh = true;
+				}
 
 				break;
 			}
@@ -475,14 +479,17 @@ static void Sapp2_worker_thread(void* arg)
 				if(brightness + 1 <= 180)
 					brightness++;
 
-				result = Util_cset_set_screen_brightness(true, false, brightness);
-				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_brightness(false, true, brightness), (result.code == DEF_SUCCESS), result.code);
 				if(result.code == 0)
 					var_bottom_lcd_brightness = brightness;
 				*/
 
 				if(var_bottom_lcd_brightness + 1 <= 180)
+				{
 					var_bottom_lcd_brightness++;
+					//Update brightness value on the screen.
+					var_need_reflesh = true;
+				}
 
 				break;
 			}
@@ -495,14 +502,17 @@ static void Sapp2_worker_thread(void* arg)
 				if(brightness - 1 >= 0)
 					brightness--;
 
-				result = Util_cset_set_screen_brightness(true, false, brightness);
-				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_brightness(false, true, brightness), (result.code == DEF_SUCCESS), result.code);
 				if(result.code == 0)
 					var_bottom_lcd_brightness = brightness;
 				*/
 
 				if(var_bottom_lcd_brightness - 1 >= 0)
+				{
 					var_bottom_lcd_brightness--;
+					//Update brightness value on the screen.
+					var_need_reflesh = true;
+				}
 
 				break;
 			}
@@ -511,15 +521,13 @@ static void Sapp2_worker_thread(void* arg)
 				//This isn't necessary because screen state will be changed automatically
 				//in Menu_worker_thread() if you change the value of var_turn_on_top_lcd.
 				/*
-				result = Util_cset_set_screen_state(true, false, false);
-				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_state(true, false, false), (result.code == DEF_SUCCESS), result.code);
 				if(result.code == 0)
 					var_turn_on_top_lcd = false;
 
 				Util_sleep(5000000);
 
-				result = Util_cset_set_screen_state(true, false, true);
-				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_state(true, false, true), (result.code == DEF_SUCCESS), result.code);
 				if(result.code == 0)
 					var_turn_on_top_lcd = true;
 				*/
@@ -535,15 +543,13 @@ static void Sapp2_worker_thread(void* arg)
 				//This isn't necessary because screen state will be changed automatically
 				//in Menu_worker_thread() if you change the value of var_turn_on_bottom_lcd.
 				/*
-				result = Util_cset_set_screen_state(false, true, false);
-				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_state(false, true, false), (result.code == DEF_SUCCESS), result.code);
 				if(result.code == 0)
 					var_turn_on_bottom_lcd = false;
 
 				Util_sleep(5000000);
 
-				result = Util_cset_set_screen_state(false, true, true);
-				Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_state(false, true, true), (result.code == DEF_SUCCESS), result.code);
 				if(result.code == 0)
 					var_turn_on_bottom_lcd = true;
 				*/
@@ -559,6 +565,6 @@ static void Sapp2_worker_thread(void* arg)
 		}
 	}
 
-	Util_log_save(DEF_SAPP2_WORKER_THREAD_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }

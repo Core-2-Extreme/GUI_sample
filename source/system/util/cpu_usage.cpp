@@ -102,12 +102,13 @@ void Util_cpu_usage_counter_thread(void* arg)
 
 	if(!arg || *(u8*)arg > 3)
 	{
-		Util_log_save(DEF_CPU_COUNTER_THREAD_STR, "Invalid arg!!!!!");
+		DEF_LOG_STRING("Invalid arg!!!!!");
+		DEF_LOG_STRING("Thread exit.");
 		threadExit(0);
 	}
 
 	core_id = *(u8*)arg;
-	Util_log_save(DEF_CPU_COUNTER_THREAD_STR + "#" + std::to_string(core_id), "Thread started.");
+	DEF_LOG_FORMAT("#%" PRIu8 " thread started.", core_id);
 
 	//This thread will run at the lowest priority.
 	while(util_cpu_usage_monitor_init)
@@ -124,13 +125,13 @@ void Util_cpu_usage_counter_thread(void* arg)
 		}
 	}
 
-	Util_log_save(DEF_CPU_COUNTER_THREAD_STR + "#" + std::to_string(core_id), "Thread exit.");
+	DEF_LOG_FORMAT("#%" PRIu8 " thread exit.", core_id);
 	threadExit(0);
 }
 
 void Util_cpu_usage_calculate_thread(void* arg)
 {
-	Util_log_save(DEF_CPU_CALCULATE_THREAD_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
 
 	u8 div = 0;
 	float total_cpu_usage = 0;
@@ -183,7 +184,7 @@ void Util_cpu_usage_calculate_thread(void* arg)
 	svcCancelTimer(timer_handle);
 	svcCloseHandle(timer_handle);
 
-	Util_log_save(DEF_CPU_CALCULATE_THREAD_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 

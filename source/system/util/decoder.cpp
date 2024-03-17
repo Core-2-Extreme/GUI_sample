@@ -355,20 +355,10 @@ u8 util_audio_decoder_sample_format_size_table[] =
 
 // void Util_video_decoder_log_callback(void *avcl, int level, const char *fmt, va_list list)
 // {
-// 	if(level > AV_LOG_ERROR)
+// 	if(level > AV_LOG_TRACE)
 // 		return;
 
-// 	char* buf = (char*)malloc(1024);
-
-// 	if(!buf)
-// 		return;
-
-// 	vsnprintf(buf, 1024, fmt, list);
-
-// 	Util_log_save("ffmpeg", buf);
-
-// 	free(buf);
-// 	buf = NULL;
+// 	DEF_LOG_VFORMAT(fmt, list);
 // }
 
 void Util_video_decoder_free(void *opaque, uint8_t *data)
@@ -2039,7 +2029,7 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 		source_offset += 4;
 		if(source_offset + size > util_video_decoder_packet[session][0]->size || size < 0)
 		{
-			// Util_log_save("debug", "unexpected nal size : " + std::to_string(size));
+			// DEF_LOG_FORMAT("unexpected nal size : %" PRId32, size);
 			goto ffmpeg_api_failed;
 		}
 
@@ -2062,13 +2052,13 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 	*(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + ((width * height * 2) - (width * 2))) = 0x11;
 	*(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * height * 2 - 1)) = 0x11;
 
-	// Util_log_save("debug", "-------------------------------");
+	// DEF_LOG_STRING("-------------------------------");
 
 	MVDSTD_SetConfig(&util_decoder_mvd_config);
 
 	if(!util_mvd_video_decoder_should_skip_process_nal_unit)
 	{
-		// Util_log_save("debug", "util_mvd_video_decoder_should_skip_process_nal_unit is not set, so call mvdstdProcessVideoFrame()");
+		// DEF_LOG_STRING("util_mvd_video_decoder_should_skip_process_nal_unit is not set, so call mvdstdProcessVideoFrame()");
 		result.code = mvdstdProcessVideoFrame(util_mvd_video_decoder_packet, offset, 0, NULL);
 
 		//Save pts
@@ -2092,13 +2082,13 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 		|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + ((width * height * 2) - (width * 2))) != 0x11
 		|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * height * 2 - 1)) != 0x11)
 		{
-			// Util_log_save("debug", "got a frame after mvdstdProcessVideoFrame()");
+			// DEF_LOG_STRING("got a frame after mvdstdProcessVideoFrame()");
 			got_a_frame = true;
 			util_mvd_video_decoder_should_skip_process_nal_unit = true;
 			got_a_frame_after_processing_nal_unit = true;
 		}
 		// else
-		// 	Util_log_save("debug", "no frames after mvdstdProcessVideoFrame()");
+		// 	DEF_LOG_STRING("no frames after mvdstdProcessVideoFrame()");
 
 		if(result.code != MVD_STATUS_FRAMEREADY && result.code != MVD_STATUS_PARAMSET)
 		{
@@ -2107,11 +2097,11 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 		}
 	}
 	// else
-	// 	Util_log_save("debug", "util_mvd_video_decoder_should_skip_process_nal_unit is set, so skip mvdstdProcessVideoFrame()");
+	// 	DEF_LOG_STRING("util_mvd_video_decoder_should_skip_process_nal_unit is set, so skip mvdstdProcessVideoFrame()");
 
 	if(!got_a_frame)
 	{
-		// Util_log_save("debug", "got_a_frame is not set, so call mvdstdRenderVideoFrame()");
+		// DEF_LOG_STRING("got_a_frame is not set, so call mvdstdRenderVideoFrame()");
 		while(true)
 		{
 			//You need to use a custom libctru to use NULL here. https://github.com/Core-2-Extreme/libctru/tree/master
@@ -2123,17 +2113,17 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 			|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + ((width * height * 2) - (width * 2))) != 0x11
 			|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * height * 2 - 1)) != 0x11)
 			{
-				// Util_log_save("debug", "got a frame after mvdstdRenderVideoFrame()");
+				// DEF_LOG_STRING("got a frame after mvdstdRenderVideoFrame()");
 				result.code = MVD_STATUS_OK;
 				got_a_frame = true;
 			}
 			// else
-			// 	Util_log_save("debug", "no frames after mvdstdRenderVideoFrame()");
+			// 	DEF_LOG_STRING("no frames after mvdstdRenderVideoFrame()");
 
 			if(result.code != MVD_STATUS_BUSY || got_a_frame)
 				break;
 			// else
-			// 	Util_log_save("debug", "mvdstdRenderVideoFrame() returned MVD_STATUS_BUSY, so try again");
+			// 	DEF_LOG_STRING("mvdstdRenderVideoFrame() returned MVD_STATUS_BUSY, so try again");
 		}
 
 		if(result.code != MVD_STATUS_OK)
@@ -2143,17 +2133,17 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 		}
 	}
 	// else
-	// 	Util_log_save("debug", "got_a_frame is set, so skip mvdstdRenderVideoFrame()");
+	// 	DEF_LOG_STRING("got_a_frame is set, so skip mvdstdRenderVideoFrame()");
 
 	if(!got_a_frame && util_mvd_video_decoder_should_skip_process_nal_unit)
 	{
-		// Util_log_save("debug", "util_mvd_video_decoder_should_skip_process_nal_unit is set, and got no frames");
+		// DEF_LOG_STRING("util_mvd_video_decoder_should_skip_process_nal_unit is set, and got no frames");
 		util_mvd_video_decoder_should_skip_process_nal_unit = false;
 		goto try_again_no_output;
 	}
 	else if(!got_a_frame)
 	{
-		// Util_log_save("debug", "Got no frames");
+		// DEF_LOG_STRING("Got no frames");
 		goto need_more_packet;
 	}
 
@@ -2178,7 +2168,7 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 
 	if(util_mvd_video_decoder_should_skip_process_nal_unit && !got_a_frame_after_processing_nal_unit)
 	{
-		// Util_log_save("debug", "util_mvd_video_decoder_should_skip_process_nal_unit is set, and got a frame");
+		// DEF_LOG_STRING("util_mvd_video_decoder_should_skip_process_nal_unit is set, and got a frame");
 		goto try_again_with_output;
 	}
 

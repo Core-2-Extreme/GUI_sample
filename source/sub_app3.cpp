@@ -105,9 +105,9 @@ void Sapp3_hid(Hid_info key)
 		Util_err_main(key);
 	else
 	{
+		uint32_t result = DEF_ERR_OTHER;
 		Sapp3_camera_command camera_command = CAM_NONE;
 		Sapp3_mic_command mic_command = MIC_NONE;
-		Result_with_string result;
 
 		if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
 			Draw_get_bot_ui_button()->selected = true;
@@ -139,13 +139,13 @@ void Sapp3_hid(Hid_info key)
 
 		if(camera_command != CAM_NONE)
 		{
-			result.code = Util_queue_add(&sapp3_camera_command_queue, camera_command, NULL, 10000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST);
-			Util_log_save(DEF_SAPP3_HID_CALLBACK_STR, "Util_queue_add()..." + result.string + result.error_description, result.code);
+			DEF_LOG_RESULT_SMART(result, Util_queue_add(&sapp3_camera_command_queue, camera_command, NULL, 10000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST),
+			(result == DEF_SUCCESS), result);
 		}
 		if(mic_command != MIC_NONE)
 		{
-			result.code = Util_queue_add(&sapp3_mic_command_queue, mic_command, NULL, 10000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST);
-			Util_log_save(DEF_SAPP3_HID_CALLBACK_STR, "Util_queue_add()..." + result.string + result.error_description, result.code);
+			DEF_LOG_RESULT_SMART(result, Util_queue_add(&sapp3_mic_command_queue, mic_command, NULL, 10000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST),
+			(result == DEF_SUCCESS), result);
 		}
 	}
 
@@ -179,11 +179,10 @@ Result_with_string Sapp3_load_msg(std::string lang)
 
 void Sapp3_init(bool draw)
 {
-	Util_log_save(DEF_SAPP3_INIT_STR, "Initializing...");
-	Result_with_string result;
+	DEF_LOG_STRING("Initializing...");
+	uint32_t result = DEF_ERR_OTHER;
 
-	result.code = Util_str_init(&sapp3_status);
-	Util_log_save(DEF_SAPP3_INIT_STR, "Util_str_init()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp3_status), (result == DEF_SUCCESS), result);
 
 	Util_add_watch(WATCH_HANDLE_SUB_APP3, &sapp3_status.sequencial_id, sizeof(sapp3_status.sequencial_id));
 
@@ -206,18 +205,19 @@ void Sapp3_init(bool draw)
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
-	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_init_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp3_init_thread, DEF_THREAD_WAIT_TIME), result, result);
 	threadFree(sapp3_init_thread);
 
 	Util_str_clear(&sapp3_status);
 	Sapp3_resume();
 
-	Util_log_save(DEF_SAPP3_INIT_STR, "Initialized.");
+	DEF_LOG_STRING("Initialized.");
 }
 
 void Sapp3_exit(bool draw)
 {
-	Util_log_save(DEF_SAPP3_EXIT_STR, "Exiting...");
+	DEF_LOG_STRING("Exiting...");
+	uint32_t result = DEF_ERR_OTHER;
 
 	sapp3_exit_thread = threadCreate(Sapp3_exit_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
@@ -229,14 +229,14 @@ void Sapp3_exit(bool draw)
 			Util_sleep(20000);
 	}
 
-	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_exit_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp3_exit_thread, DEF_THREAD_WAIT_TIME), result, result);
 	threadFree(sapp3_exit_thread);
 
 	Util_remove_watch(WATCH_HANDLE_SUB_APP3, &sapp3_status.sequencial_id);
 	Util_str_free(&sapp3_status);
 	var_need_reflesh = true;
 
-	Util_log_save(DEF_SAPP3_EXIT_STR, "Exited.");
+	DEF_LOG_STRING("Exited.");
 }
 
 void Sapp3_main(void)
@@ -392,7 +392,7 @@ static void Sapp3_draw_init_exit_message(void)
 
 static void Sapp3_init_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP3_INIT_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
 	Result_with_string result;
 
 	Util_str_set(&sapp3_status, "Initializing variables...");
@@ -400,10 +400,8 @@ static void Sapp3_init_thread(void* arg)
 	sapp3_camera_state = CAM_IDLE;
 	sapp3_mic_state = MIC_IDLE;
 
-	result.code = Util_str_init(&sapp3_camera_saved_file_path);
-	Util_log_save(DEF_SAPP3_INIT_STR, "Util_str_init()..." + result.string + result.error_description, result.code);
-	result.code = Util_str_init(&sapp3_mic_saved_file);
-	Util_log_save(DEF_SAPP3_INIT_STR, "Util_str_init()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result.code, Util_str_init(&sapp3_camera_saved_file_path), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Util_str_init(&sapp3_mic_saved_file), (result.code == DEF_SUCCESS), result.code);
 
 	//Add to watch to detect value changes, screen will be rerenderd when value is changed.
 	Util_add_watch(WATCH_HANDLE_SUB_APP3, &sapp3_camera_state, sizeof(sapp3_camera_state));
@@ -411,33 +409,25 @@ static void Sapp3_init_thread(void* arg)
 
 	Util_str_add(&sapp3_status, "\nInitializing queue...");
 	//Create the queues for commands.
-	result.code = Util_queue_create(&sapp3_camera_command_queue, 10);
-	Util_log_save(DEF_SAPP3_INIT_STR, "Util_queue_create()..." + result.string + result.error_description, result.code);
-
-	result.code = Util_queue_create(&sapp3_mic_command_queue, 10);
-	Util_log_save(DEF_SAPP3_INIT_STR, "Util_queue_create()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result.code, Util_queue_create(&sapp3_camera_command_queue, 10), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Util_queue_create(&sapp3_mic_command_queue, 10), (result.code == DEF_SUCCESS), result.code);
 
 	Util_str_add(&sapp3_status, "\nInitializing mic...");
 	//Init mic with 500KB buffer.
-	result = Util_mic_init(1000 * 500);
-	Util_log_save(DEF_SAPP3_INIT_STR, "Util_mic_init()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result, Util_mic_init(1000 * 500), (result.code == DEF_SUCCESS), result.code);
 
 	Util_str_add(&sapp3_status, "\nInitializing camera...");
 	//1. Init camera.
-	result = Util_cam_init(PIXEL_FORMAT_RGB565LE);
-	Util_log_save(DEF_SAPP3_INIT_STR, "Util_cam_init()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result, Util_cam_init(PIXEL_FORMAT_RGB565LE), (result.code == DEF_SUCCESS), result.code);
 
 	//2. Set resolution.
-	result = Util_cam_set_resolution(CAM_RES_400x240);
-	Util_log_save(DEF_SAPP3_INIT_STR, "Util_cam_set_resolution()..." + result.string + result.error_description, result.code);
+	DEF_LOG_RESULT_SMART(result, Util_cam_set_resolution(CAM_RES_400x240), (result.code == DEF_SUCCESS), result.code);
 
 	//3. Set framerate. Use 30fps for new 3ds, 20fps for old 3ds.
 	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
-		result = Util_cam_set_fps(CAM_FPS_30);
+		DEF_LOG_RESULT_SMART(result, Util_cam_set_fps(CAM_FPS_30), (result.code == DEF_SUCCESS), result.code)
 	else
-		result = Util_cam_set_fps(CAM_FPS_20);
-
-	Util_log_save(DEF_SAPP3_INIT_STR, "Util_cam_set_fps()..." + result.string + result.error_description, result.code);
+		DEF_LOG_RESULT_SMART(result, Util_cam_set_fps(CAM_FPS_20), (result.code == DEF_SUCCESS), result.code);
 
 	//4. Optionally, you can set these parameters.
 	// Util_cam_set_camera(CAM_PORT_OUT_RIGHT);
@@ -449,10 +439,7 @@ static void Sapp3_init_thread(void* arg)
 
 	//5. Init 512x256 tectures (double buffering to prevent glitch).
 	for(int i = 0; i < 2; i++)
-	{
-		result = Draw_texture_init(&sapp3_camera_image[i], 512, 256, PIXEL_FORMAT_RGB565LE);
-		Util_log_save(DEF_SAPP3_INIT_STR, "Draw_texture_init()..." + result.string + result.error_description, result.code);
-	}
+		DEF_LOG_RESULT_SMART(result, Draw_texture_init(&sapp3_camera_image[i], 512, 256, PIXEL_FORMAT_RGB565LE);, (result.code == DEF_SUCCESS), result.code);
 
 	Util_str_add(&sapp3_status, "\nStarting threads...");
 	sapp3_thread_run = true;
@@ -465,20 +452,21 @@ static void Sapp3_init_thread(void* arg)
 
 	sapp3_already_init = true;
 
-	Util_log_save(DEF_SAPP3_INIT_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 
 static void Sapp3_exit_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP3_EXIT_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
+	uint32_t result = DEF_ERR_OTHER;
 
 	sapp3_thread_suspend = false;
 	sapp3_thread_run = false;
 
 	Util_str_set(&sapp3_status, "Exiting threads...");
-	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_camera_thread, DEF_THREAD_WAIT_TIME));
-	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_mic_thread, DEF_THREAD_WAIT_TIME));
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp3_camera_thread, DEF_THREAD_WAIT_TIME), result, result);
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp3_mic_thread, DEF_THREAD_WAIT_TIME), result, result);
 
 	Util_str_add(&sapp3_status, "\nCleaning up...");
 	threadFree(sapp3_camera_thread);
@@ -508,13 +496,13 @@ static void Sapp3_exit_thread(void* arg)
 
 	sapp3_already_init = false;
 
-	Util_log_save(DEF_SAPP3_EXIT_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 
 static void Sapp3_camera_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP3_CAMERA_THREAD_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
 	u8 dummy = 0;
 	Result_with_string result;
 
@@ -532,7 +520,7 @@ static void Sapp3_camera_thread(void* arg)
 		if(result.code == 0)
 		{
 			//Got a command.
-			Util_log_save(DEF_SAPP3_CAMERA_THREAD_STR, "Received event : " + std::to_string(event_id));
+			DEF_LOG_FORMAT("Received event : %" PRIu32, event_id);
 
 			switch ((Sapp3_camera_command)event_id)
 			{
@@ -602,8 +590,7 @@ static void Sapp3_camera_thread(void* arg)
 						parameters.in_color_format = PIXEL_FORMAT_RGB565LE;
 						parameters.out_color_format = PIXEL_FORMAT_RGB888;
 
-						result = Util_converter_convert_color(&parameters);
-						Util_log_save(DEF_SAPP3_CAMERA_THREAD_STR, "Util_converter_convert_color()..." + result.string + result.error_description, result.code);
+						DEF_LOG_RESULT_SMART(result, Util_converter_convert_color(&parameters), (result.code == DEF_SUCCESS), result.code);
 
 						if(result.code == 0)
 						{
@@ -612,8 +599,8 @@ static void Sapp3_camera_thread(void* arg)
 							var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
 
 							//6. Save the picture as png.
-							result = Util_image_encoder_encode(path, parameters.converted, parameters.out_width, parameters.out_height, IMAGE_CODEC_PNG, 0);
-							Util_log_save(DEF_SAPP3_CAMERA_THREAD_STR, "Util_image_encoder_encode()..." + result.string + result.error_description, result.code);
+							DEF_LOG_RESULT_SMART(result, Util_image_encoder_encode(path, parameters.converted, parameters.out_width, parameters.out_height, IMAGE_CODEC_PNG, 0),
+							(result.code == DEF_SUCCESS), result.code);
 
 							if(result.code == 0)
 								Util_str_set(&sapp3_camera_saved_file_path, path);
@@ -626,11 +613,11 @@ static void Sapp3_camera_thread(void* arg)
 					}
 				}
 				else
-					Util_log_save(DEF_SAPP3_CAMERA_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
+					DEF_LOG_RESULT(Draw_set_texture_data, false, result.code);
 			}
 			else
 			{
-				Util_log_save(DEF_SAPP3_CAMERA_THREAD_STR, "Util_cam_take_a_picture()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT(Util_cam_take_a_picture, false, result.code);
 				Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
 			}
 
@@ -642,13 +629,13 @@ static void Sapp3_camera_thread(void* arg)
 			Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
 	}
 
-	Util_log_save(DEF_SAPP3_CAMERA_THREAD_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 
 static void Sapp3_mic_thread(void* arg)
 {
-	Util_log_save(DEF_SAPP3_MIC_THREAD_STR, "Thread started.");
+	DEF_LOG_STRING("Thread started.");
 	u8 dummy = 0;
 	Result_with_string result;
 
@@ -666,7 +653,7 @@ static void Sapp3_mic_thread(void* arg)
 		if(result.code == 0)
 		{
 			//Got a command.
-			Util_log_save(DEF_SAPP3_MIC_THREAD_STR, "Received event : " + std::to_string(event_id));
+			DEF_LOG_FORMAT("Received event : %" PRIu32, event_id);
 
 			switch ((Sapp3_mic_command)event_id)
 			{
@@ -677,36 +664,32 @@ static void Sapp3_mic_thread(void* arg)
 					var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
 
 					//1. Create an output file.
-					result = Util_encoder_create_output_file(path, 0);
-					Util_log_save(DEF_SAPP3_MIC_THREAD_STR, "Util_encoder_create_output_file()..." + result.string + result.error_description, result.code);
+					DEF_LOG_RESULT_SMART(result, Util_encoder_create_output_file(path, 0), (result.code == DEF_SUCCESS), result.code);
 
 					//2. Init encoder.
 					if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
 					{
 						//For new 3ds, codec : mp3, sample rate : 32KHz, bit rate : 128kbps.
-						result = Util_audio_encoder_init(AUDIO_CODEC_MP3, 32728, 32000, 128000, 0);
-						Util_log_save(DEF_SAPP3_MIC_THREAD_STR, "Util_audio_encoder_init()..." + result.string + result.error_description, result.code);
+						DEF_LOG_RESULT_SMART(result, Util_audio_encoder_init(AUDIO_CODEC_MP3, 32728, 32000, 128000, 0),
+						(result.code == DEF_SUCCESS), result.code);
 					}
 					else
 					{
 						//For old 3ds, codec : mp3, sample rate : 16KHz, bit rate : 96kbps.
-						result = Util_audio_encoder_init(AUDIO_CODEC_MP3, 16384, 16000, 96000, 0);
-						Util_log_save(DEF_SAPP3_MIC_THREAD_STR, "Util_audio_encoder_init()..." + result.string + result.error_description, result.code);
+						DEF_LOG_RESULT_SMART(result, Util_audio_encoder_init(AUDIO_CODEC_MP3, 16384, 16000, 96000, 0),
+						(result.code == DEF_SUCCESS), result.code);
 					}
 
 					//3. Write a header, if needed.
-					result = Util_encoder_write_header(0);
-					Util_log_save(DEF_SAPP3_MIC_THREAD_STR, "Util_encoder_write_header()..." + result.string + result.error_description, result.code);
-
+					DEF_LOG_RESULT_SMART(result, Util_encoder_write_header(0), (result.code == DEF_SUCCESS), result.code);
 					if(result.code == 0)
 					{
 						//4. Start a recording, for new 3ds use 32728Hz, for old 3ds use 16364Hz.
 						if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
-							result = Util_mic_start_recording(MIC_SAMPLE_RATE_32728HZ);
+							DEF_LOG_RESULT_SMART(result, Util_mic_start_recording(MIC_SAMPLE_RATE_32728HZ), (result.code == DEF_SUCCESS), result.code)
 						else
-							result = Util_mic_start_recording(MIC_SAMPLE_RATE_16364HZ);
+							DEF_LOG_RESULT_SMART(result, Util_mic_start_recording(MIC_SAMPLE_RATE_16364HZ), (result.code == DEF_SUCCESS), result.code);
 
-						Util_log_save(DEF_SAPP3_MIC_THREAD_STR, "Util_mic_start_recording()..." + result.string + result.error_description, result.code);
 						if(result.code == 0)
 						{
 							sapp3_mic_state = MIC_RECORDING;
@@ -751,13 +734,9 @@ static void Sapp3_mic_thread(void* arg)
 				u8* audio = NULL;
 				int size = 0;
 
-				result = Util_mic_get_audio_data(&audio, &size);
-				Util_log_save(DEF_SAPP3_MIC_THREAD_STR, "Util_mic_get_audio_data()..." + result.string + result.error_description, result.code);
+				DEF_LOG_RESULT_SMART(result, Util_mic_get_audio_data(&audio, &size), (result.code == DEF_SUCCESS), result.code);
 				if(result.code == 0)
-				{
-					result = Util_audio_encoder_encode(size, audio, 0);
-					Util_log_save(DEF_SAPP3_MIC_THREAD_STR, "Util_audio_encoder_encode()..." + result.string + result.error_description, result.code);
-				}
+					DEF_LOG_RESULT_SMART(result, Util_audio_encoder_encode(size, audio, 0), (result.code == DEF_SUCCESS), result.code);
 
 				free(audio);
 				audio = NULL;
@@ -776,6 +755,6 @@ static void Sapp3_mic_thread(void* arg)
 
 	Util_encoder_close_output_file(0);
 
-	Util_log_save(DEF_SAPP3_MIC_THREAD_STR, "Thread exit.");
+	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }

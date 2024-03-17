@@ -423,7 +423,6 @@ static void Util_expl_read_dir_callback(void)
 	{
 		if (util_expl_read_dir_request)
 		{
-			int log_num;
 			int num_of_dir = 0;
 			int num_of_file = 0;
 			int num_of_unknown = 0;
@@ -446,9 +445,7 @@ static void Util_expl_read_dir_callback(void)
 			}
 			index = 0;
 
-			log_num = Util_log_save(DEF_EXPL_READ_DIR_CALLBACK_STR, "Util_file_read_dir()...");
-			result = Util_file_read_dir(util_expl_current_dir, &util_expl_num_of_file, util_expl_files, util_expl_type, DEF_EXPL_MAX_FILES);
-			Util_log_add(log_num, result.string + result.error_description, result.code);
+			DEF_LOG_RESULT_SMART(result, Util_file_read_dir(util_expl_current_dir, &util_expl_num_of_file, util_expl_files, util_expl_type, DEF_EXPL_MAX_FILES), (result.code == DEF_SUCCESS), result.code);
 
 			if (result.code == 0)
 			{
@@ -581,7 +578,7 @@ static void Util_expl_read_dir_callback(void)
 						var_need_reflesh = true;
 					}
 					else
-						Util_log_save(DEF_EXPL_READ_DIR_CALLBACK_STR, "Util_file_check_file_size()..." + result.string + result.error_description, result.code);
+						DEF_LOG_RESULT(Util_file_check_file_size, (result.code == DEF_SUCCESS), result.code);
 
 					util_expl_check_file_size_index++;
 					//Don't check all files once as it locks worker thread too long.
