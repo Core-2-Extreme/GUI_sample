@@ -64,7 +64,7 @@ Result_with_string Util_encoder_write_header(int session);
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session);
+Result_with_string Util_audio_encoder_encode(int size, uint8_t* raw_data, int session);
 
 /**
  * @brief Encode a image.
@@ -74,7 +74,7 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_video_encoder_encode(u8* raw_image, int session);
+Result_with_string Util_video_encoder_encode(uint8_t* raw_image, int session);
 
 /**
  * @brief Uninitialize encoders and close the output file.
@@ -110,7 +110,7 @@ void Util_encoder_close_output_file(int session);
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_image_encoder_encode(std::string file_path, u8* raw_data, int width, int height, Image_codec codec, int quality);
+Result_with_string Util_image_encoder_encode(std::string file_path, uint8_t* raw_data, int width, int height, Image_codec codec, int quality);
 
 #else
 

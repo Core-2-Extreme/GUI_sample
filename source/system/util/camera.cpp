@@ -9,7 +9,7 @@
 #include "system/util/camera.hpp"
 
 bool util_cam_init = false;
-u32 util_cam_buffer_size = 0;
+uint32_t util_cam_buffer_size = 0;
 int util_cam_width = 640;
 int util_cam_height = 480;
 Camera_resolution util_cam_resolution = CAM_RES_640x480;
@@ -156,7 +156,7 @@ Result_with_string Util_cam_init(Pixel_format color_format)
 	return result;
 }
 
-Result_with_string Util_cam_take_a_picture(u8** raw_data, int* width, int* height, bool shutter_sound)
+Result_with_string Util_cam_take_a_picture(uint8_t** raw_data, int* width, int* height, bool shutter_sound)
 {
 	Result_with_string result;
 	Handle receive = 0;
@@ -167,7 +167,7 @@ Result_with_string Util_cam_take_a_picture(u8** raw_data, int* width, int* heigh
 		goto invalid_arg;
 
 	Util_safe_linear_free(*raw_data);
-	*raw_data = (u8*)Util_safe_linear_alloc(util_cam_width * util_cam_height * 2);
+	*raw_data = (uint8_t*)Util_safe_linear_alloc(util_cam_width * util_cam_height * 2);
 	if(*raw_data == NULL)
 		goto out_of_memory;
 
@@ -178,7 +178,7 @@ Result_with_string Util_cam_take_a_picture(u8** raw_data, int* width, int* heigh
 		goto nintendo_api_failed;
 	}
 
-	result.code = CAMU_SetReceiving(&receive, *raw_data, util_cam_port == CAM_PORT_OUT_LEFT ? PORT_CAM2 : PORT_CAM1, util_cam_width * util_cam_height * 2, (s16)util_cam_buffer_size);
+	result.code = CAMU_SetReceiving(&receive, *raw_data, util_cam_port == CAM_PORT_OUT_LEFT ? PORT_CAM2 : PORT_CAM1, util_cam_width * util_cam_height * 2, (int16_t)util_cam_buffer_size);
 	if(result.code != 0)
 	{
 		result.error_description = "[Error] CAMU_SetReceiving() failed. ";
@@ -231,8 +231,8 @@ Result_with_string Util_cam_take_a_picture(u8** raw_data, int* width, int* heigh
 
 Result_with_string Util_cam_set_resolution(Camera_resolution resolution_mode)
 {
-	s16 width = 0;
-	s16 height = 0;
+	int16_t width = 0;
+	int16_t height = 0;
 	CAMU_Size size;
 	Result_with_string result;
 	if(!util_cam_init)
@@ -591,7 +591,7 @@ Result_with_string Util_cam_set_exposure(Camera_exposure exposure_mode)
 	if(exposure_mode <= CAM_EXPOSURE_INVALID || exposure_mode >= CAM_EXPOSURE_MAX)
 		goto invalid_arg;
 
-	result.code = CAMU_SetExposure(SELECT_ALL, (s8)exposure_mode);
+	result.code = CAMU_SetExposure(SELECT_ALL, (int8_t)exposure_mode);
 	if (result.code != 0)
 	{
 		result.error_description = "[Error] CAMU_SetExposure() failed. ";

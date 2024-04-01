@@ -374,7 +374,7 @@ static void Sapp2_worker_thread(void* arg)
 
 	while (sapp2_thread_run)
 	{
-		u32 event_id = 0;
+		uint32_t event_id = 0;
 
 		while (sapp2_thread_suspend)
 			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);

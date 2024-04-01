@@ -62,8 +62,8 @@ bool sem_reload_msg_request = false;
 bool sem_change_brightness_request = false;
 bool sem_scroll_mode = false;
 bool sem_dump_log_request = false;
-u8 sem_fake_model_num = 255;
-int sem_selected_menu_mode = DEF_SEM_MENU_TOP;
+int8_t sem_selected_menu_mode = DEF_SEM_MENU_TOP;
+uint8_t sem_fake_model_num = 255;
 double sem_y_offset = 0.0;
 double sem_y_max = 0.0;
 double sem_touch_x_move_left = 0.0;
@@ -90,18 +90,17 @@ bool sem_new_version_available = false;
 bool sem_show_patch_note_request = false;
 bool sem_select_ver_request = false;
 bool sem_dl_file_request = false;
-int sem_update_progress = -1;
-int sem_check_update_progress = 0;
-int sem_selected_edition_num = DEF_SEM_EDTION_NONE;
-int sem_installed_size = 0;
-int sem_total_cia_size = 0;
+int8_t sem_update_progress = -1;
+int8_t sem_selected_edition_num = DEF_SEM_EDTION_NONE;
+uint32_t sem_installed_size = 0;
+uint32_t sem_total_cia_size = 0;
 Thread sem_update_thread;
 Image_data sem_check_update_button, sem_select_edtion_button, sem_close_updater_button, sem_3dsx_button,
 sem_cia_button, sem_dl_install_button, sem_back_to_patch_note_button, sem_close_app_button;
 #if DEF_ENABLE_CURL_API
 int sem_dled_size = 0;
 #else
-u32 sem_dled_size = 0;
+uint32_t sem_dled_size = 0;
 #endif
 
 #endif
@@ -119,10 +118,10 @@ bool sem_record_request = false;
 bool sem_encode_request = false;
 bool sem_wait_request = false;
 bool sem_stop_record_request = false;
-int sem_selected_recording_mode = 0;
-u8* sem_yuv420p = NULL;
-int sem_rec_width = 400;
-int sem_rec_height = 480;
+uint8_t sem_selected_recording_mode = 0;
+uint8_t* sem_yuv420p = NULL;
+uint16_t sem_rec_width = 400;
+uint16_t sem_rec_height = 480;
 Thread sem_record_thread, sem_encode_thread;
 
 void Sem_encode_thread(void* arg);
@@ -172,8 +171,8 @@ void Sem_init(void)
 {
 	DEF_LOG_STRING("Initializing...");
 	bool wifi_state = true;
-	u8* read_cache = NULL;
-	u32 read_size = 0;
+	uint8_t* read_cache = NULL;
+	uint32_t read_size = 0;
 	std::string data[13];
 	Result_with_string result;
 
@@ -1575,7 +1574,7 @@ void Sem_hid(Hid_info key)
 					sem_use_fake_model_button.selected = true;
 				else if (Util_hid_is_released(key, sem_use_fake_model_button) && sem_use_fake_model_button.selected)
 				{
-					if((u8)(sem_fake_model_num + 1) > 5)
+					if((uint8_t)(sem_fake_model_num + 1) > 5)
 						sem_fake_model_num = 255;
 					else
 						sem_fake_model_num++;
@@ -1724,7 +1723,7 @@ void Sem_hid(Hid_info key)
 void Sem_encode_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
-	u8* yuv420p = NULL;
+	uint8_t* yuv420p = NULL;
 	Result_with_string result;
 
 	while (sem_thread_run)
@@ -1735,7 +1734,7 @@ void Sem_encode_thread(void* arg)
 			{
 				sem_wait_request = true;
 				sem_encode_request = false;
-				yuv420p = (u8*)Util_safe_linear_alloc(sem_rec_width * sem_rec_height * 1.5);
+				yuv420p = (uint8_t*)Util_safe_linear_alloc(sem_rec_width * sem_rec_height * 1.5);
 				if(yuv420p == NULL)
 					sem_stop_record_request = true;
 				else
@@ -1771,19 +1770,19 @@ void Sem_record_thread(void* arg)
 	bool new_3ds = false;
 	int new_width = 0;
 	int new_height = 0;
-	int bot_bgr_offset = 0;
-	int offset = 0;
-	int mode = 0;
-	int rec_width = 400;
-	int rec_height = 480;
-	int rec_framerate = 10;
-	u8* top_framebuffer = NULL;
-	u8* bot_framebuffer = NULL;
-	u8* top_bgr = NULL;
-	u8* bot_bgr = NULL;
-	u8* both_bgr = NULL;
-	u16 width = 0;
-	u16 height = 0;
+	uint8_t mode = 0;
+	uint8_t rec_framerate = 10;
+	uint8_t* top_framebuffer = NULL;
+	uint8_t* bot_framebuffer = NULL;
+	uint8_t* top_bgr = NULL;
+	uint8_t* bot_bgr = NULL;
+	uint8_t* both_bgr = NULL;
+	uint16_t rec_width = 400;
+	uint16_t rec_height = 480;
+	uint16_t width = 0;
+	uint16_t height = 0;
+	uint32_t offset = 0;
+	uint32_t bot_bgr_offset = 0;
 	double time = 0;
 	Result_with_string result;
 	TickCounter counter;
@@ -1846,7 +1845,7 @@ void Sem_record_thread(void* arg)
 			if(result.code != 0)
 				sem_record_request = false;
 
-			sem_yuv420p = (u8*)Util_safe_linear_alloc(rec_width * rec_height * 1.5);
+			sem_yuv420p = (uint8_t*)Util_safe_linear_alloc(rec_width * rec_height * 1.5);
 			if(sem_yuv420p == NULL)
 				sem_stop_record_request = true;
 
@@ -1877,7 +1876,7 @@ void Sem_record_thread(void* arg)
 						break;
 					}
 
-					both_bgr = (u8*)Util_safe_linear_alloc(rec_width * rec_height * 3);
+					both_bgr = (uint8_t*)Util_safe_linear_alloc(rec_width * rec_height * 3);
 					if(both_bgr == NULL)
 						break;
 
@@ -2094,10 +2093,10 @@ void Sem_update_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
 
-	u8* buffer = NULL;
-	u32 write_size = 0;
-	u32 read_size = 0;
-	u64 offset = 0;
+	uint8_t* buffer = NULL;
+	uint32_t write_size = 0;
+	uint32_t read_size = 0;
+	uint64_t offset = 0;
 	size_t parse_start_pos = std::string::npos;
 	size_t parse_end_pos = std::string::npos;
 	std::string dir_path = "";

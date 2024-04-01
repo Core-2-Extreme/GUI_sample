@@ -14,7 +14,7 @@
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_file_save_to_file(std::string file_name, std::string dir_path, u8* write_data, int size, bool delete_old_file);
+Result_with_string Util_file_save_to_file(std::string file_name, std::string dir_path, uint8_t* write_data, int size, bool delete_old_file);
 
 /**
  * @brief Load data from a file.
@@ -27,7 +27,7 @@ Result_with_string Util_file_save_to_file(std::string file_name, std::string dir
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_file_load_from_file(std::string file_name, std::string dir_path, u8** read_data, int max_size);
+Result_with_string Util_file_load_from_file(std::string file_name, std::string dir_path, uint8_t** read_data, int max_size);
 
 /**
  * @brief Load data from a file.
@@ -41,7 +41,7 @@ Result_with_string Util_file_load_from_file(std::string file_name, std::string d
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_file_load_from_file(std::string file_name, std::string dir_path, u8** read_data, int max_size, u32* read_size);
+Result_with_string Util_file_load_from_file(std::string file_name, std::string dir_path, uint8_t** read_data, int max_size, uint32_t* read_size);
 
 /**
  * @brief Load data from a file.
@@ -56,7 +56,7 @@ Result_with_string Util_file_load_from_file(std::string file_name, std::string d
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_file_load_from_file_with_range(std::string file_name, std::string dir_path, u8** read_data, int max_size, u64 read_offset, u32* read_size);
+Result_with_string Util_file_load_from_file_with_range(std::string file_name, std::string dir_path, uint8_t** read_data, int max_size, uint64_t read_offset, uint32_t* read_size);
 
 /**
  * @brief Load data from a file in romfs:/.
@@ -69,7 +69,7 @@ Result_with_string Util_file_load_from_file_with_range(std::string file_name, st
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_file_load_from_rom(std::string file_name, std::string dir_path, u8** read_data, int max_size);
+Result_with_string Util_file_load_from_rom(std::string file_name, std::string dir_path, uint8_t** read_data, int max_size);
 
 /**
  * @brief Load data from a file in romfs:/.
@@ -83,7 +83,7 @@ Result_with_string Util_file_load_from_rom(std::string file_name, std::string di
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_file_load_from_rom(std::string file_name, std::string dir_path, u8** read_data, int max_size, u32* read_size);
+Result_with_string Util_file_load_from_rom(std::string file_name, std::string dir_path, uint8_t** read_data, int max_size, uint32_t* read_size);
 
 /**
  * @brief Delete a file.
@@ -104,7 +104,7 @@ Result_with_string Util_file_delete_file(std::string file_name, std::string dir_
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_file_check_file_size(std::string file_name, std::string dir_path, u64* file_size);
+Result_with_string Util_file_check_file_size(std::string file_name, std::string dir_path, uint64_t* file_size);
 
 /**
  * @brief Check if a file exist.

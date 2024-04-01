@@ -568,7 +568,7 @@ static void Util_expl_read_dir_callback(void)
 			{
 				if(util_expl_type[util_expl_check_file_size_index] & FILE_TYPE_FILE || util_expl_type[util_expl_check_file_size_index] & FILE_TYPE_NONE)
 				{
-					u64 file_size;
+					uint64_t file_size;
 					Result_with_string result;
 
 					result = Util_file_check_file_size(util_expl_files[util_expl_check_file_size_index], util_expl_current_dir, &file_size);

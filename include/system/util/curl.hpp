@@ -33,7 +33,7 @@ void Util_curl_exit(void);
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_curl_dl_data(std::string url, u8** data, int max_size, int* downloaded_size, bool follow_redirect,
+Result_with_string Util_curl_dl_data(std::string url, uint8_t** data, int max_size, int* downloaded_size, bool follow_redirect,
 int max_redirect);
 
 /**
@@ -50,7 +50,7 @@ int max_redirect);
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_curl_dl_data(std::string url, u8** data, int max_size, int* downloaded_size, bool follow_redirect,
+Result_with_string Util_curl_dl_data(std::string url, uint8_t** data, int max_size, int* downloaded_size, bool follow_redirect,
 int max_redirect, std::string* last_url);
 
 /**
@@ -67,7 +67,7 @@ int max_redirect, std::string* last_url);
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_curl_dl_data(std::string url, u8** data, int max_size, int* downloaded_size, int* status_code, bool follow_redirect,
+Result_with_string Util_curl_dl_data(std::string url, uint8_t** data, int max_size, int* downloaded_size, int* status_code, bool follow_redirect,
 int max_redirect);
 
 /**
@@ -85,7 +85,7 @@ int max_redirect);
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_curl_dl_data(std::string url, u8** data, int max_size, int* downloaded_size, int* status_code, bool follow_redirect,
+Result_with_string Util_curl_dl_data(std::string url, uint8_t** data, int max_size, int* downloaded_size, int* status_code, bool follow_redirect,
 int max_redirect, std::string* last_url);
 
 /**
@@ -172,7 +172,7 @@ int max_redirect, std::string* last_url, std::string dir_path, std::string file_
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_curl_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
+Result_with_string Util_curl_post_and_dl_data(std::string url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
 int* downloaded_size, int* uploaded_size, bool follow_redirect, int max_redirect);
 
 /**
@@ -192,7 +192,7 @@ int* downloaded_size, int* uploaded_size, bool follow_redirect, int max_redirect
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_curl_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
+Result_with_string Util_curl_post_and_dl_data(std::string url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
 int* downloaded_size, int* uploaded_size, bool follow_redirect, int max_redirect, std::string* last_url);
 
 /**
@@ -212,7 +212,7 @@ int* downloaded_size, int* uploaded_size, bool follow_redirect, int max_redirect
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_curl_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
+Result_with_string Util_curl_post_and_dl_data(std::string url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
 int* downloaded_size, int* uploaded_size, int* status_code, bool follow_redirect, int max_redirect);
 
 /**
@@ -232,7 +232,7 @@ int* downloaded_size, int* uploaded_size, int* status_code, bool follow_redirect
  * @note Thread safe
 */
 Result_with_string Util_curl_post_and_dl_data(std::string url, int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data,
-u8** dl_data, int max_dl_size, int* downloaded_size, int* uploaded_size, bool follow_redirect, int max_redirect);
+uint8_t** dl_data, int max_dl_size, int* downloaded_size, int* uploaded_size, bool follow_redirect, int max_redirect);
 
 /**
  * @brief Make a HTTP post request.
@@ -252,7 +252,7 @@ u8** dl_data, int max_dl_size, int* downloaded_size, int* uploaded_size, bool fo
  * @note Thread safe
 */
 Result_with_string Util_curl_post_and_dl_data(std::string url, int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data,
-u8** dl_data, int max_dl_size, int* downloaded_size, int* uploaded_size, bool follow_redirect, int max_redirect, std::string* last_url);
+uint8_t** dl_data, int max_dl_size, int* downloaded_size, int* uploaded_size, bool follow_redirect, int max_redirect, std::string* last_url);
 
 /**
  * @brief Make a HTTP post request.
@@ -272,7 +272,7 @@ u8** dl_data, int max_dl_size, int* downloaded_size, int* uploaded_size, bool fo
  * @note Thread safe
 */
 Result_with_string Util_curl_post_and_dl_data(std::string url, int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data,
-u8** dl_data, int max_dl_size, int* downloaded_size, int* uploaded_size, int* status_code, bool follow_redirect, int max_redirect);
+uint8_t** dl_data, int max_dl_size, int* downloaded_size, int* uploaded_size, int* status_code, bool follow_redirect, int max_redirect);
 
 /**
  * @brief Make a HTTP post request.
@@ -294,7 +294,7 @@ u8** dl_data, int max_dl_size, int* downloaded_size, int* uploaded_size, int* st
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_curl_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
+Result_with_string Util_curl_post_and_dl_data(std::string url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
 int* downloaded_size, int* uploaded_size, int* status_code, bool follow_redirect, int max_redirect, std::string* last_url,
 int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data);
 
@@ -314,7 +314,7 @@ int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_da
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_curl_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, int* downloaded_size,
+Result_with_string Util_curl_post_and_save_data(std::string url, uint8_t* post_data, int post_size, int buffer_size, int* downloaded_size,
 int* uploaded_size, bool follow_redirect, int max_redirect, std::string dir_path, std::string file_name);
 
 /**
@@ -334,7 +334,7 @@ int* uploaded_size, bool follow_redirect, int max_redirect, std::string dir_path
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_curl_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, int* downloaded_size,
+Result_with_string Util_curl_post_and_save_data(std::string url, uint8_t* post_data, int post_size, int buffer_size, int* downloaded_size,
 int* uploaded_size, bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_path, std::string file_name);
 
 /**
@@ -354,7 +354,7 @@ int* uploaded_size, bool follow_redirect, int max_redirect, std::string* last_ur
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_curl_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, int* downloaded_size,
+Result_with_string Util_curl_post_and_save_data(std::string url, uint8_t* post_data, int post_size, int buffer_size, int* downloaded_size,
 int* uploaded_size, int* status_code, bool follow_redirect, int max_redirect, std::string dir_path, std::string file_name);
 
 /**
@@ -436,7 +436,7 @@ int buffer_size, int* downloaded_size, int* uploaded_size, int* status_code, boo
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_curl_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, int* downloaded_size,
+Result_with_string Util_curl_post_and_save_data(std::string url, uint8_t* post_data, int post_size, int buffer_size, int* downloaded_size,
 int* uploaded_size, int* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_path, std::string file_name,
 int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data);
 

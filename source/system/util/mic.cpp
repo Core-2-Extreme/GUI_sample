@@ -9,7 +9,7 @@
 #include "system/util/mic.hpp"
 
 bool util_mic_init = false;
-u8* util_mic_buffer = NULL;
+uint8_t* util_mic_buffer = NULL;
 int util_mic_last_pos = 0;
 int util_mic_sample_rate = 0;
 
@@ -26,7 +26,7 @@ Result_with_string Util_mic_init(int buffer_size)
 	util_mic_last_pos = 0;
 	buffer_size -= buffer_size % 0x1000;
 	//mic module requires memory allocated on heap (precisely svcCreateMemoryBlock() requires it)
-	util_mic_buffer = (u8*)__real_memalign(0x1000, buffer_size);
+	util_mic_buffer = (uint8_t*)__real_memalign(0x1000, buffer_size);
 	if(!util_mic_buffer)
 		goto out_of_memory;
 
@@ -180,7 +180,7 @@ int Util_mic_query_remaining_buffer_time(void)
 	return remaining_time;
 }
 
-Result_with_string Util_mic_get_audio_data(u8** raw_data, int* size)
+Result_with_string Util_mic_get_audio_data(uint8_t** raw_data, int* size)
 {
 	Result_with_string result;
 	int buffer_offset = 0;
@@ -207,7 +207,7 @@ Result_with_string Util_mic_get_audio_data(u8** raw_data, int* size)
 	else
 		buffer_size = (micGetSampleDataSize() - 4) - (util_mic_last_pos - last_pos);
 
-	*raw_data = (u8*)Util_safe_linear_alloc(buffer_size);
+	*raw_data = (uint8_t*)Util_safe_linear_alloc(buffer_size);
 	if(!*raw_data)
 		goto out_of_memory;
 

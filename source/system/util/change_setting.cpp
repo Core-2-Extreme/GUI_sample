@@ -146,7 +146,7 @@ Result_with_string Util_cset_sleep_system(Wake_up_event wake_up_events)
 	if(!aptIsSleepAllowed())
 		goto not_allowed;
 
-	wake_up_event_mask.mcu_interupt_mask = (u32)wake_up_events;
+	wake_up_event_mask.mcu_interupt_mask = (uint32_t)wake_up_events;
 	wake_up_event_mask.pdn_wake_events = 0;
 
 	result.code = APT_SleepSystem(&wake_up_event_mask);

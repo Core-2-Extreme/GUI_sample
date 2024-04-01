@@ -96,8 +96,8 @@ void Exfont_load_font_callback(void)
 Result_with_string Exfont_init(void)
 {
 	int characters = 0;
-	u8* fs_buffer = NULL;
-	u32 read_size = 0;
+	uint8_t* fs_buffer = NULL;
+	uint32_t read_size = 0;
 	Result_with_string result;
 
 	if(util_exfont_init)

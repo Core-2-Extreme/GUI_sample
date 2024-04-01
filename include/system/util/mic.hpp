@@ -55,7 +55,7 @@ int Util_mic_query_remaining_buffer_time(void);
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_mic_get_audio_data(u8** raw_data, int* size);
+Result_with_string Util_mic_get_audio_data(uint8_t** raw_data, int* size);
 
 /**
  * @brief Uninitialize a mic.

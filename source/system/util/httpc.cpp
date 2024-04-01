@@ -12,17 +12,17 @@
 bool util_httpc_init = false;
 
 
-static Result_with_string Util_httpc_request(httpcContext* httpc_context, std::string&& url, HTTPC_RequestMethod method, u8* post_data, int post_data_size);
+static Result_with_string Util_httpc_request(httpcContext* httpc_context, std::string&& url, HTTPC_RequestMethod method, uint8_t* post_data, int post_data_size);
 static Result_with_string Util_httpc_get_request(httpcContext* httpc_context, std::string&& url);
-static Result_with_string Util_httpc_post_request(httpcContext* httpc_context, std::string&& url, u8* post_data, int post_data_size);
-static void Util_httpc_get_response(httpcContext* httpc_context, u32* status_code, std::string* new_url, bool* redirected);
-static Result_with_string Util_httpc_download_data(httpcContext* httpc_context, u8** data, int max_size, u32* downloaded_size);
+static Result_with_string Util_httpc_post_request(httpcContext* httpc_context, std::string&& url, uint8_t* post_data, int post_data_size);
+static void Util_httpc_get_response(httpcContext* httpc_context, uint32_t* status_code, std::string* new_url, bool* redirected);
+static Result_with_string Util_httpc_download_data(httpcContext* httpc_context, uint8_t** data, int max_size, uint32_t* downloaded_size);
 static void Util_httpc_close(httpcContext* httpc_context);
-static Result_with_string Util_httpc_dl_data_internal(std::string&& url, u8** data, int max_size, u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url);
-static Result_with_string Util_httpc_save_data_internal(std::string&& url, int buffer_size, u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string&& dir_path, std::string&& file_name);
-static Result_with_string Util_httpc_post_and_dl_data_internal(std::string&& url, u8* post_data, int post_size, u8** dl_data, int max_dl_size, u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url);
-static Result_with_string Util_httpc_post_and_save_data_internal(std::string&& url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string&& dir_path, std::string&& file_name);
-static Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int buffer_size, u32* downloaded_size, std::string&& dir_path, std::string&& file_name);
+static Result_with_string Util_httpc_dl_data_internal(std::string&& url, uint8_t** data, int max_size, uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect, int max_redirect, std::string* last_url);
+static Result_with_string Util_httpc_save_data_internal(std::string&& url, int buffer_size, uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string&& dir_path, std::string&& file_name);
+static Result_with_string Util_httpc_post_and_dl_data_internal(std::string&& url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size, uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect, int max_redirect, std::string* last_url);
+static Result_with_string Util_httpc_post_and_save_data_internal(std::string&& url, uint8_t* post_data, int post_size, int buffer_size, uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string&& dir_path, std::string&& file_name);
+static Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int buffer_size, uint32_t* downloaded_size, std::string&& dir_path, std::string&& file_name);
 
 
 Result_with_string Util_httpc_init(int buffer_size)
@@ -68,52 +68,52 @@ void Util_httpc_exit(void)
 	httpcExit();
 }
 
-Result_with_string Util_httpc_dl_data(std::string url, u8** data, int max_size, u32* downloaded_size, bool follow_redirect,
+Result_with_string Util_httpc_dl_data(std::string url, uint8_t** data, int max_size, uint32_t* downloaded_size, bool follow_redirect,
 int max_redirect)
 {
 	std::string last_url = "";
-	u32 status_code = 0;
+	uint32_t status_code = 0;
 	return Util_httpc_dl_data_internal(std::move(url), data, max_size, downloaded_size, &status_code, follow_redirect, max_redirect, &last_url);
 }
 
-Result_with_string Util_httpc_dl_data(std::string url, u8** data, int max_size, u32* downloaded_size, bool follow_redirect,
+Result_with_string Util_httpc_dl_data(std::string url, uint8_t** data, int max_size, uint32_t* downloaded_size, bool follow_redirect,
 int max_redirect, std::string* last_url)
 {
-	u32 status_code = 0;
+	uint32_t status_code = 0;
 	return Util_httpc_dl_data_internal(std::move(url), data, max_size, downloaded_size, &status_code, follow_redirect, max_redirect, last_url);
 }
 
-Result_with_string Util_httpc_dl_data(std::string url, u8** data, int max_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
+Result_with_string Util_httpc_dl_data(std::string url, uint8_t** data, int max_size, uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect,
 int max_redirect)
 {
 	std::string last_url = "";
 	return Util_httpc_dl_data_internal(std::move(url), data, max_size, downloaded_size, status_code, follow_redirect, max_redirect, &last_url);
 }
 
-Result_with_string Util_httpc_dl_data(std::string url, u8** data, int max_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
+Result_with_string Util_httpc_dl_data(std::string url, uint8_t** data, int max_size, uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect,
 int max_redirect, std::string* last_url)
 {
 	return Util_httpc_dl_data_internal(std::move(url), data, max_size, downloaded_size, status_code, follow_redirect, max_redirect, last_url);
 }
 
-Result_with_string Util_httpc_save_data(std::string url, int buffer_size, u32* downloaded_size, bool follow_redirect,
+Result_with_string Util_httpc_save_data(std::string url, int buffer_size, uint32_t* downloaded_size, bool follow_redirect,
 int max_redirect, std::string dir_path, std::string file_name)
 {
 	std::string last_url = "";
-	u32 status_code = 0;
+	uint32_t status_code = 0;
 	return Util_httpc_save_data_internal(std::move(url), buffer_size, downloaded_size, &status_code, follow_redirect, max_redirect,
 	&last_url, std::move(dir_path), std::move(file_name));
 }
 
-Result_with_string Util_httpc_save_data(std::string url, int buffer_size, u32* downloaded_size, bool follow_redirect,
+Result_with_string Util_httpc_save_data(std::string url, int buffer_size, uint32_t* downloaded_size, bool follow_redirect,
 int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
 {
-	u32 status_code = 0;
+	uint32_t status_code = 0;
 	return Util_httpc_save_data_internal(std::move(url), buffer_size, downloaded_size, &status_code, follow_redirect, max_redirect,
 	last_url, std::move(dir_path), std::move(file_name));
 }
 
-Result_with_string Util_httpc_save_data(std::string url, int buffer_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
+Result_with_string Util_httpc_save_data(std::string url, int buffer_size, uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect,
 int max_redirect, std::string dir_path, std::string file_name)
 {
 	std::string last_url = "";
@@ -121,78 +121,78 @@ int max_redirect, std::string dir_path, std::string file_name)
 	&last_url, std::move(dir_path), std::move(file_name));
 }
 
-Result_with_string Util_httpc_save_data(std::string url, int buffer_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
+Result_with_string Util_httpc_save_data(std::string url, int buffer_size, uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect,
 int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
 {
 	return Util_httpc_save_data_internal(std::move(url), buffer_size, downloaded_size, status_code, follow_redirect, max_redirect,
 	last_url, std::move(dir_path), std::move(file_name));
 }
 
-Result_with_string Util_httpc_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
-u32* downloaded_size, bool follow_redirect, int max_redirect)
+Result_with_string Util_httpc_post_and_dl_data(std::string url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
+uint32_t* downloaded_size, bool follow_redirect, int max_redirect)
 {
 	std::string last_url = "";
-	u32 status_code = 0;
+	uint32_t status_code = 0;
 	return Util_httpc_post_and_dl_data_internal(std::move(url), post_data, post_size, dl_data, max_dl_size, downloaded_size,
 	&status_code, follow_redirect, max_redirect, &last_url);
 }
 
-Result_with_string Util_httpc_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
-u32* downloaded_size, bool follow_redirect, int max_redirect, std::string* last_url)
+Result_with_string Util_httpc_post_and_dl_data(std::string url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
+uint32_t* downloaded_size, bool follow_redirect, int max_redirect, std::string* last_url)
 {
-	u32 status_code = 0;
+	uint32_t status_code = 0;
 	return Util_httpc_post_and_dl_data_internal(std::move(url), post_data, post_size, dl_data, max_dl_size, downloaded_size,
 	&status_code, follow_redirect, max_redirect, last_url);
 }
 
-Result_with_string Util_httpc_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
-u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect)
+Result_with_string Util_httpc_post_and_dl_data(std::string url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
+uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect, int max_redirect)
 {
 	std::string last_url = "";
 	return Util_httpc_post_and_dl_data_internal(std::move(url), post_data, post_size, dl_data, max_dl_size, downloaded_size,
 	status_code, follow_redirect, max_redirect, &last_url);
 }
 
-Result_with_string Util_httpc_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
-u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url)
+Result_with_string Util_httpc_post_and_dl_data(std::string url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
+uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect, int max_redirect, std::string* last_url)
 {
 	return Util_httpc_post_and_dl_data_internal(std::move(url), post_data, post_size, dl_data, max_dl_size, downloaded_size,
 	status_code, follow_redirect, max_redirect, last_url);
 }
 
-Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
+Result_with_string Util_httpc_post_and_save_data(std::string url, uint8_t* post_data, int post_size, int buffer_size, uint32_t* downloaded_size,
 bool follow_redirect, int max_redirect, std::string dir_path, std::string file_name)
 {
 	std::string last_url = "";
-	u32 status_code = 0;
+	uint32_t status_code = 0;
 	return Util_httpc_post_and_save_data_internal(std::move(url), post_data, post_size, buffer_size, downloaded_size,
 	&status_code, follow_redirect, max_redirect, &last_url, std::move(dir_path), std::move(file_name));
 }
 
-Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
+Result_with_string Util_httpc_post_and_save_data(std::string url, uint8_t* post_data, int post_size, int buffer_size, uint32_t* downloaded_size,
 bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
 {
-	u32 status_code = 0;
+	uint32_t status_code = 0;
 	return Util_httpc_post_and_save_data_internal(std::move(url), post_data, post_size, buffer_size, downloaded_size,
 	&status_code, follow_redirect, max_redirect, last_url, std::move(dir_path), std::move(file_name));
 }
 
-Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
-u32* status_code, bool follow_redirect, int max_redirect, std::string dir_path, std::string file_name)
+Result_with_string Util_httpc_post_and_save_data(std::string url, uint8_t* post_data, int post_size, int buffer_size, uint32_t* downloaded_size,
+uint32_t* status_code, bool follow_redirect, int max_redirect, std::string dir_path, std::string file_name)
 {
 	std::string last_url = "";
 	return Util_httpc_post_and_save_data_internal(std::move(url), post_data, post_size, buffer_size, downloaded_size,
 	status_code, follow_redirect, max_redirect, &last_url, std::move(dir_path), std::move(file_name));
 }
 
-Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
-u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
+Result_with_string Util_httpc_post_and_save_data(std::string url, uint8_t* post_data, int post_size, int buffer_size, uint32_t* downloaded_size,
+uint32_t* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
 {
 	return Util_httpc_post_and_save_data_internal(std::move(url), post_data, post_size, buffer_size, downloaded_size,
 	status_code, follow_redirect, max_redirect, last_url, std::move(dir_path), std::move(file_name));
 }
 
-static Result_with_string Util_httpc_request(httpcContext* httpc_context, std::string&& url, HTTPC_RequestMethod method, u8* post_data, int post_data_size)
+static Result_with_string Util_httpc_request(httpcContext* httpc_context, std::string&& url, HTTPC_RequestMethod method, uint8_t* post_data, int post_data_size)
 {
 	Result_with_string result;
 
@@ -237,7 +237,7 @@ static Result_with_string Util_httpc_request(httpcContext* httpc_context, std::s
 
 	if(method == HTTPC_METHOD_POST)
 	{
-		result.code = httpcAddPostDataRaw(httpc_context, (u32*)post_data, post_data_size);
+		result.code = httpcAddPostDataRaw(httpc_context, (uint32_t*)post_data, post_data_size);
 		if (result.code != 0)
 		{
 			result.error_description = "[Error] httpcAddPostDataRaw() failed. ";
@@ -265,12 +265,12 @@ static Result_with_string Util_httpc_get_request(httpcContext* httpc_context, st
 	return Util_httpc_request(httpc_context, std::move(url), HTTPC_METHOD_GET, NULL, 0);
 }
 
-static Result_with_string Util_httpc_post_request(httpcContext* httpc_context, std::string&& url, u8* post_data, int post_data_size)
+static Result_with_string Util_httpc_post_request(httpcContext* httpc_context, std::string&& url, uint8_t* post_data, int post_data_size)
 {
 	return Util_httpc_request(httpc_context, std::move(url), HTTPC_METHOD_POST, post_data, post_data_size);
 }
 
-static void Util_httpc_get_response(httpcContext* httpc_context, u32* status_code, std::string* new_url, bool* redirected)
+static void Util_httpc_get_response(httpcContext* httpc_context, uint32_t* status_code, std::string* new_url, bool* redirected)
 {
 	char moved_url[4096];
 	Result_with_string result;
@@ -301,10 +301,10 @@ static void Util_httpc_get_response(httpcContext* httpc_context, u32* status_cod
 	}
 }
 
-static Result_with_string Util_httpc_download_data(httpcContext* httpc_context, u8** data, int max_size, u32* downloaded_size)
+static Result_with_string Util_httpc_download_data(httpcContext* httpc_context, uint8_t** data, int max_size, uint32_t* downloaded_size)
 {
-	u8* new_buffer = NULL;
-	u32 dl_size = 0;
+	uint8_t* new_buffer = NULL;
+	uint32_t dl_size = 0;
 	int remain_buffer_size = 0;
 	int buffer_offset = 0;
 	int buffer_size = 0;
@@ -312,7 +312,7 @@ static Result_with_string Util_httpc_download_data(httpcContext* httpc_context, 
 
 	buffer_size = max_size > 0x40000 ? 0x40000 : max_size;
 	Util_safe_linear_free(*data);
-	*data = (u8*)Util_safe_linear_alloc(buffer_size);
+	*data = (uint8_t*)Util_safe_linear_alloc(buffer_size);
 	if (!*data)
 		goto out_of_memory;
 
@@ -332,7 +332,7 @@ static Result_with_string Util_httpc_download_data(httpcContext* httpc_context, 
 					goto out_of_memory;
 
 				buffer_size = max_size > buffer_size + 0x40000 ? buffer_size + 0x40000 : max_size;
-				new_buffer = (u8*)Util_safe_linear_realloc(*data, buffer_size);
+				new_buffer = (uint8_t*)Util_safe_linear_realloc(*data, buffer_size);
 				remain_buffer_size = buffer_size - buffer_offset;
 				if(!new_buffer)
 					goto out_of_memory;
@@ -376,7 +376,7 @@ static void Util_httpc_close(httpcContext* httpc_context)
 	httpc_context = NULL;
 }
 
-static Result_with_string Util_httpc_dl_data_internal(std::string&& url, u8** data, int max_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
+static Result_with_string Util_httpc_dl_data_internal(std::string&& url, uint8_t** data, int max_size, uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect,
 int max_redirect, std::string* last_url)
 {
 	bool redirect = false;
@@ -461,7 +461,7 @@ int max_redirect, std::string* last_url)
 	return result;
 }
 
-static Result_with_string Util_httpc_save_data_internal(std::string&& url, int buffer_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
+static Result_with_string Util_httpc_save_data_internal(std::string&& url, int buffer_size, uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect,
 int max_redirect, std::string* last_url, std::string&& dir_path, std::string&& file_name)
 {
 	bool redirect = false;
@@ -546,8 +546,8 @@ int max_redirect, std::string* last_url, std::string&& dir_path, std::string&& f
 	return result;
 }
 
-static Result_with_string Util_httpc_post_and_dl_data_internal(std::string&& url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
-u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url)
+static Result_with_string Util_httpc_post_and_dl_data_internal(std::string&& url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
+uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect, int max_redirect, std::string* last_url)
 {
 	bool post = true;
 	bool redirect = false;
@@ -640,8 +640,8 @@ u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, 
 	return result;
 }
 
-static Result_with_string Util_httpc_post_and_save_data_internal(std::string&& url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
-u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string&& dir_path, std::string&& file_name)
+static Result_with_string Util_httpc_post_and_save_data_internal(std::string&& url, uint8_t* post_data, int post_size, int buffer_size, uint32_t* downloaded_size,
+uint32_t* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string&& dir_path, std::string&& file_name)
 {
 	bool post = true;
 	bool redirect = false;
@@ -734,15 +734,15 @@ u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url,
 	return result;
 }
 
-static Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int buffer_size, u32* downloaded_size, std::string&& dir_path, std::string&& file_name)
+static Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int buffer_size, uint32_t* downloaded_size, std::string&& dir_path, std::string&& file_name)
 {
 	bool first = true;
-	u8* cache = NULL;
-	u32 dl_size = 0;
+	uint8_t* cache = NULL;
+	uint32_t dl_size = 0;
 	Result_with_string result;
 	Result_with_string fs_result;
 
-	cache = (u8*)Util_safe_linear_alloc(buffer_size);
+	cache = (uint8_t*)Util_safe_linear_alloc(buffer_size);
 	if (!cache)
 		goto out_of_memory;
 

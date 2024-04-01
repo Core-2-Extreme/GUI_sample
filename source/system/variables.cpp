@@ -5,7 +5,7 @@
 #include "system/variables.hpp"
 
 //set heap size, rest memory will be linear ram
-u32 __ctru_heap_size = 1024 * 1024 * 10;
+uint32_t __ctru_heap_size = 1024 * 1024 * 10;
 //Alloc memory on heap for some libctru functions (precisely svcCreateMemoryBlock())
 void* (*memalign_heap_address)(size_t align, size_t size) = __real_memalign;
 
@@ -24,11 +24,11 @@ bool var_core_2_available = false;
 bool var_core_3_available = false;
 bool var_fake_model = false;
 bool var_debug_bool[8] = { false, false, false, false, false, false, false, false, };
-u8 var_wifi_state = 0;
-u8 var_wifi_signal = 0;
-u8 var_battery_charge = 0;
-u8 var_model = 0;
-u8 var_screen_mode = DEF_SEM_SCREEN_AUTO;
+uint8_t var_wifi_state = 0;
+uint8_t var_wifi_signal = 0;
+uint8_t var_battery_charge = 0;
+uint8_t var_model = 0;
+uint8_t var_screen_mode = DEF_SEM_SCREEN_AUTO;
 int var_hours = 0;
 int var_minutes = 0;
 int var_seconds = 0;

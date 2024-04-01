@@ -13,9 +13,9 @@
 
 bool util_cpu_usage_monitor_init = false;
 bool util_cpu_usage_reset_counter_request[4] = { false, false, false, false, };
-u8 util_cpu_usage_core_id[4] = { 0, 1, 2, 3, };
-u16 util_cpu_usage_counter_cache[4] = { 0, 0, 0, 0, };
-u32 util_cpu_usage_max_core_1 = 0;
+uint8_t util_cpu_usage_core_id[4] = { 0, 1, 2, 3, };
+uint16_t util_cpu_usage_counter_cache[4] = { 0, 0, 0, 0, };
+uint32_t util_cpu_usage_max_core_1 = 0;
 float util_cpu_usage_per_core[4] = { NAN, NAN, NAN, NAN, };
 float util_cpu_usage = NAN;
 Thread util_cpu_usage_thread_handle[5] = { 0, 0, 0, 0, };
@@ -81,7 +81,7 @@ void Util_cpu_usage_monitor_exit(void)
 	}
 }
 
-float Util_cpu_usage_monitor_get_cpu_usage(s8 core_id)
+float Util_cpu_usage_monitor_get_cpu_usage(int8_t core_id)
 {
 	if(!util_cpu_usage_monitor_init)
 		return NAN;
@@ -98,16 +98,16 @@ float Util_cpu_usage_monitor_get_cpu_usage(s8 core_id)
 
 void Util_cpu_usage_counter_thread(void* arg)
 {
-	u8 core_id = 0;
+	uint8_t core_id = 0;
 
-	if(!arg || *(u8*)arg > 3)
+	if(!arg || *(uint8_t*)arg > 3)
 	{
 		DEF_LOG_STRING("Invalid arg!!!!!");
 		DEF_LOG_STRING("Thread exit.");
 		threadExit(0);
 	}
 
-	core_id = *(u8*)arg;
+	core_id = *(uint8_t*)arg;
 	DEF_LOG_FORMAT("#%" PRIu8 " thread started.", core_id);
 
 	//This thread will run at the lowest priority.
@@ -133,7 +133,7 @@ void Util_cpu_usage_calculate_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
 
-	u8 div = 0;
+	uint8_t div = 0;
 	float total_cpu_usage = 0;
 	float cpu_usage_cache = 0;
 

@@ -524,26 +524,26 @@ struct Video_info
 
 struct Color_converter_parameters
 {
-	u8* source = NULL;		//(in)  Source raw image data, user must allocate the buffer.
-	u8* converted = NULL;	//(out) Converted raw image data, this buffer will be allocated inside of function.
-	int in_width = 0;		//(in)  Source image width.
-	int in_height = 0;		//(in)  Source image height.
-	int out_width = 0;		//(in)  Converted image width.
-	int out_height = 0;		//(in)  Converted image height.
+	uint8_t* source = NULL;		//(in)  Source raw image data, user must allocate the buffer.
+	uint8_t* converted = NULL;	//(out) Converted raw image data, this buffer will be allocated inside of function.
+	int in_width = 0;			//(in)  Source image width.
+	int in_height = 0;			//(in)  Source image height.
+	int out_width = 0;			//(in)  Converted image width.
+	int out_height = 0;			//(in)  Converted image height.
 	Pixel_format in_color_format = PIXEL_FORMAT_INVALID;	//(in) Source image pixel format.
 	Pixel_format out_color_format = PIXEL_FORMAT_INVALID;	//(in) Converted image pixel format.
 };
 
 struct Audio_converter_parameters
 {
-	u8* source = NULL;			//(in)  Source raw audio data, user must allocate the buffer.
-	u8* converted = NULL;		//(out) Converted raw audio data, this buffer will be allocated inside of function.
-	int in_samples = 0;			//(in)  Number of source audio samples per channel.
-	int in_ch = 0;				//(in)  Source audio ch.
-	int in_sample_rate = 0;		//(in)  Source audio saple rate in Hz.
-	int out_samples = 0;		//(out) Number of converted audio samples per channel.
-	int out_ch = 0;				//(in)  Converted audio ch.
-	int out_sample_rate = 0;	//(in)  Converted audio saple rate in Hz.
+	uint8_t* source = NULL;			//(in)  Source raw audio data, user must allocate the buffer.
+	uint8_t* converted = NULL;		//(out) Converted raw audio data, this buffer will be allocated inside of function.
+	int in_samples = 0;				//(in)  Number of source audio samples per channel.
+	int in_ch = 0;					//(in)  Source audio ch.
+	int in_sample_rate = 0;			//(in)  Source audio saple rate in Hz.
+	int out_samples = 0;			//(out) Number of converted audio samples per channel.
+	int out_ch = 0;					//(in)  Converted audio ch.
+	int out_sample_rate = 0;		//(in)  Converted audio saple rate in Hz.
 	Sample_format in_sample_format = SAMPLE_FORMAT_INVALID;		//(in) Source audio sample format.
 	Sample_format out_sample_format = SAMPLE_FORMAT_INVALID;	//(in) Converted audio sample format.
 };
@@ -557,7 +557,7 @@ struct Subtitle_info
 
 struct Subtitle_data
 {
-	u8* bitmap = NULL;		//Subtitle bitmap, this may NULL.
+	uint8_t* bitmap = NULL;	//Subtitle bitmap, this may NULL.
 	int bitmap_x = 0;		//X (horizontal) position, this field will be set if bitmap is not NULL.
 	int bitmap_y = 0;		//Y (vertical) position, this field will be set if bitmap is not NULL.
 	int bitmap_width = 0;	//Bitmap width, this field will be set if bitmap is not NULL.
@@ -664,7 +664,7 @@ struct Hid_info
 	int touch_y_move = 0;
 	int held_time = 0;
 	//Timestamp for this data.
-	u64 ts = 0;
+	uint64_t ts = 0;
 };
 
 #endif

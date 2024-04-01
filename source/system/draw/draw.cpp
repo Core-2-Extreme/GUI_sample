@@ -19,7 +19,7 @@ bool util_draw_is_3d = false;
 double util_draw_frametime = 0;
 int util_draw_rendered_frames = 0;
 int util_draw_rendered_frames_cache = 0;
-u64 util_draw_reset_fps_counter_time = 0;
+uint64_t util_draw_reset_fps_counter_time = 0;
 C2D_Font util_draw_system_fonts[4];
 C3D_RenderTarget* util_draw_screen[3];
 C2D_SpriteSheet util_draw_sheet_texture[DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS];
@@ -30,8 +30,8 @@ C2D_Image util_draw_eco_image[2];
 TickCounter util_draw_frame_time_stopwatch;
 Image_data util_draw_bot_ui;
 
-extern "C" void memcpy_asm(u8*, u8*, int);
-extern "C" void memcpy_asm_4b(u8*, u8*);
+extern "C" void memcpy_asm(uint8_t*, uint8_t*, int);
+extern "C" void memcpy_asm_4b(uint8_t*, uint8_t*);
 
 void Draw_debug_info(void);
 
@@ -281,7 +281,7 @@ Result_with_string Draw_texture_init(Image_data* image, int tex_size_x, int tex_
 	if(!image->subtex || !image->c2d.tex)
 		goto out_of_linear_memory;
 
-	if (!C3D_TexInit(image->c2d.tex, (u16)tex_size_x, (u16)tex_size_y, color))
+	if (!C3D_TexInit(image->c2d.tex, (uint16_t)tex_size_x, (uint16_t)tex_size_y, color))
 		goto out_of_linear_memory;
 
 	image->c2d.subtex = image->subtex;
@@ -332,10 +332,10 @@ void Draw_texture_free(Image_data* image)
 	image->subtex = NULL;
 }
 
-Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int pic_width, int pic_height)
+Result_with_string Draw_set_texture_data_direct(Image_data* image, uint8_t* buf, int pic_width, int pic_height)
 {
 	int pixel_size = 0;
-	s16 copy_size = 0;
+	int16_t copy_size = 0;
 	Result_with_string result;
 #if DEF_DRAW_USE_DMA
 	int dma_result = 0;
@@ -361,8 +361,8 @@ Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int 
 	else if(image->c2d.tex->fmt == GPU_RGB565)
 		pixel_size = 2;
 
-	image->subtex->width = (u16)pic_width;
-	image->subtex->height = (u16)pic_height;
+	image->subtex->width = (uint16_t)pic_width;
+	image->subtex->height = (uint16_t)pic_height;
 	image->subtex->left = 0.0;
 	image->subtex->top = 1.0;
 	image->subtex->right = pic_width / (float)image->c2d.tex->width;
@@ -384,8 +384,8 @@ Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int 
 	dma_config.srcCfg.transferSize = dma_config.srcCfg.burstSize;
 	dma_config.srcCfg.transferStride = dma_config.srcCfg.burstStride;
 
-	dma_result = svcStartInterProcessDma(&dma_handle, CUR_PROCESS_HANDLE, (u32)image->c2d.tex->data,
-	CUR_PROCESS_HANDLE, (u32)buf, pic_width * pic_height * pixel_size, &dma_config);
+	dma_result = svcStartInterProcessDma(&dma_handle, CUR_PROCESS_HANDLE, (uint32_t)image->c2d.tex->data,
+	CUR_PROCESS_HANDLE, (uint32_t)buf, pic_width * pic_height * pixel_size, &dma_config);
 
 	if(dma_result == 0)
 		svcWaitSynchronization(dma_handle, INT64_MAX);
@@ -394,7 +394,7 @@ Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int 
 #else
 	for(int i = 0; i < pic_height / 8; i ++)
 	{
-		memcpy_asm(((u8*)image->c2d.tex->data + tex_offset), buf + buffer_offset, copy_size);
+		memcpy_asm(((uint8_t*)image->c2d.tex->data + tex_offset), buf + buffer_offset, copy_size);
 		tex_offset += image->c2d.tex->width * pixel_size * 8;
 		buffer_offset += copy_size;
 	}
@@ -415,12 +415,12 @@ Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int 
 	return result;
 }
 
-Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_width, int pic_height)
+Result_with_string Draw_set_texture_data(Image_data* image, uint8_t* buf, int pic_width, int pic_height)
 {
 	return Draw_set_texture_data(image, buf, pic_width, pic_height, 0, 0);
 }
 
-Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_width, int pic_height, int width_offset, int height_offset)
+Result_with_string Draw_set_texture_data(Image_data* image, uint8_t* buf, int pic_width, int pic_height, int width_offset, int height_offset)
 {
 	int x_max = 0;
 	int y_max = 0;
@@ -466,15 +466,15 @@ Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_wid
 		increase_list_y[i + 7] = (image->c2d.tex->width * 8 - 42) * pixel_size;
 	}
 
-	y_max = pic_height - (u32)height_offset;
-	x_max = pic_width - (u32)width_offset;
+	y_max = pic_height - (uint32_t)height_offset;
+	x_max = pic_width - (uint32_t)width_offset;
 	if (image->c2d.tex->height < y_max)
 		y_max = image->c2d.tex->height;
 	if (image->c2d.tex->width < x_max)
 		x_max = image->c2d.tex->width;
 
-	image->subtex->width = (u16)x_max;
-	image->subtex->height = (u16)y_max;
+	image->subtex->width = (uint16_t)x_max;
+	image->subtex->height = (uint16_t)y_max;
 	image->subtex->left = 0.0;
 	image->subtex->top = 1.0;
 	image->subtex->right = x_max / (float)image->c2d.tex->width;
@@ -487,7 +487,7 @@ Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_wid
 		{
 			for(int i = 0; i < x_max; i += 2)
 			{
-				memcpy_asm_4b(&(((u8*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(((u8*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
+				memcpy_asm_4b(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(((uint8_t*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
 				c3d_pos += increase_list_x[count[0]];
 				count[0]++;
 			}
@@ -503,8 +503,8 @@ Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_wid
 		{
 			for(int i = 0; i < x_max; i += 2)
 			{
-				memcpy_asm_4b(&(((u8*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(((u8*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
-				memcpy(&(((u8*)image->c2d.tex->data)[c3d_pos + c3d_offset + 4]), &(((u8*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size) + 4]), 2);
+				memcpy_asm_4b(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(((uint8_t*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
+				memcpy(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset + 4]), &(((uint8_t*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size) + 4]), 2);
 				c3d_pos += increase_list_x[count[0]];
 				count[0]++;
 			}
@@ -520,8 +520,8 @@ Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_wid
 		{
 			for(int i = 0; i < x_max; i += 2)
 			{
-				memcpy_asm_4b(&(((u8*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(((u8*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
-				memcpy_asm_4b(&(((u8*)image->c2d.tex->data)[c3d_pos + c3d_offset + 4]), &(((u8*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size) + 4]));
+				memcpy_asm_4b(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(((uint8_t*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
+				memcpy_asm_4b(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset + 4]), &(((uint8_t*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size) + 4]));
 				c3d_pos += increase_list_x[count[0]];
 				count[0]++;
 			}

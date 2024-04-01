@@ -254,7 +254,7 @@ int Util_mvd_video_decoder_get_raw_image_buffer_size(int session);
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_audio_decoder_decode(int* samples, u8** raw_data, double* current_pos, int packet_index, int session);
+Result_with_string Util_audio_decoder_decode(int* samples, uint8_t** raw_data, double* current_pos, int packet_index, int session);
 
 /**
  * @brief Decode video.
@@ -338,7 +338,7 @@ int Util_mvd_video_decoder_get_available_raw_image_num(int session);
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_pos, int width, int height, int packet_index, int session);
+Result_with_string Util_video_decoder_get_image(uint8_t** raw_data, double* current_pos, int width, int height, int packet_index, int session);
 
 /**
  * @brief Get raw image.
@@ -352,7 +352,7 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* current_pos, int width, int height, int session);
+Result_with_string Util_mvd_video_decoder_get_image(uint8_t** raw_data, double* current_pos, int width, int height, int session);
 
 /**
  * @brief Skip image.
@@ -382,7 +382,7 @@ void Util_mvd_video_decoder_skip_image(double* current_pos, int session);
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_decoder_seek(u64 seek_pos, Seek_flag flag, int session);
+Result_with_string Util_decoder_seek(uint64_t seek_pos, Seek_flag flag, int session);
 
 /**
  * @brief Uninitialize decoders and close the file.
@@ -447,7 +447,7 @@ void Util_decoder_close_file(int session);
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_image_decoder_decode(std::string file_name, u8** raw_data, int* width, int* height, Pixel_format* format);
+Result_with_string Util_image_decoder_decode(std::string file_name, uint8_t** raw_data, int* width, int* height, Pixel_format* format);
 
 /**
  * @brief Decode image file.
@@ -461,7 +461,7 @@ Result_with_string Util_image_decoder_decode(std::string file_name, u8** raw_dat
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_image_decoder_decode(u8* compressed_data, int compressed_buffer_size, u8** raw_data, int* width, int* height, Pixel_format* format);
+Result_with_string Util_image_decoder_decode(uint8_t* compressed_data, int compressed_buffer_size, uint8_t** raw_data, int* width, int* height, Pixel_format* format);
 
 #else
 

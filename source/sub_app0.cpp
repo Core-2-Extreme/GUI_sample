@@ -259,8 +259,8 @@ static void Sapp0_draw_init_exit_message(void)
 static void Sapp0_init_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
-	u8* buffer = NULL;
-	u8* png_data = NULL;
+	uint8_t* buffer = NULL;
+	uint8_t* png_data = NULL;
 	int width = 0, height = 0;
 	int dled_size = 0;
 	char file_path[] = "romfs:/gfx/draw/sapp0/sample.jpg";

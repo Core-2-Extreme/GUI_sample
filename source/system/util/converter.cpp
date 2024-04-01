@@ -192,16 +192,16 @@ AVSampleFormat util_converter_sample_format_table[SAMPLE_FORMAT_MAX] =
 	AV_SAMPLE_FMT_DBLP,
 };
 
-u8 util_converter_sample_format_size_table[] =
+uint8_t util_converter_sample_format_size_table[] =
 {
-	sizeof(u8),
-	sizeof(u8),
-	sizeof(s16),
-	sizeof(s16),
-	sizeof(s32),
-	sizeof(s32),
-	sizeof(s64),
-	sizeof(s64),
+	sizeof(uint8_t),
+	sizeof(uint8_t),
+	sizeof(int16_t),
+	sizeof(int16_t),
+	sizeof(int32_t),
+	sizeof(int32_t),
+	sizeof(int64_t),
+	sizeof(int64_t),
 	sizeof(float),
 	sizeof(float),
 	sizeof(double),
@@ -226,8 +226,8 @@ u8 util_converter_sample_format_size_table[] =
 
 #if DEF_ENABLE_SW_ASM_CONVERTER_API
 
-extern "C" void yuv420p_to_rgb565le_asm(u8* yuv420p, u8* rgb565, int width, int height);
-extern "C" void yuv420p_to_rgb888le_asm(u8* yuv420p, u8* rgb888, int width, int height);
+extern "C" void yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t* rgb565, int width, int height);
+extern "C" void yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t* rgb888, int width, int height);
 
 #endif
 
@@ -245,8 +245,8 @@ Result_with_string Util_converter_convert_color(Color_converter_parameters* para
 	int dst_line_size[4] = { 0, 0, 0, 0, };
 	int converted_image_size = 0;
 	int ffmpeg_result = 0;
-	u8* src_data[4] = { NULL, NULL, NULL, NULL, };
-	u8* dst_data[4] = { NULL, NULL, NULL, NULL, };
+	uint8_t* src_data[4] = { NULL, NULL, NULL, NULL, };
+	uint8_t* dst_data[4] = { NULL, NULL, NULL, NULL, };
 	Result_with_string result;
 	SwsContext* sws_context = NULL;
 
@@ -263,7 +263,7 @@ Result_with_string Util_converter_convert_color(Color_converter_parameters* para
 	}
 
 	Util_safe_linear_free(parameters->converted);
-	parameters->converted = (u8*)Util_safe_linear_alloc(converted_image_size);
+	parameters->converted = (uint8_t*)Util_safe_linear_alloc(converted_image_size);
 	if(!parameters->converted)
 		goto out_of_memory;
 
@@ -326,8 +326,8 @@ Result_with_string Util_converter_convert_color(Color_converter_parameters* para
 
 Result_with_string Util_converter_convert_audio(Audio_converter_parameters* parameters)
 {
-	u8* src_data[AV_NUM_DATA_POINTERS] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
-	u8* dst_data[AV_NUM_DATA_POINTERS] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
+	uint8_t* src_data[AV_NUM_DATA_POINTERS] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
+	uint8_t* dst_data[AV_NUM_DATA_POINTERS] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
 	int ffmpeg_result = 0;
 	Result_with_string result;
 	AVChannelLayout out_ch_layout = AV_CHANNEL_LAYOUT_MONO;
@@ -343,7 +343,7 @@ Result_with_string Util_converter_convert_audio(Audio_converter_parameters* para
 
 	Util_safe_linear_free(parameters->converted);
 	parameters->converted = NULL;
-	parameters->converted = (u8*)Util_safe_linear_alloc(parameters->in_samples * util_converter_sample_format_size_table[parameters->out_sample_format] * parameters->out_ch);
+	parameters->converted = (uint8_t*)Util_safe_linear_alloc(parameters->in_samples * util_converter_sample_format_size_table[parameters->out_sample_format] * parameters->out_ch);
 	if(!parameters->converted)
 		goto out_of_memory;
 
@@ -385,7 +385,7 @@ Result_with_string Util_converter_convert_audio(Audio_converter_parameters* para
 			dst_data[i] = parameters->converted + (parameters->out_samples * util_converter_sample_format_size_table[parameters->out_sample_format] * i);
 	}
 
-	ffmpeg_result = swr_convert(swr_context, dst_data, parameters->out_samples, (const u8**)src_data, parameters->in_samples);
+	ffmpeg_result = swr_convert(swr_context, dst_data, parameters->out_samples, (const uint8_t**)src_data, parameters->in_samples);
 	if(ffmpeg_result <= 0)
 	{
 		result.error_description = "[Error] swr_convert() failed. " + std::to_string(ffmpeg_result) + " ";
@@ -424,20 +424,20 @@ Result_with_string Util_converter_convert_audio(Audio_converter_parameters* para
 
 #if DEF_ENABLE_SW_CONVERTER_API
 
-Result_with_string Util_converter_yuv420p_to_rgb565le(u8* yuv420p, u8** rgb565, int width, int height)
+Result_with_string Util_converter_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t** rgb565, int width, int height)
 {
 	int index = 0;
-	u8 Y[4], U, V, r[4], g[4], b[4];
-	u8* ybase = yuv420p;
-	u8* ubase = yuv420p + width * height;
-	u8* vbase = yuv420p + width * height + width * height / 4;
+	uint8_t Y[4], U, V, r[4], g[4], b[4];
+	uint8_t* ybase = yuv420p;
+	uint8_t* ubase = yuv420p + width * height;
+	uint8_t* vbase = yuv420p + width * height + width * height / 4;
 	Result_with_string result;
 
 	if(!yuv420p || !rgb565 || width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
 	Util_safe_linear_free(*rgb565);
-	*rgb565 = (u8*)Util_safe_linear_alloc(width * height * 2);
+	*rgb565 = (uint8_t*)Util_safe_linear_alloc(width * height * 2);
 	if(!*rgb565)
 		goto out_of_memory;
 
@@ -472,23 +472,23 @@ Result_with_string Util_converter_yuv420p_to_rgb565le(u8* yuv420p, u8** rgb565, 
 	return result;
 }
 
-Result_with_string Util_converter_yuv420p_to_rgb888le(u8* yuv420p, u8** rgb888, int width, int height)
+Result_with_string Util_converter_yuv420p_to_rgb888le(uint8_t* yuv420p, uint8_t** rgb888, int width, int height)
 {
 	int index = 0;
-	u8* ybase = yuv420p;
-	u8* ubase = yuv420p + width * height;
-	u8* vbase = yuv420p + width * height + width * height / 4;
+	uint8_t* ybase = yuv420p;
+	uint8_t* ubase = yuv420p + width * height;
+	uint8_t* vbase = yuv420p + width * height + width * height / 4;
 	Result_with_string result;
 
 	if(!yuv420p || !rgb888 || width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
 	Util_safe_linear_free(*rgb888);
-	*rgb888 = (u8*)Util_safe_linear_alloc(width * height * 3);
+	*rgb888 = (uint8_t*)Util_safe_linear_alloc(width * height * 3);
 	if(!*rgb888)
 		goto out_of_memory;
 
-	u8 Y[4], U, V;
+	uint8_t Y[4], U, V;
 	for (int y = 0; y < height; y++)
 	{
 		for (int x = 0; x < width; x++)
@@ -516,7 +516,7 @@ Result_with_string Util_converter_yuv420p_to_rgb888le(u8* yuv420p, u8** rgb888, 
 	return result;
 }
 
-Result_with_string Util_converter_rgba8888be_to_rgba8888le(u8* rgba8888, int width, int height)
+Result_with_string Util_converter_rgba8888be_to_rgba8888le(uint8_t* rgba8888, int width, int height)
 {
 	int offset = 0;
 	Result_with_string result;
@@ -528,10 +528,10 @@ Result_with_string Util_converter_rgba8888be_to_rgba8888le(u8* rgba8888, int wid
 	{
 		for (int y = 0; y < height; y++)
 		{
-			u8 r = *(u8*)(rgba8888 + offset);
-			u8 g = *(u8*)(rgba8888 + offset + 1);
-			u8 b = *(u8*)(rgba8888 + offset + 2);
-			u8 a = *(u8*)(rgba8888 + offset + 3);
+			uint8_t r = *(uint8_t*)(rgba8888 + offset);
+			uint8_t g = *(uint8_t*)(rgba8888 + offset + 1);
+			uint8_t b = *(uint8_t*)(rgba8888 + offset + 2);
+			uint8_t a = *(uint8_t*)(rgba8888 + offset + 3);
 
 			*(rgba8888 + offset) = a;
 			*(rgba8888 + offset + 1) = b;
@@ -548,7 +548,7 @@ Result_with_string Util_converter_rgba8888be_to_rgba8888le(u8* rgba8888, int wid
 	return result;
 }
 
-Result_with_string Util_converter_rgb888be_to_rgb888le(u8* rgb888, int width, int height)
+Result_with_string Util_converter_rgb888be_to_rgb888le(uint8_t* rgb888, int width, int height)
 {
 	int offset = 0;
 	Result_with_string result;
@@ -560,9 +560,9 @@ Result_with_string Util_converter_rgb888be_to_rgb888le(u8* rgb888, int width, in
 	{
 		for (int y = 0; y < height; y++)
 		{
-			u8 r = *(u8*)(rgb888 + offset);
-			u8 g = *(u8*)(rgb888 + offset + 1);
-			u8 b = *(u8*)(rgb888 + offset + 2);
+			uint8_t r = *(uint8_t*)(rgb888 + offset);
+			uint8_t g = *(uint8_t*)(rgb888 + offset + 1);
+			uint8_t b = *(uint8_t*)(rgb888 + offset + 2);
 
 			*(rgb888 + offset) = b;
 			*(rgb888 + offset + 1) = g;
@@ -578,7 +578,7 @@ Result_with_string Util_converter_rgb888be_to_rgb888le(u8* rgb888, int width, in
 	return result;
 }
 
-Result_with_string Util_converter_rgb888_rotate_90_degree(u8* rgb888, u8** rotated_rgb888, int width, int height, int* rotated_width, int* rotated_height)
+Result_with_string Util_converter_rgb888_rotate_90_degree(uint8_t* rgb888, uint8_t** rotated_rgb888, int width, int height, int* rotated_width, int* rotated_height)
 {
 	Result_with_string result;
 	int offset;
@@ -588,7 +588,7 @@ Result_with_string Util_converter_rgb888_rotate_90_degree(u8* rgb888, u8** rotat
 		goto invalid_arg;
 
 	Util_safe_linear_free(*rotated_rgb888);
-	*rotated_rgb888 = (u8*)Util_safe_linear_alloc(width * height * 3);
+	*rotated_rgb888 = (uint8_t*)Util_safe_linear_alloc(width * height * 3);
 	if(!*rotated_rgb888)
 		goto out_of_memory;
 
@@ -623,7 +623,7 @@ Result_with_string Util_converter_rgb888_rotate_90_degree(u8* rgb888, u8** rotat
 
 #if DEF_ENABLE_SW_ASM_CONVERTER_API
 
-Result_with_string Util_converter_yuv420p_to_rgb565le_asm(u8* yuv420p, u8** rgb565, int width, int height)
+Result_with_string Util_converter_yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t** rgb565, int width, int height)
 {
 	Result_with_string result;
 
@@ -631,7 +631,7 @@ Result_with_string Util_converter_yuv420p_to_rgb565le_asm(u8* yuv420p, u8** rgb5
 		goto invalid_arg;
 
 	Util_safe_linear_free(*rgb565);
-	*rgb565 = (u8*)Util_safe_linear_alloc(width * height * 2);
+	*rgb565 = (uint8_t*)Util_safe_linear_alloc(width * height * 2);
 	if(!*rgb565)
 		goto out_of_memory;
 
@@ -649,7 +649,7 @@ Result_with_string Util_converter_yuv420p_to_rgb565le_asm(u8* yuv420p, u8** rgb5
 	return result;
 }
 
-Result_with_string Util_converter_yuv420p_to_rgb888le_asm(u8* yuv420p, u8** rgb888, int width, int height)
+Result_with_string Util_converter_yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t** rgb888, int width, int height)
 {
 	Result_with_string result;
 
@@ -657,7 +657,7 @@ Result_with_string Util_converter_yuv420p_to_rgb888le_asm(u8* yuv420p, u8** rgb8
 		goto invalid_arg;
 
 	Util_safe_linear_free(*rgb888);
-	*rgb888 = (u8*)Util_safe_linear_alloc(width * height * 3);
+	*rgb888 = (uint8_t*)Util_safe_linear_alloc(width * height * 3);
 	if(!*rgb888)
 		goto out_of_memory;
 
@@ -706,7 +706,7 @@ Result_with_string Util_converter_y2r_init(void)
 	return result;
 }
 
-Result_with_string Util_converter_y2r_yuv420p_to_rgb565le(u8* yuv420p, u8** rgb565, int width, int height, bool texture_format)
+Result_with_string Util_converter_y2r_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t** rgb565, int width, int height, bool texture_format)
 {
 	Y2RU_ConversionParams y2r_parameters;
 	Handle conversion_finish_event_handle;
@@ -719,7 +719,7 @@ Result_with_string Util_converter_y2r_yuv420p_to_rgb565le(u8* yuv420p, u8** rgb5
 		goto invalid_arg;
 
 	Util_safe_linear_free(*rgb565);
-	*rgb565 = (u8*)Util_safe_linear_alloc(width * height * 2);
+	*rgb565 = (uint8_t*)Util_safe_linear_alloc(width * height * 2);
 	if(!*rgb565)
 		goto out_of_memory;
 

@@ -91,7 +91,7 @@ int util_hid_touch_pos_y = 0;
 int util_hid_pre_touch_pos_y = 0;
 int util_hid_touch_pos_y_moved = 0;
 int util_hid_held_time = 0;
-u64 util_hid_ts = 0;
+uint64_t util_hid_ts = 0;
 void (*util_hid_callbacks[DEF_HID_NUM_OF_CALLBACKS])(void) = { NULL, };
 Thread util_hid_scan_thread;
 LightLock util_hid_callback_mutex = 1;//Initially unlocked state.
@@ -332,9 +332,9 @@ void Util_hid_scan_hid_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
 
-	u32 key_pressed;
-	u32 key_held;
-	u32 key_released;
+	uint32_t key_pressed;
+	uint32_t key_held;
+	uint32_t key_released;
 	touchPosition touch_pos;
 	circlePosition circle_pos;
 	Result_with_string result;

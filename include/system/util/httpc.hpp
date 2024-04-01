@@ -33,7 +33,7 @@ void Util_httpc_exit(void);
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_httpc_dl_data(std::string url, u8** data, int max_size, u32* downloaded_size, bool follow_redirect,
+Result_with_string Util_httpc_dl_data(std::string url, uint8_t** data, int max_size, uint32_t* downloaded_size, bool follow_redirect,
 int max_redirect);
 
 /**
@@ -50,7 +50,7 @@ int max_redirect);
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_httpc_dl_data(std::string url, u8** data, int max_size, u32* downloaded_size, bool follow_redirect,
+Result_with_string Util_httpc_dl_data(std::string url, uint8_t** data, int max_size, uint32_t* downloaded_size, bool follow_redirect,
 int max_redirect, std::string* last_url);
 
 /**
@@ -67,7 +67,7 @@ int max_redirect, std::string* last_url);
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_httpc_dl_data(std::string url, u8** data, int max_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
+Result_with_string Util_httpc_dl_data(std::string url, uint8_t** data, int max_size, uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect,
 int max_redirect);
 
 /**
@@ -85,7 +85,7 @@ int max_redirect);
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_httpc_dl_data(std::string url, u8** data, int max_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
+Result_with_string Util_httpc_dl_data(std::string url, uint8_t** data, int max_size, uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect,
 int max_redirect, std::string* last_url);
 
 /**
@@ -101,7 +101,7 @@ int max_redirect, std::string* last_url);
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_httpc_save_data(std::string url, int buffer_size, u32* downloaded_size, bool follow_redirect,
+Result_with_string Util_httpc_save_data(std::string url, int buffer_size, uint32_t* downloaded_size, bool follow_redirect,
 int max_redirect, std::string dir_path, std::string file_name);
 
 /**
@@ -118,7 +118,7 @@ int max_redirect, std::string dir_path, std::string file_name);
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_httpc_save_data(std::string url, int buffer_size, u32* downloaded_size, bool follow_redirect,
+Result_with_string Util_httpc_save_data(std::string url, int buffer_size, uint32_t* downloaded_size, bool follow_redirect,
 int max_redirect, std::string* last_url, std::string dir_path, std::string file_name);
 
 /**
@@ -135,7 +135,7 @@ int max_redirect, std::string* last_url, std::string dir_path, std::string file_
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_httpc_save_data(std::string url, int buffer_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
+Result_with_string Util_httpc_save_data(std::string url, int buffer_size, uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect,
 int max_redirect, std::string dir_path, std::string file_name);
 
 /**
@@ -153,7 +153,7 @@ int max_redirect, std::string dir_path, std::string file_name);
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_httpc_save_data(std::string url, int buffer_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
+Result_with_string Util_httpc_save_data(std::string url, int buffer_size, uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect,
 int max_redirect, std::string* last_url, std::string dir_path, std::string file_name);
 
 /**
@@ -171,8 +171,8 @@ int max_redirect, std::string* last_url, std::string dir_path, std::string file_
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_httpc_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
-u32* downloaded_size, bool follow_redirect, int max_redirect);
+Result_with_string Util_httpc_post_and_dl_data(std::string url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
+uint32_t* downloaded_size, bool follow_redirect, int max_redirect);
 
 /**
  * @brief Make a HTTP post request.
@@ -190,8 +190,8 @@ u32* downloaded_size, bool follow_redirect, int max_redirect);
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_httpc_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
-u32* downloaded_size, bool follow_redirect, int max_redirect, std::string* last_url);
+Result_with_string Util_httpc_post_and_dl_data(std::string url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
+uint32_t* downloaded_size, bool follow_redirect, int max_redirect, std::string* last_url);
 
 /**
  * @brief Make a HTTP post request.
@@ -209,8 +209,8 @@ u32* downloaded_size, bool follow_redirect, int max_redirect, std::string* last_
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_httpc_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
-u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect);
+Result_with_string Util_httpc_post_and_dl_data(std::string url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
+uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect, int max_redirect);
 
 /**
  * @brief Make a HTTP post request.
@@ -229,8 +229,8 @@ u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect);
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_httpc_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
-u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url);
+Result_with_string Util_httpc_post_and_dl_data(std::string url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
+uint32_t* downloaded_size, uint32_t* status_code, bool follow_redirect, int max_redirect, std::string* last_url);
 
 /**
  * @brief Make a HTTP post request and save response to SD card.
@@ -247,7 +247,7 @@ u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, 
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
+Result_with_string Util_httpc_post_and_save_data(std::string url, uint8_t* post_data, int post_size, int buffer_size, uint32_t* downloaded_size,
 bool follow_redirect, int max_redirect, std::string dir_path, std::string file_name);
 
 /**
@@ -266,7 +266,7 @@ bool follow_redirect, int max_redirect, std::string dir_path, std::string file_n
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
+Result_with_string Util_httpc_post_and_save_data(std::string url, uint8_t* post_data, int post_size, int buffer_size, uint32_t* downloaded_size,
 bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_path, std::string file_name);
 
 /**
@@ -285,8 +285,8 @@ bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_p
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
-u32* status_code, bool follow_redirect, int max_redirect, std::string dir_path, std::string file_name);
+Result_with_string Util_httpc_post_and_save_data(std::string url, uint8_t* post_data, int post_size, int buffer_size, uint32_t* downloaded_size,
+uint32_t* status_code, bool follow_redirect, int max_redirect, std::string dir_path, std::string file_name);
 
 /**
  * @brief Make a HTTP post request and save response to SD card.
@@ -305,8 +305,8 @@ u32* status_code, bool follow_redirect, int max_redirect, std::string dir_path, 
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
-u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_path, std::string file_name);
+Result_with_string Util_httpc_post_and_save_data(std::string url, uint8_t* post_data, int post_size, int buffer_size, uint32_t* downloaded_size,
+uint32_t* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_path, std::string file_name);
 
 #else
 

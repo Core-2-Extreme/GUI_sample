@@ -32,7 +32,7 @@ Result_with_string Util_swkbd_init(SwkbdType type, SwkbdValidInput valid_type, i
  * @warning Thread dangerous (untested)
 */
 Result_with_string Util_swkbd_init(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string hint_text, std::string init_text,
-u32 feature);
+uint32_t feature);
 
 /**
  * @brief Initialize a software keyboard.
@@ -65,7 +65,7 @@ SwkbdPasswordMode password_mode);
  * @warning Thread dangerous (untested)
 */
 Result_with_string Util_swkbd_init(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string hint_text, std::string init_text,
-SwkbdPasswordMode password_mode, u32 feature);
+SwkbdPasswordMode password_mode, uint32_t feature);
 
 /**
  * @brief Set dictionary word.

@@ -87,7 +87,7 @@ Result_with_string Util_speaker_set_audio_info(int play_ch, int music_ch, int sa
 	return result;
 }
 
-Result_with_string Util_speaker_add_buffer(int play_ch, u8* buffer, int size)
+Result_with_string Util_speaker_add_buffer(int play_ch, uint8_t* buffer, int size)
 {
 	int free_queue = -1;
 	Result_with_string result;
@@ -120,7 +120,7 @@ Result_with_string Util_speaker_add_buffer(int play_ch, u8* buffer, int size)
 		goto try_again;
 	}
 
-	util_ndsp_buffer[play_ch][free_queue].data_vaddr = (u8*)Util_safe_linear_alloc(size);
+	util_ndsp_buffer[play_ch][free_queue].data_vaddr = (uint8_t*)Util_safe_linear_alloc(size);
 	if(!util_ndsp_buffer[play_ch][free_queue].data_vaddr)
 		goto out_of_linear_memory;
 

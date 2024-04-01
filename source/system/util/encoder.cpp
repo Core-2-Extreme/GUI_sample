@@ -33,7 +33,7 @@ int util_audio_pos[DEF_ENCODER_MAX_SESSIONS];
 int util_audio_increase_pts[DEF_ENCODER_MAX_SESSIONS];
 int util_audio_encoder_cache_size[DEF_ENCODER_MAX_SESSIONS];
 double util_audio_encoder_conversion_size_rate[DEF_ENCODER_MAX_SESSIONS];
-u8* util_audio_encoder_cache[DEF_ENCODER_MAX_SESSIONS];
+uint8_t* util_audio_encoder_cache[DEF_ENCODER_MAX_SESSIONS];
 AVPacket* util_audio_encoder_packet[DEF_ENCODER_MAX_SESSIONS];
 AVFrame* util_audio_encoder_raw_data[DEF_ENCODER_MAX_SESSIONS];
 AVCodecContext* util_audio_encoder_context[DEF_ENCODER_MAX_SESSIONS];
@@ -530,7 +530,7 @@ Result_with_string Util_encoder_write_header(int session)
 	return result;
 }
 
-Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session)
+Result_with_string Util_audio_encoder_encode(int size, uint8_t* raw_data, int session)
 {
 	int encode_offset = 0;
 	int ffmpeg_result = 0;
@@ -540,9 +540,9 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 	int out_size = 0;
 	int in_samples = 0;
 	int bytes_per_sample = 0;
-	u8* swr_in_cache[1] = { NULL, };
-	u8* swr_out_cache[1] = { NULL, };
-	u8* raw_audio = NULL;
+	uint8_t* swr_in_cache[1] = { NULL, };
+	uint8_t* swr_out_cache[1] = { NULL, };
+	uint8_t* raw_audio = NULL;
 	Result_with_string result;
 
 	if(!util_encoder_init)
@@ -560,7 +560,7 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 	in_samples = size / 2;
 	swr_in_cache[0] = raw_data;
 	max_out_samples = in_samples * util_audio_encoder_conversion_size_rate[session];
-	raw_audio = (u8*)Util_safe_linear_alloc((max_out_samples * bytes_per_sample) + util_audio_encoder_cache_size[session]);
+	raw_audio = (uint8_t*)Util_safe_linear_alloc((max_out_samples * bytes_per_sample) + util_audio_encoder_cache_size[session]);
 	if(!raw_audio)
 		goto out_of_memory;
 
@@ -621,7 +621,7 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 
 	Util_safe_linear_free(util_audio_encoder_cache[session]);
 	util_audio_encoder_cache[session] = NULL;
-	util_audio_encoder_cache[session] = (u8*)Util_safe_linear_alloc(out_size);
+	util_audio_encoder_cache[session] = (uint8_t*)Util_safe_linear_alloc(out_size);
 	if(!util_audio_encoder_cache[session])
 		goto out_of_memory;
 
@@ -664,7 +664,7 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 	return result;
 }
 
-Result_with_string Util_video_encoder_encode(u8* raw_image, int session)
+Result_with_string Util_video_encoder_encode(uint8_t* raw_image, int session)
 {
 	int ffmpeg_result = 0;
 	int width = 0;
@@ -790,7 +790,7 @@ void Util_video_encoder_exit(int session)
 
 #if DEF_ENABLE_IMAGE_ENCODER_API
 
-Result_with_string Util_image_encoder_encode(std::string file_path, u8* raw_data, int width, int height, Image_codec codec, int quality)
+Result_with_string Util_image_encoder_encode(std::string file_path, uint8_t* raw_data, int width, int height, Image_codec codec, int quality)
 {
 	Result_with_string result;
 	if(!raw_data || width <= 0 || height <= 0 || codec <= IMAGE_CODEC_INVALID || codec >= IMAGE_CODEC_MAX

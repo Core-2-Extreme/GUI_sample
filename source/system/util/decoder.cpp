@@ -26,7 +26,7 @@ extern "C"
 
 #if DEF_ENABLE_VIDEO_AUDIO_DECODER_API
 
-extern "C" void memcpy_asm(u8*, u8*, int);
+extern "C" void memcpy_asm(uint8_t*, uint8_t*, int);
 
 bool util_audio_decoder_init[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
 bool util_audio_decoder_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
@@ -65,10 +65,10 @@ int util_mvd_video_decoder_raw_image_ready_index[DEF_DECODER_MAX_SESSIONS];
 int util_mvd_video_decoder_raw_image_current_index[DEF_DECODER_MAX_SESSIONS];
 int util_mvd_video_decoder_packet_size = 0;
 int util_mvd_video_decoder_max_raw_image[DEF_DECODER_MAX_SESSIONS];
-u8* util_mvd_video_decoder_packet = NULL;
-u8 util_mvd_video_decoder_current_cached_pts_index = 0;
-u8 util_mvd_video_decoder_next_cached_pts_index = 0;
-s64 util_mvd_video_decoder_cached_pts[32];
+uint8_t* util_mvd_video_decoder_packet = NULL;
+uint8_t util_mvd_video_decoder_current_cached_pts_index = 0;
+uint8_t util_mvd_video_decoder_next_cached_pts_index = 0;
+int64_t util_mvd_video_decoder_cached_pts[32];
 LightLock util_mvd_video_decoder_raw_image_mutex[DEF_DECODER_MAX_SESSIONS];
 AVFrame* util_mvd_video_decoder_raw_image[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_RAW_IMAGE];
 
@@ -337,20 +337,20 @@ Sample_format util_audio_decoder_sample_format_table[AV_SAMPLE_FMT_NB] =
 	SAMPLE_FORMAT_S64P,
 };
 
-u8 util_audio_decoder_sample_format_size_table[] =
+uint8_t util_audio_decoder_sample_format_size_table[] =
 {
-	sizeof(u8),
-	sizeof(s16),
-	sizeof(s32),
+	sizeof(uint8_t),
+	sizeof(int16_t),
+	sizeof(int32_t),
 	sizeof(float),
 	sizeof(double),
-	sizeof(u8),
-	sizeof(s16),
-	sizeof(s32),
+	sizeof(uint8_t),
+	sizeof(int16_t),
+	sizeof(int32_t),
 	sizeof(float),
 	sizeof(double),
-	sizeof(s64),
-	sizeof(s64),
+	sizeof(int64_t),
+	sizeof(int64_t),
 };
 
 // void Util_video_decoder_log_callback(void *avcl, int level, const char *fmt, va_list list)
@@ -371,7 +371,7 @@ int Util_video_decoder_allocate_buffer(AVCodecContext *avctx, AVFrame *frame, in
 	int width = 0;
 	int height = 0;
 	int buffer_size = 0;
-	u8* buffer = NULL;
+	uint8_t* buffer = NULL;
 
 	if(avctx->codec_type == AVMEDIA_TYPE_VIDEO)
 	{
@@ -403,7 +403,7 @@ int Util_video_decoder_allocate_buffer(AVCodecContext *avctx, AVFrame *frame, in
 		if(buffer_size <= 0)
 			return -1;
 
-		buffer = (u8*)Util_safe_linear_alloc(buffer_size);
+		buffer = (uint8_t*)Util_safe_linear_alloc(buffer_size);
 		if(!buffer)
 			return -1;
 
@@ -892,7 +892,7 @@ Result_with_string Util_mvd_video_decoder_init(int session)
 	util_mvd_video_decoder_should_skip_process_nal_unit = false;
 
 	util_mvd_video_decoder_packet_size = 1024 * 256;
-	util_mvd_video_decoder_packet = (u8*)Util_safe_linear_alloc(util_mvd_video_decoder_packet_size);
+	util_mvd_video_decoder_packet = (uint8_t*)Util_safe_linear_alloc(util_mvd_video_decoder_packet_size);
 	if(!util_mvd_video_decoder_packet)
 		goto out_of_linear_memory;
 
@@ -1710,7 +1710,7 @@ int Util_mvd_video_decoder_get_raw_image_buffer_size(int session)
 	return util_mvd_video_decoder_max_raw_image[session];
 }
 
-Result_with_string Util_audio_decoder_decode(int* samples, u8** raw_data, double* current_pos, int packet_index, int session)
+Result_with_string Util_audio_decoder_decode(int* samples, uint8_t** raw_data, double* current_pos, int packet_index, int session)
 {
 	int ffmpeg_result = 0;
 	int copy_size_per_ch = 0;
@@ -1769,7 +1769,7 @@ Result_with_string Util_audio_decoder_decode(int* samples, u8** raw_data, double
 	copy_size_per_ch = util_audio_decoder_raw_data[session][packet_index]->nb_samples * util_audio_decoder_sample_format_size_table[util_audio_decoder_context[session][packet_index]->sample_fmt];
 	Util_safe_linear_free(*raw_data);
 	*raw_data = NULL;
-	*raw_data = (u8*)Util_safe_linear_alloc(copy_size_per_ch * util_audio_decoder_context[session][packet_index]->ch_layout.nb_channels);
+	*raw_data = (uint8_t*)Util_safe_linear_alloc(copy_size_per_ch * util_audio_decoder_context[session][packet_index]->ch_layout.nb_channels);
 
 	if(util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_U8P || util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_S16P
 	|| util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_S32P || util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_S64P
@@ -1974,7 +1974,7 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 		goto ffmpeg_api_failed;
 	}
 
-	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = (u8*)Util_safe_linear_alloc(width * height * 2);
+	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = (uint8_t*)Util_safe_linear_alloc(width * height * 2);
 	if(!util_mvd_video_decoder_raw_image[session][buffer_num]->data[0])
 		goto out_of_linear_memory;
 
@@ -1983,7 +1983,7 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 		util_mvd_video_decoder_packet_size = util_video_decoder_packet[session][0]->size;
 		Util_safe_linear_free(util_mvd_video_decoder_packet);
 		util_mvd_video_decoder_packet = NULL;
-		util_mvd_video_decoder_packet = (u8*)Util_safe_linear_alloc(util_mvd_video_decoder_packet_size);
+		util_mvd_video_decoder_packet = (uint8_t*)Util_safe_linear_alloc(util_mvd_video_decoder_packet_size);
 		if(!util_mvd_video_decoder_packet)
 		{
 			util_mvd_video_decoder_packet_size = 0;
@@ -2306,15 +2306,15 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 
 			if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->type == SUBTITLE_BITMAP)
 			{
-				u8* index_table = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->data[0];
-				u32* color_table = (u32*)util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->data[1];
+				uint8_t* index_table = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->data[0];
+				uint32_t* color_table = (uint32_t*)util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->data[1];
 				int index = 0;
 				int size = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->w * util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->h * 4;
 
 				if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->nb_colors != 4)
 					goto unsupported;
 
-				subtitle_data->bitmap = (u8*)malloc(size);
+				subtitle_data->bitmap = (uint8_t*)malloc(size);
 				if(!subtitle_data->bitmap)
 					goto out_of_memory;
 
@@ -2327,7 +2327,7 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 				for(int i = 0; i < subtitle_data->bitmap_height; i++)
 				{
 					for(int k = 0; k < subtitle_data->bitmap_width; k++)
-						((u32*)subtitle_data->bitmap)[index++] = __builtin_bswap32(color_table[index_table[(subtitle_data->bitmap_width * i) + k]]);
+						((uint32_t*)subtitle_data->bitmap)[index++] = __builtin_bswap32(color_table[index_table[(subtitle_data->bitmap_width * i) + k]]);
 				}
 			}
 			else if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->type == SUBTITLE_TEXT)
@@ -2491,16 +2491,16 @@ int Util_mvd_video_decoder_get_available_raw_image_num(int session)
 		return util_mvd_video_decoder_available_raw_image[session];
 }
 
-Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_pos, int width, int height, int packet_index, int session)
+Result_with_string Util_video_decoder_get_image(uint8_t** raw_data, double* current_pos, int width, int height, int packet_index, int session)
 {
 	bool is_linear = true;
 	int cpy_size = 0;
 	int buffer_num = 0;
-	u32 y_offset = 0;
-	u32 u_offset = 0;
-	u32 v_offset = 0;
-	u32 y_size = width * height;
-	u32 uv_size = width * height / 4;
+	uint32_t y_offset = 0;
+	uint32_t u_offset = 0;
+	uint32_t v_offset = 0;
+	uint32_t y_size = width * height;
+	uint32_t uv_size = width * height / 4;
 	double framerate = 0;
 	double current_frame = 0;
 	double timebase = 0;
@@ -2531,7 +2531,7 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 	*current_pos = 0;
 	Util_safe_linear_free(*raw_data);
 	*raw_data = NULL;
-	*raw_data = (u8*)Util_safe_linear_alloc(cpy_size);
+	*raw_data = (uint8_t*)Util_safe_linear_alloc(cpy_size);
 	if(!*raw_data)
 		goto out_of_memory;
 
@@ -2551,9 +2551,9 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 	else if(framerate != 0.0)
 		*current_pos = current_frame * (1000 / framerate);//calc frame pos
 
-	y_offset = (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0];
-	u_offset = (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1];
-	v_offset = (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2];
+	y_offset = (uint32_t)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0];
+	u_offset = (uint32_t)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1];
+	v_offset = (uint32_t)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2];
 
 	//Check if the decoded data is in linear format (some decoder return in not linear format).
 	//Currently, only check for YUV420P because it only occurs in h263p afaik.
@@ -2567,14 +2567,14 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, y_offset, cpy_size);
 
 		dmaConfigInitDefault(&dma_config);
-		dma_result[0] = svcStartInterProcessDma(&dma_handle[0], CUR_PROCESS_HANDLE, (u32)*raw_data, CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], cpy_size, &dma_config);
+		dma_result[0] = svcStartInterProcessDma(&dma_handle[0], CUR_PROCESS_HANDLE, (uint32_t)*raw_data, CUR_PROCESS_HANDLE, (uint32_t)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], cpy_size, &dma_config);
 
 		if(dma_result[0] == 0)
 			svcWaitSynchronization(dma_handle[0], INT64_MAX);
 
 		svcCloseHandle(dma_handle[0]);
 
-		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)*raw_data, cpy_size);
+		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (uint32_t)*raw_data, cpy_size);
 	}
 	else
 	{
@@ -2583,9 +2583,9 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, v_offset, uv_size);
 
 		dmaConfigInitDefault(&dma_config);
-		dma_result[0] = svcStartInterProcessDma(&dma_handle[0], CUR_PROCESS_HANDLE, (u32)*raw_data, CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], y_size, &dma_config);
-		dma_result[1] = svcStartInterProcessDma(&dma_handle[1], CUR_PROCESS_HANDLE, (u32)(*raw_data) + y_size, CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1], uv_size, &dma_config);
-		dma_result[2] = svcStartInterProcessDma(&dma_handle[2], CUR_PROCESS_HANDLE, (u32)(*raw_data) + y_size + uv_size, CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2], uv_size, &dma_config);
+		dma_result[0] = svcStartInterProcessDma(&dma_handle[0], CUR_PROCESS_HANDLE, (uint32_t)*raw_data, CUR_PROCESS_HANDLE, (uint32_t)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], y_size, &dma_config);
+		dma_result[1] = svcStartInterProcessDma(&dma_handle[1], CUR_PROCESS_HANDLE, (uint32_t)(*raw_data) + y_size, CUR_PROCESS_HANDLE, (uint32_t)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1], uv_size, &dma_config);
+		dma_result[2] = svcStartInterProcessDma(&dma_handle[2], CUR_PROCESS_HANDLE, (uint32_t)(*raw_data) + y_size + uv_size, CUR_PROCESS_HANDLE, (uint32_t)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2], uv_size, &dma_config);
 
 		for(int i = 0; i < 3; i++)
 		{
@@ -2595,7 +2595,7 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 			svcCloseHandle(dma_handle[i]);
 		}
 
-		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)*raw_data, cpy_size);
+		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (uint32_t)*raw_data, cpy_size);
 	}
 #else
 	if(is_linear)
@@ -2642,7 +2642,7 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 	return result;
 }
 
-Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* current_pos, int width, int height, int session)
+Result_with_string Util_mvd_video_decoder_get_image(uint8_t** raw_data, double* current_pos, int width, int height, int session)
 {
 	int cpy_size = 0;
 	int buffer_num = 0;
@@ -2673,7 +2673,7 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 
 	Util_safe_linear_free(*raw_data);
 	*raw_data = NULL;
-	*raw_data = (u8*)Util_safe_linear_alloc(width * height * 2);
+	*raw_data = (uint8_t*)Util_safe_linear_alloc(width * height * 2);
 	if(!*raw_data)
 		goto out_of_memory;
 
@@ -2692,16 +2692,16 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 	cpy_size = (width * height * 2);
 
 #if DEF_DECODER_USE_DMA
-	svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size);
+	svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (uint32_t)util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size);
 
 	dmaConfigInitDefault(&dma_config);
-	dma_result = svcStartInterProcessDma(&dma_handle, CUR_PROCESS_HANDLE, (u32)*raw_data, CUR_PROCESS_HANDLE, (u32)util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size, &dma_config);
+	dma_result = svcStartInterProcessDma(&dma_handle, CUR_PROCESS_HANDLE, (uint32_t)*raw_data, CUR_PROCESS_HANDLE, (uint32_t)util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size, &dma_config);
 
 	if(dma_result == 0)
 		svcWaitSynchronization(dma_handle, INT64_MAX);
 
 	svcCloseHandle(dma_handle);
-	svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)*raw_data, cpy_size);
+	svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (uint32_t)*raw_data, cpy_size);
 #else
 	memcpy_asm(*raw_data, util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size);
 #endif
@@ -2844,7 +2844,7 @@ void Util_mvd_video_decoder_skip_image(double* current_pos, int session)
 	LightLock_Unlock(&util_mvd_video_decoder_raw_image_mutex[session]);
 }
 
-Result_with_string Util_decoder_seek(u64 seek_pos, Seek_flag flag, int session)
+Result_with_string Util_decoder_seek(uint64_t seek_pos, Seek_flag flag, int session)
 {
 	int ffmpeg_result = 0;
 	int ffmpeg_seek_flag = 0;
@@ -3005,7 +3005,7 @@ void Util_decoder_close_file(int session)
 
 #if DEF_ENABLE_IMAGE_DECODER_API
 
-Result_with_string Util_image_decoder_decode(std::string file_name, u8** raw_data, int* width, int* height, Pixel_format* format)
+Result_with_string Util_image_decoder_decode(std::string file_name, uint8_t** raw_data, int* width, int* height, Pixel_format* format)
 {
 	Result_with_string result;
 	int image_ch = 0;
@@ -3042,7 +3042,7 @@ Result_with_string Util_image_decoder_decode(std::string file_name, u8** raw_dat
 	return result;
 }
 
-Result_with_string Util_image_decoder_decode(u8* compressed_data, int compressed_buffer_size, u8** raw_data, int* width, int* height, Pixel_format* format)
+Result_with_string Util_image_decoder_decode(uint8_t* compressed_data, int compressed_buffer_size, uint8_t** raw_data, int* width, int* height, Pixel_format* format)
 {
 	Result_with_string result;
 	int image_ch = 0;

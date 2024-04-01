@@ -26,7 +26,7 @@ void Util_cpu_usage_monitor_exit(void);
  * @return Counter interval in ms.
  * @warning Thread dangerous (untested)
 */
-float Util_cpu_usage_monitor_get_cpu_usage(s8 core_id);
+float Util_cpu_usage_monitor_get_cpu_usage(int8_t core_id);
 
 #else
 

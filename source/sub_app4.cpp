@@ -390,7 +390,7 @@ static void Sapp4_worker_thread(void* arg)
 
 	while (sapp4_thread_run)
 	{
-		u32 event_id = 0;
+		uint32_t event_id = 0;
 
 		while (sapp4_thread_suspend)
 			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
@@ -492,7 +492,7 @@ static void Sapp4_worker_thread(void* arg)
 					if(type == PACKET_TYPE_AUDIO)
 					{
 						int samples = 0;
-						u8* audio = NULL;
+						uint8_t* audio = NULL;
 						double pos = 0;
 						Audio_converter_parameters parameters;
 

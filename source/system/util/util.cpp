@@ -9,13 +9,13 @@
 #include "system/util/util.hpp"
 
 bool util_safe_linear_alloc_init = false, util_init = false;
-u32 util_max_core_1 = 0;
+uint32_t util_max_core_1 = 0;
 LightLock util_safe_linear_alloc_mutex = 1, util_watch_variables_mutex = 1;//Initially unlocked state.
 
-u32 util_num_of_watch[WATCH_HANDLE_MAX] = { 0, };
+uint32_t util_num_of_watch[WATCH_HANDLE_MAX] = { 0, };
 Watch_data util_watch_data[DEF_MAX_WATCH_VARIABLES];
 
-extern "C" void memcpy_asm(u8*, u8*, int);
+extern "C" void memcpy_asm(uint8_t*, uint8_t*, int);
 
 extern "C" void* __wrap_malloc(size_t size)
 {
@@ -108,7 +108,7 @@ extern "C" void* __wrap_memalign(size_t alignment, size_t size)
 	return ptr;
 }
 
-extern "C" Result __wrap_APT_SetAppCpuTimeLimit(u32 percent)
+extern "C" Result __wrap_APT_SetAppCpuTimeLimit(uint32_t percent)
 {
 	Result code = __real_APT_SetAppCpuTimeLimit(percent);
 	if(code == 0)
@@ -117,7 +117,7 @@ extern "C" Result __wrap_APT_SetAppCpuTimeLimit(u32 percent)
 	return code;
 }
 
-extern "C" Result __wrap_APT_GetAppCpuTimeLimit(u32* percent)
+extern "C" Result __wrap_APT_GetAppCpuTimeLimit(uint32_t* percent)
 {
 	Result code = __real_APT_GetAppCpuTimeLimit(percent);
 	if(percent && code == 0)
@@ -135,10 +135,10 @@ Result_with_string Util_init(void)
 
 	LightLock_Init(&util_watch_variables_mutex);
 
-	for(u16 i = 0; i < (uint16_t)WATCH_HANDLE_MAX; i++)
+	for(uint16_t i = 0; i < (uint16_t)WATCH_HANDLE_MAX; i++)
 		util_num_of_watch[i] = 0;
 
-	for(u32 i = 0; i < DEF_MAX_WATCH_VARIABLES; i++)
+	for(uint32_t i = 0; i < DEF_MAX_WATCH_VARIABLES; i++)
 	{
 		util_watch_data[i].original_address = NULL;
 		util_watch_data[i].previous_data = NULL;
@@ -163,9 +163,9 @@ void Util_exit(void)
 	util_init = false;
 }
 
-u32 Util_get_watch_usage(Watch_handle handle)
+uint32_t Util_get_watch_usage(Watch_handle handle)
 {
-	u32 used = 0;
+	uint32_t used = 0;
 
 	if(!util_init)
 		return 0;
@@ -180,9 +180,9 @@ u32 Util_get_watch_usage(Watch_handle handle)
 	return used;
 }
 
-u32 Util_get_watch_total_usage(void)
+uint32_t Util_get_watch_total_usage(void)
 {
-	u32 used = 0;
+	uint32_t used = 0;
 
 	if(!util_init)
 		return 0;
@@ -196,9 +196,9 @@ u32 Util_get_watch_total_usage(void)
 	return used;
 }
 
-Result_with_string Util_add_watch(Watch_handle handle, void* variable, u32 length)
+Result_with_string Util_add_watch(Watch_handle handle, void* variable, uint32_t length)
 {
-	u32 used = 0;
+	uint32_t used = 0;
 	Result_with_string result;
 
 	if(!util_init)
@@ -216,7 +216,7 @@ Result_with_string Util_add_watch(Watch_handle handle, void* variable, u32 lengt
 		goto out_of_memory;
 
 	//Search for free space and register it.
-	for(u32 i = 0; i < DEF_MAX_WATCH_VARIABLES; i++)
+	for(uint32_t i = 0; i < DEF_MAX_WATCH_VARIABLES; i++)
 	{
 		if(!util_watch_data[i].original_address)
 		{
@@ -266,7 +266,7 @@ void Util_remove_watch(Watch_handle handle, void* variable)
 	LightLock_Lock(&util_watch_variables_mutex);
 
 	//Search for specified address and remove it if exists.
-	for(u32 i = 0; i < DEF_MAX_WATCH_VARIABLES; i++)
+	for(uint32_t i = 0; i < DEF_MAX_WATCH_VARIABLES; i++)
 	{
 		if(util_watch_data[i].original_address == variable && util_watch_data[i].handle == handle)
 		{
@@ -297,7 +297,7 @@ bool Util_is_watch_changed(Watch_handle_bit handles)
 	LightLock_Lock(&util_watch_variables_mutex);
 
 	//Check if any data that is linked with specified handle were changed.
-	for(u32 i = 0; i < DEF_MAX_WATCH_VARIABLES; i++)
+	for(uint32_t i = 0; i < DEF_MAX_WATCH_VARIABLES; i++)
 	{
 		if(util_watch_data[i].original_address && util_watch_data[i].handle != WATCH_HANDLE_INVALID
 		&& (handles & (Watch_handle_bit)(1 << util_watch_data[i].handle)))
@@ -416,8 +416,8 @@ std::string Util_encode_to_escape(std::string in_data)
 
 Result_with_string Util_load_msg(std::string file_name, std::string out_msg[], int num_of_msg)
 {
-	u8* fs_buffer = NULL;
-	u32 read_size = 0;
+	uint8_t* fs_buffer = NULL;
+	uint32_t read_size = 0;
 	Result_with_string result;
 	fs_buffer = NULL;
 
@@ -511,7 +511,7 @@ void* Util_safe_linear_align(size_t alignment, size_t size)
 void* __attribute__((optimize("O0"))) Util_safe_linear_realloc(void* pointer, size_t size)
 {
 	void* new_ptr = NULL;
-	u32 pointer_size = 0;
+	uint32_t pointer_size = 0;
 	if(!util_safe_linear_alloc_init)
 		return NULL;
 
@@ -531,9 +531,9 @@ void* __attribute__((optimize("O0"))) Util_safe_linear_realloc(void* pointer, si
 		LightLock_Unlock(&util_safe_linear_alloc_mutex);
 
 		if(size > pointer_size)
-			memcpy_asm((u8*)new_ptr, (u8*)pointer, pointer_size);
+			memcpy_asm((uint8_t*)new_ptr, (uint8_t*)pointer, pointer_size);
 		else
-			memcpy_asm((u8*)new_ptr, (u8*)pointer, size);
+			memcpy_asm((uint8_t*)new_ptr, (uint8_t*)pointer, size);
 
 		Util_safe_linear_free(pointer);
 	}
@@ -550,9 +550,9 @@ void Util_safe_linear_free(void* pointer)
 	LightLock_Unlock(&util_safe_linear_alloc_mutex);
 }
 
-u32 Util_check_free_linear_space(void)
+uint32_t Util_check_free_linear_space(void)
 {
-	u32 space = 0;
+	uint32_t space = 0;
 	if(!util_safe_linear_alloc_init)
 		return 0;
 
@@ -562,33 +562,33 @@ u32 Util_check_free_linear_space(void)
 	return space;
 }
 
-u32 Util_check_free_ram(void)
+uint32_t Util_check_free_ram(void)
 {
-	u8* malloc_check[2000];
-	u32 count;
+	uint8_t* malloc_check[2000];
+	uint32_t count;
 
 	for (int i = 0; i < 2000; i++)
 		malloc_check[i] = NULL;
 
 	for (count = 0; count < 2000; count++)
 	{
-		malloc_check[count] = (u8*)__real_malloc(0x186A0);// 100KB
+		malloc_check[count] = (uint8_t*)__real_malloc(0x186A0);// 100KB
 		if (malloc_check[count] == NULL)
 			break;
 	}
 
-	for (u32 i = 0; i <= count; i++)
+	for (uint32_t i = 0; i <= count; i++)
 		__real_free(malloc_check[i]);
 
 	return count * 100 * 1024;//return free B
 }
 
-u32 Util_get_core_1_max(void)
+uint32_t Util_get_core_1_max(void)
 {
 	return util_max_core_1;
 }
 
-void Util_sleep(s64 us)
+void Util_sleep(int64_t us)
 {
 	svcSleepThread(us * 1000);
 }

@@ -99,7 +99,7 @@ void Draw_texture_free(Image_data* image);
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int pic_width, int pic_height);
+Result_with_string Draw_set_texture_data_direct(Image_data* image, uint8_t* buf, int pic_width, int pic_height);
 
 /**
  * @brief Convert raw image data to texture format and set it.
@@ -111,7 +111,7 @@ Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int 
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_width, int pic_height);
+Result_with_string Draw_set_texture_data(Image_data* image, uint8_t* buf, int pic_width, int pic_height);
 
 /**
  * @brief Convert raw image data to texture format and set it.
@@ -125,7 +125,7 @@ Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_wid
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_width, int pic_height, int width_offset, int height_offset);
+Result_with_string Draw_set_texture_data(Image_data* image, uint8_t* buf, int pic_width, int pic_height, int width_offset, int height_offset);
 
 /**
  * @brief Set texture filter.

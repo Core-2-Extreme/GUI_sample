@@ -212,7 +212,7 @@ static void Util_err_save_callback(void)
 			if(result.code != DEF_SUCCESS)
 				DEF_LOG_RESULT(Util_log_dump, (result.code == DEF_SUCCESS), result.code);
 
-			result = Util_file_save_to_file(file_name, DEF_MAIN_DIR + "error/" , (u8*)save_data.c_str() , save_data.length(), false);
+			result = Util_file_save_to_file(file_name, DEF_MAIN_DIR + "error/" , (uint8_t*)save_data.c_str() , save_data.length(), false);
 			if(result.code != DEF_SUCCESS)
 				DEF_LOG_RESULT(Util_file_save_to_file, (result.code == DEF_SUCCESS), result.code);
 

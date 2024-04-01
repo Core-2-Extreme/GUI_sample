@@ -52,7 +52,7 @@ Result_with_string Util_converter_convert_audio(Audio_converter_parameters* para
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_converter_yuv420p_to_rgb565le(u8* yuv420p, u8** rgb565, int width, int height);
+Result_with_string Util_converter_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t** rgb565, int width, int height);
 
 /**
  * @brief Convert YUV420P to RGB888LE.
@@ -64,7 +64,7 @@ Result_with_string Util_converter_yuv420p_to_rgb565le(u8* yuv420p, u8** rgb565, 
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_converter_yuv420p_to_rgb888le(u8* yuv420p, u8** rgb888, int width, int height);
+Result_with_string Util_converter_yuv420p_to_rgb888le(uint8_t* yuv420p, uint8_t** rgb888, int width, int height);
 
 /**
  * @brief Convert RGB8888BE to RGB8888LE.
@@ -75,7 +75,7 @@ Result_with_string Util_converter_yuv420p_to_rgb888le(u8* yuv420p, u8** rgb888, 
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_converter_rgba8888be_to_rgba8888le(u8* rgba8888, int width, int height);
+Result_with_string Util_converter_rgba8888be_to_rgba8888le(uint8_t* rgba8888, int width, int height);
 
 /**
  * @brief Convert RGB888BE to RGB888LE.
@@ -86,7 +86,7 @@ Result_with_string Util_converter_rgba8888be_to_rgba8888le(u8* rgba8888, int wid
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_converter_rgb888be_to_rgb888le(u8* rgb888, int width, int height);
+Result_with_string Util_converter_rgb888be_to_rgb888le(uint8_t* rgb888, int width, int height);
 
 /**
  * @brief Rotate (any) RGB888 90 degree.
@@ -100,7 +100,7 @@ Result_with_string Util_converter_rgb888be_to_rgb888le(u8* rgb888, int width, in
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_converter_rgb888_rotate_90_degree(u8* rgb888, u8** rotated_rgb888, int width, int height, int* rotated_width, int* rotated_height);
+Result_with_string Util_converter_rgb888_rotate_90_degree(uint8_t* rgb888, uint8_t** rotated_rgb888, int width, int height, int* rotated_width, int* rotated_height);
 
 #else
 
@@ -128,7 +128,7 @@ Result_with_string Util_converter_rgb888_rotate_90_degree(u8* rgb888, u8** rotat
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_converter_yuv420p_to_rgb888le_asm(u8* yuv420p, u8** rgb888, int width, int height);
+Result_with_string Util_converter_yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t** rgb888, int width, int height);
 
 /**
  * @brief Convert YUV420P to RGB565LE (assembly optimized).
@@ -140,7 +140,7 @@ Result_with_string Util_converter_yuv420p_to_rgb888le_asm(u8* yuv420p, u8** rgb8
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_converter_yuv420p_to_rgb565le_asm(u8* yuv420p, u8** rgb565, int width, int height);
+Result_with_string Util_converter_yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t** rgb565, int width, int height);
 
 #else
 
@@ -171,7 +171,7 @@ Result_with_string Util_converter_y2r_init(void);
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_converter_y2r_yuv420p_to_rgb565le(u8* yuv420p, u8** rgb565, int width, int height, bool texture_format);
+Result_with_string Util_converter_y2r_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t** rgb565, int width, int height, bool texture_format);
 
 /**
  * @brief Uninitialize a y2r(hardware color converter).

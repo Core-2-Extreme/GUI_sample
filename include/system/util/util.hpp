@@ -8,8 +8,8 @@ extern "C" void* __real_realloc(void* ptr, size_t size);
 extern "C" void __real_free(void* ptr);
 extern "C" void __real__free_r(struct _reent *r, void* ptr);
 extern "C" void* __real_memalign(size_t alignment, size_t size);
-extern "C" Result __real_APT_SetAppCpuTimeLimit(u32 percent);
-extern "C" Result __real_APT_GetAppCpuTimeLimit(u32* percent);
+extern "C" Result __real_APT_SetAppCpuTimeLimit(uint32_t percent);
+extern "C" Result __real_APT_GetAppCpuTimeLimit(uint32_t* percent);
 
 /**
  * @brief Initialize util API.
@@ -33,7 +33,7 @@ void Util_exit(void);
  * @return Number of watched variables.
  * @note Thread safe
 */
-u32 Util_get_watch_usage(Watch_handle handle);
+uint32_t Util_get_watch_usage(Watch_handle handle);
 
 /**
  * @brief Get total watch usage.
@@ -41,7 +41,7 @@ u32 Util_get_watch_usage(Watch_handle handle);
  * @return Number of total watched variables.
  * @note Thread safe
 */
-u32 Util_get_watch_total_usage(void);
+uint32_t Util_get_watch_total_usage(void);
 
 /**
  * @brief Add a variable to watch list.
@@ -53,7 +53,7 @@ u32 Util_get_watch_total_usage(void);
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_add_watch(Watch_handle handle, void* variable, u32 length);
+Result_with_string Util_add_watch(Watch_handle handle, void* variable, uint32_t length);
 
 /**
  * @brief Remove a variable frin watch list.
@@ -185,28 +185,28 @@ void Util_safe_linear_free(void* pointer);
  * @return Free linear memory size.
  * @note Thread safe
 */
-u32 Util_check_free_linear_space(void);
+uint32_t Util_check_free_linear_space(void);
 
 /**
  * @brief Check free memory size.
  * @return Free memory size.
  * @warning Thread dangerous (untested)
 */
-u32 Util_check_free_ram(void);
+uint32_t Util_check_free_ram(void);
 
 /**
  * @brief Check max allowed core #1 usage.
  * @return Max allowed core #1 usage.
  * @warning Thread dangerous (untested)
 */
-u32 Util_get_core_1_max(void);
+uint32_t Util_get_core_1_max(void);
 
 /**
  * @brief Sleep thread.
  * @param ns (in) Time to sleep in us.
  * @note Thread safe
 */
-void Util_sleep(s64 us);
+void Util_sleep(int64_t us);
 
 /**
  * @brief Compare values and return minimum value.

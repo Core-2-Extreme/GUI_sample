@@ -7,16 +7,16 @@
 #include "system/util/file.hpp"
 
 
-static Result_with_string Util_file_load_from_file_with_range_internal(std::string&& file_name, std::string&& dir_path, u8** read_data, int max_size, u64 read_offset, u32* read_size);
-static Result_with_string Util_file_load_from_rom_internal(std::string&& file_name, std::string&& dir_path, u8** read_data, int max_size, u32* read_size);
+static Result_with_string Util_file_load_from_file_with_range_internal(std::string&& file_name, std::string&& dir_path, uint8_t** read_data, int max_size, uint64_t read_offset, uint32_t* read_size);
+static Result_with_string Util_file_load_from_rom_internal(std::string&& file_name, std::string&& dir_path, uint8_t** read_data, int max_size, uint32_t* read_size);
 
 
-Result_with_string Util_file_save_to_file(std::string file_name, std::string dir_path, u8* write_data, int size, bool delete_old_file)
+Result_with_string Util_file_save_to_file(std::string file_name, std::string dir_path, uint8_t* write_data, int size, bool delete_old_file)
 {
-	u16* utf16_dir_path = NULL;
-	u16* utf16_path = NULL;
-	u32 written_size = 0;
-	u64 offset = 0;
+	uint16_t* utf16_dir_path = NULL;
+	uint16_t* utf16_path = NULL;
+	uint32_t written_size = 0;
+	uint64_t offset = 0;
 	ssize_t utf_out_size = 0;
 	std::string path = "";
 	Handle handle = 0;
@@ -27,15 +27,15 @@ Result_with_string Util_file_save_to_file(std::string file_name, std::string dir
 		goto invalid_arg;
 
 	path = dir_path + file_name;
-	utf16_dir_path = (u16*)malloc(4096 + 2);
-	utf16_path = (u16*)malloc(4096 + 2);
+	utf16_dir_path = (uint16_t*)malloc(4096 + 2);
+	utf16_path = (uint16_t*)malloc(4096 + 2);
 	if(!utf16_dir_path || !utf16_path)
 		goto out_of_memory;
 
-	utf_out_size = utf8_to_utf16(utf16_dir_path, (u8*)dir_path.c_str(), 2048);
+	utf_out_size = utf8_to_utf16(utf16_dir_path, (uint8_t*)dir_path.c_str(), 2048);
 	utf16_dir_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
-	utf_out_size = utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
+	utf_out_size = utf8_to_utf16(utf16_path, (uint8_t*)path.c_str(), 2048);
 	utf16_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
 	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
@@ -120,36 +120,36 @@ Result_with_string Util_file_save_to_file(std::string file_name, std::string dir
 	return result;
 }
 
-Result_with_string Util_file_load_from_file(std::string file_name, std::string dir_path, u8** read_data, int max_size)
+Result_with_string Util_file_load_from_file(std::string file_name, std::string dir_path, uint8_t** read_data, int max_size)
 {
-	u32 read_size = 0;
+	uint32_t read_size = 0;
 	return Util_file_load_from_file_with_range_internal(std::move(file_name), std::move(dir_path), read_data, max_size, 0, &read_size);
 }
 
-Result_with_string Util_file_load_from_file(std::string file_name, std::string dir_path, u8** read_data, int max_size, u32* read_size)
+Result_with_string Util_file_load_from_file(std::string file_name, std::string dir_path, uint8_t** read_data, int max_size, uint32_t* read_size)
 {
 	return Util_file_load_from_file_with_range_internal(std::move(file_name), std::move(dir_path), read_data, max_size, 0, read_size);
 }
 
-Result_with_string Util_file_load_from_file_with_range(std::string file_name, std::string dir_path, u8** read_data, int max_size, u64 read_offset, u32* read_size)
+Result_with_string Util_file_load_from_file_with_range(std::string file_name, std::string dir_path, uint8_t** read_data, int max_size, uint64_t read_offset, uint32_t* read_size)
 {
 	return Util_file_load_from_file_with_range_internal(std::move(file_name), std::move(dir_path), read_data, max_size, read_offset, read_size);
 }
 
-Result_with_string Util_file_load_from_rom(std::string file_name, std::string dir_path, u8** read_data, int max_size)
+Result_with_string Util_file_load_from_rom(std::string file_name, std::string dir_path, uint8_t** read_data, int max_size)
 {
-	u32 read_size = 0;
+	uint32_t read_size = 0;
 	return Util_file_load_from_rom_internal(std::move(file_name), std::move(dir_path), read_data, max_size, &read_size);
 }
 
-Result_with_string Util_file_load_from_rom(std::string file_name, std::string dir_path, u8** read_data, int max_size, u32* read_size)
+Result_with_string Util_file_load_from_rom(std::string file_name, std::string dir_path, uint8_t** read_data, int max_size, uint32_t* read_size)
 {
 	return Util_file_load_from_rom_internal(std::move(file_name), std::move(dir_path), read_data, max_size, read_size);
 }
 
 Result_with_string Util_file_delete_file(std::string file_name, std::string dir_path)
 {
-	u16* utf16_path = NULL;
+	uint16_t* utf16_path = NULL;
 	ssize_t utf_out_size = 0;
 	std::string path = "";
 	FS_Archive archive = 0;
@@ -159,11 +159,11 @@ Result_with_string Util_file_delete_file(std::string file_name, std::string dir_
 		goto invalid_arg;
 
 	path = dir_path + file_name;
-	utf16_path = (u16*)malloc(4096 + 2);
+	utf16_path = (uint16_t*)malloc(4096 + 2);
 	if(!utf16_path)
 		goto out_of_memory;
 
-	utf_out_size = utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
+	utf_out_size = utf8_to_utf16(utf16_path, (uint8_t*)path.c_str(), 2048);
 	utf16_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
 	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
@@ -204,9 +204,9 @@ Result_with_string Util_file_delete_file(std::string file_name, std::string dir_
 	return result;
 }
 
-Result_with_string Util_file_check_file_size(std::string file_name, std::string dir_path, u64* file_size)
+Result_with_string Util_file_check_file_size(std::string file_name, std::string dir_path, uint64_t* file_size)
 {
-	u16* utf16_path = NULL;
+	uint16_t* utf16_path = NULL;
 	ssize_t utf_out_size = 0;
 	std::string path = "";
 	Handle handle = 0;
@@ -217,11 +217,11 @@ Result_with_string Util_file_check_file_size(std::string file_name, std::string 
 		goto invalid_arg;
 
 	path = dir_path + file_name;
-	utf16_path = (u16*)malloc(4096 + 2);
+	utf16_path = (uint16_t*)malloc(4096 + 2);
 	if(!utf16_path)
 		goto out_of_memory;
 
-	utf_out_size = utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
+	utf_out_size = utf8_to_utf16(utf16_path, (uint8_t*)path.c_str(), 2048);
 	utf16_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
 	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
@@ -273,7 +273,7 @@ Result_with_string Util_file_check_file_size(std::string file_name, std::string 
 
 Result_with_string Util_file_check_file_exist(std::string file_name, std::string dir_path)
 {
-	u16* utf16_path = NULL;
+	uint16_t* utf16_path = NULL;
 	ssize_t utf_out_size = 0;
 	std::string path = "";
 	Handle handle = 0;
@@ -284,11 +284,11 @@ Result_with_string Util_file_check_file_exist(std::string file_name, std::string
 		goto invalid_arg;
 
 	path = dir_path + file_name;
-	utf16_path = (u16*)malloc(4096 + 2);
+	utf16_path = (uint16_t*)malloc(4096 + 2);
 	if(!utf16_path)
 		goto out_of_memory;
 
-	utf_out_size = utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
+	utf_out_size = utf8_to_utf16(utf16_path, (uint8_t*)path.c_str(), 2048);
 	utf16_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
 	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
@@ -334,9 +334,9 @@ Result_with_string Util_file_check_file_exist(std::string file_name, std::string
 Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::string file_name[], File_type type[], int array_length)
 {
 	int count = 0;
-	u16* utf16_dir_path = NULL;
-	u32 read_entry = 0;
-	u32 read_entry_count = 1;
+	uint16_t* utf16_dir_path = NULL;
+	uint32_t read_entry = 0;
+	uint32_t read_entry_count = 1;
 	ssize_t utf_out_size = 0;
 	char* utf8_file_name = NULL;
 	FS_DirectoryEntry fs_entry;
@@ -354,12 +354,12 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 	}
 	*detected = 0;
 
-	utf16_dir_path = (u16*)malloc(4096 + 2);
+	utf16_dir_path = (uint16_t*)malloc(4096 + 2);
 	utf8_file_name = (char*)malloc(256 + 1);
 	if(!utf16_dir_path || !utf8_file_name)
 		goto out_of_memory;
 
-	utf_out_size = utf8_to_utf16(utf16_dir_path, (u8*)dir_path.c_str(), 2048);
+	utf_out_size = utf8_to_utf16(utf16_dir_path, (uint8_t*)dir_path.c_str(), 2048);
 	utf16_dir_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
 	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
@@ -391,7 +391,7 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 		if (read_entry == 0)
 			break;
 
-		utf_out_size = utf16_to_utf8((u8*)utf8_file_name, fs_entry.name, 256);
+		utf_out_size = utf16_to_utf8((uint8_t*)utf8_file_name, fs_entry.name, 256);
 		utf8_file_name[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 		file_name[count] = utf8_file_name;
 
@@ -443,11 +443,11 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 	return result;
 }
 
-static Result_with_string Util_file_load_from_file_with_range_internal(std::string&& file_name, std::string&& dir_path, u8** read_data, int max_size, u64 read_offset, u32* read_size)
+static Result_with_string Util_file_load_from_file_with_range_internal(std::string&& file_name, std::string&& dir_path, uint8_t** read_data, int max_size, uint64_t read_offset, uint32_t* read_size)
 {
-	u16* utf16_path = NULL;
-	u32 max_read_size = 0;
-	u64 file_size = 0;
+	uint16_t* utf16_path = NULL;
+	uint32_t max_read_size = 0;
+	uint64_t file_size = 0;
 	ssize_t utf_out_size = 0;
 	std::string path = "";
 	Handle handle = 0;
@@ -458,11 +458,11 @@ static Result_with_string Util_file_load_from_file_with_range_internal(std::stri
 		goto invalid_arg;
 
 	path = dir_path + file_name;
-	utf16_path = (u16*)malloc(4096 + 2);
+	utf16_path = (uint16_t*)malloc(4096 + 2);
 	if(!utf16_path)
 		goto out_of_memory;
 
-	utf_out_size = utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
+	utf_out_size = utf8_to_utf16(utf16_path, (uint8_t*)path.c_str(), 2048);
 	utf16_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
 	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
@@ -486,9 +486,9 @@ static Result_with_string Util_file_load_from_file_with_range_internal(std::stri
 		goto nintendo_api_failed;
 	}
 
-	max_read_size = (file_size - read_offset) > (u64)max_size ? max_size : (file_size - read_offset);
+	max_read_size = (file_size - read_offset) > (uint64_t)max_size ? max_size : (file_size - read_offset);
 	Util_safe_linear_free(*read_data);
-	*read_data = (u8*)Util_safe_linear_alloc(max_read_size + 1);
+	*read_data = (uint8_t*)Util_safe_linear_alloc(max_read_size + 1);
 	if(!*read_data)
 		goto out_of_memory;
 
@@ -535,10 +535,10 @@ static Result_with_string Util_file_load_from_file_with_range_internal(std::stri
 	return result;
 }
 
-static Result_with_string Util_file_load_from_rom_internal(std::string&& file_name, std::string&& dir_path, u8** read_data, int max_size, u32* read_size)
+static Result_with_string Util_file_load_from_rom_internal(std::string&& file_name, std::string&& dir_path, uint8_t** read_data, int max_size, uint32_t* read_size)
 {
 	size_t max_read_size = 0;
-	u64 file_size = 0;
+	uint64_t file_size = 0;
 	std::string path = "";
 	FILE* handle = 0;
 	Result_with_string result;
@@ -569,9 +569,9 @@ static Result_with_string Util_file_load_from_rom_internal(std::string&& file_na
 
 	rewind(handle);
 
-	max_read_size = file_size > (u64)max_size ? max_size : file_size;
+	max_read_size = file_size > (uint64_t)max_size ? max_size : file_size;
 	Util_safe_linear_free(*read_data);
-	*read_data = (u8*)Util_safe_linear_alloc(max_read_size + 1);
+	*read_data = (uint8_t*)Util_safe_linear_alloc(max_read_size + 1);
 	if(!*read_data)
 		goto out_of_memory;
 

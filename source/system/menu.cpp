@@ -121,11 +121,11 @@ void Menu_init(void)
 {
 	bool is_800px = false;
 	bool is_3d = false;
-	u8* data = NULL;
-	u8 dummy = 0;
-	u8 region = 0;
-	u8 model = 0;
-	u32 read_size = 0;
+	uint8_t* data = NULL;
+	uint8_t dummy = 0;
+	uint8_t region = 0;
+	uint8_t model = 0;
+	uint32_t read_size = 0;
 	Thread core_2, core_3;
 	Result_with_string result;
 
@@ -495,7 +495,7 @@ void Menu_main(void)
 {
 	bool is_800px = false;
 	bool is_3d = false;
-	u8 screen_mode = var_screen_mode;
+	uint8_t screen_mode = var_screen_mode;
 	int color = DEF_DRAW_BLACK;
 	int back_color = DEF_DRAW_WHITE;
 
@@ -1149,9 +1149,9 @@ void Menu_hid_callback(void)
 
 void Menu_get_system_info(void)
 {
-	u8 battery_level = -1;
-	u8 battery_voltage = -1;
-	u8 battery_temp = -1;
+	uint8_t battery_level = 0;
+	uint8_t battery_voltage = 0;
+	uint8_t battery_temp = 0;
 	char* ssid = (char*)malloc(512);
 	Result_with_string result;
 
@@ -1194,7 +1194,7 @@ void Menu_get_system_info(void)
 
 	var_wifi_signal = osGetWifiStrength();
 	//Get wifi state from shared memory #0x1FF81067
-	var_wifi_state = *(u8*)0x1FF81067;
+	var_wifi_state = *(uint8_t*)0x1FF81067;
 	if(var_wifi_state == 2)
 	{
 #if (DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API)
@@ -1234,13 +1234,13 @@ void Menu_send_app_info_thread(void* arg)
 	DEF_LOG_STRING("Thread started.");
 	OS_VersionBin os_ver;
 	bool is_new3ds = false;
-	u8* dl_data = NULL;
+	uint8_t* dl_data = NULL;
 
 #if DEF_ENABLE_CURL_API
 	int downloaded_size = 0;
 	int uploaded_size = 0;
 #else
-	u32 downloaded_size = 0;
+	uint32_t downloaded_size = 0;
 #endif
 	char system_ver_char[0x50] = " ";
 	std::string new3ds;
@@ -1254,9 +1254,9 @@ void Menu_send_app_info_thread(void* arg)
 	std::string send_data = "{ \"app_ver\": \"" + DEF_CURRENT_APP_VER + "\",\"system_ver\" : \"" + system_ver + "\",\"start_num_of_app\" : \"" + std::to_string(var_num_of_app_start) + "\",\"language\" : \"" + var_lang + "\",\"new3ds\" : \"" + new3ds + "\",\"time_to_enter_sleep\" : \"" + std::to_string(var_time_to_turn_off_lcd) + "\",\"scroll_speed\" : \"" + std::to_string(var_scroll_speed) + "\" }";
 
 #if DEF_ENABLE_CURL_API
-	Util_curl_post_and_dl_data(DEF_SEND_APP_INFO_URL, (u8*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, &downloaded_size, &uploaded_size, true, 5);
+	Util_curl_post_and_dl_data(DEF_SEND_APP_INFO_URL, (uint8_t*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, &downloaded_size, &uploaded_size, true, 5);
 #else
-	Util_httpc_post_and_dl_data(DEF_SEND_APP_INFO_URL, (u8*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, &downloaded_size, true, 5);
+	Util_httpc_post_and_dl_data(DEF_SEND_APP_INFO_URL, (uint8_t*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, &downloaded_size, true, 5);
 #endif
 
 	Util_safe_linear_free(dl_data);
@@ -1271,10 +1271,10 @@ void Menu_send_app_info_thread(void* arg)
 void Menu_check_connectivity_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
-	u8* http_buffer = NULL;
+	uint8_t* http_buffer = NULL;
 #if DEF_ENABLE_HTTPC_API
-	u32 status_code = 0;
-	u32 dl_size = 0;
+	uint32_t status_code = 0;
+	uint32_t dl_size = 0;
 #else
 	int status_code = 0;
 	int dl_size = 0;
@@ -1314,7 +1314,7 @@ void Menu_worker_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
 	int count = 0;
-	u64 previous_ts = 0;
+	uint64_t previous_ts = 0;
 	Result_with_string result;
 
 	while (menu_thread_run)
@@ -1418,11 +1418,11 @@ void Menu_worker_thread(void* arg)
 void Menu_update_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
-	u8* http_buffer = NULL;
+	uint8_t* http_buffer = NULL;
 #if DEF_ENABLE_CURL_API
 	int dl_size = 0;
 #else
-	u32 dl_size = 0;
+	uint32_t dl_size = 0;
 #endif
 	size_t pos[2] = { 0, 0, };
 	std::string data = "";

@@ -33,7 +33,7 @@ Result_with_string Util_speaker_set_audio_info(int play_ch, int music_ch, int sa
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_speaker_add_buffer(int play_ch, u8* buffer, int size);
+Result_with_string Util_speaker_add_buffer(int play_ch, uint8_t* buffer, int size);
 
 /**
  * @brief Get a number of audio buffer.

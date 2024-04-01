@@ -16,18 +16,18 @@ SwkbdDictWord util_swkbd_user_words[DEF_SWKBD_MAX_DIC_WORDS];
 SwkbdState util_swkbd;
 
 
-static Result_with_string Util_swkbd_init_internal(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string&& hint_text, std::string&& init_text, SwkbdPasswordMode password_mode, u32 feature);
+static Result_with_string Util_swkbd_init_internal(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string&& hint_text, std::string&& init_text, SwkbdPasswordMode password_mode, uint32_t feature);
 
 
 Result_with_string Util_swkbd_init(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string hint_text, std::string init_text)
 {
-	u32 feature = 0;
+	uint32_t feature = 0;
 	SwkbdPasswordMode password_mode = SWKBD_PASSWORD_NONE;
 	return Util_swkbd_init_internal(type, valid_type, num_of_button, max_length, std::move(hint_text), std::move(init_text), password_mode, feature);
 }
 
 Result_with_string Util_swkbd_init(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string hint_text, std::string init_text,
-u32 feature)
+uint32_t feature)
 {
 	SwkbdPasswordMode password_mode = SWKBD_PASSWORD_NONE;
 	return Util_swkbd_init_internal(type, valid_type, num_of_button, max_length, std::move(hint_text), std::move(init_text), password_mode, feature);
@@ -36,12 +36,12 @@ u32 feature)
 Result_with_string Util_swkbd_init(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string hint_text, std::string init_text,
 SwkbdPasswordMode password_mode)
 {
-	u32 feature = 0;
+	uint32_t feature = 0;
 	return Util_swkbd_init_internal(type, valid_type, num_of_button, max_length, std::move(hint_text), std::move(init_text), password_mode, feature);
 }
 
 Result_with_string Util_swkbd_init(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string hint_text, std::string init_text,
-SwkbdPasswordMode password_mode, u32 feature)
+SwkbdPasswordMode password_mode, uint32_t feature)
 {
 	return Util_swkbd_init_internal(type, valid_type, num_of_button, max_length, std::move(hint_text), std::move(init_text), password_mode, feature);
 }
@@ -148,7 +148,7 @@ void Util_swkbd_exit(void)
 }
 
 static Result_with_string Util_swkbd_init_internal(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string&& hint_text, std::string&& init_text,
-SwkbdPasswordMode password_mode, u32 feature)
+SwkbdPasswordMode password_mode, uint32_t feature)
 {
 	Result_with_string result;
 	if(util_swkbd_init)

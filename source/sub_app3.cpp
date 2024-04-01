@@ -503,7 +503,7 @@ static void Sapp3_exit_thread(void* arg)
 static void Sapp3_camera_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
-	u8 dummy = 0;
+	uint8_t dummy = 0;
 	Result_with_string result;
 
 	//Create directory.
@@ -511,7 +511,7 @@ static void Sapp3_camera_thread(void* arg)
 
 	while (sapp3_thread_run)
 	{
-		u32 event_id = 0;
+		uint32_t event_id = 0;
 
 		while (sapp3_thread_suspend)
 			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
@@ -550,7 +550,7 @@ static void Sapp3_camera_thread(void* arg)
 		if(sapp3_camera_state == CAM_ENABLED || sapp3_camera_state == CAM_SAVING_A_PICTURE)
 		{
 			bool shutter_sound = (sapp3_camera_state == CAM_SAVING_A_PICTURE);
-			u8* picture = NULL;
+			uint8_t* picture = NULL;
 			int width = 0;
 			int height = 0;
 
@@ -636,7 +636,7 @@ static void Sapp3_camera_thread(void* arg)
 static void Sapp3_mic_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
-	u8 dummy = 0;
+	uint8_t dummy = 0;
 	Result_with_string result;
 
 	//Create directory.
@@ -644,7 +644,7 @@ static void Sapp3_mic_thread(void* arg)
 
 	while (sapp3_thread_run)
 	{
-		u32 event_id = 0;
+		uint32_t event_id = 0;
 
 		while (sapp3_thread_suspend)
 			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
@@ -731,7 +731,7 @@ static void Sapp3_mic_thread(void* arg)
 			//If remaining buffer is less than 500ms or stop request has been received, encode pcm data to mp3.
 			if(Util_mic_query_remaining_buffer_time() < 500 || sapp3_mic_state == MIC_STOPPING_RECORDING)
 			{
-				u8* audio = NULL;
+				uint8_t* audio = NULL;
 				int size = 0;
 
 				DEF_LOG_RESULT_SMART(result, Util_mic_get_audio_data(&audio, &size), (result.code == DEF_SUCCESS), result.code);

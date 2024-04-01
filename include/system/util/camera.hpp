@@ -23,7 +23,7 @@ Result_with_string Util_cam_init(Pixel_format color_format);
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_cam_take_a_picture(u8** raw_data, int* width, int* height, bool shutter_sound);
+Result_with_string Util_cam_take_a_picture(uint8_t** raw_data, int* width, int* height, bool shutter_sound);
 
 /**
  * @brief Set picture resolution.
