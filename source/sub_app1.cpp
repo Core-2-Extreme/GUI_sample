@@ -255,12 +255,33 @@ static void Sapp1_draw_init_exit_message(void)
 	{
 		var_need_reflesh = false;
 		Draw_frame_ready();
+
 		Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
+
+		if(Util_log_query_log_show_flag())
+			Util_log_draw();
+
 		Draw_top_ui();
 		if(var_monitor_cpu_usage)
 			Draw_cpu_usage_info();
 
 		Draw(sapp1_status.buffer, 0, 20, 0.65, 0.65, color);
+
+		//Draw the same things on right screen if 3D mode is enabled.
+		//So that user can easily see them.
+		if(Draw_is_3d_mode())
+		{
+			Draw_screen_ready(SCREEN_TOP_RIGHT, back_color);
+
+			if(Util_log_query_log_show_flag())
+				Util_log_draw();
+
+			Draw_top_ui();
+			if(var_monitor_cpu_usage)
+				Draw_cpu_usage_info();
+
+			Draw(sapp1_status.buffer, 0, 20, 0.65, 0.65, color);
+		}
 
 		Draw_apply_draw();
 	}
