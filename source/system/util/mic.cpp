@@ -3,19 +3,23 @@
 #if DEF_ENABLE_MIC_API
 #include "system/types.hpp"
 
+#include "system/util/log.hpp"
 #include "system/util/util.hpp"
 
 //Include myself.
 #include "system/util/mic.hpp"
 
+
+extern "C"
+{
 bool util_mic_init = false;
 uint8_t* util_mic_buffer = NULL;
-int util_mic_last_pos = 0;
-int util_mic_sample_rate = 0;
+uint32_t util_mic_last_pos = 0;
+uint32_t util_mic_sample_rate = 0;
 
-Result_with_string Util_mic_init(int buffer_size)
+uint32_t Util_mic_init(uint32_t buffer_size)
 {
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
 
 	if(util_mic_init)
 		goto already_inited;
@@ -31,24 +35,24 @@ Result_with_string Util_mic_init(int buffer_size)
 		goto out_of_memory;
 
 	memset(util_mic_buffer, 0x0, buffer_size);
-	result.code = micInit(util_mic_buffer, buffer_size);
-	if(result.code != 0)
+	result = micInit(util_mic_buffer, buffer_size);
+	if(result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] micInit() failed. ";
+		DEF_LOG_RESULT(micInit, false, result);
 		goto nintendo_api_failed;
 	}
 
-	result.code = MICU_SetAllowShellClosed(true);
-	if(result.code != 0)
+	result = MICU_SetAllowShellClosed(true);
+	if(result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] MICU_SetAllowShellClosed() failed. ";
+		DEF_LOG_RESULT(MICU_SetAllowShellClosed, false, result);
 		goto nintendo_api_failed_0;
 	}
 
-	result.code = MICU_SetPower(true);
-	if(result.code != 0)
+	result = MICU_SetPower(true);
+	if(result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] MICU_SetPower() failed. ";
+		DEF_LOG_RESULT(MICU_SetPower, false, result);
 		goto nintendo_api_failed_0;
 	}
 
@@ -56,35 +60,29 @@ Result_with_string Util_mic_init(int buffer_size)
 	return result;
 
 	already_inited:
-	result.code = DEF_ERR_ALREADY_INITIALIZED;
-	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_ALREADY_INITIALIZED;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	out_of_memory:
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
+	return DEF_ERR_OUT_OF_MEMORY;
 
 	nintendo_api_failed_0:
 	micExit();
+	//Fallthrough.
 
 	nintendo_api_failed:
 	__real_free(util_mic_buffer);
 	util_mic_buffer = NULL;
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 
-Result_with_string Util_mic_start_recording(Mic_sample_rate sample_rate_mode)
+uint32_t Util_mic_start_recording(Mic_sample_rate sample_rate_mode)
 {
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
+	uint32_t sample_rate = 0;
 	MICU_SampleRate mic_sample_rate;
-	int sample_rate = 0;
 
 	if(!util_mic_init)
 		goto not_inited;
@@ -116,33 +114,27 @@ Result_with_string Util_mic_start_recording(Mic_sample_rate sample_rate_mode)
 		mic_sample_rate = MICU_SAMPLE_RATE_8180;
 	}
 
-	result.code = MICU_StartSampling(MICU_ENCODING_PCM16_SIGNED, mic_sample_rate, 0, micGetSampleDataSize() - 4, true);
-	if(result.code != 0)
+	result = MICU_StartSampling(MICU_ENCODING_PCM16_SIGNED, mic_sample_rate, 0, micGetSampleDataSize() - 4, true);
+	if(result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] MICU_StartSampling() failed. ";
+		DEF_LOG_RESULT(MICU_StartSampling, false, result);
 		goto nintendo_api_failed;
 	}
+
 	util_mic_last_pos = 0;
 	util_mic_sample_rate = sample_rate;
 	return result;
 
 	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_NOT_INITIALIZED;
 
 	already_inited:
-	result.code = DEF_ERR_ALREADY_INITIALIZED;
-	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_ALREADY_INITIALIZED;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 
@@ -164,10 +156,10 @@ bool Util_mic_is_recording(void)
 	return recording;
 }
 
-int Util_mic_query_remaining_buffer_time(void)
+uint32_t Util_mic_query_remaining_buffer_time(void)
 {
-	int current_pos = 0;
-	int remaining_time = 0;
+	uint32_t current_pos = 0;
+	uint32_t remaining_time = 0;
 	if(!util_mic_init || !Util_mic_is_recording())
 		return 0;
 
@@ -180,12 +172,11 @@ int Util_mic_query_remaining_buffer_time(void)
 	return remaining_time;
 }
 
-Result_with_string Util_mic_get_audio_data(uint8_t** raw_data, int* size)
+uint32_t Util_mic_get_audio_data(uint8_t** raw_data, uint32_t* size)
 {
-	Result_with_string result;
-	int buffer_offset = 0;
-	int last_pos = 0;
-	int buffer_size = 0;
+	uint32_t buffer_offset = 0;
+	uint32_t last_pos = 0;
+	uint32_t buffer_size = 0;
 
 	if(!util_mic_init)
 		goto not_inited;
@@ -198,7 +189,7 @@ Result_with_string Util_mic_get_audio_data(uint8_t** raw_data, int* size)
 	last_pos = micGetLastSampleOffset();
 	if(last_pos == util_mic_last_pos)
 	{
-		result.error_description = "[Error] No raw audio available. ";
+		DEF_LOG_STRING("No raw audio available.");
 		goto try_again;
 	}
 
@@ -222,27 +213,19 @@ Result_with_string Util_mic_get_audio_data(uint8_t** raw_data, int* size)
 	}
 
 	util_mic_last_pos = last_pos;
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_NOT_INITIALIZED;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	try_again:
-	result.code = DEF_ERR_TRY_AGAIN;
-	result.string = DEF_ERR_TRY_AGAIN_STR;
-	return result;
+	return DEF_ERR_TRY_AGAIN;
 
 	out_of_memory:
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
+	return DEF_ERR_OUT_OF_MEMORY;
 }
 
 void Util_mic_exit(void)
@@ -258,5 +241,5 @@ void Util_mic_exit(void)
 	util_mic_buffer = NULL;
 	util_mic_init = false;
 }
-
-#endif
+}
+#endif //DEF_ENABLE_MIC_API

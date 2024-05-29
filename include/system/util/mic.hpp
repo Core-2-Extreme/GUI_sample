@@ -1,26 +1,26 @@
-#ifndef MIC_HPP
-#define MIC_HPP
+#if !defined(DEF_MIC_HPP)
+#define DEF_MIC_HPP
 
-#if DEF_ENABLE_MIC_API
+#if defined(DEF_ENABLE_MIC_API)
 #include "system/types.hpp"
 
+extern "C"
+{
 /**
  * @brief Initialize a mic.
  * @param buffer_size (in) Internal mic buffer size.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_* or Nintendo API's error.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_mic_init(int buffer_size);
+uint32_t Util_mic_init(uint32_t buffer_size);
 
 /**
  * @brief Start recording.
  * @param sample_rate_mode (in) Audio sample rate.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_* or Nintendo API's error.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_mic_start_recording(Mic_sample_rate sample_rate_mode);
+uint32_t Util_mic_start_recording(Mic_sample_rate sample_rate_mode);
 
 /**
  * @brief Stop recording.
@@ -45,17 +45,16 @@ bool Util_mic_is_recording(void);
  * @return Remaining time (in ms).
  * @warning Thread dangerous (untested)
 */
-int Util_mic_query_remaining_buffer_time(void);
+uint32_t Util_mic_query_remaining_buffer_time(void);
 
 /**
  * @brief Get audio data.
  * @param raw_data (out) Pointer for raw audio data (PCM_S16LE), the pointer will be allocated inside of function.
  * @param size (out) Audio data size.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_* or Nintendo API's error.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_mic_get_audio_data(uint8_t** raw_data, int* size);
+uint32_t Util_mic_get_audio_data(uint8_t** raw_data, uint32_t* size);
 
 /**
  * @brief Uninitialize a mic.
@@ -66,14 +65,14 @@ void Util_mic_exit(void);
 
 #else
 
-#define Util_mic_init(...) Util_return_result_with_string(var_disabled_result)
-#define Util_mic_start_recording(...) Util_return_result_with_string(var_disabled_result)
+#define Util_mic_init(...) DEF_ERR_DISABLED
+#define Util_mic_start_recording(...) DEF_ERR_DISABLED
 #define Util_mic_stop_recording()
-#define Util_mic_is_recording() Util_return_bool(false)
-#define Util_mic_query_remaining_buffer_time() Util_return_int(0)
-#define Util_mic_get_audio_data(...) Util_return_result_with_string(var_disabled_result)
+#define Util_mic_is_recording() false
+#define Util_mic_query_remaining_buffer_time() 0
+#define Util_mic_get_audio_data(...) DEF_ERR_DISABLED
 #define Util_mic_exit()
 
-#endif
-
-#endif
+#endif //defined(DEF_ENABLE_MIC_API)
+}
+#endif //!defined(DEF_MIC_HPP)
