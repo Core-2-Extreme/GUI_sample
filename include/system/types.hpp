@@ -230,13 +230,6 @@ enum Background
 	BACKGROUND_MAX,
 };
 
-enum Wake_up_event
-{
-	WAKE_UP_EVENT_NONE				= 0,		//No wake up event.
-	WAKE_UP_EVENT_PRESS_HOME_BUTTON	= (1 << 2), //Wake up if home button is pressed.
-	WAKE_UP_EVENT_OPEN_SHELL		= (1 << 5), //Wake up if shell is opened.
-};
-
 enum File_type
 {
 	FILE_TYPE_NONE		= 0,	//File type is not set.

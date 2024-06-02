@@ -6,7 +6,7 @@
 
 #include "system/draw/draw.hpp"
 
-#include "system/util/change_setting.hpp"
+#include "system/util/hw_config.h"
 #include "system/util/error.hpp"
 #include "system/util/hid.hpp"
 #include "system/util/log.hpp"
@@ -391,7 +391,7 @@ static void Sapp2_exit_thread(void* arg)
 static void Sapp2_worker_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
 
 	while (sapp2_thread_run)
 	{
@@ -400,8 +400,8 @@ static void Sapp2_worker_thread(void* arg)
 		while (sapp2_thread_suspend)
 			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
 
-		result.code = Util_queue_get(&sapp2_command_queue, &event_id, NULL, DEF_ACTIVE_THREAD_SLEEP_TIME);
-		if(result.code != 0)
+		result = Util_queue_get(&sapp2_command_queue, &event_id, NULL, DEF_ACTIVE_THREAD_SLEEP_TIME);
+		if(result != DEF_SUCCESS)
 		{
 			//No commands have arrived.
 			continue;
@@ -416,7 +416,7 @@ static void Sapp2_worker_thread(void* arg)
 			{
 				aptSetSleepAllowed(true);
 
-				DEF_LOG_RESULT_SMART(result, Util_cset_sleep_system(WAKE_UP_EVENT_OPEN_SHELL), (result.code == DEF_SUCCESS), result.code);
+				DEF_LOG_RESULT_SMART(result, Util_hw_config_sleep_system(HW_CONFIG_WAKEUP_BIT_OPEN_SHELL), (result == DEF_SUCCESS), result);
 
 				break;
 			}
@@ -424,23 +424,23 @@ static void Sapp2_worker_thread(void* arg)
 			{
 				aptSetSleepAllowed(true);
 
-				DEF_LOG_RESULT_SMART(result, Util_cset_sleep_system(WAKE_UP_EVENT_PRESS_HOME_BUTTON), (result.code == DEF_SUCCESS), result.code);
+				DEF_LOG_RESULT_SMART(result, Util_hw_config_sleep_system(HW_CONFIG_WAKEUP_BIT_PRESS_HOME_BUTTON), (result == DEF_SUCCESS), result);
 
 				break;
 			}
 			case SLEEP_WAKE_UP_WITH_SHELL_OR_BUTTON_REQUEST:
 			{
+				Hw_config_wakeup_bit wakeup_bits = (HW_CONFIG_WAKEUP_BIT_OPEN_SHELL | HW_CONFIG_WAKEUP_BIT_PRESS_HOME_BUTTON);
 				aptSetSleepAllowed(true);
 
-				DEF_LOG_RESULT_SMART(result, Util_cset_sleep_system((Wake_up_event)(WAKE_UP_EVENT_OPEN_SHELL | WAKE_UP_EVENT_PRESS_HOME_BUTTON)),
-				(result.code == DEF_SUCCESS), result.code);
+				DEF_LOG_RESULT_SMART(result, Util_hw_config_sleep_system(wakeup_bits), (result == DEF_SUCCESS), result);
 
 				break;
 			}
 			case CHANGE_WIFI_STATE_REQUEST:
 			{
-				DEF_LOG_RESULT_SMART(result, Util_cset_set_wifi_state(!var_wifi_enabled), (result.code == DEF_SUCCESS), result.code);
-				if(result.code == 0)
+				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_wifi_state(!var_wifi_enabled), (result == DEF_SUCCESS), result);
+				if(result == DEF_SUCCESS)
 					var_wifi_enabled = !var_wifi_enabled;
 
 				break;
@@ -454,8 +454,8 @@ static void Sapp2_worker_thread(void* arg)
 				if(brightness + 1 <= 180)
 					brightness++;
 
-				DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_brightness(true, false, brightness), (result.code == DEF_SUCCESS), result.code);
-				if(result.code == 0)
+				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_screen_brightness(true, false, brightness), (result == DEF_SUCCESS), result);
+				if(result == DEF_SUCCESS)
 					var_top_lcd_brightness = brightness;
 				*/
 
@@ -477,8 +477,8 @@ static void Sapp2_worker_thread(void* arg)
 				if(brightness - 1 >= 0)
 					brightness--;
 
-				DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_brightness(true, false, brightness), (result.code == DEF_SUCCESS), result.code);
-				if(result.code == 0)
+				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_screen_brightness(true, false, brightness), (result == DEF_SUCCESS), result);
+				if(result == DEF_SUCCESS)
 					var_top_lcd_brightness = brightness;
 				*/
 
@@ -500,8 +500,8 @@ static void Sapp2_worker_thread(void* arg)
 				if(brightness + 1 <= 180)
 					brightness++;
 
-				DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_brightness(false, true, brightness), (result.code == DEF_SUCCESS), result.code);
-				if(result.code == 0)
+				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_screen_brightness(false, true, brightness), (result == DEF_SUCCESS), result);
+				if(result == DEF_SUCCESS)
 					var_bottom_lcd_brightness = brightness;
 				*/
 
@@ -523,8 +523,8 @@ static void Sapp2_worker_thread(void* arg)
 				if(brightness - 1 >= 0)
 					brightness--;
 
-				DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_brightness(false, true, brightness), (result.code == DEF_SUCCESS), result.code);
-				if(result.code == 0)
+				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_screen_brightness(false, true, brightness), (result == DEF_SUCCESS), result);
+				if(result == DEF_SUCCESS)
 					var_bottom_lcd_brightness = brightness;
 				*/
 
@@ -542,14 +542,14 @@ static void Sapp2_worker_thread(void* arg)
 				//This isn't necessary because screen state will be changed automatically
 				//in Menu_worker_thread() if you change the value of var_turn_on_top_lcd.
 				/*
-				DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_state(true, false, false), (result.code == DEF_SUCCESS), result.code);
-				if(result.code == 0)
+				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_screen_state(true, false, false), (result == DEF_SUCCESS), result);
+				if(result == DEF_SUCCESS)
 					var_turn_on_top_lcd = false;
 
 				Util_sleep(5000000);
 
-				DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_state(true, false, true), (result.code == DEF_SUCCESS), result.code);
-				if(result.code == 0)
+				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_screen_state(true, false, true), (result == DEF_SUCCESS), result);
+				if(result == DEF_SUCCESS)
 					var_turn_on_top_lcd = true;
 				*/
 
@@ -564,14 +564,14 @@ static void Sapp2_worker_thread(void* arg)
 				//This isn't necessary because screen state will be changed automatically
 				//in Menu_worker_thread() if you change the value of var_turn_on_bottom_lcd.
 				/*
-				DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_state(false, true, false), (result.code == DEF_SUCCESS), result.code);
-				if(result.code == 0)
+				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_screen_state(false, true, false), (result == DEF_SUCCESS), result);
+				if(result == DEF_SUCCESS)
 					var_turn_on_bottom_lcd = false;
 
 				Util_sleep(5000000);
 
-				DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_state(false, true, true), (result.code == DEF_SUCCESS), result.code);
-				if(result.code == 0)
+				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_screen_state(false, true, true), (result == DEF_SUCCESS), result);
+				if(result == DEF_SUCCESS)
 					var_turn_on_bottom_lcd = true;
 				*/
 

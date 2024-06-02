@@ -7,7 +7,7 @@
 #include "system/draw/draw.hpp"
 #include "system/draw/external_font.hpp"
 
-#include "system/util/change_setting.hpp"
+#include "system/util/hw_config.h"
 #include "system/util/cpu_usage.hpp"
 #include "system/util/curl.hpp"
 #include "system/util/error.hpp"
@@ -1313,9 +1313,9 @@ void Menu_check_connectivity_thread(void* arg)
 void Menu_worker_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
-	int count = 0;
+	uint32_t count = 0;
+	uint32_t result = DEF_ERR_OTHER;
 	uint64_t previous_ts = 0;
-	Result_with_string result;
 
 	while (menu_thread_run)
 	{
@@ -1347,54 +1347,54 @@ void Menu_worker_thread(void* arg)
 		//If var_time_to_turn_off_lcd < 0, it means turn off LCD settings has been disabled.
 		if(var_time_to_turn_off_lcd > 0 && var_afk_time > var_time_to_turn_off_lcd)
 		{
-			result = Util_cset_set_screen_state(true, true, false);
-			if(result.code != 0)
-				DEF_LOG_RESULT(Util_cset_set_screen_state, false, result.code);
+			result = Util_hw_config_set_screen_state(true, true, false);
+			if(result != DEF_SUCCESS)
+				DEF_LOG_RESULT(Util_hw_config_set_screen_state, false, result);
 		}
 		else if(var_time_to_turn_off_lcd > 0 &&var_afk_time > (var_time_to_turn_off_lcd - 10))
 		{
-			result = Util_cset_set_screen_brightness(true, true, 10);
-			if(result.code != 0)
-				DEF_LOG_RESULT(Util_cset_set_screen_brightness, false, result.code);
+			result = Util_hw_config_set_screen_brightness(true, true, 10);
+			if(result != DEF_SUCCESS)
+				DEF_LOG_RESULT(Util_hw_config_set_screen_brightness, false, result);
 		}
 		else
 		{
-			result = Util_cset_set_screen_state(true, false, var_turn_on_top_lcd);
-			if(result.code != 0)
-				DEF_LOG_RESULT(Util_cset_set_screen_state, false, result.code);
+			result = Util_hw_config_set_screen_state(true, false, var_turn_on_top_lcd);
+			if(result != DEF_SUCCESS)
+				DEF_LOG_RESULT(Util_hw_config_set_screen_state, false, result);
 
-			result = Util_cset_set_screen_state(false, true, var_turn_on_bottom_lcd);
-			if(result.code != 0)
-				DEF_LOG_RESULT(Util_cset_set_screen_state, false, result.code);
+			result = Util_hw_config_set_screen_state(false, true, var_turn_on_bottom_lcd);
+			if(result != DEF_SUCCESS)
+				DEF_LOG_RESULT(Util_hw_config_set_screen_state, false, result);
 
 			if(var_top_lcd_brightness == var_lcd_brightness && var_bottom_lcd_brightness == var_lcd_brightness)
 			{
-				result = Util_cset_set_screen_brightness(true, true, var_lcd_brightness);
-				if(result.code != 0)
-					DEF_LOG_RESULT(Util_cset_set_screen_brightness, false, result.code);
+				result = Util_hw_config_set_screen_brightness(true, true, var_lcd_brightness);
+				if(result != DEF_SUCCESS)
+					DEF_LOG_RESULT(Util_hw_config_set_screen_brightness, false, result);
 			}
 			else
 			{
-				result = Util_cset_set_screen_brightness(true, false, var_top_lcd_brightness);
-				if(result.code != 0)
-					DEF_LOG_RESULT(Util_cset_set_screen_brightness, false, result.code);
+				result = Util_hw_config_set_screen_brightness(true, false, var_top_lcd_brightness);
+				if(result != DEF_SUCCESS)
+					DEF_LOG_RESULT(Util_hw_config_set_screen_brightness, false, result);
 
-				result = Util_cset_set_screen_brightness(false, true, var_bottom_lcd_brightness);
-				if(result.code != 0)
-					DEF_LOG_RESULT(Util_cset_set_screen_brightness, false, result.code);
+				result = Util_hw_config_set_screen_brightness(false, true, var_bottom_lcd_brightness);
+				if(result != DEF_SUCCESS)
+					DEF_LOG_RESULT(Util_hw_config_set_screen_brightness, false, result);
 			}
 		}
 
 		if(var_time_to_enter_sleep > 0 && var_afk_time > var_time_to_enter_sleep)
 		{
-			result = Util_cset_sleep_system((Wake_up_event)(WAKE_UP_EVENT_OPEN_SHELL | WAKE_UP_EVENT_PRESS_HOME_BUTTON));
-			if(result.code == 0)
+			result = Util_hw_config_sleep_system((HW_CONFIG_WAKEUP_BIT_OPEN_SHELL | HW_CONFIG_WAKEUP_BIT_PRESS_HOME_BUTTON));
+			if(result == DEF_SUCCESS)
 			{
 				//We woke up from sleep.
 				var_afk_time = 0;
 			}
 			else
-				DEF_LOG_RESULT(Util_cset_sleep_system, false, result.code);
+				DEF_LOG_RESULT(Util_hw_config_sleep_system, false, result);
 		}
 
 		LightLock_Lock(&menu_callback_mutex);

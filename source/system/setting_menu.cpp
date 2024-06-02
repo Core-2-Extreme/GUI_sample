@@ -7,7 +7,7 @@
 #include "system/draw/draw.hpp"
 #include "system/draw/external_font.hpp"
 
-#include "system/util/change_setting.hpp"
+#include "system/util/hw_config.h"
 #include "system/util/converter.hpp"
 #include "system/util/cpu_usage.hpp"
 #include "system/util/curl.hpp"
@@ -270,7 +270,7 @@ void Sem_init(void)
 
 	sem_reload_msg_request = true;
 
-	result = Util_cset_set_wifi_state(wifi_state);
+	result.code = Util_hw_config_set_wifi_state(wifi_state);
 	if(result.code == 0 || result.code == 0xC8A06C0D)
 		var_wifi_enabled = wifi_state;
 
@@ -1529,7 +1529,7 @@ void Sem_hid(Hid_info key)
 					sem_wifi_on_button.selected = true;
 				else if (Util_hid_is_released(key, sem_wifi_on_button) && sem_wifi_on_button.selected)
 				{
-					result = Util_cset_set_wifi_state(true);
+					result.code = Util_hw_config_set_wifi_state(true);
 					if(result.code == 0 || result.code == 0xC8A06C0D)
 						var_wifi_enabled = true;
 				}
@@ -1537,7 +1537,7 @@ void Sem_hid(Hid_info key)
 					sem_wifi_off_button.selected = true;
 				else if (Util_hid_is_released(key, sem_wifi_off_button) && sem_wifi_off_button.selected)
 				{
-					result = Util_cset_set_wifi_state(false);
+					result.code = Util_hw_config_set_wifi_state(false);
 					if(result.code == 0 || result.code == 0xC8A06C0D)
 						var_wifi_enabled = false;
 				}
@@ -2047,7 +2047,7 @@ void Sem_worker_callback(void)
 		}
 		else if(sem_change_brightness_request)
 		{
-			DEF_LOG_RESULT_SMART(result, Util_cset_set_screen_brightness(true, true, var_lcd_brightness), (result.code == DEF_SUCCESS), result.code);
+			DEF_LOG_RESULT_SMART(result.code, Util_hw_config_set_screen_brightness(true, true, var_lcd_brightness), (result.code == DEF_SUCCESS), result.code);
 			sem_change_brightness_request = false;
 		}
 #if DEF_ENABLE_CPU_MONITOR_API
