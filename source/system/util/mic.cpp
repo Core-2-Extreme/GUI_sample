@@ -7,7 +7,7 @@
 #include "system/util/util.hpp"
 
 //Include myself.
-#include "system/util/mic.hpp"
+#include "system/util/mic.h"
 
 
 extern "C"
@@ -29,7 +29,7 @@ uint32_t Util_mic_init(uint32_t buffer_size)
 
 	util_mic_last_pos = 0;
 	buffer_size -= buffer_size % 0x1000;
-	//mic module requires memory allocated on heap (precisely svcCreateMemoryBlock() requires it)
+	//Mic module requires memory allocated on heap (precisely svcCreateMemoryBlock() requires it).
 	util_mic_buffer = (uint8_t*)__real_memalign(0x1000, buffer_size);
 	if(!util_mic_buffer)
 		goto out_of_memory;
@@ -57,7 +57,7 @@ uint32_t Util_mic_init(uint32_t buffer_size)
 	}
 
 	util_mic_init = true;
-	return result;
+	return DEF_SUCCESS;
 
 	already_inited:
 	return DEF_ERR_ALREADY_INITIALIZED;
@@ -123,7 +123,7 @@ uint32_t Util_mic_start_recording(Mic_sample_rate sample_rate_mode)
 
 	util_mic_last_pos = 0;
 	util_mic_sample_rate = sample_rate;
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
 	return DEF_ERR_NOT_INITIALIZED;

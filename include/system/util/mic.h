@@ -1,5 +1,5 @@
-#if !defined(DEF_MIC_HPP)
-#define DEF_MIC_HPP
+#if !defined(DEF_MIC_H)
+#define DEF_MIC_H
 
 extern "C"
 {
@@ -89,4 +89,4 @@ void Util_mic_exit(void);
 
 #endif //defined(DEF_ENABLE_MIC_API)
 }
-#endif //!defined(DEF_MIC_HPP)
+#endif //!defined(DEF_MIC_H)

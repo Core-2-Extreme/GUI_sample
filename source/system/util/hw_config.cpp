@@ -41,7 +41,7 @@ uint32_t Util_hw_config_set_screen_brightness(bool top_screen, bool bottom_scree
 	}
 
 	gspLcdExit();
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
 	return DEF_ERR_INVALID_ARG;
@@ -73,7 +73,7 @@ uint32_t Util_hw_config_set_wifi_state(bool wifi_state)
 	}
 
 	nwmExtExit();
-	return result;
+	return DEF_SUCCESS;
 
 	nintendo_api_failed:
 	nwmExtExit();
@@ -124,7 +124,7 @@ uint32_t Util_hw_config_set_screen_state(bool top_screen, bool bottom_screen, bo
 	}
 
 	gspLcdExit();
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
 	return DEF_ERR_INVALID_ARG;
@@ -162,7 +162,7 @@ uint32_t Util_hw_config_sleep_system(Hw_config_wakeup_bit wakeup_events)
 		goto nintendo_api_failed;
 	}
 
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
 	return DEF_ERR_INVALID_ARG;

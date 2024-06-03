@@ -135,12 +135,12 @@ uint32_t Util_cam_init(Pixel_format color_format)
 		DEF_LOG_RESULT(CAMU_Activate, false, result);
 		goto nintendo_api_failed;
 	}
-	util_cam_port = CAM_PORT_OUT_RIGHT;
 
+	util_cam_port = CAM_PORT_OUT_RIGHT;
 	util_cam_width = width;
 	util_cam_height = height;
 	util_cam_init = true;
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
 	return DEF_ERR_INVALID_ARG;
@@ -208,7 +208,7 @@ uint32_t Util_cam_take_a_picture(uint8_t** raw_data, uint16_t* width, uint16_t* 
 	*height = util_cam_height;
 	svcCloseHandle(receive);
 
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
 	return DEF_ERR_NOT_INITIALIZED;
@@ -311,7 +311,7 @@ uint32_t Util_cam_set_resolution(Camera_resolution resolution_mode)
 	util_cam_height = height;
 	util_cam_resolution = resolution_mode;
 
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
 	return DEF_ERR_NOT_INITIALIZED;
@@ -366,7 +366,7 @@ uint32_t Util_cam_set_fps(Camera_framerate fps_mode)
 		goto nintendo_api_failed;
 	}
 
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
 	return DEF_ERR_NOT_INITIALIZED;
@@ -419,7 +419,7 @@ uint32_t Util_cam_set_contrast(Camera_contrast contrast_mode)
 		goto nintendo_api_failed;
 	}
 
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
 	return DEF_ERR_NOT_INITIALIZED;
@@ -462,7 +462,7 @@ uint32_t Util_cam_set_white_balance(Camera_white_balance white_balance_mode)
 		goto nintendo_api_failed;
 	}
 
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
 	return DEF_ERR_NOT_INITIALIZED;
@@ -499,7 +499,7 @@ uint32_t Util_cam_set_lens_correction(Camera_lens_correction lens_correction_mod
 		goto nintendo_api_failed;
 	}
 
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
 	return DEF_ERR_NOT_INITIALIZED;
@@ -544,7 +544,7 @@ uint32_t Util_cam_set_camera(Camera_port camera_port)
 	}
 	util_cam_port = camera_port;
 
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
 	return DEF_ERR_NOT_INITIALIZED;
@@ -574,7 +574,7 @@ uint32_t Util_cam_set_exposure(Camera_exposure exposure_mode)
 		goto nintendo_api_failed;
 	}
 
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
 	return DEF_ERR_NOT_INITIALIZED;
@@ -600,7 +600,7 @@ uint32_t Util_cam_set_noise_filter(bool noise_filter_mode)
 		goto nintendo_api_failed;
 	}
 
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
 	return DEF_ERR_NOT_INITIALIZED;

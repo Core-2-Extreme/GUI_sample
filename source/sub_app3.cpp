@@ -13,7 +13,7 @@
 #include "system/util/file.hpp"
 #include "system/util/hid.hpp"
 #include "system/util/log.hpp"
-#include "system/util/mic.hpp"
+#include "system/util/mic.h"
 #include "system/util/util.hpp"
 
 extern "C"
