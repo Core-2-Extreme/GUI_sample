@@ -1,39 +1,40 @@
-#ifndef SPEAKER_HPP
+#if !defined(SPEAKER_HPP)
 #define SPEAKER_HPP
 
+extern "C"
+{
+#include <stdbool.h>
+#include <stdint.h>
+
 #if DEF_ENABLE_SPEAKER_API
-#include "system/types.hpp"
 
 /**
  * @brief Initialize a speaker.
- * Run dsp1(https://github.com/zoogie/DSP1/releases) first if 0xd880A7FA is returned.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_* or Nintendo API's error.
+ * Run dsp1(https://github.com/zoogie/DSP1/releases) first if 0xD880A7FA is returned.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_speaker_init(void);
+uint32_t Util_speaker_init(void);
 
 /**
  * @brief Set audio info.
  * @param play_ch (in) Internal speaker ch (0 ~ 23).
  * @param music_ch (in) Audio ch (1 or 2).
  * @param sample_rate (in) Audio sample rate (in Hz).
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_speaker_set_audio_info(int play_ch, int music_ch, int sample_rate);
+uint32_t Util_speaker_set_audio_info(uint8_t play_ch, uint8_t music_ch, uint32_t sample_rate);
 
 /**
  * @brief Add audio buffer.
  * @param play_ch (in) Internal speaker ch (0 ~ 23).
  * @param buffer (in) Pointer for raw audio data (PCM_S16LE).
  * @param size (in) Audio data size (in byte).
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_speaker_add_buffer(int play_ch, uint8_t* buffer, int size);
+uint32_t Util_speaker_add_buffer(uint8_t play_ch, uint8_t* buffer, uint32_t size);
 
 /**
  * @brief Get a number of audio buffer.
@@ -42,7 +43,7 @@ Result_with_string Util_speaker_add_buffer(int play_ch, uint8_t* buffer, int siz
  * @return Number of audio buffer in number of buffers (not in time or bytes).
  * @warning Thread dangerous (untested)
 */
-int Util_speaker_get_available_buffer_num(int play_ch);
+uint32_t Util_speaker_get_available_buffer_num(uint8_t play_ch);
 
 /**
  * @brief Get a audio buffer size.
@@ -51,7 +52,7 @@ int Util_speaker_get_available_buffer_num(int play_ch);
  * @return Audio buffer size in bytes.
  * @warning Thread dangerous (untested)
 */
-int Util_speaker_get_available_buffer_size(int play_ch);
+uint32_t Util_speaker_get_available_buffer_size(uint8_t play_ch);
 
 /**
  * @brief Clear audio buffer.
@@ -59,7 +60,7 @@ int Util_speaker_get_available_buffer_size(int play_ch);
  * @param play_ch (in) Internal speaker ch (0 ~ 23).
  * @warning Thread dangerous (untested)
 */
-void Util_speaker_clear_buffer(int play_ch);
+void Util_speaker_clear_buffer(uint8_t play_ch);
 
 /**
  * @brief Pause audio playback.
@@ -67,7 +68,7 @@ void Util_speaker_clear_buffer(int play_ch);
  * @param play_ch (in) Internal speaker ch (0 ~ 23).
  * @warning Thread dangerous (untested)
 */
-void Util_speaker_pause(int play_ch);
+void Util_speaker_pause(uint8_t play_ch);
 
 /**
  * @brief Resume audio playback.
@@ -75,7 +76,7 @@ void Util_speaker_pause(int play_ch);
  * @param play_ch (in) Internal speaker ch (0 ~ 23).
  * @warning Thread dangerous (untested)
 */
-void Util_speaker_resume(int play_ch);
+void Util_speaker_resume(uint8_t play_ch);
 
 /**
  * @brief Check whether audio playback is paused.
@@ -84,7 +85,7 @@ void Util_speaker_resume(int play_ch);
  * @return True if play_ch is paused, otherwise false.
  * @warning Thread dangerous (untested)
 */
-bool Util_speaker_is_paused(int play_ch);
+bool Util_speaker_is_paused(uint8_t play_ch);
 
 /**
  * @brief Check whether audio is playing.
@@ -93,7 +94,7 @@ bool Util_speaker_is_paused(int play_ch);
  * @return True if play_ch is not paused(playing), otherwise false.
  * @warning Thread dangerous (untested)
 */
-bool Util_speaker_is_playing(int play_ch);
+bool Util_speaker_is_playing(uint8_t play_ch);
 
 /**
  * @brief Uninitialize a speaker.
@@ -104,18 +105,18 @@ void Util_speaker_exit(void);
 
 #else
 
-#define Util_speaker_init() Util_return_result_with_string(var_disabled_result)
-#define Util_speaker_set_audio_info(...) Util_return_result_with_string(var_disabled_result)
-#define Util_speaker_add_buffer(...) Util_return_result_with_string(var_disabled_result)
-#define Util_speaker_get_available_buffer_num(...) Util_return_int(0)
-#define Util_speaker_get_available_buffer_size(...) Util_return_int(0)
+#define Util_speaker_init() DEF_ERR_DISABLED
+#define Util_speaker_set_audio_info(...) DEF_ERR_DISABLED
+#define Util_speaker_add_buffer(...) DEF_ERR_DISABLED
+#define Util_speaker_get_available_buffer_num(...) 0
+#define Util_speaker_get_available_buffer_size(...) 0
 #define Util_speaker_clear_buffer(...)
 #define Util_speaker_pause(...)
 #define Util_speaker_resume(...)
-#define Util_speaker_is_paused(...) Util_return_bool(false)
-#define Util_speaker_is_playing(...) Util_return_bool(false)
+#define Util_speaker_is_paused(...) false
+#define Util_speaker_is_playing(...) false
 #define Util_speaker_exit()
 
-#endif
-
-#endif
+#endif //DEF_ENABLE_SPEAKER_API
+}
+#endif //!defined(SPEAKER_HPP)

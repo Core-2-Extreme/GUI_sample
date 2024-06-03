@@ -11,7 +11,7 @@
 #include "system/util/error.hpp"
 #include "system/util/hid.hpp"
 #include "system/util/log.hpp"
-#include "system/util/speaker.hpp"
+#include "system/util/speaker.h"
 #include "system/util/util.hpp"
 
 extern "C"
@@ -347,7 +347,7 @@ static void Sapp4_draw_init_exit_message(void)
 static void Sapp4_init_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
 
 	Util_str_set(&sapp4_status, "Initializing variables...");
 	sapp4_speaker_state = SPEAKER_IDLE;
@@ -358,11 +358,11 @@ static void Sapp4_init_thread(void* arg)
 
 	Util_str_add(&sapp4_status, "\nInitializing queue...");
 	//Create the queue for commands.
-	DEF_LOG_RESULT_SMART(result.code, Util_queue_create(&sapp4_command_queue, 10), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Util_queue_create(&sapp4_command_queue, 10), (result == DEF_SUCCESS), result);
 
 	Util_str_add(&sapp4_status, "\nInitializing speaker...");
 	//Init speaker.
-	DEF_LOG_RESULT_SMART(result, Util_speaker_init(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Util_speaker_init(), (result == DEF_SUCCESS), result);
 
 	Util_str_add(&sapp4_status, "\nStarting threads...");
 	sapp4_thread_run = true;
@@ -417,7 +417,7 @@ static void Sapp4_worker_thread(void* arg)
 			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
 
 		result.code = Util_queue_get(&sapp4_command_queue, &event_id, NULL, DEF_ACTIVE_THREAD_SLEEP_TIME * 20);
-		if(result.code == 0)
+		if(result.code == DEF_SUCCESS)
 		{
 			//Got a command.
 			DEF_LOG_FORMAT("Received event : %" PRIu32, event_id);
@@ -441,20 +441,20 @@ static void Sapp4_worker_thread(void* arg)
 					//Since we only interested in audio here, so we only initialize audio decoder.
 					DEF_LOG_RESULT_SMART(result, Util_audio_decoder_init(num_of_audio, 0), (result.code == DEF_SUCCESS), result.code);
 
-					if(result.code == 0)
+					if(result.code == DEF_SUCCESS)
 					{
 						//3. Get audio info.
 						Util_audio_decoder_get_info(&sapp4_audio_info, 0, 0);
 
 						//4. Set speaker parameters.
-						DEF_LOG_RESULT_SMART(result, Util_speaker_set_audio_info(0, sapp4_audio_info.ch, sapp4_audio_info.sample_rate),
+						DEF_LOG_RESULT_SMART(result.code, Util_speaker_set_audio_info(0, sapp4_audio_info.ch, sapp4_audio_info.sample_rate),
 						(result.code == DEF_SUCCESS), result.code);
 
-						if(result.code == 0)
+						if(result.code == DEF_SUCCESS)
 							sapp4_speaker_state = SPEAKER_PLAYING;
 					}
 
-					if(result.code != 0)
+					if(result.code != DEF_SUCCESS)
 					{
 						//Error.
 						Util_speaker_clear_buffer(0);
@@ -488,7 +488,7 @@ static void Sapp4_worker_thread(void* arg)
 			//If we couldn't read the next packet, it usually means we reached EOF.
 			//Or something went wrong such as file is corrupted (unlikely).
 			read_packet_result = Util_decoder_read_packet(0);
-			if(read_packet_result.code != 0)
+			if(read_packet_result.code != DEF_SUCCESS)
 			{
 				//If audio playback has finished, close the file and reset speaker state.
 				if(Util_speaker_get_available_buffer_num(0) == 0)
@@ -499,7 +499,7 @@ static void Sapp4_worker_thread(void* arg)
 				}
 			}
 
-			while(read_packet_result.code == 0)
+			while(read_packet_result.code == DEF_SUCCESS)
 			{
 				bool is_buffer_full = false;
 				bool key_frame = false;
@@ -508,7 +508,7 @@ static void Sapp4_worker_thread(void* arg)
 
 				//2. Parse packet to check what type of packet it is.
 				result = Util_decoder_parse_packet(&type, &packet_index, &key_frame, 0);
-				if(result.code == 0)
+				if(result.code == DEF_SUCCESS)
 				{
 					if(type == PACKET_TYPE_AUDIO)
 					{
@@ -520,11 +520,11 @@ static void Sapp4_worker_thread(void* arg)
 						//3. Prepare packet.
 						//Since we are interested in audio, so tell API to we want to use this packet.
 						result = Util_decoder_ready_audio_packet(packet_index, 0);
-						if(result.code == 0)
+						if(result.code == DEF_SUCCESS)
 						{
 							//4. Decode audio.
 							result = Util_audio_decoder_decode(&samples, &audio, &pos, packet_index, 0);
-							if(result.code == 0)
+							if(result.code == DEF_SUCCESS)
 							{
 								//Set last decoded frame timestamp.
 								//This is used to display current playback position.
@@ -545,13 +545,13 @@ static void Sapp4_worker_thread(void* arg)
 								parameters.out_sample_rate = sapp4_audio_info.sample_rate;
 
 								result = Util_converter_convert_audio(&parameters);
-								if(result.code == 0)
+								if(result.code == DEF_SUCCESS)
 								{
 									while(true)
 									{
 										//6. Add converted pcm data to speaker queue.
-										result = Util_speaker_add_buffer(0, parameters.converted, (parameters.out_samples * 2 * parameters.out_ch));
-										if(result.code == 0)
+										result.code = Util_speaker_add_buffer(0, parameters.converted, (parameters.out_samples * 2 * parameters.out_ch));
+										if(result.code == DEF_SUCCESS)
 											break;
 										else if(result.code == DEF_ERR_TRY_AGAIN)
 										{
