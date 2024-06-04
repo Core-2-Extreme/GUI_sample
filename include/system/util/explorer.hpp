@@ -3,6 +3,7 @@
 
 #if DEF_ENABLE_EXPL_API
 #include "system/types.hpp"
+#include "system/util/hid.hpp"
 
 /**
  * @brief Initialize a explorer api.

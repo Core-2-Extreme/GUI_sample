@@ -2,6 +2,7 @@
 #define ERROR_HPP
 
 #include "system/types.hpp"
+#include "system/util/hid.hpp"
 
 /**
  * @brief Initialize a error api.

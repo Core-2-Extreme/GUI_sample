@@ -1,7 +1,8 @@
-#ifndef SETTING_MENU_HPP
+#if !defined(SETTING_MENU_HPP)
 #define SETTING_MENU_HPP
 
 #include "types.hpp"
+#include "system/util/hid.hpp"
 
 bool Sem_query_init_flag(void);
 
@@ -23,4 +24,4 @@ void Sem_main(void);
 
 void Sem_hid(Hid_info key);
 
-#endif
+#endif //!defined(SETTING_MENU_HPP)

@@ -8,6 +8,8 @@
 //Include myself.
 #include "system/util/hid.hpp"
 
+extern "C"
+{
 bool util_hid_thread_run = false;
 bool util_hid_init = false;
 bool util_hid_key_A_pressed = false;
@@ -98,19 +100,20 @@ LightLock util_hid_callback_mutex = 1;//Initially unlocked state.
 
 void Util_hid_scan_hid_thread(void* arg);
 
-Result_with_string Util_hid_init(void)
+uint32_t Util_hid_init(void)
 {
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
+
 	if(util_hid_init)
 		goto already_inited;
 
 	for(int i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
 		util_hid_callbacks[i] = NULL;
 
-	result.code = hidInit();
-	if(result.code != 0)
+	result = hidInit();
+	if(result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] hidInit() failed. ";
+		DEF_LOG_RESULT(hidInit, false, result);
 		goto nintendo_api_failed;
 	}
 
@@ -118,24 +121,22 @@ Result_with_string Util_hid_init(void)
 	util_hid_scan_thread = threadCreate(Util_hid_scan_hid_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 0, false);
 	if(!util_hid_scan_thread)
 	{
-		result.code = DEF_ERR_OTHER;
-		result.error_description = "[Error] threadCreate() failed. ";
+		result = DEF_ERR_OTHER;
+		DEF_LOG_RESULT(threadCreate, false, result);
 		goto nintendo_api_failed_0;
 	}
 
 	util_hid_init = true;
-	return result;
+	return DEF_SUCCESS;
 
 	already_inited:
-	result.code = DEF_ERR_ALREADY_INITIALIZED;
-	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_ALREADY_INITIALIZED;
 
 	nintendo_api_failed_0:
 	hidExit();
+	//Fallthrough.
 
 	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 
@@ -184,9 +185,8 @@ bool Util_hid_is_released(Hid_info hid_state, Image_data image)
 		return false;
 }
 
-Result_with_string Util_hid_query_key_state(Hid_info* out_key_state)
+uint32_t Util_hid_query_key_state(Hid_info* out_key_state)
 {
-	Result_with_string result;
 	if(!util_hid_init)
 		goto not_inited;
 
@@ -270,12 +270,10 @@ Result_with_string Util_hid_query_key_state(Hid_info* out_key_state)
 	out_key_state->held_time = util_hid_held_time;
 	out_key_state->ts = util_hid_ts;
 
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_NOT_INITIALIZED;
 }
 
 bool Util_hid_add_callback(void (*callback)(void))
@@ -337,7 +335,6 @@ void Util_hid_scan_hid_thread(void* arg)
 	uint32_t key_released;
 	touchPosition touch_pos;
 	circlePosition circle_pos;
-	Result_with_string result;
 
 	while (util_hid_thread_run)
 	{
@@ -520,4 +517,5 @@ void Util_hid_scan_hid_thread(void* arg)
 	}
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
+}
 }

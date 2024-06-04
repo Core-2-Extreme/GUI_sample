@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "system/util/hid.hpp"
 
 #define DEF_LOG_MAX_LENGTH				(uint32_t)(1024)			//Maximum log text length in bytes.
 #define DEF_LOG_INDEX_AUTO				(uint32_t)(UINT32_MAX)		//Use next log index.

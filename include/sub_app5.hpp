@@ -1,7 +1,8 @@
-#ifndef SAPP5_HPP
+#if !defined(SAPP5_HPP)
 #define SAPP5_HPP
 
 #include "system/types.hpp"
+#include "system/util/hid.hpp"
 
 bool Sapp5_query_init_flag(void);
 
@@ -21,4 +22,4 @@ void Sapp5_exit(bool draw);
 
 void Sapp5_main(void);
 
-#endif
+#endif //!defined(SAPP5_HPP)
