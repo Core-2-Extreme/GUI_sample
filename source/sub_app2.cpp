@@ -6,9 +6,9 @@
 
 #include "system/draw/draw.hpp"
 
-#include "system/util/hw_config.h"
 #include "system/util/error.hpp"
 #include "system/util/hid.hpp"
+#include "system/util/hw_config.h"
 #include "system/util/log.hpp"
 #include "system/util/util.hpp"
 

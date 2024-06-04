@@ -1,16 +1,14 @@
 #include "definitions.hpp"
 
 #if DEF_ENABLE_CPU_MONITOR_API
-#include "system/types.hpp"
-
-#include "system/variables.hpp"
-
 #include "system/util/log.hpp"
 #include "system/util/util.hpp"
 
 //Include myself.
-#include "system/util/cpu_usage.hpp"
+#include "system/util/cpu_usage.h"
 
+extern "C"
+{
 bool util_cpu_usage_monitor_init = false;
 bool util_cpu_usage_reset_counter_request[4] = { false, false, false, false, };
 uint8_t util_cpu_usage_core_id[4] = { 0, 1, 2, 3, };
@@ -24,9 +22,9 @@ Handle timer_handle = 0;
 void Util_cpu_usage_counter_thread(void* arg);
 void Util_cpu_usage_calculate_thread(void* arg);
 
-Result_with_string Util_cpu_usage_monitor_init(void)
+uint32_t Util_cpu_usage_monitor_init(void)
 {
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
 
 	if(util_cpu_usage_monitor_init)
 		goto already_inited;
@@ -34,11 +32,6 @@ Result_with_string Util_cpu_usage_monitor_init(void)
 	util_cpu_usage_monitor_init = true;
 	for(int i = 0; i < 4; i++)
 	{
-		if(i == 2 && !var_core_2_available)
-			continue;
-		if(i == 3 && !var_core_3_available)
-			continue;
-
 		//This may fail depending on core availability.
 		util_cpu_usage_thread_handle[i] = threadCreate(Util_cpu_usage_counter_thread, &util_cpu_usage_core_id[i], 2048, DEF_SYSTEM_THREAD_PRIORITY_IDLE, i, false);
 	}
@@ -46,8 +39,8 @@ Result_with_string Util_cpu_usage_monitor_init(void)
 	util_cpu_usage_thread_handle[4] = threadCreate(Util_cpu_usage_calculate_thread, NULL, 2048, DEF_SYSTEM_THREAD_PRIORITY_REALTIME, 0, false);
 	if(!util_cpu_usage_thread_handle[4])
 	{
-		result.code = DEF_ERR_OTHER;
-		result.error_description = "[Error] threadCreate() failed. ";
+		result = DEF_ERR_OTHER;
+		DEF_LOG_RESULT(threadCreate, false, result);
 		goto nintendo_api_failed;
 	}
 
@@ -55,13 +48,10 @@ Result_with_string Util_cpu_usage_monitor_init(void)
 
 	nintendo_api_failed:
 	util_cpu_usage_monitor_init = false;
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 
 	already_inited:
-	result.code = DEF_ERR_ALREADY_INITIALIZED;
-	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_ALREADY_INITIALIZED;
 }
 
 void Util_cpu_usage_monitor_exit(void)
@@ -187,5 +177,5 @@ void Util_cpu_usage_calculate_thread(void* arg)
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
-
-#endif
+}
+#endif //DEF_ENABLE_CPU_MONITOR_API

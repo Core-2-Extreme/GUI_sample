@@ -7,15 +7,15 @@
 #include "system/draw/draw.hpp"
 #include "system/draw/external_font.hpp"
 
-#include "system/util/hw_config.h"
 #include "system/util/converter.hpp"
-#include "system/util/cpu_usage.hpp"
+#include "system/util/cpu_usage.h"
 #include "system/util/curl.hpp"
 #include "system/util/encoder.hpp"
 #include "system/util/error.hpp"
 #include "system/util/file.hpp"
 #include "system/util/hid.hpp"
 #include "system/util/httpc.hpp"
+#include "system/util/hw_config.h"
 #include "system/util/log.hpp"
 #include "system/util/util.hpp"
 
@@ -1987,58 +1987,58 @@ void Sem_worker_callback(void)
 			//Try to load specified language messages, if it fails
 			//(i.e. no translation available), load English messags.
 			DEF_LOG_RESULT_SMART(result, Sem_load_msg(var_lang), (result.code == DEF_SUCCESS), result.code);
-			if (result.code != 0)
+			if (result.code != DEF_SUCCESS)
 				DEF_LOG_RESULT_SMART(result, Sem_load_msg("en"), (result.code == DEF_SUCCESS), result.code);
 
 			DEF_LOG_RESULT_SMART(result, Menu_load_msg(var_lang), (result.code == DEF_SUCCESS), result.code);
-			if (result.code != 0)
+			if (result.code != DEF_SUCCESS)
 				DEF_LOG_RESULT_SMART(result, Menu_load_msg("en"), (result.code == DEF_SUCCESS), result.code);
 
 			#ifdef DEF_ENABLE_SUB_APP0
 			DEF_LOG_RESULT_SMART(result, Sapp0_load_msg(var_lang), (result.code == DEF_SUCCESS), result.code);
-			if (result.code != 0)
+			if (result.code != DEF_SUCCESS)
 				DEF_LOG_RESULT_SMART(result, Sapp0_load_msg("en"), (result.code == DEF_SUCCESS), result.code);
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP1
 			DEF_LOG_RESULT_SMART(result, Sapp1_load_msg(var_lang), (result.code == DEF_SUCCESS), result.code);
-			if (result.code != 0)
+			if (result.code != DEF_SUCCESS)
 				DEF_LOG_RESULT_SMART(result, Sapp1_load_msg("en"), (result.code == DEF_SUCCESS), result.code);
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP2
 			DEF_LOG_RESULT_SMART(result, Sapp2_load_msg(var_lang), (result.code == DEF_SUCCESS), result.code);
-			if (result.code != 0)
+			if (result.code != DEF_SUCCESS)
 				DEF_LOG_RESULT_SMART(result, Sapp2_load_msg("en"), (result.code == DEF_SUCCESS), result.code);
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP3
 			DEF_LOG_RESULT_SMART(result, Sapp3_load_msg(var_lang), (result.code == DEF_SUCCESS), result.code);
-			if (result.code != 0)
+			if (result.code != DEF_SUCCESS)
 				DEF_LOG_RESULT_SMART(result, Sapp3_load_msg("en"), (result.code == DEF_SUCCESS), result.code);
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP4
 			DEF_LOG_RESULT_SMART(result, Sapp4_load_msg(var_lang), (result.code == DEF_SUCCESS), result.code);
-			if (result.code != 0)
+			if (result.code != DEF_SUCCESS)
 				DEF_LOG_RESULT_SMART(result, Sapp4_load_msg("en"), (result.code == DEF_SUCCESS), result.code);
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP5
 			DEF_LOG_RESULT_SMART(result, Sapp5_load_msg(var_lang), (result.code == DEF_SUCCESS), result.code);
-			if (result.code != 0)
+			if (result.code != DEF_SUCCESS)
 				DEF_LOG_RESULT_SMART(result, Sapp5_load_msg("en"), (result.code == DEF_SUCCESS), result.code);
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP6
 			DEF_LOG_RESULT_SMART(result, Sapp6_load_msg(var_lang), (result.code == DEF_SUCCESS), result.code);
-			if (result.code != 0)
+			if (result.code != DEF_SUCCESS)
 				DEF_LOG_RESULT_SMART(result, Sapp6_load_msg("en"), (result.code == DEF_SUCCESS), result.code);
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP7
 			DEF_LOG_RESULT_SMART(result, Sapp7_load_msg(var_lang), (result.code == DEF_SUCCESS), result.code);
-			if (result.code != 0)
+			if (result.code != DEF_SUCCESS)
 				DEF_LOG_RESULT_SMART(result, Sapp7_load_msg("en"), (result.code == DEF_SUCCESS), result.code);
 			#endif
 
@@ -2055,8 +2055,8 @@ void Sem_worker_callback(void)
 		{
 			if(var_monitor_cpu_usage)
 			{
-				DEF_LOG_RESULT_SMART(result, Util_cpu_usage_monitor_init(), (result.code == DEF_SUCCESS), result.code);
-				if(result.code == 0)
+				DEF_LOG_RESULT_SMART(result.code, Util_cpu_usage_monitor_init(), (result.code == DEF_SUCCESS), result.code);
+				if(result.code == DEF_SUCCESS)
 					sem_is_cpu_usage_monitor_running = true;
 				else
 				{

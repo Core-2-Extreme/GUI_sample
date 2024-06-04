@@ -5,7 +5,7 @@
 
 #include "system/draw/external_font.hpp"
 
-#include "system/util/cpu_usage.hpp"
+#include "system/util/cpu_usage.h"
 #include "system/util/hid.hpp"
 #include "system/util/util.hpp"
 

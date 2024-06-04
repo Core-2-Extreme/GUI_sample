@@ -1,16 +1,20 @@
-#ifndef CPU_USAGE_HPP
-#define CPU_USAGE_HPP
-
-#if DEF_ENABLE_CPU_MONITOR_API
+#if !defined(CPU_USAGE_H)
+#define CPU_USAGE_H
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include "system/types.hpp"
 
+#if DEF_ENABLE_CPU_MONITOR_API
+
+extern "C"
+{
 /**
  * @brief Initialize cpu usage monitor API.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_* or Nintendo API's error.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_cpu_usage_monitor_init(void);
+uint32_t Util_cpu_usage_monitor_init(void);
 
 /**
  * @brief Uninitialize cpu usage monitor API.
@@ -30,10 +34,10 @@ float Util_cpu_usage_monitor_get_cpu_usage(int8_t core_id);
 
 #else
 
-#define Util_cpu_usage_monitor_init() Util_return_result_with_string(var_disabled_result)
+#define Util_cpu_usage_monitor_init() DEF_ERR_DISABLED
 #define Util_cpu_usage_monitor_exit()
-#define Util_cpu_usage_monitor_get_cpu_usage(...) Util_return_double(NAN)
+#define Util_cpu_usage_monitor_get_cpu_usage(...) NAN
 
-#endif
-
-#endif
+#endif //DEF_ENABLE_CPU_MONITOR_API
+}
+#endif //!defined(CPU_USAGE_H)
