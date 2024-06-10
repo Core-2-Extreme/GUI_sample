@@ -1,7 +1,13 @@
 #include "definitions.hpp"
 #include "system/types.hpp"
 
+#include "system/util/explorer.hpp"
+#include "system/util/log.hpp"
 #include "system/util/util.hpp"
+extern "C"
+{
+#include "system/util/str.h"
+}
 
 //Include myself.
 #include "system/util/file.hpp"
@@ -331,26 +337,28 @@ Result_with_string Util_file_check_file_exist(std::string file_name, std::string
 	return result;
 }
 
-Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::string file_name[], File_type type[], int array_length)
+uint32_t Util_file_read_dir(Util_str* dir_path, uint32_t* detected, Util_str* file_name, Expl_file_type* type, uint32_t array_length)
 {
-	int count = 0;
 	uint16_t* utf16_dir_path = NULL;
+	uint32_t count = 0;
 	uint32_t read_entry = 0;
 	uint32_t read_entry_count = 1;
-	ssize_t utf_out_size = 0;
+	uint32_t result = DEF_ERR_OTHER;
 	char* utf8_file_name = NULL;
-	FS_DirectoryEntry fs_entry;
+	ssize_t utf_out_size = 0;
+	FS_DirectoryEntry fs_entry = { 0,};
 	Handle handle = 0;
 	FS_Archive archive = 0;
-	Result_with_string result;
 
-	if(dir_path == "" || !detected || !file_name || !type || array_length <= 0)
+	if(!Util_str_has_data(dir_path) || !detected || !file_name || !type)
 		goto invalid_arg;
 
-	for(int i = 0; i < array_length; i++)
+	for(uint32_t i = 0; i < array_length; i++)
 	{
-		file_name[i] = "";
-		type[i] = FILE_TYPE_NONE;
+		if(Util_str_init(&file_name[i]) != DEF_SUCCESS)
+			goto out_of_memory;
+
+		type[i] = EXPL_FILE_TYPE_NONE;
 	}
 	*detected = 0;
 
@@ -359,20 +367,20 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 	if(!utf16_dir_path || !utf8_file_name)
 		goto out_of_memory;
 
-	utf_out_size = utf8_to_utf16(utf16_dir_path, (uint8_t*)dir_path.c_str(), 2048);
+	utf_out_size = utf8_to_utf16(utf16_dir_path, (uint8_t*)dir_path->buffer, 2048);
 	utf16_dir_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
-	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
-	if (result.code != 0)
+	result = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
+	if (result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] FSUSER_OpenArchive() failed. ";
+		DEF_LOG_RESULT(FSUSER_OpenArchive, false, result);
 		goto nintendo_api_failed;
 	}
 
-	result.code = FSUSER_OpenDirectory(&handle, archive, fsMakePath(PATH_UTF16, utf16_dir_path));
-	if (result.code != 0)
+	result = FSUSER_OpenDirectory(&handle, archive, fsMakePath(PATH_UTF16, utf16_dir_path));
+	if (result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] FSUSER_OpenDirectory() failed. ";
+		DEF_LOG_RESULT(FSUSER_OpenDirectory, false, result);
 		goto nintendo_api_failed;
 	}
 
@@ -381,10 +389,10 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 		if(count >= array_length)
 			goto out_of_memory;
 
-		result.code = FSDIR_Read(handle, &read_entry, read_entry_count, (FS_DirectoryEntry*)&fs_entry);
-		if(result.code != 0)
+		result = FSDIR_Read(handle, &read_entry, read_entry_count, (FS_DirectoryEntry*)&fs_entry);
+		if(result != DEF_SUCCESS)
 		{
-			result.error_description = "[Error] FSDIR_Read() failed. ";
+			DEF_LOG_RESULT(FSDIR_Read, false, result);
 			goto nintendo_api_failed;
 		}
 
@@ -393,16 +401,18 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 
 		utf_out_size = utf16_to_utf8((uint8_t*)utf8_file_name, fs_entry.name, 256);
 		utf8_file_name[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
-		file_name[count] = utf8_file_name;
+
+		if(Util_str_set(&file_name[count], utf8_file_name) != DEF_SUCCESS)
+			goto out_of_memory;
 
 		if (fs_entry.attributes & FS_ATTRIBUTE_HIDDEN)
-			type[count] = (File_type)(type[count] | FILE_TYPE_HIDDEN);
+			type[count] = (type[count] | EXPL_FILE_TYPE_HIDDEN);
 		if (fs_entry.attributes & FS_ATTRIBUTE_DIRECTORY)
-			type[count] = (File_type)(type[count] | FILE_TYPE_DIR);
+			type[count] = (type[count] | EXPL_FILE_TYPE_DIR);
 		if (fs_entry.attributes & FS_ATTRIBUTE_ARCHIVE)
-			type[count] = (File_type)(type[count] | FILE_TYPE_FILE);
+			type[count] = (type[count] | EXPL_FILE_TYPE_FILE);
 		if (fs_entry.attributes & FS_ATTRIBUTE_READ_ONLY)
-			type[count] = (File_type)(type[count] | FILE_TYPE_READ_ONLY);
+			type[count] = (type[count] | EXPL_FILE_TYPE_READ_ONLY);
 
 		count++;
 		*detected = count;
@@ -414,12 +424,10 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 	utf16_dir_path = NULL;
 	FSDIR_Close(handle);
 	FSUSER_CloseArchive(archive);
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	out_of_memory:
 	free(utf8_file_name);
@@ -428,9 +436,10 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 	utf16_dir_path = NULL;
 	FSDIR_Close(handle);
 	FSUSER_CloseArchive(archive);
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
+	for(uint32_t i = 0; i < array_length; i++)
+		Util_str_free(&file_name[i]);
+
+	return DEF_ERR_OUT_OF_MEMORY;
 
 	nintendo_api_failed:
 	free(utf8_file_name);
@@ -439,7 +448,9 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 	utf16_dir_path = NULL;
 	FSDIR_Close(handle);
 	FSUSER_CloseArchive(archive);
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
+	for(uint32_t i = 0; i < array_length; i++)
+		Util_str_free(&file_name[i]);
+
 	return result;
 }
 

@@ -231,7 +231,7 @@ void Menu_init(void)
 	DEF_LOG_RESULT_SMART(result, Util_curl_init(DEF_SOCKET_BUFFER_SIZE), (result.code == DEF_SUCCESS), result.code);
 	DEF_LOG_RESULT_SMART(result.code, Util_hid_init(), (result.code == DEF_SUCCESS), result.code);
 	DEF_LOG_RESULT_SMART(result.code, Util_hid_add_callback(Menu_hid_callback), result.code, result.code);
-	DEF_LOG_RESULT_SMART(result, Util_expl_init(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Util_expl_init(), (result.code == DEF_SUCCESS), result.code);
 	DEF_LOG_RESULT_SMART(result, Exfont_init(), (result.code == DEF_SUCCESS), result.code);
 	DEF_LOG_RESULT_SMART(result, Util_err_init(), (result.code == DEF_SUCCESS), result.code);
 

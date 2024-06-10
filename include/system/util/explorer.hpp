@@ -1,17 +1,30 @@
-#ifndef EXPLORER_HPP
+#if !defined(EXPLORER_HPP)
 #define EXPLORER_HPP
+#include <stdbool.h>
+#include <stdint.h>
+#include "system/util/hid.hpp"
+
+extern "C"
+{
+#include "system/util/str.h"
+
+#define DEF_EXPL_INVALID_INDEX		(uint32_t)(UINT32_MAX)
+
+#define EXPL_FILE_TYPE_NONE			(Expl_file_type)(0 << 0)	//File type is not set.
+#define EXPL_FILE_TYPE_FILE			(Expl_file_type)(1 << 0)	//This entry is a file.
+#define EXPL_FILE_TYPE_DIR			(Expl_file_type)(1 << 1)	//This entry is a directory.
+#define EXPL_FILE_TYPE_READ_ONLY	(Expl_file_type)(1 << 2)	//This entry is read only.
+#define EXPL_FILE_TYPE_HIDDEN		(Expl_file_type)(1 << 3)	//This entry is hidden.
+typedef uint8_t Expl_file_type;
 
 #if DEF_ENABLE_EXPL_API
-#include "system/types.hpp"
-#include "system/util/hid.hpp"
 
 /**
  * @brief Initialize a explorer api.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_* or Nintendo API's error.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_expl_init(void);
+uint32_t Util_expl_init(void);
 
 /**
  * @brief Uninitialize a explorer API.
@@ -22,11 +35,11 @@ void Util_expl_exit(void);
 
 /**
  * @brief Query current directory path.
- * Always return empty string if explorer api is not initialized.
- * @return Current directory name.
+ * @param dir_name (out) current directory name.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
-std::string Util_expl_query_current_dir(void);
+uint32_t Util_expl_query_current_dir(Util_str* dir_name);
 
 /**
  * @brief Query num of file in current directory.
@@ -34,24 +47,24 @@ std::string Util_expl_query_current_dir(void);
  * @return Num of file in current directory.
  * @warning Thread dangerous (untested)
 */
-int Util_expl_query_num_of_file(void);
+uint32_t Util_expl_query_num_of_file(void);
 
 /**
  * @brief Query current file index.
- * Always return -1 if explorer api is not initialized.
+ * Always return DEF_EXPL_INVALID_INDEX if explorer api is not initialized.
  * @return Current (selected) file index.
  * @warning Thread dangerous (untested)
 */
-int Util_expl_query_current_file_index(void);
+uint32_t Util_expl_query_current_file_index(void);
 
 /**
  * @brief Query file name.
- * Always return empty string if explorer api is not initialized.
  * @param index (in) File index.
+ * @param file_name (out) current directory name.
  * @return File name.
  * @warning Thread dangerous (untested)
 */
-std::string Util_expl_query_file_name(int index);
+uint32_t Util_expl_query_file_name(uint32_t index, Util_str* file_name);
 
 /**
  * @brief Query file size.
@@ -60,16 +73,16 @@ std::string Util_expl_query_file_name(int index);
  * @return File size.
  * @warning Thread dangerous (untested)
 */
-int Util_expl_query_size(int index);
+uint32_t Util_expl_query_size(uint32_t index);
 
 /**
  * @brief Query file type.
- * Always return FILE_TYPE_NONE if explorer api is not initialized.
+ * Always return EXPL_FILE_TYPE_NONE if explorer api is not initialized.
  * @param index (in) File index.
  * @return File type.
  * @warning Thread dangerous (untested)
 */
-File_type Util_expl_query_type(int index);
+Expl_file_type Util_expl_query_type(uint32_t index);
 
 /**
  * @brief Query explorer show flag.
@@ -85,7 +98,7 @@ bool Util_expl_query_show_flag(void);
  * @param callback (in) Call back for file selection.
  * @warning Thread dangerous (untested)
 */
-void Util_expl_set_callback(void (*callback)(std::string file, std::string dir));
+void Util_expl_set_callback(void (*callback)(Util_str* file, Util_str* dir));
 
 /**
  * @brief Set call back for cancellation.
@@ -98,10 +111,10 @@ void Util_expl_set_cancel_callback(void (*callback)(void));
 /**
  * @brief Set current directory.
  * Do nothing if explorer api is not initialized.
- * @param dir (in) Directory name.
+ * @param dir_name (in) Directory name.
  * @warning Thread dangerous (untested)
 */
-void Util_expl_set_current_dir(std::string dir);
+void Util_expl_set_current_dir(Util_str* dir_name);
 
 /**
  * @brief Set explorer show flag.
@@ -127,15 +140,15 @@ void Util_expl_main(Hid_info key);
 
 #else
 
-#define Util_expl_init() Util_return_result_with_string(var_disabled_result)
+#define Util_expl_init() DEF_ERR_DISABLED
 #define Util_expl_exit()
-#define Util_expl_query_current_dir() Util_return_string("")
-#define Util_expl_query_num_of_file() Util_return_int(0)
-#define Util_expl_query_current_file_index() Util_return_int(-1)
-#define Util_expl_query_file_name(...) Util_return_string("")
-#define Util_expl_query_size(...) Util_return_int(0)
-#define Util_expl_query_type(...) Util_return_int(FILE_TYPE_NONE)
-#define Util_expl_query_show_flag() Util_return_bool(false)
+#define Util_expl_query_current_dir() NULL
+#define Util_expl_query_num_of_file() 0
+#define Util_expl_query_current_file_index() UINT32_MAX
+#define Util_expl_query_file_name(...) NULL
+#define Util_expl_query_size(...) 0
+#define Util_expl_query_type(...) EXPL_FILE_TYPE_NONE
+#define Util_expl_query_show_flag() false
 #define Util_expl_set_callback(...)
 #define Util_expl_set_cancel_callback(...)
 #define Util_expl_set_current_dir(...)
@@ -143,6 +156,6 @@ void Util_expl_main(Hid_info key);
 #define Util_expl_draw()
 #define Util_expl_main(...)
 
-#endif
-
-#endif
+#endif //DEF_ENABLE_EXPL_API
+}
+#endif //!defined(EXPLORER_HPP)

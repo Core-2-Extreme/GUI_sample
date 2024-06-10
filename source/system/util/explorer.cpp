@@ -13,34 +13,63 @@
 #include "system/util/file.hpp"
 #include "system/util/hid.hpp"
 #include "system/util/log.hpp"
+#include "system/util/util.hpp"
+extern "C"
+{
+#include "system/util/str.h"
+}
 
 //Include myself.
 #include "system/util/explorer.hpp"
 
-void (*util_expl_callback)(std::string, std::string) = NULL;
+
+extern "C"
+{
+#define DEF_EXPL_SORT_TYPE_UNDEFINED		(uint8_t)(0)	//Unknown.
+#define DEF_EXPL_SORT_TYPE_SPECIAL_CHAR		(uint8_t)(1)	//Other than 0-9,a-z,A-Z.
+#define DEF_EXPL_SORT_TYPE_NUMBER			(uint8_t)(2)	//0-9.
+#define DEF_EXPL_SORT_TYPE_ALPHABET			(uint8_t)(3)	//a-z or A-Z.
+
+
+typedef struct
+{
+	uint32_t size[DEF_EXPL_MAX_FILES];
+	Util_str name[DEF_EXPL_MAX_FILES];
+	Expl_file_type type[DEF_EXPL_MAX_FILES];
+} Util_expl_file;
+
+typedef struct
+{
+	uint32_t size;
+	Util_str name;
+	Expl_file_type type;
+} Util_expl_file_compare;
+
+
+static void Util_expl_generate_file_type_string(Expl_file_type type, Util_str* type_string);
+static int Util_expl_compare_name(const void* a, const void* b);
+static void Util_expl_read_dir_callback(void);
+
+
+void (*util_expl_callback)(Util_str*, Util_str*) = NULL;
 void (*util_expl_cancel_callback)(void) = NULL;
 bool util_expl_read_dir_request = false;
 bool util_expl_show_flag = false;
 bool util_expl_scroll_mode = false;
 bool util_expl_init = false;
-int util_expl_num_of_file = 0;
-int util_expl_check_file_size_index = 0;
-int util_expl_size[DEF_EXPL_MAX_FILES];
+uint32_t util_expl_num_of_file = 0;
+uint32_t util_expl_check_file_size_index = 0;
 double util_expl_y_offset = 0.0;
 double util_expl_selected_file_num = 0.0;
-std::string util_expl_current_dir = "/";
-std::string util_expl_files[DEF_EXPL_MAX_FILES];
+Util_str util_expl_current_dir = { 0, };
 Image_data util_expl_file_button[16];
-File_type util_expl_type[DEF_EXPL_MAX_FILES];
+Util_expl_file util_expl_files = { 0, };
 
 
-static std::string Util_expl_generate_file_type_string(int type);
-static void Util_expl_read_dir_callback(void);
-
-
-Result_with_string Util_expl_init(void)
+uint32_t Util_expl_init(void)
 {
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
+
 	if(util_expl_init)
 		goto already_inited;
 
@@ -53,35 +82,52 @@ Result_with_string Util_expl_init(void)
 	util_expl_check_file_size_index = 0;
 	util_expl_y_offset = 0.0;
 	util_expl_selected_file_num = 0.0;
-	util_expl_current_dir = "/";
 
-	for(int i = 0; i < DEF_EXPL_MAX_FILES; i++)
+	result = Util_str_init(&util_expl_current_dir);
+	if(result != DEF_SUCCESS)
 	{
-		util_expl_size[i] = 0;
-		util_expl_type[i] = FILE_TYPE_NONE;
-		util_expl_files[i] = "";
+		DEF_LOG_RESULT(Util_str_init, false, result);
+		goto other;
 	}
 
-	for(int i = 0; i < 16; i++)
+	result = Util_str_set(&util_expl_current_dir, "/");
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_set, false, result);
+		goto other;
+	}
+
+	for(uint32_t i = 0; i < DEF_EXPL_MAX_FILES; i++)
+	{
+		util_expl_files.size[i] = 0;
+		util_expl_files.type[i] = EXPL_FILE_TYPE_NONE;
+
+		result = Util_str_init(&util_expl_files.name[i]);
+		if(result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Util_str_init, false, result);
+			goto other;
+		}
+	}
+
+	for(uint8_t i = 0; i < 16; i++)
 		util_expl_file_button[i].c2d = var_square_image[0];
 
 	if(!Menu_add_worker_thread_callback(Util_expl_read_dir_callback))
 	{
-		result.error_description = "[Error] Menu_add_worker_thread_callback() failed. ";
+		result = DEF_ERR_OTHER;
+		DEF_LOG_RESULT(Menu_add_worker_thread_callback, false, result);
 		goto other;
 	}
 
 	util_expl_init = true;
-	return result;
+	return DEF_SUCCESS;
 
 	already_inited:
-	result.code = DEF_ERR_ALREADY_INITIALIZED;
-	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_ALREADY_INITIALIZED;
 
 	other:
-	result.code = DEF_ERR_OTHER;
-	result.string = DEF_ERR_OTHER_STR;
+	Util_expl_exit();
 	return result;
 }
 
@@ -92,17 +138,50 @@ void Util_expl_exit(void)
 
 	util_expl_init = false;
 	Menu_remove_worker_thread_callback(Util_expl_read_dir_callback);
+
+	Util_str_free(&util_expl_current_dir);
+	for(uint32_t i = 0; i < DEF_EXPL_MAX_FILES; i++)
+		Util_str_free(&util_expl_files.name[i]);
 }
 
-std::string Util_expl_query_current_dir(void)
+uint32_t Util_expl_query_current_dir(Util_str* dir_name)
 {
-	if(!util_expl_init)
-		return "";
+	uint32_t result = DEF_ERR_OTHER;
 
-	return util_expl_current_dir;
+	if(!util_expl_init)
+		goto not_inited;
+
+	if(!dir_name)
+		goto invalid_arg;
+
+	result = Util_str_init(dir_name);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_init, false, result);
+		goto other;
+	}
+
+	//Copy directory name.
+	result = Util_str_set(dir_name, util_expl_current_dir.buffer);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_set, false, result);
+		goto other;
+	}
+
+	return DEF_SUCCESS;
+
+	not_inited:
+	return DEF_ERR_NOT_INITIALIZED;
+
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
+
+	other:
+	return result;
 }
 
-int Util_expl_query_num_of_file(void)
+uint32_t Util_expl_query_num_of_file(void)
 {
 	if(!util_expl_init)
 		return 0;
@@ -110,42 +189,69 @@ int Util_expl_query_num_of_file(void)
 	return util_expl_num_of_file;
 }
 
-int Util_expl_query_current_file_index(void)
+uint32_t Util_expl_query_current_file_index(void)
 {
 	if(!util_expl_init)
-		return -1;
+		return DEF_EXPL_INVALID_INDEX;
 
-	return (int)util_expl_selected_file_num + (int)util_expl_y_offset;
+	return (uint32_t)util_expl_selected_file_num + (uint32_t)util_expl_y_offset;
 }
 
-std::string Util_expl_query_file_name(int index)
+uint32_t Util_expl_query_file_name(uint32_t index, Util_str* file_name)
 {
+	uint32_t result = DEF_ERR_OTHER;
+
 	if(!util_expl_init)
-		return "";
-	else if (index >= 0 && index < DEF_EXPL_MAX_FILES)
-		return util_expl_files[index];
-	else
-		return "";
+		goto not_inited;
+
+	if(index > DEF_EXPL_MAX_FILES || !file_name)
+		goto invalid_arg;
+
+	result = Util_str_init(file_name);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_init, false, result);
+		goto other;
+	}
+
+	//Copy file name.
+	result = Util_str_set(file_name, util_expl_files.name[index].buffer);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_set, false, result);
+		goto other;
+	}
+
+	return DEF_SUCCESS;
+
+	not_inited:
+	return DEF_ERR_NOT_INITIALIZED;
+
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
+
+	other:
+	return result;
 }
 
-int Util_expl_query_size(int index)
+uint32_t Util_expl_query_size(uint32_t index)
 {
 	if(!util_expl_init)
 		return 0;
-	else if (index >= 0 && index < DEF_EXPL_MAX_FILES)
-		return util_expl_size[index];
+	else if (index < DEF_EXPL_MAX_FILES)
+		return util_expl_files.size[index];
 	else
 		return 0;
 }
 
-File_type Util_expl_query_type(int index)
+Expl_file_type Util_expl_query_type(uint32_t index)
 {
 	if(!util_expl_init)
-		return FILE_TYPE_NONE;
-	if (index >= 0 && index < DEF_EXPL_MAX_FILES)
-		return util_expl_type[index];
+		return EXPL_FILE_TYPE_NONE;
+	if (index < DEF_EXPL_MAX_FILES)
+		return util_expl_files.type[index];
 	else
-		return FILE_TYPE_NONE;
+		return EXPL_FILE_TYPE_NONE;
 }
 
 bool Util_expl_query_show_flag(void)
@@ -156,7 +262,7 @@ bool Util_expl_query_show_flag(void)
 	return util_expl_show_flag;
 }
 
-void Util_expl_set_callback(void (*callback)(std::string, std::string))
+void Util_expl_set_callback(void (*callback)(Util_str*, Util_str*))
 {
 	if(!util_expl_init)
 		return;
@@ -172,12 +278,15 @@ void Util_expl_set_cancel_callback(void (*callback)(void))
 	util_expl_cancel_callback = callback;
 }
 
-void Util_expl_set_current_dir(std::string dir)
+void Util_expl_set_current_dir(Util_str* dir_name)
 {
 	if(!util_expl_init)
 		return;
 
-	util_expl_current_dir = std::move(dir);
+	if(!Util_str_has_data(dir_name))
+		return;
+
+	Util_str_set(&util_expl_current_dir, dir_name->buffer);
 	util_expl_read_dir_request = true;
 }
 
@@ -193,7 +302,7 @@ void Util_expl_set_show_flag(bool flag)
 
 void Util_expl_draw(void)
 {
-	int color = DEF_DRAW_BLACK;
+	uint32_t color = DEF_DRAW_BLACK;
 	if(!util_expl_init)
 	{
 		Draw_texture(var_square_image[0], DEF_DRAW_AQUA, 10.0, 20.0, 300.0, 190.0);
@@ -203,28 +312,60 @@ void Util_expl_draw(void)
 
 	Draw_texture(var_square_image[0], DEF_DRAW_AQUA, 10.0, 20.0, 300.0, 190.0);
 	Draw("A : OK, B : Back, Y : Close, ↑↓→← : Move", 12.5, 185.0, 0.425, 0.425, DEF_DRAW_BLACK);
-	Draw(util_expl_current_dir, 12.5, 195.0, 0.45, 0.45, DEF_DRAW_BLACK);
-	for (int i = 0; i < 16; i++)
+	Draw(util_expl_current_dir.buffer, 12.5, 195.0, 0.45, 0.45, DEF_DRAW_BLACK);
+
+	for (uint8_t i = 0; i < 16; i++)
 	{
-		Draw_texture(&util_expl_file_button[i], util_expl_file_button[i].selected ? DEF_DRAW_GREEN : DEF_DRAW_AQUA, 10, 20 + (i * 10), 290, 10);
-		if(util_expl_type[i + (int)util_expl_y_offset] & FILE_TYPE_DIR)
+		Util_str message = { 0, };
+		Util_str type = { 0, };
+		uint32_t index = (i + (uint32_t)util_expl_y_offset);
+
+		if(Util_str_init(&message) != DEF_SUCCESS
+		|| Util_str_init(&type) != DEF_SUCCESS)
 		{
-			Draw(util_expl_files[i + (int)util_expl_y_offset] + "(" + Util_expl_generate_file_type_string(util_expl_type[i + (int)util_expl_y_offset])
-			 + ")" , 12.5, 19 + (i * 10), 0.425, 0.425, i == (int)util_expl_selected_file_num ? DEF_DRAW_RED : color);
+			Util_str_free(&message);
+			Util_str_free(&type);
+			continue;
 		}
+
+		Util_expl_generate_file_type_string(util_expl_files.type[index], &type);
+
+		Draw_texture(&util_expl_file_button[i], util_expl_file_button[i].selected ? DEF_DRAW_GREEN : DEF_DRAW_AQUA, 10, 20 + (i * 10), 290, 10);
+		if(util_expl_files.type[index] & EXPL_FILE_TYPE_DIR)
+			Util_str_format(&message, "%s (%s)", util_expl_files.name[index].buffer, type.buffer);
 		else
 		{
-			Draw(util_expl_files[i + (int)util_expl_y_offset] + "(" + std::to_string(util_expl_size[i + (int)util_expl_y_offset] / 1024.0 / 1024.0).substr(0, 4)
-			+ "MB) (" + Util_expl_generate_file_type_string(util_expl_type[i + (int)util_expl_y_offset]) + ")"
-			, 12.5, 19 + (i * 10), 0.425, 0.425, i == (int)util_expl_selected_file_num ? DEF_DRAW_RED : color);
+			float size = util_expl_files.size[index];
+
+			if(size < 1000)
+				Util_str_format(&message, "%s(%" PRIu32 "B) (%s)", util_expl_files.name[index].buffer, (uint32_t)size, type.buffer);
+			else
+			{
+				size /= 1000.0;
+				if(size < 1000)
+					Util_str_format(&message, "%s(%.1fKB) (%s)", util_expl_files.name[index].buffer, size, type.buffer);
+				else
+				{
+					size /= 1000.0;
+					if(size < 1000)
+						Util_str_format(&message, "%s(%.1fMB) (%s)", util_expl_files.name[index].buffer, size, type.buffer);
+					else
+					{
+						size /= 1000.0;
+						Util_str_format(&message, "%s(%.1fGB) (%s)", util_expl_files.name[index].buffer, size, type.buffer);
+					}
+				}
+			}
 		}
+		Util_str_free(&type);
+
+		Draw(message.buffer, 12.5, 19 + (i * 10), 0.425, 0.425, i == (uint8_t)util_expl_selected_file_num ? DEF_DRAW_RED : color);
+		Util_str_free(&message);
 	}
 }
 
 void Util_expl_main(Hid_info key)
 {
-	size_t cut_pos;
-
 	if(!util_expl_init)
 	{
 		if (key.p_a)
@@ -264,49 +405,85 @@ void Util_expl_main(Hid_info key)
 		}
 		else
 		{
-			for (int i = 0; i < 16; i++)
+			for (uint8_t i = 0; i < 16; i++)
 			{
-				if(Util_hid_is_pressed(key, util_expl_file_button[i]) && util_expl_num_of_file > (i + (int)util_expl_y_offset))
+				if(Util_hid_is_pressed(key, util_expl_file_button[i]) && util_expl_num_of_file > (i + (uint32_t)util_expl_y_offset))
 				{
 					util_expl_file_button[i].selected = true;
 					var_need_reflesh = true;
 				}
 				else if (key.p_a || (Util_hid_is_released(key, util_expl_file_button[i]) && util_expl_file_button[i].selected))
 				{
-					if (key.p_a || i == (int)util_expl_selected_file_num)
+					if (key.p_a || i == util_expl_selected_file_num)
 					{
-						if (((int)util_expl_y_offset + (int)util_expl_selected_file_num) == 0 && !(Util_expl_query_current_dir() == "/"))
-						{
-							util_expl_current_dir = util_expl_current_dir.substr(0, util_expl_current_dir.length() - 1);
-							cut_pos = util_expl_current_dir.find_last_of("/");
-							if (!(cut_pos == std::string::npos))
-								util_expl_current_dir = util_expl_current_dir.substr(0, cut_pos + 1);
+						bool is_root_dir = false;
+						uint32_t selected_index = (util_expl_y_offset + util_expl_selected_file_num);
+						Util_str dir = { 0, };
 
+						Util_expl_query_current_dir(&dir);
+						if(Util_str_has_data(&dir) && strcmp(dir.buffer, "/") == 0)
+							is_root_dir = true;
+
+						if (selected_index == 0 && !is_root_dir)
+						{
+							//Back to parent directory.
+							char* last_slash_pos = strrchr(dir.buffer, '/');
+
+							if(last_slash_pos)
+							{
+								//Remove last slash first.
+								uint32_t new_length = (last_slash_pos - dir.buffer);
+
+								Util_str_resize(&dir, new_length);
+
+								last_slash_pos = strrchr(dir.buffer, '/');
+								if(last_slash_pos)
+								{
+									//Then remove until next slash.
+									new_length = (last_slash_pos - dir.buffer) + 1;
+									Util_str_resize(&dir, new_length);
+								}
+							}
+							else
+								Util_str_set(&dir, "/");
+
+							Util_str_set(&util_expl_current_dir, dir.buffer);
 							util_expl_y_offset = 0.0;
 							util_expl_selected_file_num = 0.0;
 							util_expl_read_dir_request = true;
 						}
-						else if (util_expl_type[(int)util_expl_y_offset + (int)util_expl_selected_file_num] & FILE_TYPE_DIR)
+						else if (util_expl_files.type[selected_index] & EXPL_FILE_TYPE_DIR)
 						{
-							util_expl_current_dir = util_expl_current_dir + util_expl_files[(int)util_expl_selected_file_num + (int)util_expl_y_offset] + "/";
+							//Go to selected sub directory.
+							Util_str_format_append(&dir, "%s/", util_expl_files.name[selected_index].buffer);
+
+							Util_str_set(&util_expl_current_dir, dir.buffer);
 							util_expl_y_offset = 0.0;
 							util_expl_selected_file_num = 0.0;
 							util_expl_read_dir_request = true;
 						}
 						else
 						{
-							if(util_expl_callback)
-								util_expl_callback(Util_expl_query_file_name((int)util_expl_selected_file_num + (int)util_expl_y_offset), util_expl_current_dir);
+							//Notify file selection.
+							Util_str file = { 0, };
 
+							Util_expl_query_file_name(selected_index, &file);
+
+							if(Util_str_has_data(&file) && Util_str_has_data(&dir) && util_expl_callback)
+								util_expl_callback(&file, &dir);
+
+							Util_str_free(&file);
 							util_expl_show_flag = false;
 							var_need_reflesh = true;
 						}
+
+						Util_str_free(&dir);
 
 						break;
 					}
 					else
 					{
-						if (util_expl_num_of_file > (i + (int)util_expl_y_offset))
+						if (util_expl_num_of_file > (i + (uint32_t)util_expl_y_offset))
 							util_expl_selected_file_num = i;
 
 						var_need_reflesh = true;
@@ -322,18 +499,44 @@ void Util_expl_main(Hid_info key)
 		}
 		if (key.p_b)
 		{
-			if (util_expl_current_dir != "/")
-			{
-				util_expl_current_dir = util_expl_current_dir.substr(0, util_expl_current_dir.length() - 1);
-				cut_pos = util_expl_current_dir.find_last_of("/");
-				if (!(cut_pos == std::string::npos))
-					util_expl_current_dir = util_expl_current_dir.substr(0, cut_pos + 1);
+			bool is_root_dir = false;
+			Util_str dir = { 0, };
 
+			Util_expl_query_current_dir(&dir);
+			if(Util_str_has_data(&dir) && strcmp(dir.buffer, "/") == 0)
+				is_root_dir = true;
+
+			if (!is_root_dir)
+			{
+				//Back to parent directory.
+				char* last_slash_pos = strrchr(dir.buffer, '/');
+
+				if(last_slash_pos)
+				{
+					//Remove last slash first.
+					uint32_t new_length = (last_slash_pos - dir.buffer);
+
+					Util_str_resize(&dir, new_length);
+
+					last_slash_pos = strrchr(dir.buffer, '/');
+					if(last_slash_pos)
+					{
+						//Then remove until next slash.
+						new_length = (last_slash_pos - dir.buffer) + 1;
+						Util_str_resize(&dir, new_length);
+					}
+				}
+				else
+					Util_str_set(&dir, "/");
+
+				Util_str_set(&util_expl_current_dir, dir.buffer);
 				util_expl_y_offset = 0.0;
 				util_expl_selected_file_num = 0.0;
 				util_expl_read_dir_request = true;
 				var_need_reflesh = true;
 			}
+
+			Util_str_free(&dir);
 		}
 		else if (key.p_d_down || key.h_d_down || key.p_c_down || key.h_c_down || key.p_d_right || key.h_d_right || key.p_c_right || key.h_c_right)
 		{
@@ -374,7 +577,7 @@ void Util_expl_main(Hid_info key)
 
 		if(!key.p_touch && !key.h_touch)
 		{
-			for(int i = 0; i < 16; i++)
+			for(uint8_t i = 0; i < 16; i++)
 			{
 				if(util_expl_file_button[i].selected)
 					var_need_reflesh = true;
@@ -397,24 +600,129 @@ void Util_expl_main(Hid_info key)
 	}
 }
 
-static std::string Util_expl_generate_file_type_string(int type)
+static void Util_expl_generate_file_type_string(Expl_file_type type, Util_str* type_string)
 {
-	std::string type_string = "";
-	if(type == FILE_TYPE_NONE)
-		type_string += "unknown,";
-	if(type & FILE_TYPE_FILE)
-		type_string += "file,";
-	if(type & FILE_TYPE_DIR)
-		type_string += "dir,";
-	if(type & FILE_TYPE_READ_ONLY)
-		type_string += "read only,";
-	if(type & FILE_TYPE_HIDDEN)
-		type_string += "hidden,";
+	if(type == EXPL_FILE_TYPE_NONE)
+	{
+		if(Util_str_add(type_string, "unknown,") != DEF_SUCCESS)
+			return;
+	}
+	if(type & EXPL_FILE_TYPE_FILE)
+	{
+		if(Util_str_add(type_string, "file,") != DEF_SUCCESS)
+			return;
+	}
+	if(type & EXPL_FILE_TYPE_DIR)
+	{
+		if(Util_str_add(type_string, "dir,") != DEF_SUCCESS)
+			return;
+	}
+	if(type & EXPL_FILE_TYPE_READ_ONLY)
+	{
+		if(Util_str_add(type_string, "read only,") != DEF_SUCCESS)
+			return;
+	}
+	if(type & EXPL_FILE_TYPE_HIDDEN)
+	{
+		if(Util_str_add(type_string, "hidden,") != DEF_SUCCESS)
+			return;
+	}
 
-	if(type_string.length() > 0)
-		return type_string.substr(0, type_string.length() - 1);
+	if(type_string->length > 0)//Remove last comma.
+		Util_str_resize(type_string, (type_string->length - 1));
+}
+
+static int Util_expl_compare_name(const void* a, const void* b)
+{
+	Util_expl_file_compare* file_a = (Util_expl_file_compare*)a;
+	Util_expl_file_compare* file_b = (Util_expl_file_compare*)b;
+	bool is_a_dir = (file_a->type & EXPL_FILE_TYPE_DIR);
+	bool is_b_dir = (file_b->type & EXPL_FILE_TYPE_DIR);
+
+	if((is_a_dir && is_b_dir)
+	|| (!is_a_dir && !is_b_dir))
+	{
+		//Both elements have the same type, compare name.
+		int32_t result = 0;
+		uint32_t loop = Util_max(file_a->name.length, file_b->name.length);
+
+		for(uint32_t i = 0; i < loop; i++)
+		{
+			char char_a = '\u0000';
+			char char_b = '\u0000';
+			uint8_t a_type = DEF_EXPL_SORT_TYPE_UNDEFINED;
+			uint8_t b_type = DEF_EXPL_SORT_TYPE_UNDEFINED;
+
+			if(i < file_a->name.length)
+				char_a = file_a->name.buffer[i];
+			if(i < file_b->name.length)
+				char_b = file_b->name.buffer[i];
+
+			if(char_a == char_b)
+				continue;
+
+			if(char_a >= '0' && char_a <= '9')
+				a_type = DEF_EXPL_SORT_TYPE_NUMBER;
+			else if((char_a >= 'a' && char_a <= 'z') || (char_a >= 'A' && char_a <= 'Z'))
+				a_type = DEF_EXPL_SORT_TYPE_ALPHABET;
+			else
+				a_type = DEF_EXPL_SORT_TYPE_SPECIAL_CHAR;
+
+			if(char_b >= '0' && char_b <= '9')
+				b_type = DEF_EXPL_SORT_TYPE_NUMBER;
+			else if((char_b >= 'a' && char_b <= 'z') || (char_b >= 'A' && char_b <= 'Z'))
+				b_type = DEF_EXPL_SORT_TYPE_ALPHABET;
+			else
+				b_type = DEF_EXPL_SORT_TYPE_SPECIAL_CHAR;
+
+			if(a_type == DEF_EXPL_SORT_TYPE_NUMBER && b_type == DEF_EXPL_SORT_TYPE_NUMBER)
+			{
+				//Both characters are numbers, just compare with ASCII values.
+				result = ((int16_t)char_a - (int16_t)char_b);
+				break;
+			}
+			else if(a_type == DEF_EXPL_SORT_TYPE_ALPHABET && b_type == DEF_EXPL_SORT_TYPE_ALPHABET)
+			{
+				//Both characters are alphabets, compare with ASCII values after lowering them.
+				result = ((int16_t)tolower(char_a) - (int16_t)tolower(char_b));
+				break;
+			}
+			else if(a_type == DEF_EXPL_SORT_TYPE_SPECIAL_CHAR && b_type == DEF_EXPL_SORT_TYPE_SPECIAL_CHAR)
+			{
+				//Both characters are special characters, just compare with ASCII values.
+				result = ((int16_t)char_a - (int16_t)char_b);
+				break;
+			}
+			else
+			{
+				//Both characters have the different type.
+				//Special charcters should go first, then numbers, finally alphabets.
+				if(a_type == DEF_EXPL_SORT_TYPE_SPECIAL_CHAR)
+					result = -1;
+				else if(b_type == DEF_EXPL_SORT_TYPE_SPECIAL_CHAR)
+					result = 1;
+				else if(a_type == DEF_EXPL_SORT_TYPE_NUMBER)
+					result = -1;
+				else if(b_type == DEF_EXPL_SORT_TYPE_NUMBER)
+					result = 1;
+				else if(a_type == DEF_EXPL_SORT_TYPE_ALPHABET)
+					result = -1;
+				else if(b_type == DEF_EXPL_SORT_TYPE_ALPHABET)
+					result = 1;
+
+				break;
+			}
+		}
+
+		return result;
+	}
 	else
-		return type_string;
+	{
+		if(is_a_dir)//Directories should go first.
+			return -1;
+		else//Files should go after directories.
+			return 1;
+	}
 }
 
 static void Util_expl_read_dir_callback(void)
@@ -423,142 +731,63 @@ static void Util_expl_read_dir_callback(void)
 	{
 		if (util_expl_read_dir_request)
 		{
-			int num_of_dir = 0;
-			int num_of_file = 0;
-			int num_of_unknown = 0;
-			int num_offset = 0;
-			int index = 0;
-			File_type dir_type[DEF_EXPL_MAX_FILES];
-			File_type file_type[DEF_EXPL_MAX_FILES];
-			std::string name_of_dir[DEF_EXPL_MAX_FILES];
-			std::string name_of_file[DEF_EXPL_MAX_FILES];
-			std::string name_of_unknown[DEF_EXPL_MAX_FILES];
-			std::string name_cache[DEF_EXPL_MAX_FILES];
+			bool is_root_dir = false;
+			uint32_t detected_files = 0;
+			Util_expl_file files = { 0, };
+			Util_expl_file_compare sort_cache[DEF_EXPL_MAX_FILES] = { 0, };
 			Result_with_string result;
 
 			var_need_reflesh = true;
-			for (int i = 0; i < DEF_EXPL_MAX_FILES; i++)
+			for (uint32_t i = 0; i < DEF_EXPL_MAX_FILES; i++)
 			{
-				util_expl_files[i] = "";
-				util_expl_type[i] = FILE_TYPE_NONE;
-				util_expl_size[i] = 0;
+				Util_str_clear(&util_expl_files.name[i]);
+				util_expl_files.type[i] = EXPL_FILE_TYPE_NONE;
+				util_expl_files.size[i] = 0;
 			}
-			index = 0;
 
-			DEF_LOG_RESULT_SMART(result, Util_file_read_dir(util_expl_current_dir, &util_expl_num_of_file, util_expl_files, util_expl_type, DEF_EXPL_MAX_FILES), (result.code == DEF_SUCCESS), result.code);
+			if(strcmp(util_expl_current_dir.buffer, "/") == 0)
+				is_root_dir = true;
 
-			if (result.code == 0)
+			if (!is_root_dir)
 			{
-				num_of_dir = 0;
-				num_of_file = 0;
-				num_of_unknown = 0;
-				for (int i = 0; i < DEF_EXPL_MAX_FILES; i++)
+				Util_str_set(&util_expl_files.name[0], ".. (Move to parent directory)");
+				util_expl_files.type[0] = EXPL_FILE_TYPE_DIR;
+			}
+
+			//Read files in directory.
+			DEF_LOG_RESULT_SMART(result.code, Util_file_read_dir(&util_expl_current_dir, &detected_files, files.name, files.type, DEF_EXPL_MAX_FILES), (result.code == DEF_SUCCESS), result.code);
+
+			if (result.code == DEF_SUCCESS)
+			{
+				//Non-root directory has a directory named "Go to parent directory".
+				uint8_t offset = (is_root_dir ? 0 : 1);
+				uint32_t loop = 0;
+
+				for(uint32_t i = 0; i < detected_files; i++)
 				{
-					name_of_dir[i] = "";
-					name_of_file[i] = "";
-					name_of_unknown[i] = "";
-					name_cache[i] = "";
-					dir_type[i] = FILE_TYPE_NONE;
-					file_type[i] = FILE_TYPE_NONE;
+					sort_cache[i].name = files.name[i];
+					sort_cache[i].type = files.type[i];
 				}
 
-				for (int i = 0; i < util_expl_num_of_file; i++)
+				qsort(sort_cache, detected_files, sizeof(Util_expl_file_compare), Util_expl_compare_name);
+
+				loop = (uint32_t)Util_min((offset + detected_files), DEF_EXPL_MAX_FILES);
+				for(uint32_t i = offset, source_index = 0; i < loop; i++)
 				{
-					if (util_expl_type[i] & FILE_TYPE_DIR)
-					{
-						name_of_dir[num_of_dir] = util_expl_files[i];
-						dir_type[num_of_dir] = util_expl_type[i];
-						num_of_dir++;
-					}
-					else if (util_expl_type[i] & FILE_TYPE_FILE)
-					{
-						name_of_file[num_of_file] = util_expl_files[i];
-						file_type[num_of_file] = util_expl_type[i];
-						num_of_file++;
-					}
-					else
-					{
-						name_of_unknown[num_of_unknown] = util_expl_files[i];
-						num_of_unknown++;
-					}
+					Util_str_set(&util_expl_files.name[i], sort_cache[source_index].name.buffer);
+					util_expl_files.type[i] = sort_cache[source_index].type;
+					source_index++;
 				}
 
-				for (int i = 0; i < DEF_EXPL_MAX_FILES; i++)
-				{
-					util_expl_files[i] = "";
-					util_expl_type[i] = FILE_TYPE_NONE;
-				}
-
-				if (!(util_expl_current_dir == "/"))
-				{
-					num_offset = 1;
-					util_expl_num_of_file += 1;
-					util_expl_type[0] = FILE_TYPE_DIR;
-					util_expl_files[0] = ".. (Move to parent directory)";
-				}
-				else
-					num_offset = 0;
-
-				util_expl_check_file_size_index = num_offset;
-
-				//Directories
-				for(int i = 0; i < num_of_dir; i++)
-					name_cache[i] = name_of_dir[i];
-
-				std::sort(begin(name_of_dir), begin(name_of_dir) + num_of_dir);
-				for (int i = 0; i < num_of_dir; i++)
-				{
-					index = i + num_offset;
-					util_expl_files[index] = name_of_dir[i];
-					for(int k = 0; k < num_of_dir; k++)
-					{
-						if(name_of_dir[i] == name_cache[k])
-						{
-							util_expl_type[index] = dir_type[k];
-							break;
-						}
-					}
-				}
-
-				//Files
-				for(int i = 0; i < num_of_file; i++)
-					name_cache[i] = name_of_file[i];
-
-				std::sort(begin(name_of_file), begin(name_of_file) + num_of_file);
-				for (int i = 0; i < num_of_file; i++)
-				{
-					index = i + num_of_dir + num_offset;
-					util_expl_files[index] = name_of_file[i];
-					for(int k = 0; k < num_of_file; k++)
-					{
-						if(name_of_file[i] == name_cache[k])
-						{
-							util_expl_type[index] = file_type[k];
-							break;
-						}
-					}
-				}
-
-				//Unknowns
-				for(int i = 0; i < num_of_unknown; i++)
-					name_cache[i] = name_of_unknown[i];
-
-				std::sort(begin(name_of_unknown), begin(name_of_unknown) + num_of_unknown);
-				for (int i = 0; i < num_of_unknown; i++)
-				{
-					index = i + num_of_dir + num_of_file + num_offset;
-					util_expl_files[index] = name_of_unknown[i];
-					util_expl_type[index] = FILE_TYPE_NONE;
-				}
+				util_expl_num_of_file = (detected_files + offset);
 			}
 			else
-			{
-				util_expl_type[0] = FILE_TYPE_DIR;
-				util_expl_files[0] = ".. (Move to parent directory)";
 				util_expl_num_of_file = 1;
-				util_expl_check_file_size_index = 1;
-			}
 
+			for(uint32_t i = 0; i < DEF_EXPL_MAX_FILES; i++)
+				Util_str_free(&files.name[i]);
+
+			util_expl_check_file_size_index = 0;
 			var_need_reflesh = true;
 			util_expl_read_dir_request = false;
 		}
@@ -566,15 +795,15 @@ static void Util_expl_read_dir_callback(void)
 		{
 			while(util_expl_check_file_size_index < util_expl_num_of_file)
 			{
-				if(util_expl_type[util_expl_check_file_size_index] & FILE_TYPE_FILE || util_expl_type[util_expl_check_file_size_index] & FILE_TYPE_NONE)
+				if(util_expl_files.type[util_expl_check_file_size_index] & EXPL_FILE_TYPE_FILE || util_expl_files.type[util_expl_check_file_size_index] & EXPL_FILE_TYPE_NONE)
 				{
 					uint64_t file_size;
 					Result_with_string result;
 
-					result = Util_file_check_file_size(util_expl_files[util_expl_check_file_size_index], util_expl_current_dir, &file_size);
-					if (result.code == 0)
+					result = Util_file_check_file_size(util_expl_files.name[util_expl_check_file_size_index].buffer, util_expl_current_dir.buffer, &file_size);
+					if (result.code == DEF_SUCCESS)
 					{
-						util_expl_size[util_expl_check_file_size_index] = (int)file_size;
+						util_expl_files.size[util_expl_check_file_size_index] = file_size;
 						var_need_reflesh = true;
 					}
 					else
@@ -590,5 +819,5 @@ static void Util_expl_read_dir_callback(void)
 		}
 	}
 }
-
-#endif
+}
+#endif //DEF_ENABLE_EXPL_API

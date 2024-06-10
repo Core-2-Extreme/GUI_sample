@@ -3,6 +3,12 @@
 
 #include "system/types.hpp"
 
+#include "system/util/explorer.hpp"
+extern "C"
+{
+#include "system/util/str.h"
+}
+
 /**
  * @brief Save data to a file.
  * @param file_name (in) File name.
@@ -118,16 +124,15 @@ Result_with_string Util_file_check_file_size(std::string file_name, std::string 
 Result_with_string Util_file_check_file_exist(std::string file_name, std::string dir_path);
 
 /**
- * @brief Read all file's name and type in directory.
+ * @brief Read all files name and type in directory.
  * @param dir_path (in) Directory path.
- * @param detected (out) Number of file in directory.
+ * @param detected (out) Number of files in directory.
  * @param file_name (out) Array for file name.
  * @param type (out) Array for file type.
  * @param array_length (in) Array length for file name and file type.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_* or Nintendo API's error.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::string file_name[], File_type type[], int array_length);
+uint32_t Util_file_read_dir(Util_str* dir_path, uint32_t* detected, Util_str* file_name, Expl_file_type* type, uint32_t array_length);
 
 #endif

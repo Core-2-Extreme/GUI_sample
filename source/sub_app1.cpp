@@ -36,7 +36,7 @@ static void Sapp1_draw_init_exit_message(void);
 static void Sapp1_init_thread(void* arg);
 static void Sapp1_exit_thread(void* arg);
 static void Sapp1_worker_thread(void* arg);
-static void Sapp1_expl_callback(std::string file_name, std::string dir_path);
+static void Sapp1_expl_callback(Util_str* file_name, Util_str* dir_path);
 static void Sapp1_expl_cancel_callback(void);
 
 
@@ -366,31 +366,46 @@ static void Sapp1_worker_thread(void* arg)
 	threadExit(0);
 }
 
-static void Sapp1_expl_callback(std::string file_name, std::string dir_path)
+static void Sapp1_expl_callback(Util_str* file_name, Util_str* dir_path)
 {
-	int file_type = Util_expl_query_type(Util_expl_query_current_file_index());
-	int file_size = Util_expl_query_size(Util_expl_query_current_file_index());
+	uint32_t file_size = Util_expl_query_size(Util_expl_query_current_file_index());
+	Expl_file_type file_type = Util_expl_query_type(Util_expl_query_current_file_index());
 	Util_str temp_string = { 0, };
 
 	if(Util_str_init(&temp_string) == DEF_SUCCESS)
 	{
-		if(file_type != FILE_TYPE_NONE)
+		if(file_type != EXPL_FILE_TYPE_NONE)
 		{
-			if(file_type & FILE_TYPE_HIDDEN)
+			if(file_type & EXPL_FILE_TYPE_HIDDEN)
 				Util_str_add(&temp_string, "Hidden ");
-			if(file_type & FILE_TYPE_READ_ONLY)
+			if(file_type & EXPL_FILE_TYPE_READ_ONLY)
 				Util_str_add(&temp_string, "Read only ");
-			if(file_type & FILE_TYPE_DIR)
+			if(file_type & EXPL_FILE_TYPE_DIR)
 				Util_str_add(&temp_string, "Directory ");
-			if(file_type & FILE_TYPE_FILE)
+			if(file_type & EXPL_FILE_TYPE_FILE)
 				Util_str_add(&temp_string, "File ");
 		}
 		else
 			Util_str_set(&temp_string, "Unknown");
 
 		//Set file info.
-		Util_str_format(&sapp1_selected_path, "User selected : \n%s%s\nPress X button to open file explorer.", dir_path.c_str(), file_name.c_str());
-		Util_str_format(&sapp1_file_info, "File size : %dKB (%dB)\nType : %s", (file_size / 1024), file_size, temp_string.buffer);
+		if(Util_str_has_data(dir_path) && Util_str_has_data(file_name))
+			Util_str_format(&sapp1_selected_path, "User selected : \n%s%s\nPress X button to open file explorer.", dir_path->buffer, file_name->buffer);
+
+		if(file_size < 1000)
+			Util_str_format(&sapp1_file_info, "File size : %" PRIu32 "B\nType : %s", file_size, temp_string.buffer);
+		else
+		{
+			if((file_size / 1000.0) < 1000)
+				Util_str_format(&sapp1_file_info, "File size : %.3fKB (%" PRIu32 "B)\nType : %s", (file_size / 1000.0), file_size, temp_string.buffer);
+			else
+			{
+				if((file_size / 1000.0 / 1000.0) < 1000)
+					Util_str_format(&sapp1_file_info, "File size : %.3fMB (%" PRIu32 "B)\nType : %s", (file_size / 1000.0 / 1000.0), file_size, temp_string.buffer);
+				else
+					Util_str_format(&sapp1_file_info, "File size : %.3fGB (%" PRIu32 "B)\nType : %s", (file_size / 1000.0 / 1000.0 / 1000.0), file_size, temp_string.buffer);
+			}
+		}
 	}
 	else
 		Util_str_set(&sapp1_file_info, "Out of memory.");
