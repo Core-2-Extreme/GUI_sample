@@ -28,7 +28,7 @@ bool sapp0_thread_run = false;
 bool sapp0_already_init = false;
 bool sapp0_thread_suspend = true;
 std::string sapp0_msg[DEF_SAPP0_NUM_OF_MSG];
-Thread sapp0_init_thread, sapp0_exit_thread, sapp0_worker_thread;
+Thread sapp0_init_thread = NULL, sapp0_exit_thread = NULL, sapp0_worker_thread = NULL;
 Util_str sapp0_status = { 0, };
 Image_data sapp0_image[3];
 

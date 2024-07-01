@@ -63,9 +63,9 @@ bool menu_exit_request[8] = { false, false, false, false, false, false, false, f
 int menu_icon_texture_num[9] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, };
 void (*menu_worker_thread_callbacks[DEF_MENU_NUM_OF_CALLBACKS])(void) = { NULL, };
 std::string menu_msg[DEF_MENU_NUM_OF_MSG];
-Thread menu_worker_thread;
+Thread menu_worker_thread = NULL;
 LightLock menu_callback_mutex = 1;//Initially unlocked state.
-C2D_Image menu_icon_image[10];
+C2D_Image menu_icon_image[10] = { 0, };
 Image_data menu_sapp_button[8], menu_sapp_close_button[8], menu_sem_button;
 
 #if (DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API)

@@ -46,8 +46,8 @@ bool sapp2_thread_run = false;
 bool sapp2_already_init = false;
 bool sapp2_thread_suspend = true;
 std::string sapp2_msg[DEF_SAPP2_NUM_OF_MSG];
-Thread sapp2_init_thread, sapp2_exit_thread, sapp2_worker_thread;
-Util_queue sapp2_command_queue;
+Thread sapp2_init_thread = NULL, sapp2_exit_thread = NULL, sapp2_worker_thread = NULL;
+Util_queue sapp2_command_queue = { 0, };
 Util_str sapp2_status = { 0, };
 
 

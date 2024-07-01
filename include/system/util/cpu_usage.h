@@ -1,9 +1,7 @@
 #if !defined(CPU_USAGE_H)
 #define CPU_USAGE_H
-#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "system/types.hpp"
 
 #if DEF_ENABLE_CPU_MONITOR_API
 

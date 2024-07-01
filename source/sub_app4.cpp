@@ -48,9 +48,9 @@ bool sapp4_thread_suspend = true;
 double sapp4_buffer_health = 0;
 double sapp4_last_decoded_pos_ms = 0;
 std::string sapp4_msg[DEF_SAPP4_NUM_OF_MSG];
-Thread sapp4_init_thread, sapp4_exit_thread, sapp4_worker_thread;
+Thread sapp4_init_thread = NULL, sapp4_exit_thread = NULL, sapp4_worker_thread = NULL;
 Audio_info sapp4_audio_info;
-Util_queue sapp4_command_queue;
+Util_queue sapp4_command_queue = { 0, };
 Util_str sapp4_status = { 0, };
 Sapp4_speaker_state sapp4_speaker_state;
 

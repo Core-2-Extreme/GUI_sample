@@ -95,7 +95,7 @@ int util_hid_touch_pos_y_moved = 0;
 int util_hid_held_time = 0;
 uint64_t util_hid_ts = 0;
 void (*util_hid_callbacks[DEF_HID_NUM_OF_CALLBACKS])(void) = { NULL, };
-Thread util_hid_scan_thread;
+Thread util_hid_scan_thread = NULL;
 LightLock util_hid_callback_mutex = 1;//Initially unlocked state.
 
 void Util_hid_scan_hid_thread(void* arg);

@@ -10,10 +10,10 @@ bool util_swkbd_init = false;
 int util_swkbd_max_length = 0;
 std::string util_swkbd_hint_text = "";
 std::string util_swkbd_init_text = "";
-SwkbdStatusData util_swkbd_state;
-SwkbdLearningData util_swkbd_learn_data;
-SwkbdDictWord util_swkbd_user_words[DEF_SWKBD_MAX_DIC_WORDS];
-SwkbdState util_swkbd;
+SwkbdStatusData util_swkbd_state = { 0, };
+SwkbdLearningData util_swkbd_learn_data = { 0, };
+SwkbdDictWord util_swkbd_user_words[DEF_SWKBD_MAX_DIC_WORDS] = { 0, };
+SwkbdState util_swkbd = { 0, };
 
 
 static Result_with_string Util_swkbd_init_internal(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string&& hint_text, std::string&& init_text, SwkbdPasswordMode password_mode, uint32_t feature);

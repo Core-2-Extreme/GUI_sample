@@ -25,7 +25,7 @@ bool sapp5_thread_run = false;
 bool sapp5_already_init = false;
 bool sapp5_thread_suspend = true;
 std::string sapp5_msg[DEF_SAPP5_NUM_OF_MSG];
-Thread sapp5_init_thread, sapp5_exit_thread, sapp5_worker_thread;
+Thread sapp5_init_thread = NULL, sapp5_exit_thread = NULL, sapp5_worker_thread = NULL;
 Util_str sapp5_status = { 0, };
 
 

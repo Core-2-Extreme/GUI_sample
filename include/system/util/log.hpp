@@ -12,8 +12,7 @@
 
 /**
  * @brief Initialize a log api.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_* or Nintendo API's error.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
 uint32_t Util_log_init(void);

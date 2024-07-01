@@ -26,7 +26,7 @@ double util_log_x = 0.0;
 double util_log_uptime_ms = 0.0;
 double util_log_spend_time[DEF_LOG_BUFFER_LINES] = { 0, };
 Util_str util_log_logs[DEF_LOG_BUFFER_LINES] = { 0, };
-TickCounter util_log_uptime_stopwatch;
+TickCounter util_log_uptime_stopwatch = { 0, };
 LightLock util_log_mutex = 1;//Initially unlocked state.
 
 

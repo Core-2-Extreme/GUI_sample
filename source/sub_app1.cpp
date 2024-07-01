@@ -26,7 +26,7 @@ bool sapp1_thread_run = false;
 bool sapp1_already_init = false;
 bool sapp1_thread_suspend = true;
 std::string sapp1_msg[DEF_SAPP1_NUM_OF_MSG];
-Thread sapp1_init_thread, sapp1_exit_thread, sapp1_worker_thread;
+Thread sapp1_init_thread = NULL, sapp1_exit_thread = NULL, sapp1_worker_thread = NULL;
 Util_str sapp1_status = { 0, };
 Util_str sapp1_selected_path = { 0, };
 Util_str sapp1_file_info = { 0, };

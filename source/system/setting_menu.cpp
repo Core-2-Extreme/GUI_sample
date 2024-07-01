@@ -94,7 +94,7 @@ int8_t sem_update_progress = -1;
 int8_t sem_selected_edition_num = DEF_SEM_EDTION_NONE;
 uint32_t sem_installed_size = 0;
 uint32_t sem_total_cia_size = 0;
-Thread sem_update_thread;
+Thread sem_update_thread = NULL;
 Image_data sem_check_update_button, sem_select_edtion_button, sem_close_updater_button, sem_3dsx_button,
 sem_cia_button, sem_dl_install_button, sem_back_to_patch_note_button, sem_close_app_button;
 #if DEF_ENABLE_CURL_API
