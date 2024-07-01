@@ -3,7 +3,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "system/types.hpp"
+
+#include "system/draw/draw.hpp"
 
 extern "C"
 {
@@ -118,7 +119,7 @@ void Util_hid_exit(void);
  * @return Whether image is pressed.
  * @note Thread safe
 */
-bool Util_hid_is_pressed(Hid_info hid_state, Image_data image);
+bool Util_hid_is_pressed(Hid_info hid_state, Draw_image_data image);
 
 /**
  * @brief Check whether image is held.
@@ -128,7 +129,7 @@ bool Util_hid_is_pressed(Hid_info hid_state, Image_data image);
  * @return Whether image is held.
  * @note Thread safe
 */
-bool Util_hid_is_held(Hid_info hid_state, Image_data image);
+bool Util_hid_is_held(Hid_info hid_state, Draw_image_data image);
 
 /**
  * @brief Check whether image is released.
@@ -138,7 +139,7 @@ bool Util_hid_is_held(Hid_info hid_state, Image_data image);
  * @return Whether image is released.
  * @note Thread safe
 */
-bool Util_hid_is_released(Hid_info hid_state, Image_data image);
+bool Util_hid_is_released(Hid_info hid_state, Draw_image_data image);
 
 /**
  * @brief Query current key state.

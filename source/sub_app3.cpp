@@ -69,7 +69,7 @@ bool sapp3_thread_suspend = true;
 int sapp3_camera_buffer_index = 0;
 std::string sapp3_msg[DEF_SAPP3_NUM_OF_MSG];
 Thread sapp3_init_thread = NULL, sapp3_exit_thread = NULL, sapp3_camera_thread = NULL, sapp3_mic_thread = NULL;
-Image_data sapp3_camera_image[2];
+Draw_image_data sapp3_camera_image[2] = { 0, };
 Util_queue sapp3_camera_command_queue = { 0, }, sapp3_mic_command_queue = { 0, };
 Util_str sapp3_status = { 0, };
 Util_str sapp3_camera_saved_file_path = { 0, };
@@ -262,14 +262,14 @@ void Sapp3_main(void)
 			int draw_cammera_buffer_index = (sapp3_camera_buffer_index == 0 ? 1 : 0);
 			std::string status = "";
 
-			Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
+			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
-			Draw(sapp3_msg[0], 0, 20, 0.5, 0.5, color);
+			Draw(sapp3_msg[0].c_str(), 0, 20, 0.5, 0.5, color);
 
 			if(sapp3_camera_state != CAM_IDLE)
 			{
 				//Draw preview.
-				Draw_texture(&sapp3_camera_image[draw_cammera_buffer_index], 0, 0, 400, 240);
+				Draw_texture(&sapp3_camera_image[draw_cammera_buffer_index], DEF_DRAW_NO_COLOR, 0, 0, 400, 240);
 			}
 
 			//Notify user that we are saving a picture.
@@ -287,8 +287,11 @@ void Sapp3_main(void)
 
 			if(status != "")
 			{
-				Draw(status, 40, 40, 0.5, 0.5, DEF_DRAW_WHITE, X_ALIGN_CENTER,
-				Y_ALIGN_CENTER, 320, 20, BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
+				Draw_image_data background = { 0, };
+				background.c2d = var_square_image[0];
+
+				Draw_with_background(status.c_str(), 40, 40, 0.5, 0.5, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER,
+				DRAW_Y_ALIGN_CENTER, 320, 20, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 			}
 
 			if(Util_log_query_log_show_flag())
@@ -301,7 +304,7 @@ void Sapp3_main(void)
 
 			if(Draw_is_3d_mode())
 			{
-				Draw_screen_ready(SCREEN_TOP_RIGHT, back_color);
+				Draw_screen_ready(DRAW_SCREEN_TOP_RIGHT, back_color);
 
 				if(Util_log_query_log_show_flag())
 					Util_log_draw();
@@ -315,9 +318,9 @@ void Sapp3_main(void)
 
 		if(var_turn_on_bottom_lcd)
 		{
-			Draw_screen_ready(SCREEN_BOTTOM, back_color);
+			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
-			Draw(DEF_SAPP3_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+			Draw((DEF_SAPP3_VER).c_str(), 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
 
 			//Draw camera controls.
 			if(sapp3_camera_state == CAM_IDLE)
@@ -378,7 +381,7 @@ static void Sapp3_draw_init_exit_message(void)
 		var_need_reflesh = false;
 		Draw_frame_ready();
 
-		Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
+		Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
 		if(Util_log_query_log_show_flag())
 			Util_log_draw();
@@ -393,7 +396,7 @@ static void Sapp3_draw_init_exit_message(void)
 		//So that user can easily see them.
 		if(Draw_is_3d_mode())
 		{
-			Draw_screen_ready(SCREEN_TOP_RIGHT, back_color);
+			Draw_screen_ready(DRAW_SCREEN_TOP_RIGHT, back_color);
 
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
@@ -414,15 +417,15 @@ static void Sapp3_draw_init_exit_message(void)
 static void Sapp3_init_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
 
 	Util_str_set(&sapp3_status, "Initializing variables...");
 	sapp3_camera_buffer_index = 0;
 	sapp3_camera_state = CAM_IDLE;
 	sapp3_mic_state = MIC_IDLE;
 
-	DEF_LOG_RESULT_SMART(result.code, Util_str_init(&sapp3_camera_saved_file_path), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, Util_str_init(&sapp3_mic_saved_file), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp3_camera_saved_file_path), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp3_mic_saved_file), (result == DEF_SUCCESS), result);
 
 	//Add to watch to detect value changes, screen will be rerenderd when value is changed.
 	Util_add_watch(WATCH_HANDLE_SUB_APP3, &sapp3_camera_state, sizeof(sapp3_camera_state));
@@ -430,25 +433,25 @@ static void Sapp3_init_thread(void* arg)
 
 	Util_str_add(&sapp3_status, "\nInitializing queue...");
 	//Create the queues for commands.
-	DEF_LOG_RESULT_SMART(result.code, Util_queue_create(&sapp3_camera_command_queue, 10), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, Util_queue_create(&sapp3_mic_command_queue, 10), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Util_queue_create(&sapp3_camera_command_queue, 10), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_queue_create(&sapp3_mic_command_queue, 10), (result == DEF_SUCCESS), result);
 
 	Util_str_add(&sapp3_status, "\nInitializing mic...");
 	//Init mic with 500KB buffer.
-	DEF_LOG_RESULT_SMART(result.code, Util_mic_init(1000 * 500), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Util_mic_init(1000 * 500), (result == DEF_SUCCESS), result);
 
 	Util_str_add(&sapp3_status, "\nInitializing camera...");
 	//1. Init camera.
-	DEF_LOG_RESULT_SMART(result.code, Util_cam_init(PIXEL_FORMAT_RGB565LE), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Util_cam_init(PIXEL_FORMAT_RGB565LE), (result == DEF_SUCCESS), result);
 
 	//2. Set resolution.
-	DEF_LOG_RESULT_SMART(result.code, Util_cam_set_resolution(CAM_RES_400x240), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Util_cam_set_resolution(CAM_RES_400x240), (result == DEF_SUCCESS), result);
 
 	//3. Set framerate. Use 30fps for new 3ds, 20fps for old 3ds.
 	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
-		DEF_LOG_RESULT_SMART(result.code, Util_cam_set_fps(CAM_FPS_30), (result.code == DEF_SUCCESS), result.code)
+		DEF_LOG_RESULT_SMART(result, Util_cam_set_fps(CAM_FPS_30), (result == DEF_SUCCESS), result)
 	else
-		DEF_LOG_RESULT_SMART(result.code, Util_cam_set_fps(CAM_FPS_20), (result.code == DEF_SUCCESS), result.code);
+		DEF_LOG_RESULT_SMART(result, Util_cam_set_fps(CAM_FPS_20), (result == DEF_SUCCESS), result);
 
 	//4. Optionally, you can set these parameters.
 	// Util_cam_set_camera(CAM_PORT_OUT_RIGHT);
@@ -460,7 +463,7 @@ static void Sapp3_init_thread(void* arg)
 
 	//5. Init 512x256 tectures (double buffering to prevent glitch).
 	for(int i = 0; i < 2; i++)
-		DEF_LOG_RESULT_SMART(result, Draw_texture_init(&sapp3_camera_image[i], 512, 256, PIXEL_FORMAT_RGB565LE);, (result.code == DEF_SUCCESS), result.code);
+		DEF_LOG_RESULT_SMART(result, Draw_texture_init(&sapp3_camera_image[i], 512, 256, PIXEL_FORMAT_RGB565LE);, (result == DEF_SUCCESS), result);
 
 	Util_str_add(&sapp3_status, "\nStarting threads...");
 	sapp3_thread_run = true;
@@ -580,7 +583,7 @@ static void Sapp3_camera_thread(void* arg)
 			if(result.code == DEF_SUCCESS)
 			{
 				//2. Update texture.
-				result = Draw_set_texture_data(&sapp3_camera_image[sapp3_camera_buffer_index], picture, width, height);
+				result.code = Draw_set_texture_data(&sapp3_camera_image[sapp3_camera_buffer_index], picture, width, height, 0, 0);
 
 				//3. Update buffer index.
 				sapp3_camera_buffer_index = (sapp3_camera_buffer_index == 0 ? 1 : 0);

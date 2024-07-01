@@ -186,59 +186,6 @@ enum Sample_format
 	SAMPLE_FORMAT_MAX,
 };
 
-enum Screen
-{
-	SCREEN_INVALID		= -1,
-
-	SCREEN_TOP_LEFT		= 0,	//Top screen for left eye.
-	SCREEN_BOTTOM		= 1,	//Bottom screen.
-	SCREEN_TOP_RIGHT	= 2,	//Top screen for right eye, this is used when 3D mode is enabled.
-
-	SCREEN_MAX,
-};
-
-enum Text_align_x
-{
-	X_ALIGN_INVALID = -1,
-
-	X_ALIGN_LEFT,	//Align text left (default).
-	X_ALIGN_CENTER,	//Align text center.
-	X_ALIGN_RIGHT,	//Align text right.
-
-	X_ALIGN_MAX,
-};
-
-enum Text_align_y
-{
-	Y_ALIGN_INVALID = -1,
-
-	Y_ALIGN_TOP,	//Align text top (default).
-	Y_ALIGN_CENTER,	//Align text center.
-	Y_ALIGN_BOTTOM,	//Align text bottom.
-
-	Y_ALIGN_MAX,
-};
-
-enum Background
-{
-	BACKGROUND_INVALID = -1,
-
-	BACKGROUND_NONE,		//No background texture (default).
-	BACKGROUND_ENTIRE_BOX,	//Draw background texture entire box.
-	BACKGROUND_UNDER_TEXT,	//Only draw background texture under text.
-
-	BACKGROUND_MAX,
-};
-
-enum File_type
-{
-	FILE_TYPE_NONE		= 0,	//File type is not set.
-	FILE_TYPE_FILE		= 1,	//This entry is a file.
-	FILE_TYPE_DIR		= 2,	//This entry is a directory.
-	FILE_TYPE_READ_ONLY	= 4,	//This entry is read only.
-	FILE_TYPE_HIDDEN	= 8,	//This entry is hidden.
-};
-
 enum Multi_thread_type
 {
 	THREAD_TYPE_INVALID = -1,
@@ -440,17 +387,6 @@ struct Subtitle_data
 	double start_time = 0;	//Start time in ms for this subtitle data. subtitle should be displayed if (start_time <= current_time <= end_time).
 	double end_time = 0;	//End time in ms for this subtitle data. subtitle should be displayed if (start_time <= current_time <= end_time).
 	std::string text = "";	//Subtitle text.
-};
-
-struct Image_data
-{
-	C2D_Image c2d = { .tex = NULL, .subtex = NULL, };	//Texture data.
-	Tex3DS_SubTexture* subtex = NULL;					//Subtexture data.
-	bool selected = false;	//Whether this texture is selected.
-	double x = -1;			//X (horizontal) position.
-	double y = -1;			//Y (vertical) position.
-	double x_size = -1;		//Texture drawn width.
-	double y_size = -1;		//Texture drawn height.
 };
 
 #endif

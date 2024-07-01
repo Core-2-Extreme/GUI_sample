@@ -30,7 +30,7 @@ bool sapp0_thread_suspend = true;
 std::string sapp0_msg[DEF_SAPP0_NUM_OF_MSG];
 Thread sapp0_init_thread = NULL, sapp0_exit_thread = NULL, sapp0_worker_thread = NULL;
 Util_str sapp0_status = { 0, };
-Image_data sapp0_image[3];
+Draw_image_data sapp0_image[3] = { 0, };
 
 
 static void Sapp0_draw_init_exit_message(void);
@@ -175,16 +175,16 @@ void Sapp0_main(void)
 
 		if(var_turn_on_top_lcd)
 		{
-			Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
+			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
-			Draw(sapp0_msg[0], 0, 20, 0.5, 0.5, color);
+			Draw(sapp0_msg[0].c_str(), 0, 20, 0.5, 0.5, color);
 
 			//Draw texture here.
 			if(sapp0_image[0].subtex)
-				Draw_texture(&sapp0_image[0], 0, 40, sapp0_image[0].subtex->width, sapp0_image[0].subtex->height);
+				Draw_texture(&sapp0_image[0], DEF_DRAW_NO_COLOR, 0, 40, sapp0_image[0].subtex->width, sapp0_image[0].subtex->height);
 
 			if(sapp0_image[1].subtex)
-				Draw_texture(&sapp0_image[1], 200, 100, sapp0_image[1].subtex->width, sapp0_image[1].subtex->height);
+				Draw_texture(&sapp0_image[1], DEF_DRAW_NO_COLOR, 200, 100, sapp0_image[1].subtex->width, sapp0_image[1].subtex->height);
 
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
@@ -196,7 +196,7 @@ void Sapp0_main(void)
 
 			if(Draw_is_3d_mode())
 			{
-				Draw_screen_ready(SCREEN_TOP_RIGHT, back_color);
+				Draw_screen_ready(DRAW_SCREEN_TOP_RIGHT, back_color);
 
 				if(Util_log_query_log_show_flag())
 					Util_log_draw();
@@ -210,9 +210,9 @@ void Sapp0_main(void)
 
 		if(var_turn_on_bottom_lcd)
 		{
-			Draw_screen_ready(SCREEN_BOTTOM, back_color);
+			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
-			Draw(DEF_SAPP0_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+			Draw((DEF_SAPP0_VER).c_str(), 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
 
 			if(Util_err_query_error_show_flag())
 				Util_err_draw();
@@ -244,7 +244,7 @@ static void Sapp0_draw_init_exit_message(void)
 		var_need_reflesh = false;
 		Draw_frame_ready();
 
-		Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
+		Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
 		if(Util_log_query_log_show_flag())
 			Util_log_draw();
@@ -259,7 +259,7 @@ static void Sapp0_draw_init_exit_message(void)
 		//So that user can easily see them.
 		if(Draw_is_3d_mode())
 		{
-			Draw_screen_ready(SCREEN_TOP_RIGHT, back_color);
+			Draw_screen_ready(DRAW_SCREEN_TOP_RIGHT, back_color);
 
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
@@ -324,11 +324,11 @@ static void Sapp0_init_thread(void* arg)
 		DEF_LOG_RESULT_SMART(result, Util_converter_convert_color(&parameters), (result.code == DEF_SUCCESS), result.code);
 
 		//3. Init tecture, 1024 is texture size, it must be multiple of 2, so 2, 4, 8, 16, 32, 64...etc.
-		DEF_LOG_RESULT_SMART(result, Draw_texture_init(&sapp0_image[0], 1024, 1024, parameters.out_color_format), (result.code == DEF_SUCCESS), result.code);
+		DEF_LOG_RESULT_SMART(result.code, Draw_texture_init(&sapp0_image[0], 1024, 1024, parameters.out_color_format), (result.code == DEF_SUCCESS), result.code);
 		if(result.code == 0)
 		{
 			//4. Set raw image data to texture.
-			Draw_set_texture_data(&sapp0_image[0], parameters.converted, parameters.out_width, parameters.out_height);
+			Draw_set_texture_data(&sapp0_image[0], parameters.converted, parameters.out_width, parameters.out_height, 0, 0);
 		}
 
 		free(parameters.converted);
@@ -371,11 +371,11 @@ static void Sapp0_init_thread(void* arg)
 			DEF_LOG_RESULT_SMART(result, Util_converter_convert_color(&parameters), (result.code == DEF_SUCCESS), result.code);
 
 			//4. Init tecture, 1024 is texture size, it must be multiple of 2, so 2, 4, 8, 16, 32, 64...etc.
-			DEF_LOG_RESULT_SMART(result, Draw_texture_init(&sapp0_image[1], 1024, 1024, parameters.out_color_format), (result.code == DEF_SUCCESS), result.code);
+			DEF_LOG_RESULT_SMART(result.code, Draw_texture_init(&sapp0_image[1], 1024, 1024, parameters.out_color_format), (result.code == DEF_SUCCESS), result.code);
 			if(result.code == 0)
 			{
 				//5. Set raw image data to texture.
-				Draw_set_texture_data(&sapp0_image[1], parameters.converted, parameters.out_width, parameters.out_height);
+				Draw_set_texture_data(&sapp0_image[1], parameters.converted, parameters.out_width, parameters.out_height, 0, 0);
 			}
 
 			free(parameters.converted);

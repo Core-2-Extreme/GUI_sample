@@ -1,15 +1,21 @@
 #ifndef EXTERNAL_FONT_HPP
 #define EXTERNAL_FONT_HPP
 
-#include "system/types.hpp"
+extern "C"
+{
+#define DEF_EXFONT_MAX_CHAR_LENGTH		(uint8_t)(4)
+
+typedef struct
+{
+	char buffer[DEF_EXFONT_MAX_CHAR_LENGTH + 1];
+}Exfont_one_char;
 
 /**
  * @brief Initialize a external font api.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_* or Nintendo API's error.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Exfont_init(void);
+uint32_t Exfont_init(void);
 
 /**
  * @brief Uninitialize a external font API.
@@ -25,7 +31,7 @@ void Exfont_exit(void);
  * @return External font name.
  * @warning Thread dangerous (untested)
 */
-std::string Exfont_query_external_font_name(int exfont_num);
+const char* Exfont_query_external_font_name(uint16_t exfont_num);
 
 /**
  * @brief Check whether external font is loaded (ready).
@@ -34,7 +40,7 @@ std::string Exfont_query_external_font_name(int exfont_num);
  * @return True if external font is loaded, otherwise false.
  * @warning Thread dangerous (untested)
 */
-bool Exfont_is_loaded_external_font(int exfont_num);
+bool Exfont_is_loaded_external_font(uint16_t exfont_num);
 
 /**
  * @brief Check whether external font is loading.
@@ -61,7 +67,7 @@ bool Exfont_is_unloading_external_font(void);
  * @param flag (in) When true, external font request state will be set to true, otherwise set to false.
  * @warning Thread dangerous (untested)
 */
-void Exfont_set_external_font_request_state(int exfont_num, bool flag);
+void Exfont_set_external_font_request_state(uint16_t exfont_num, bool flag);
 
 /**
  * @brief Load external font.
@@ -79,23 +85,23 @@ void Exfont_request_unload_external_font(void);
 
 /**
  * @brief Parse text data, this function won't sort for RTL characters.
- * @param sorce_string (in) Text.
+ * @param source_string (in) Text.
  * @param part_string (out) Array for parsed text.
  * @param max_loop (in) Number of array for part_string.
  * @param out_element (out) Parsed number of characters.
  * @note Thread safe
 */
-void Exfont_text_parse_ignore_rtl(std::string sorce_string, std::string part_string[], int max_loop, int* out_element);
+void Exfont_text_parse_ignore_rtl(const char* source_string, Exfont_one_char part_string[], uint32_t max_loop, uint32_t* out_element);
 
 /**
  * @brief Parse text data.
- * @param sorce_string (in) Text.
+ * @param source_string (in) Text.
  * @param part_string (out) Array for parsed text.
  * @param max_loop (in) Number of array for part_string.
  * @param out_element (out) Parsed number of characters.
  * @note Thread safe
 */
-void Exfont_text_parse(std::string sorce_string, std::string part_string[], int max_loop, int* out_element);
+void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], uint32_t max_loop, uint32_t* out_element);
 
 /**
  * @brief Draw external font.
@@ -113,8 +119,8 @@ void Exfont_text_parse(std::string sorce_string, std::string part_string[], int 
  * @warning Thread dangerous (untested)
  * @warning Call it from only drawing thread.
 */
-void Exfont_draw_external_fonts(std::string* in_part_string, int num_of_characters, float texture_x, float texture_y, float texture_size_x,
-float texture_size_y, int abgr8888, float* out_width, float* out_height);
+void Exfont_draw_external_fonts(Exfont_one_char* in_part_string, uint32_t num_of_characters, float texture_x, float texture_y,
+float texture_size_x, float texture_size_y, uint32_t abgr8888, float* out_width, float* out_height);
 
 /**
  * @brief Get text size.
@@ -128,6 +134,7 @@ float texture_size_y, int abgr8888, float* out_width, float* out_height);
  * @warning Thread dangerous (untested)
  * @warning Call it from only drawing thread.
 */
-void Exfont_draw_get_text_size(std::string* in_part_string, int num_of_characters, float texture_size_x, float texture_size_y, float* out_width, float* out_height);
-
+void Exfont_draw_get_text_size(Exfont_one_char* in_part_string, uint32_t num_of_characters, float texture_size_x,
+float texture_size_y, float* out_width, float* out_height);
+}
 #endif

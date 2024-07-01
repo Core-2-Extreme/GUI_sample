@@ -62,7 +62,7 @@ uint32_t util_expl_check_file_size_index = 0;
 double util_expl_y_offset = 0.0;
 double util_expl_selected_file_num = 0.0;
 Util_str util_expl_current_dir = { 0, };
-Image_data util_expl_file_button[16];
+Draw_image_data util_expl_file_button[16] = { 0, };
 Util_expl_file util_expl_files = { 0, };
 
 
@@ -302,16 +302,19 @@ void Util_expl_set_show_flag(bool flag)
 
 void Util_expl_draw(void)
 {
+	Draw_image_data background = { 0, };
 	uint32_t color = DEF_DRAW_BLACK;
+
+	background.c2d = var_square_image[0];
 
 	if(!util_expl_init)
 	{
-		Draw_texture(var_square_image[0], DEF_DRAW_AQUA, 10.0, 20.0, 300.0, 190.0);
+		Draw_texture(&background, DEF_DRAW_AQUA, 10.0, 20.0, 300.0, 190.0);
 		Draw("Explorer api is not initialized.\nPress A to close.", 12.5, 30.0, 0.45, 0.45, DEF_DRAW_RED);
 		return;
 	}
 
-	Draw_texture(var_square_image[0], DEF_DRAW_AQUA, 10.0, 20.0, 300.0, 190.0);
+	Draw_texture(&background, DEF_DRAW_AQUA, 10.0, 20.0, 300.0, 190.0);
 	Draw("A : OK, B : Back, Y : Close, ↑↓→← : Move", 12.5, 185.0, 0.425, 0.425, DEF_DRAW_BLACK);
 	Draw(util_expl_current_dir.buffer, 12.5, 195.0, 0.45, 0.45, DEF_DRAW_BLACK);
 

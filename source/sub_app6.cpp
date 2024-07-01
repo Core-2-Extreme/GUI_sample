@@ -171,9 +171,9 @@ void Sapp6_main(void)
 
 		if(var_turn_on_top_lcd)
 		{
-			Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
+			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
-			Draw(sapp6_msg[0], 0, 20, 0.5, 0.5, color);
+			Draw(sapp6_msg[0].c_str(), 0, 20, 0.5, 0.5, color);
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
@@ -184,7 +184,7 @@ void Sapp6_main(void)
 
 			if(Draw_is_3d_mode())
 			{
-				Draw_screen_ready(SCREEN_TOP_RIGHT, back_color);
+				Draw_screen_ready(DRAW_SCREEN_TOP_RIGHT, back_color);
 
 				if(Util_log_query_log_show_flag())
 					Util_log_draw();
@@ -198,9 +198,9 @@ void Sapp6_main(void)
 
 		if(var_turn_on_bottom_lcd)
 		{
-			Draw_screen_ready(SCREEN_BOTTOM, back_color);
+			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
-			Draw(DEF_SAPP6_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+			Draw((DEF_SAPP6_VER).c_str(), 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
 
 			if(Util_err_query_error_show_flag())
 				Util_err_draw();
@@ -232,7 +232,7 @@ static void Sapp6_draw_init_exit_message(void)
 		var_need_reflesh = false;
 		Draw_frame_ready();
 
-		Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
+		Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
 		if(Util_log_query_log_show_flag())
 			Util_log_draw();
@@ -247,7 +247,7 @@ static void Sapp6_draw_init_exit_message(void)
 		//So that user can easily see them.
 		if(Draw_is_3d_mode())
 		{
-			Draw_screen_ready(SCREEN_TOP_RIGHT, back_color);
+			Draw_screen_ready(DRAW_SCREEN_TOP_RIGHT, back_color);
 
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();

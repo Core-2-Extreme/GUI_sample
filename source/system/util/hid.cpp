@@ -3,6 +3,7 @@
 
 #include "system/variables.hpp"
 
+#include "system/draw/draw.hpp"
 #include "system/util/log.hpp"
 
 //Include myself.
@@ -152,7 +153,7 @@ void Util_hid_exit(void)
 	hidExit();
 }
 
-bool Util_hid_is_pressed(Hid_info hid_state, Image_data image)
+bool Util_hid_is_pressed(Hid_info hid_state, Draw_image_data image)
 {
 	if(!util_hid_init)
 		return false;
@@ -163,7 +164,7 @@ bool Util_hid_is_pressed(Hid_info hid_state, Image_data image)
 		return false;
 }
 
-bool Util_hid_is_held(Hid_info hid_state, Image_data image)
+bool Util_hid_is_held(Hid_info hid_state, Draw_image_data image)
 {
 	if(!util_hid_init)
 		return false;
@@ -174,7 +175,7 @@ bool Util_hid_is_held(Hid_info hid_state, Image_data image)
 		return false;
 }
 
-bool Util_hid_is_released(Hid_info hid_state, Image_data image)
+bool Util_hid_is_released(Hid_info hid_state, Draw_image_data image)
 {
 	if(!util_hid_init)
 		return false;

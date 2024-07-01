@@ -30,7 +30,7 @@ Util_str util_err_summary = { 0, };
 Util_str util_err_description = { 0, };
 Util_str util_err_location = { 0, };
 Util_str util_err_code = { 0, };
-Image_data util_err_ok_button, util_err_save_button;
+Draw_image_data util_err_ok_button = { 0, }, util_err_save_button = { 0, };
 
 
 uint32_t Util_err_init(void)
@@ -190,14 +190,17 @@ void Util_err_main(Hid_info key)
 
 void Util_err_draw(void)
 {
+	Draw_image_data background = { 0, };
+	background.c2d = var_square_image[0];
+
 	if(!util_err_init)
 	{
-		Draw_texture(var_square_image[0], DEF_DRAW_AQUA, 20.0, 30.0, 280.0, 150.0);
+		Draw_texture(&background, DEF_DRAW_AQUA, 20.0, 30.0, 280.0, 150.0);
 		Draw("Error api is not initialized.\nPress A to close.", 22.5, 40.0, 0.45, 0.45, DEF_DRAW_RED);
 		return;
 	}
 
-	Draw_texture(var_square_image[0], DEF_DRAW_AQUA, 20.0, 30.0, 280.0, 150.0);
+	Draw_texture(&background, DEF_DRAW_AQUA, 20.0, 30.0, 280.0, 150.0);
 	Draw_texture(&util_err_ok_button, util_err_ok_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 150.0, 150.0, 30.0, 20.0);
 	Draw_texture(&util_err_save_button, util_err_save_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 210.0, 150.0, 40.0, 20.0);
 
