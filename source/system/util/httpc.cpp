@@ -750,13 +750,13 @@ static Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int 
 	{
 		result.code = httpcDownloadData(httpc_context, cache, buffer_size, &dl_size);
 		*downloaded_size += dl_size;
-		if (result.code != 0)
+		if (result.code != DEF_SUCCESS)
 		{
 			if(result.code == HTTPC_RESULTCODE_DOWNLOADPENDING)
 			{
-				fs_result = Util_file_save_to_file(file_name, dir_path, cache, (int)dl_size, first);
+				fs_result.code = Util_file_save_to_file(file_name.c_str(), dir_path.c_str(), cache, (int)dl_size, first);
 				first = false;
-				if(fs_result.code != 0)
+				if(fs_result.code != DEF_SUCCESS)
 				{
 					result = fs_result;
 					goto api_failed;
@@ -774,9 +774,9 @@ static Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int 
 		{
 			if(dl_size > 0)
 			{
-				fs_result = Util_file_save_to_file(file_name, dir_path, cache, (int)dl_size, first);
+				fs_result.code = Util_file_save_to_file(file_name.c_str(), dir_path.c_str(), cache, (int)dl_size, first);
 				first = false;
-				if(fs_result.code != 0)
+				if(fs_result.code != DEF_SUCCESS)
 				{
 					result = fs_result;
 					goto api_failed;

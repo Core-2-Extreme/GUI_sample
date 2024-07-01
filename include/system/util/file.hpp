@@ -16,11 +16,10 @@ extern "C"
  * @param write_data (in) Pointer for write data.
  * @param size (in) Write data size (in byte).
  * @param delete_old_file (in) When true, old file will be deleted if exist otherwise data will be written end of the file.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_* or Nintendo API's error.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_file_save_to_file(std::string file_name, std::string dir_path, uint8_t* write_data, int size, bool delete_old_file);
+uint32_t Util_file_save_to_file(const char* file_name, const char* dir_path, const uint8_t* write_data, uint32_t size, bool delete_old_file);
 
 /**
  * @brief Load data from a file.
@@ -133,6 +132,6 @@ Result_with_string Util_file_check_file_exist(std::string file_name, std::string
  * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-uint32_t Util_file_read_dir(Util_str* dir_path, uint32_t* detected, Util_str* file_name, Expl_file_type* type, uint32_t array_length);
+uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Util_str* file_name, Expl_file_type* type, uint32_t array_length);
 
 #endif

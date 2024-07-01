@@ -486,8 +486,8 @@ void Sem_exit(void)
 	Menu_remove_worker_thread_callback(Sem_worker_callback);
 
 	//Save settings.
-	DEF_LOG_RESULT_SMART(result, Util_file_save_to_file("settings.txt", DEF_MAIN_DIR, (uint8_t*)data.c_str(), data.length(), true), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result, Util_file_save_to_file("fake_model.txt", DEF_MAIN_DIR, &sem_fake_model_num, 1, true), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Util_file_save_to_file("settings.txt", DEF_MAIN_DIR_C, (uint8_t*)data.c_str(), data.length(), true), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Util_file_save_to_file("fake_model.txt", DEF_MAIN_DIR_C, &sem_fake_model_num, 1, true), (result.code == DEF_SUCCESS), result.code);
 
 	//Exit threads.
 #if ((DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API) && DEF_SEM_ENABLE_UPDATER)
@@ -2060,7 +2060,7 @@ void Sem_worker_callback(void)
 					sem_is_cpu_usage_monitor_running = true;
 				else
 				{
-					Util_err_set_error_message(result.string, result.error_description, DEF_LOG_GET_FUNCTION_NAME(), result.code);
+					Util_err_set_error_message(result.string.c_str(), result.error_description.c_str(), DEF_LOG_GET_FUNCTION_NAME(), result.code);
 					Util_err_set_error_show_flag(true);
 					var_monitor_cpu_usage = false;
 				}
@@ -2165,7 +2165,7 @@ void Sem_update_thread(void* arg)
 
 			if (result.code != 0)
 			{
-				Util_err_set_error_message(result.string, result.error_description, DEF_LOG_GET_FUNCTION_NAME(), result.code);
+				Util_err_set_error_message(result.string.c_str(), result.error_description.c_str(), DEF_LOG_GET_FUNCTION_NAME(), result.code);
 				Util_err_set_error_show_flag(true);
 				if (sem_check_update_request)
 					sem_update_progress = -1;

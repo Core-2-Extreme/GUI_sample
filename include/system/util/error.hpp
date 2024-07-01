@@ -1,16 +1,19 @@
-#ifndef ERROR_HPP
+#if !defined(ERROR_HPP)
 #define ERROR_HPP
 
 #include "system/types.hpp"
 #include "system/util/hid.hpp"
 
+extern "C"
+{
+#define DEF_ERR_NO_RESULT_CODE		(uint32_t)(1234567890)	//No result codes available.
+
 /**
  * @brief Initialize a error api.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_* or Nintendo API's error.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_err_init(void);
+uint32_t Util_err_init(void);
 
 /**
  * @brief Uninitialize a error API.
@@ -32,21 +35,11 @@ bool Util_err_query_error_show_flag(void);
  * Do nothing if error api is not initialized.
  * @param summary (in) Error summary.
  * @param description (in) Error description.
- * @param place (in) Error place.
- * @warning Thread dangerous (untested)
-*/
-void Util_err_set_error_message(std::string summary, std::string description, std::string place);
-
-/**
- * @brief Set error message.
- * Do nothing if error api is not initialized.
- * @param summary (in) Error summary.
- * @param description (in) Error description.
- * @param place (in) Error place.
+ * @param location (in) Error location.
  * @param error_code (in) Error code.
  * @warning Thread dangerous (untested)
 */
-void Util_err_set_error_message(std::string summary, std::string description, std::string place, int error_code);
+void Util_err_set_error_message(const char* summary, const char* description, const char* location, uint32_t error_code);
 
 /**
  * @brief Set error show flag.
@@ -84,5 +77,5 @@ void Util_err_main(Hid_info key);
  * @warning Call it from only drawing thread.
 */
 void Util_err_draw(void);
-
-#endif
+}
+#endif //!defined(ERROR_HPP)

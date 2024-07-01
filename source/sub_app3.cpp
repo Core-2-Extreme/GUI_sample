@@ -528,7 +528,7 @@ static void Sapp3_camera_thread(void* arg)
 	Result_with_string result;
 
 	//Create directory.
-	Util_file_save_to_file(".", DEF_MAIN_DIR + "images/", &dummy, 1, true);
+	Util_file_save_to_file(".", DEF_MAIN_DIR_C "images/", &dummy, 1, true);
 
 	while (sapp3_thread_run)
 	{
@@ -661,7 +661,7 @@ static void Sapp3_mic_thread(void* arg)
 	Result_with_string result;
 
 	//Create directory.
-	Util_file_save_to_file(".", DEF_MAIN_DIR + "sound/", &dummy, 1, true);
+	Util_file_save_to_file(".", DEF_MAIN_DIR_C "sound/", &dummy, 1, true);
 
 	while (sapp3_thread_run)
 	{

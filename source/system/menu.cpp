@@ -157,10 +157,10 @@ void Menu_init(void)
 	DEF_LOG_RESULT_SMART(result, Util_safe_linear_alloc_init(), (result.code == DEF_SUCCESS), result.code);
 
 	//Create directories.
-	Util_file_save_to_file(".", DEF_MAIN_DIR, &dummy, 1, true);
-	Util_file_save_to_file(".", DEF_MAIN_DIR + "screen_recording/", &dummy, 1, true);
-	Util_file_save_to_file(".", DEF_MAIN_DIR + "error/", &dummy, 1, true);
-	Util_file_save_to_file(".", DEF_MAIN_DIR + "logs/", &dummy, 1, true);
+	Util_file_save_to_file(".", DEF_MAIN_DIR_C, &dummy, 1, true);
+	Util_file_save_to_file(".", DEF_MAIN_DIR_C "screen_recording/", &dummy, 1, true);
+	Util_file_save_to_file(".", DEF_MAIN_DIR_C "error/", &dummy, 1, true);
+	Util_file_save_to_file(".", DEF_MAIN_DIR_C "logs/", &dummy, 1, true);
 
 	if(Util_file_load_from_file("fake_model.txt", DEF_MAIN_DIR, &data, 1, &read_size).code == 0 && *data <= 5)
 	{
@@ -233,7 +233,7 @@ void Menu_init(void)
 	DEF_LOG_RESULT_SMART(result.code, Util_hid_add_callback(Menu_hid_callback), result.code, result.code);
 	DEF_LOG_RESULT_SMART(result.code, Util_expl_init(), (result.code == DEF_SUCCESS), result.code);
 	DEF_LOG_RESULT_SMART(result, Exfont_init(), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result, Util_err_init(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Util_err_init(), (result.code == DEF_SUCCESS), result.code);
 
 	for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		Exfont_set_external_font_request_state(i, true);

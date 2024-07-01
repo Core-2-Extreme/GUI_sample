@@ -17,78 +17,93 @@ static Result_with_string Util_file_load_from_file_with_range_internal(std::stri
 static Result_with_string Util_file_load_from_rom_internal(std::string&& file_name, std::string&& dir_path, uint8_t** read_data, int max_size, uint32_t* read_size);
 
 
-Result_with_string Util_file_save_to_file(std::string file_name, std::string dir_path, uint8_t* write_data, int size, bool delete_old_file)
+uint32_t Util_file_save_to_file(const char* file_name, const char* dir_path, const uint8_t* write_data, uint32_t size, bool delete_old_file)
 {
 	uint16_t* utf16_dir_path = NULL;
 	uint16_t* utf16_path = NULL;
 	uint32_t written_size = 0;
+	uint32_t result = DEF_ERR_OTHER;
 	uint64_t offset = 0;
 	ssize_t utf_out_size = 0;
-	std::string path = "";
 	Handle handle = 0;
 	FS_Archive archive = 0;
-	Result_with_string result;
+	Util_str path = { 0, };
 
-	if(file_name == "" || dir_path == "" || !write_data || size <= 0)
+	if(!file_name || !dir_path || !write_data)
 		goto invalid_arg;
 
-	path = dir_path + file_name;
+	result = Util_str_init(&path);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_init, false, result);
+		goto out_of_memory;
+	}
+
+	result = Util_str_format(&path, "%s%s", dir_path, file_name);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_format, false, result);
+		goto out_of_memory;
+	}
+
 	utf16_dir_path = (uint16_t*)malloc(4096 + 2);
 	utf16_path = (uint16_t*)malloc(4096 + 2);
 	if(!utf16_dir_path || !utf16_path)
 		goto out_of_memory;
 
-	utf_out_size = utf8_to_utf16(utf16_dir_path, (uint8_t*)dir_path.c_str(), 2048);
+	utf_out_size = utf8_to_utf16(utf16_dir_path, (uint8_t*)dir_path, 2048);
 	utf16_dir_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
-	utf_out_size = utf8_to_utf16(utf16_path, (uint8_t*)path.c_str(), 2048);
+	utf_out_size = utf8_to_utf16(utf16_path, (uint8_t*)path.buffer, 2048);
 	utf16_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
-	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
-	if(result.code != 0)
+	Util_str_free(&path);
+
+	result = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
+	if(result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] FSUSER_OpenArchive() failed. ";
+		DEF_LOG_RESULT(FSUSER_OpenArchive, false, result);
 		goto nintendo_api_failed;
 	}
 
-	result.code = FSUSER_CreateDirectory(archive, fsMakePath(PATH_UTF16, utf16_dir_path), FS_ATTRIBUTE_DIRECTORY);
-	if (result.code != 0 && result.code != 0xC82044BE)//#0xC82044BE directory already exist
+	result = FSUSER_CreateDirectory(archive, fsMakePath(PATH_UTF16, utf16_dir_path), FS_ATTRIBUTE_DIRECTORY);
+	if(result != DEF_SUCCESS && result != 0xC82044BE)//0xC82044BE means directory already exist.
 	{
-		result.error_description = "[Error] FSUSER_CreateDirectory() failed. ";
+		DEF_LOG_RESULT(FSUSER_CreateDirectory, false, result);
 		goto nintendo_api_failed;
 	}
 
 	if (delete_old_file)
 		FSUSER_DeleteFile(archive, fsMakePath(PATH_UTF16, utf16_path));
 
-	result.code = FSUSER_CreateFile(archive, fsMakePath(PATH_UTF16, utf16_path), FS_ATTRIBUTE_ARCHIVE, 0);
-	if (result.code != 0 && result.code != 0xC82044BE)//#0xC82044BE file already exist
+	result = FSUSER_CreateFile(archive, fsMakePath(PATH_UTF16, utf16_path), FS_ATTRIBUTE_ARCHIVE, 0);
+	if (result != DEF_SUCCESS && result != 0xC82044BE)//0xC82044BE means file already exist.
 	{
-		result.error_description = "[Error] FSUSER_CreateFile() failed. ";
+		DEF_LOG_RESULT(FSUSER_CreateFile, false, result);
 		goto nintendo_api_failed;
 	}
 
-	result.code = FSUSER_OpenFile(&handle, archive, fsMakePath(PATH_UTF16, utf16_path), FS_OPEN_WRITE, FS_ATTRIBUTE_ARCHIVE);
-	if (result.code != 0)
+	result = FSUSER_OpenFile(&handle, archive, fsMakePath(PATH_UTF16, utf16_path), FS_OPEN_WRITE, FS_ATTRIBUTE_ARCHIVE);
+	if (result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] FSUSER_OpenFile() failed. ";
+		DEF_LOG_RESULT(FSUSER_OpenFile, false, result);
 		goto nintendo_api_failed;
 	}
 
 	if (!delete_old_file)
 	{
-		result.code = FSFILE_GetSize(handle, &offset);
-		if (result.code != 0)
+		result = FSFILE_GetSize(handle, &offset);
+		if (result != DEF_SUCCESS)
 		{
-			result.error_description = "[Error] FSFILE_GetSize() failed. ";
+			DEF_LOG_RESULT(FSFILE_GetSize, false, result);
 			goto nintendo_api_failed;
 		}
 	}
 
-	result.code = FSFILE_Write(handle, &written_size, offset, write_data, size, FS_WRITE_FLUSH);
-	if (result.code != 0)
+	result = FSFILE_Write(handle, &written_size, offset, write_data, size, FS_WRITE_FLUSH);
+	if (result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] FSFILE_Write() failed. ";
+		DEF_LOG_RESULT(FSFILE_Write, false, result);
 		goto nintendo_api_failed;
 	}
 
@@ -99,21 +114,18 @@ Result_with_string Util_file_save_to_file(std::string file_name, std::string dir
 	FSFILE_Close(handle);
 	FSUSER_CloseArchive(archive);
 
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	out_of_memory:
+	Util_str_free(&path);
 	free(utf16_dir_path);
 	free(utf16_path);
 	utf16_dir_path = NULL;
 	utf16_path = NULL;
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
+	return DEF_ERR_OUT_OF_MEMORY;
 
 	nintendo_api_failed:
 	free(utf16_dir_path);
@@ -122,7 +134,6 @@ Result_with_string Util_file_save_to_file(std::string file_name, std::string dir
 	utf16_path = NULL;
 	FSFILE_Close(handle);
 	FSUSER_CloseArchive(archive);
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 
@@ -337,7 +348,7 @@ Result_with_string Util_file_check_file_exist(std::string file_name, std::string
 	return result;
 }
 
-uint32_t Util_file_read_dir(Util_str* dir_path, uint32_t* detected, Util_str* file_name, Expl_file_type* type, uint32_t array_length)
+uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Util_str* file_name, Expl_file_type* type, uint32_t array_length)
 {
 	uint16_t* utf16_dir_path = NULL;
 	uint32_t count = 0;
@@ -350,13 +361,16 @@ uint32_t Util_file_read_dir(Util_str* dir_path, uint32_t* detected, Util_str* fi
 	Handle handle = 0;
 	FS_Archive archive = 0;
 
-	if(!Util_str_has_data(dir_path) || !detected || !file_name || !type)
+	if(!dir_path || !detected || !file_name || !type)
 		goto invalid_arg;
 
 	for(uint32_t i = 0; i < array_length; i++)
 	{
 		if(Util_str_init(&file_name[i]) != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Util_str_init, false, result);
 			goto out_of_memory;
+		}
 
 		type[i] = EXPL_FILE_TYPE_NONE;
 	}
@@ -367,7 +381,7 @@ uint32_t Util_file_read_dir(Util_str* dir_path, uint32_t* detected, Util_str* fi
 	if(!utf16_dir_path || !utf8_file_name)
 		goto out_of_memory;
 
-	utf_out_size = utf8_to_utf16(utf16_dir_path, (uint8_t*)dir_path->buffer, 2048);
+	utf_out_size = utf8_to_utf16(utf16_dir_path, (uint8_t*)dir_path, 2048);
 	utf16_dir_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
 	result = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));

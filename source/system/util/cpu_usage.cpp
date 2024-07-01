@@ -24,8 +24,6 @@ void Util_cpu_usage_calculate_thread(void* arg);
 
 uint32_t Util_cpu_usage_monitor_init(void)
 {
-	uint32_t result = DEF_ERR_OTHER;
-
 	if(util_cpu_usage_monitor_init)
 		goto already_inited;
 
@@ -39,16 +37,15 @@ uint32_t Util_cpu_usage_monitor_init(void)
 	util_cpu_usage_thread_handle[4] = threadCreate(Util_cpu_usage_calculate_thread, NULL, 2048, DEF_SYSTEM_THREAD_PRIORITY_REALTIME, 0, false);
 	if(!util_cpu_usage_thread_handle[4])
 	{
-		result = DEF_ERR_OTHER;
-		DEF_LOG_RESULT(threadCreate, false, result);
+		DEF_LOG_RESULT(threadCreate, false, DEF_ERR_OTHER);
 		goto nintendo_api_failed;
 	}
 
-	return result;
+	return DEF_SUCCESS;
 
 	nintendo_api_failed:
 	util_cpu_usage_monitor_init = false;
-	return result;
+	return DEF_ERR_OTHER;
 
 	already_inited:
 	return DEF_ERR_ALREADY_INITIALIZED;

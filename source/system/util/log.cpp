@@ -17,7 +17,8 @@ extern "C"
 //Include myself.
 #include "system/util/log.hpp"
 
-
+extern "C"
+{
 bool util_log_show_flag = false;
 bool util_log_init = false;
 int util_log_current_index = 0;
@@ -35,6 +36,8 @@ static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, cons
 
 uint32_t Util_log_init(void)
 {
+	uint32_t result = DEF_ERR_OTHER;
+
 	if(util_log_init)
 		goto already_inited;
 
@@ -46,7 +49,13 @@ uint32_t Util_log_init(void)
 	for(uint32_t i = 0; i < DEF_LOG_BUFFER_LINES; i++)
 	{
 		util_log_spend_time[i] = 0;
-		Util_str_init(&util_log_logs[i]);
+
+		result = Util_str_init(&util_log_logs[i]);
+		if(result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Util_str_init, false, result);
+			goto error_other;
+		}
 	}
 
 	LightLock_Init(&util_log_mutex);
@@ -56,6 +65,12 @@ uint32_t Util_log_init(void)
 
 	already_inited:
 	return DEF_ERR_ALREADY_INITIALIZED;
+
+	error_other:
+	for(uint32_t i = 0; i < DEF_LOG_BUFFER_LINES; i++)
+		Util_str_free(&util_log_logs[i]);
+
+	return result;
 }
 
 void Util_log_exit(void)
@@ -63,10 +78,10 @@ void Util_log_exit(void)
 	if(!util_log_init)
 		return;
 
+	util_log_init = false;
+
 	for(uint32_t i = 0; i < DEF_LOG_BUFFER_LINES; i++)
 		Util_str_free(&util_log_logs[i]);
-
-	util_log_init = false;
 }
 
 uint32_t Util_log_dump(const char* file_name, const char* dir_path)
@@ -80,7 +95,12 @@ uint32_t Util_log_dump(const char* file_name, const char* dir_path)
 	if(!file_name || !dir_path)
 		goto invalid_arg;
 
-	Util_str_init(&log);
+	result = Util_str_init(&log);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_init, false, result);
+		goto error_other;
+	}
 
 	for(uint32_t i = 0; i < DEF_LOG_BUFFER_LINES; i++)
 	{
@@ -92,7 +112,11 @@ uint32_t Util_log_dump(const char* file_name, const char* dir_path)
 	}
 
 	if(Util_str_has_data(&log))
-		result = Util_file_save_to_file(file_name, dir_path, (uint8_t*)log.buffer, log.length, true).code;
+	{
+		result = Util_file_save_to_file(file_name, dir_path, (uint8_t*)log.buffer, log.length, true);
+		if(result != DEF_SUCCESS)
+			DEF_LOG_RESULT(Util_file_save_to_file, false, result);
+	}
 
 	Util_str_free(&log);
 
@@ -103,6 +127,9 @@ uint32_t Util_log_dump(const char* file_name, const char* dir_path)
 
 	invalid_arg:
 	return DEF_ERR_INVALID_ARG;
+
+	error_other:
+	return result;
 }
 
 bool Util_log_query_log_show_flag(void)
@@ -304,10 +331,7 @@ void Util_log_draw(void)
 	}
 
 	for (uint16_t i = 0; i < DEF_LOG_DISPLAYED_LINES; i++)
-	{
-		if(Util_str_is_valid(&util_log_logs[util_log_y + i]))
-			Draw(util_log_logs[util_log_y + i].buffer, util_log_x, 10.0 + (i * 10), 0.425, 0.425, DEF_LOG_COLOR);
-	}
+		Draw(util_log_logs[util_log_y + i].buffer, util_log_x, 10.0 + (i * 10), 0.425, 0.425, DEF_LOG_COLOR);
 }
 
 static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, const char* caller, const char* format_string, va_list args)
@@ -395,4 +419,5 @@ static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, cons
 		var_need_reflesh = true;
 
 	return log_index;
+}
 }

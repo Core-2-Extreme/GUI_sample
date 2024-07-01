@@ -2,6 +2,7 @@
 #define DEFINITIONS_HPP
 
 //settings
+#define DEF_MAIN_DIR_C (const char*)"/GUI_sample/"
 #define DEF_MAIN_DIR (std::string)"/GUI_sample/"
 #define DEF_UPDATE_DIR_PREFIX (std::string)"/3ds/GUI_sample_ver_"
 #define DEF_UPDATE_FILE_PREFIX (std::string)"GUI"

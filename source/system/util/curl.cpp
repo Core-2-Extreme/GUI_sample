@@ -344,9 +344,9 @@ static size_t Util_curl_save_callback(char* input_data, size_t size, size_t nmem
 	//If libcurl buffer size is bigger than our buffer size, save it directly without buffering
 	if(input_size > http_data->max_size)
 	{
-		result = Util_file_save_to_file(http_data->file_name, http_data->dir_path, (uint8_t*)input_data, input_size, false);
+		result.code = Util_file_save_to_file(http_data->file_name.c_str(), http_data->dir_path.c_str(), (uint8_t*)input_data, input_size, false);
 		http_data->current_size = 0;
-		if(result.code == 0)
+		if(result.code == DEF_SUCCESS)
 			return size * nmemb;
 		else
 			return -1;
@@ -360,16 +360,16 @@ static size_t Util_curl_save_callback(char* input_data, size_t size, size_t nmem
 		http_data->current_size += input_data_offset;
 		input_size = input_size - input_data_offset;
 
-		result = Util_file_save_to_file(http_data->file_name, http_data->dir_path, http_data->data, http_data->current_size, false);
+		result.code = Util_file_save_to_file(http_data->file_name.c_str(), http_data->dir_path.c_str(), http_data->data, http_data->current_size, false);
 		http_data->current_size = 0;
 	}
 	else
-		result.code = 0;
+		result.code = DEF_SUCCESS;
 
 	memcpy(http_data->data + http_data->current_size, input_data + input_data_offset, input_size);
 	http_data->current_size += input_size;
 
-	if(result.code == 0)
+	if(result.code == DEF_SUCCESS)
 		return size * nmemb;
 	else
 		return -1;
@@ -665,7 +665,7 @@ static Result_with_string Util_curl_save_data(CURL** curl_handle, Http_data* htt
 		goto curl_api_failed;
 	}
 
-	Util_file_save_to_file(http_data->file_name, http_data->dir_path, http_data->data, http_data->current_size, false);
+	Util_file_save_to_file(http_data->file_name.c_str(), http_data->dir_path.c_str(), http_data->data, http_data->current_size, false);
 
 	Util_safe_linear_free(http_data->data);
 	http_data->data = NULL;

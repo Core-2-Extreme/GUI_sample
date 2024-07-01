@@ -303,6 +303,7 @@ void Util_expl_set_show_flag(bool flag)
 void Util_expl_draw(void)
 {
 	uint32_t color = DEF_DRAW_BLACK;
+
 	if(!util_expl_init)
 	{
 		Draw_texture(var_square_image[0], DEF_DRAW_AQUA, 10.0, 20.0, 300.0, 190.0);
@@ -755,7 +756,7 @@ static void Util_expl_read_dir_callback(void)
 			}
 
 			//Read files in directory.
-			DEF_LOG_RESULT_SMART(result.code, Util_file_read_dir(&util_expl_current_dir, &detected_files, files.name, files.type, DEF_EXPL_MAX_FILES), (result.code == DEF_SUCCESS), result.code);
+			DEF_LOG_RESULT_SMART(result.code, Util_file_read_dir(util_expl_current_dir.buffer, &detected_files, files.name, files.type, DEF_EXPL_MAX_FILES), (result.code == DEF_SUCCESS), result.code);
 
 			if (result.code == DEF_SUCCESS)
 			{
