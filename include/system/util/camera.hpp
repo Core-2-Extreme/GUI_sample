@@ -5,6 +5,7 @@ extern "C"
 {
 #include <stdbool.h>
 #include <stdint.h>
+#include "system/util/converter_types.h"
 
 typedef enum
 {

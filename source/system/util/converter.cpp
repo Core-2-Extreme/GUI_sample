@@ -3,6 +3,8 @@
 #if DEF_ENABLE_SW_FFMPEG_COLOR_CONVERTER_API
 #include "system/types.hpp"
 
+#include "system/util/converter_types.h"
+#include "system/util/log.hpp"
 #include "system/util/util.hpp"
 
 extern "C"
@@ -212,22 +214,22 @@ uint8_t util_converter_sample_format_size_table[] =
 
 #if DEF_ENABLE_SW_CONVERTER_API
 
-#define CLIP(X) ((X) > 255 ? 255 : (X) < 0 ? 0 : X)
+#define CLIP(x) ((x) > 255 ? 255 : (x) < 0 ? 0 : x)
 // YUV -> RGB
-#define C(Y) ((Y) - 16)
-#define D(U) ((U) - 128)
-#define E(V) ((V) - 128)
+#define C(y) ((y) - 16)
+#define D(u) ((u) - 128)
+#define E(v) ((v) - 128)
 
-#define YUV2R(Y, V) 	CLIP((298 * C(Y) + 409 * E(V) + 128) >> 8)
-#define YUV2G(Y, U, V) 	CLIP((298 * C(Y) - 100 * D(U) - 208 * E(V) + 128) >> 8)
-#define YUV2B(Y, U) 	CLIP((298 * C(Y) + 516 * D(U) + 128) >> 8)
+#define YUV2R(y, v) 	CLIP((298 * C(y) + 409 * E(v) + 128) >> 8)
+#define YUV2G(y, u, v) 	CLIP((298 * C(y) - 100 * D(u) - 208 * E(v) + 128) >> 8)
+#define YUV2B(y, u) 	CLIP((298 * C(y) + 516 * D(u) + 128) >> 8)
 
 #endif
 
 #if DEF_ENABLE_SW_ASM_CONVERTER_API
 
-extern "C" void yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t* rgb565, int width, int height);
-extern "C" void yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t* rgb888, int width, int height);
+extern "C" void yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t* rgb565, uint32_t width, uint32_t height);
+extern "C" void yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t* rgb888, uint32_t width, uint32_t height);
 
 #endif
 
@@ -239,18 +241,18 @@ bool util_y2r_init = false;
 
 #if DEF_ENABLE_SW_FFMPEG_COLOR_CONVERTER_API
 
-Result_with_string Util_converter_convert_color(Color_converter_parameters* parameters)
+uint32_t Util_converter_convert_color(Color_converter_parameters* parameters)
 {
+	//We can't get rid of this "int" because library uses "int" type as args.
 	int src_line_size[4] = { 0, 0, 0, 0, };
 	int dst_line_size[4] = { 0, 0, 0, 0, };
-	int converted_image_size = 0;
-	int ffmpeg_result = 0;
 	uint8_t* src_data[4] = { NULL, NULL, NULL, NULL, };
 	uint8_t* dst_data[4] = { NULL, NULL, NULL, NULL, };
-	Result_with_string result;
+	int32_t converted_image_size = 0;
+	int32_t ffmpeg_result = 0;
 	SwsContext* sws_context = NULL;
 
-	if(!parameters || !parameters->source || parameters->in_width <= 0 || parameters->in_height <= 0 || parameters->out_width <= 0 || parameters->out_height <= 0
+	if(!parameters || !parameters->source || parameters->in_width == 0 || parameters->in_height == 0 || parameters->out_width == 0 || parameters->out_height == 0
 	|| parameters->in_color_format <= PIXEL_FORMAT_INVALID || parameters->in_color_format >= PIXEL_FORMAT_MAX || parameters->out_color_format <= PIXEL_FORMAT_INVALID || parameters->out_color_format >= PIXEL_FORMAT_MAX)
 		goto invalid_arg;
 
@@ -258,7 +260,7 @@ Result_with_string Util_converter_convert_color(Color_converter_parameters* para
 	converted_image_size = av_image_get_buffer_size(util_converter_pixel_format_table[parameters->out_color_format], parameters->out_width, parameters->out_height, 1);
 	if(converted_image_size <= 0)
 	{
-		result.error_description = "[Error] av_image_get_buffer_size() failed. " + std::to_string(converted_image_size) + " ";
+		DEF_LOG_RESULT(av_image_get_buffer_size, false, converted_image_size);
 		goto ffmpeg_api_failed;
 	}
 
@@ -271,7 +273,7 @@ Result_with_string Util_converter_convert_color(Color_converter_parameters* para
 	parameters->out_width, parameters->out_height, util_converter_pixel_format_table[parameters->out_color_format], 0, 0, 0, 0);
 	if(!sws_context)
 	{
-		result.error_description = "[Error] sws_getContext() failed. ";
+		DEF_LOG_RESULT(sws_getContext, false, DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS);
 		goto ffmpeg_api_failed;
 	}
 
@@ -279,64 +281,57 @@ Result_with_string Util_converter_convert_color(Color_converter_parameters* para
 	ffmpeg_result = av_image_fill_arrays(src_data, src_line_size, parameters->source, util_converter_pixel_format_table[parameters->in_color_format], parameters->in_width, parameters->in_height, 1);
 	if(ffmpeg_result <= 0)
 	{
-		result.error_description = "[Error] av_image_fill_arrays() failed. " + std::to_string(ffmpeg_result) + " ";
+		DEF_LOG_RESULT(av_image_fill_arrays, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
 	ffmpeg_result = av_image_fill_arrays(dst_data, dst_line_size, parameters->converted, util_converter_pixel_format_table[parameters->out_color_format], parameters->out_width, parameters->out_height, 1);
 	if(ffmpeg_result <= 0)
 	{
-		result.error_description = "[Error] av_image_fill_arrays() failed. " + std::to_string(ffmpeg_result) + " ";
+		DEF_LOG_RESULT(av_image_fill_arrays, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
 	ffmpeg_result = sws_scale(sws_context, src_data, src_line_size, 0, parameters->in_height, dst_data, dst_line_size);
 	if(ffmpeg_result < 0)
 	{
-		result.error_description = "[Error] sws_scale() failed. " + std::to_string(ffmpeg_result) + " ";
+		DEF_LOG_RESULT(sws_scale, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
 	sws_freeContext(sws_context);
 
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	out_of_memory:
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
+	return DEF_ERR_OUT_OF_MEMORY;
 
 	ffmpeg_api_failed:
 	Util_safe_linear_free(parameters->converted);
 	parameters->converted = NULL;
 	sws_freeContext(sws_context);
-	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
-	return result;
+	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
 #endif
 
 #if DEF_ENABLE_SW_FFMPEG_AUDIO_CONVERTER_API
 
-Result_with_string Util_converter_convert_audio(Audio_converter_parameters* parameters)
+uint32_t Util_converter_convert_audio(Audio_converter_parameters* parameters)
 {
 	uint8_t* src_data[AV_NUM_DATA_POINTERS] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
 	uint8_t* dst_data[AV_NUM_DATA_POINTERS] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
-	int ffmpeg_result = 0;
-	Result_with_string result;
+	int32_t ffmpeg_result = 0;
 	AVChannelLayout out_ch_layout = AV_CHANNEL_LAYOUT_MONO;
 	AVChannelLayout in_ch_layout = AV_CHANNEL_LAYOUT_MONO;
 	SwrContext* swr_context = NULL;
 
-	if(!parameters || !parameters->source || parameters->in_ch <= 0 || parameters->in_ch > 8 || parameters->in_sample_rate <= 0 || parameters->in_samples <= 0
-	|| parameters->in_sample_format <= SAMPLE_FORMAT_INVALID || parameters->in_sample_format >= SAMPLE_FORMAT_MAX || parameters->out_ch <= 0 || parameters->out_ch > 8
-	|| parameters->out_sample_rate <= 0 || parameters->out_sample_format <= SAMPLE_FORMAT_INVALID || parameters->out_sample_format >= SAMPLE_FORMAT_MAX)
+	if(!parameters || !parameters->source || parameters->in_ch == 0 || parameters->in_ch > 8 || parameters->in_sample_rate == 0 || parameters->in_samples == 0
+	|| parameters->in_sample_format <= SAMPLE_FORMAT_INVALID || parameters->in_sample_format >= SAMPLE_FORMAT_MAX || parameters->out_ch == 0 || parameters->out_ch > 8
+	|| parameters->out_sample_rate == 0 || parameters->out_sample_format <= SAMPLE_FORMAT_INVALID || parameters->out_sample_format >= SAMPLE_FORMAT_MAX)
 		goto invalid_arg;
 
 	parameters->out_samples = 0;
@@ -356,14 +351,14 @@ Result_with_string Util_converter_convert_audio(Audio_converter_parameters* para
 	&in_ch_layout, util_converter_sample_format_table[parameters->in_sample_format], parameters->in_sample_rate, 0, NULL);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "[Error] swr_alloc_set_opts2() failed. ";
+		DEF_LOG_RESULT(swr_alloc_set_opts2, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
 	ffmpeg_result = swr_init(swr_context);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "[Error] swr_init() failed. " + std::to_string(ffmpeg_result) + " ";
+		DEF_LOG_RESULT(swr_init, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
@@ -374,21 +369,21 @@ Result_with_string Util_converter_convert_audio(Audio_converter_parameters* para
 	|| parameters->in_sample_format == SAMPLE_FORMAT_S32P || parameters->in_sample_format == SAMPLE_FORMAT_S64P
 	|| parameters->in_sample_format == SAMPLE_FORMAT_FLOAT32P || parameters->in_sample_format == SAMPLE_FORMAT_DOUBLE64P)
 	{
-		for(int i = 1; i < parameters->in_ch; i++)
+		for(uint8_t i = 1; i < parameters->in_ch; i++)
 			src_data[i] = parameters->source + (parameters->in_samples * util_converter_sample_format_size_table[parameters->in_sample_format] * i);
 	}
 	if(parameters->out_sample_format == SAMPLE_FORMAT_U8P || parameters->out_sample_format == SAMPLE_FORMAT_S16P
 	|| parameters->out_sample_format == SAMPLE_FORMAT_S32P || parameters->out_sample_format == SAMPLE_FORMAT_S64P
 	|| parameters->out_sample_format == SAMPLE_FORMAT_FLOAT32P || parameters->out_sample_format == SAMPLE_FORMAT_DOUBLE64P)
 	{
-		for(int i = 1; i < parameters->out_ch; i++)
+		for(uint8_t i = 1; i < parameters->out_ch; i++)
 			dst_data[i] = parameters->converted + (parameters->out_samples * util_converter_sample_format_size_table[parameters->out_sample_format] * i);
 	}
 
 	ffmpeg_result = swr_convert(swr_context, dst_data, parameters->out_samples, (const uint8_t**)src_data, parameters->in_samples);
 	if(ffmpeg_result <= 0)
 	{
-		result.error_description = "[Error] swr_convert() failed. " + std::to_string(ffmpeg_result) + " ";
+		DEF_LOG_RESULT(swr_convert, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 	parameters->out_samples = ffmpeg_result;
@@ -397,17 +392,13 @@ Result_with_string Util_converter_convert_audio(Audio_converter_parameters* para
 	av_channel_layout_uninit(&in_ch_layout);
 	swr_free(&swr_context);
 
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	out_of_memory:
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
+	return DEF_ERR_OUT_OF_MEMORY;
 
 	ffmpeg_api_failed:
 	Util_safe_linear_free(parameters->converted);
@@ -415,25 +406,22 @@ Result_with_string Util_converter_convert_audio(Audio_converter_parameters* para
 	swr_free(&swr_context);
 	av_channel_layout_uninit(&out_ch_layout);
 	av_channel_layout_uninit(&in_ch_layout);
-	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
-	return result;
+	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
 #endif
 
 #if DEF_ENABLE_SW_CONVERTER_API
 
-Result_with_string Util_converter_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t** rgb565, int width, int height)
+uint32_t Util_converter_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t** rgb565, uint32_t width, uint32_t height)
 {
-	int index = 0;
-	uint8_t Y[4], U, V, r[4], g[4], b[4];
+	uint32_t index = 0;
+	uint8_t y[4] = { 0, }, u = 0, v = 0, r[4] = { 0, }, g[4] = { 0, }, b[4] = { 0, };
 	uint8_t* ybase = yuv420p;
 	uint8_t* ubase = yuv420p + width * height;
 	uint8_t* vbase = yuv420p + width * height + width * height / 4;
-	Result_with_string result;
 
-	if(!yuv420p || !rgb565 || width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
+	if(!yuv420p || !rgb565 || width == 0 || height == 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
 	Util_safe_linear_free(*rgb565);
@@ -441,17 +429,17 @@ Result_with_string Util_converter_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t*
 	if(!*rgb565)
 		goto out_of_memory;
 
-	for (int y = 0; y < height; y++)
+	for (uint32_t h = 0; h < height; h++)
 	{
-		for (int x = 0; x < width; x++)
+		for (uint32_t w = 0; w < width; w++)
 		{
 			//YYYYYYYYUUVV
-			Y[0] = ybase[x + y * width];
-			U = ubase[y / 2 * width / 2 + (x / 2)];
-			V = vbase[y / 2 * width / 2 + (x / 2)];
-			b[0] = YUV2B(Y[0], U);
-			g[0] = YUV2G(Y[0], U, V);
-			r[0] = YUV2R(Y[0], V);
+			y[0] = ybase[w + h * width];
+			u = ubase[h / 2 * width / 2 + (w / 2)];
+			v = vbase[h / 2 * width / 2 + (w / 2)];
+			b[0] = YUV2B(y[0], u);
+			g[0] = YUV2G(y[0], u, v);
+			r[0] = YUV2R(y[0], v);
 			b[0] = b[0] >> 3;
 			g[0] = g[0] >> 2;
 			r[0] = r[0] >> 3;
@@ -459,28 +447,25 @@ Result_with_string Util_converter_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t*
 			*(*rgb565 + index++) = (g[0] & 0b00111000) >> 3 | (r[0] & 0b00011111) << 3;
 		}
 	}
-	return result;
+
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	out_of_memory:
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
+	return DEF_ERR_OUT_OF_MEMORY;
 }
 
-Result_with_string Util_converter_yuv420p_to_rgb888le(uint8_t* yuv420p, uint8_t** rgb888, int width, int height)
+uint32_t Util_converter_yuv420p_to_rgb888le(uint8_t* yuv420p, uint8_t** rgb888, uint32_t width, uint32_t height)
 {
-	int index = 0;
+	uint32_t index = 0;
+	uint8_t y[4] = { 0, }, u = 0, v = 0;
 	uint8_t* ybase = yuv420p;
 	uint8_t* ubase = yuv420p + width * height;
 	uint8_t* vbase = yuv420p + width * height + width * height / 4;
-	Result_with_string result;
 
-	if(!yuv420p || !rgb888 || width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
+	if(!yuv420p || !rgb888 || width == 0 || height == 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
 	Util_safe_linear_free(*rgb888);
@@ -488,45 +473,40 @@ Result_with_string Util_converter_yuv420p_to_rgb888le(uint8_t* yuv420p, uint8_t*
 	if(!*rgb888)
 		goto out_of_memory;
 
-	uint8_t Y[4], U, V;
-	for (int y = 0; y < height; y++)
+	for (uint32_t h = 0; h < height; h++)
 	{
-		for (int x = 0; x < width; x++)
+		for (uint32_t w = 0; w < width; w++)
 		{
 			//YYYYYYYYUUVV
-			Y[0] = *ybase++;
-			U = ubase[y / 2 * width / 2 + (x / 2)];
-			V = vbase[y / 2 * width / 2 + (x / 2)];
+			y[0] = *ybase++;
+			u = ubase[h / 2 * width / 2 + (w / 2)];
+			v = vbase[h / 2 * width / 2 + (w / 2)];
 
-			*(*rgb888 + index++) = YUV2B(Y[0], U);
-			*(*rgb888 + index++) = YUV2G(Y[0], U, V);
-			*(*rgb888 + index++) = YUV2R(Y[0], V);
+			*(*rgb888 + index++) = YUV2B(y[0], u);
+			*(*rgb888 + index++) = YUV2G(y[0], u, v);
+			*(*rgb888 + index++) = YUV2R(y[0], v);
 		}
 	}
-	return result;
+
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	out_of_memory:
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
+	return DEF_ERR_OUT_OF_MEMORY;
 }
 
-Result_with_string Util_converter_rgba8888be_to_rgba8888le(uint8_t* rgba8888, int width, int height)
+uint32_t Util_converter_rgba8888be_to_rgba8888le(uint8_t* rgba8888, uint32_t width, uint32_t height)
 {
-	int offset = 0;
-	Result_with_string result;
+	uint32_t offset = 0;
 
-	if(!rgba8888 || width <= 0 || height <= 0)
+	if(!rgba8888 || width == 0 || height == 0)
 		goto invalid_arg;
 
-	for (int x = 0; x < width; x++)
+	for (uint32_t w = 0; w < width; w++)
 	{
-		for (int y = 0; y < height; y++)
+		for (uint32_t h = 0; h < height; h++)
 		{
 			uint8_t r = *(uint8_t*)(rgba8888 + offset);
 			uint8_t g = *(uint8_t*)(rgba8888 + offset + 1);
@@ -540,25 +520,23 @@ Result_with_string Util_converter_rgba8888be_to_rgba8888le(uint8_t* rgba8888, in
 			offset += 4;
 		}
 	}
-	return result;
+
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 }
 
-Result_with_string Util_converter_rgb888be_to_rgb888le(uint8_t* rgb888, int width, int height)
+uint32_t Util_converter_rgb888be_to_rgb888le(uint8_t* rgb888, uint32_t width, uint32_t height)
 {
-	int offset = 0;
-	Result_with_string result;
+	uint32_t offset = 0;
 
-	if(!rgb888 || width <= 0 || height <= 0)
+	if(!rgb888 || width == 0 || height == 0)
 		goto invalid_arg;
 
-	for (int x = 0; x < width; x++)
+	for (uint32_t w = 0; w < width; w++)
 	{
-		for (int y = 0; y < height; y++)
+		for (uint32_t h = 0; h < height; h++)
 		{
 			uint8_t r = *(uint8_t*)(rgb888 + offset);
 			uint8_t g = *(uint8_t*)(rgb888 + offset + 1);
@@ -570,21 +548,19 @@ Result_with_string Util_converter_rgb888be_to_rgb888le(uint8_t* rgb888, int widt
 			offset += 3;
 		}
 	}
-	return result;
+
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 }
 
-Result_with_string Util_converter_rgb888_rotate_90_degree(uint8_t* rgb888, uint8_t** rotated_rgb888, int width, int height, int* rotated_width, int* rotated_height)
+uint32_t Util_converter_rgb888_rotate_90_degree(uint8_t* rgb888, uint8_t** rotated_rgb888, uint32_t width, uint32_t height, uint32_t* rotated_width, uint32_t* rotated_height)
 {
-	Result_with_string result;
-	int offset;
-	int rotated_offset = 0;
+	uint32_t offset = 0;
+	uint32_t rotated_offset = 0;
 
-	if(!rgb888 || !rotated_rgb888 || width <= 0 || height <= 0 || !rotated_width || !rotated_height)
+	if(!rgb888 || !rotated_rgb888 || width == 0 || height == 0 || !rotated_width || !rotated_height)
 		goto invalid_arg;
 
 	Util_safe_linear_free(*rotated_rgb888);
@@ -595,10 +571,10 @@ Result_with_string Util_converter_rgb888_rotate_90_degree(uint8_t* rgb888, uint8
 	*rotated_width = height;
 	*rotated_height = width;
 
-	for(int i = width - 1; i >= 0; i--)
+	for(int32_t i = width - 1; i >= 0; i--)
 	{
 		offset = i * 3;
-		for(int k = 0; k < height; k++)
+		for(uint32_t k = 0; k < height; k++)
 		{
 			memcpy(*rotated_rgb888 + rotated_offset, rgb888 + offset, 0x3);
 			rotated_offset += 3;
@@ -606,28 +582,22 @@ Result_with_string Util_converter_rgb888_rotate_90_degree(uint8_t* rgb888, uint8
 		}
 	}
 
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	out_of_memory:
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
+	return DEF_ERR_OUT_OF_MEMORY;
 }
 
 #endif
 
 #if DEF_ENABLE_SW_ASM_CONVERTER_API
 
-Result_with_string Util_converter_yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t** rgb565, int width, int height)
+uint32_t Util_converter_yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t** rgb565, uint32_t width, uint32_t height)
 {
-	Result_with_string result;
-
-	if(!yuv420p || !rgb565 || width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
+	if(!yuv420p || !rgb565 || width == 0 || height == 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
 	Util_safe_linear_free(*rgb565);
@@ -636,24 +606,18 @@ Result_with_string Util_converter_yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint
 		goto out_of_memory;
 
 	yuv420p_to_rgb565le_asm(yuv420p, *rgb565, width, height);
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	out_of_memory:
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
+	return DEF_ERR_OUT_OF_MEMORY;
 }
 
-Result_with_string Util_converter_yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t** rgb888, int width, int height)
+uint32_t Util_converter_yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t** rgb888, uint32_t width, uint32_t height)
 {
-	Result_with_string result;
-
-	if(!yuv420p || !rgb888 || width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
+	if(!yuv420p || !rgb888 || width == 0 || height == 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
 	Util_safe_linear_free(*rgb888);
@@ -662,60 +626,53 @@ Result_with_string Util_converter_yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint
 		goto out_of_memory;
 
 	yuv420p_to_rgb888le_asm(yuv420p, *rgb888, width, height);
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	out_of_memory:
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
+	return DEF_ERR_OUT_OF_MEMORY;
 }
 
 #endif
 
 #if DEF_ENABLE_HW_CONVERTER_API
 
-Result_with_string Util_converter_y2r_init(void)
+uint32_t Util_converter_y2r_init(void)
 {
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
 
 	if(util_y2r_init)
 		goto already_inited;
 
-	result.code = y2rInit();
-	if(result.code != 0)
+	result = y2rInit();
+	if(result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] y2rInit() failed. ";
+		DEF_LOG_RESULT(y2rInit, false, result);
 		goto nintendo_api_failed;
 	}
 
 	util_y2r_init = true;
-	return result;
+	return DEF_SUCCESS;
 
 	already_inited:
-	result.code = DEF_ERR_ALREADY_INITIALIZED;
-	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_ALREADY_INITIALIZED;
 
 	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 
-Result_with_string Util_converter_y2r_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t** rgb565, int width, int height, bool texture_format)
+uint32_t Util_converter_y2r_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t** rgb565, uint16_t width, uint16_t height, bool texture_format)
 {
+	uint32_t result = DEF_ERR_OTHER;
 	Y2RU_ConversionParams y2r_parameters;
-	Handle conversion_finish_event_handle;
-	Result_with_string result;
+	Handle conversion_finish_event_handle = 0;
 
 	if(!util_y2r_init)
 		goto not_inited;
 
-	if(!yuv420p || !rgb565 || width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
+	if(!yuv420p || !rgb565 || width == 0 || height == 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
 	Util_safe_linear_free(*rgb565);
@@ -723,6 +680,7 @@ Result_with_string Util_converter_y2r_yuv420p_to_rgb565le(uint8_t* yuv420p, uint
 	if(!*rgb565)
 		goto out_of_memory;
 
+	memset(&y2r_parameters, 0x0, sizeof(y2r_parameters));
 	y2r_parameters.input_format = INPUT_YUV420_INDIV_8;
 	y2r_parameters.output_format = OUTPUT_RGB_16_565;
 	y2r_parameters.rotation = ROTATION_NONE;
@@ -732,52 +690,52 @@ Result_with_string Util_converter_y2r_yuv420p_to_rgb565le(uint8_t* yuv420p, uint
 	y2r_parameters.standard_coefficient = COEFFICIENT_ITU_R_BT_709_SCALING;
 	y2r_parameters.alpha = 0xFF;
 
-	result.code = Y2RU_SetConversionParams(&y2r_parameters);
-	if(result.code != 0)
+	result = Y2RU_SetConversionParams(&y2r_parameters);
+	if(result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] Y2RU_SetConversionParams() failed. ";
+		DEF_LOG_RESULT(Y2RU_SetConversionParams, false, result);
 		goto nintendo_api_failed;
 	}
 
-	result.code = Y2RU_SetSendingY(yuv420p, width * height, width, 0);
-	if(result.code != 0)
+	result = Y2RU_SetSendingY(yuv420p, width * height, width, 0);
+	if(result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] Y2RU_SetSendingY() failed. ";
+		DEF_LOG_RESULT(Y2RU_SetSendingY, false, result);
 		goto nintendo_api_failed;
 	}
 
-	result.code = Y2RU_SetSendingU(yuv420p + (width * height), width * height / 4, width / 2, 0);
-	if(result.code != 0)
+	result = Y2RU_SetSendingU(yuv420p + (width * height), width * height / 4, width / 2, 0);
+	if(result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] Y2RU_SetSendingU() failed. ";
+		DEF_LOG_RESULT(Y2RU_SetSendingU, false, result);
 		goto nintendo_api_failed;
 	}
 
-	result.code = Y2RU_SetSendingV(yuv420p + ((width * height) + (width * height / 4)), width * height / 4, width / 2, 0);
-	if(result.code != 0)
+	result = Y2RU_SetSendingV(yuv420p + ((width * height) + (width * height / 4)), width * height / 4, width / 2, 0);
+	if(result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] Y2RU_SetSendingV() failed. ";
+		DEF_LOG_RESULT(Y2RU_SetSendingV, false, result);
 		goto nintendo_api_failed;
 	}
 
-	result.code = Y2RU_SetReceiving(*rgb565, width * height * 2, width * 2 * 4, 0);
-	if(result.code != 0)
+	result = Y2RU_SetReceiving(*rgb565, width * height * 2, width * 2 * 4, 0);
+	if(result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] Y2RU_SetReceiving() failed. ";
+		DEF_LOG_RESULT(Y2RU_SetReceiving, false, result);
 		goto nintendo_api_failed;
 	}
 
-	result.code = Y2RU_StartConversion();
-	if(result.code != 0)
+	result = Y2RU_StartConversion();
+	if(result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] Y2RU_StartConversion() failed. ";
+		DEF_LOG_RESULT(Y2RU_StartConversion, false, result);
 		goto nintendo_api_failed;
 	}
 
-	result.code = Y2RU_GetTransferEndEvent(&conversion_finish_event_handle);
-	if(result.code != 0)
+	result = Y2RU_GetTransferEndEvent(&conversion_finish_event_handle);
+	if(result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] Y2RU_GetTransferEndEvent() failed. ";
+		DEF_LOG_RESULT(Y2RU_GetTransferEndEvent, false, result);
 		goto nintendo_api_failed;
 	}
 
@@ -787,22 +745,15 @@ Result_with_string Util_converter_y2r_yuv420p_to_rgb565le(uint8_t* yuv420p, uint
 	return result;
 
 	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_NOT_INITIALIZED;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	out_of_memory:
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
+	return DEF_ERR_OUT_OF_MEMORY;
 
 	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 

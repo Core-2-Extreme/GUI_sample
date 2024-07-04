@@ -305,7 +305,7 @@ static void Sapp0_init_thread(void* arg)
 	DEF_LOG_FORMAT("Picture size : %" PRId32 "x%" PRId32, width, height);
 	if(result.code == 0)
 	{
-		Color_converter_parameters parameters;
+		Color_converter_parameters parameters = { 0, };
 
 		//2. Convert color format.
 		parameters.source = buffer;
@@ -321,7 +321,7 @@ static void Sapp0_init_thread(void* arg)
 		else
 			parameters.out_color_format = PIXEL_FORMAT_RGB565LE;
 
-		DEF_LOG_RESULT_SMART(result, Util_converter_convert_color(&parameters), (result.code == DEF_SUCCESS), result.code);
+		DEF_LOG_RESULT_SMART(result.code, Util_converter_convert_color(&parameters), (result.code == DEF_SUCCESS), result.code);
 
 		//3. Init tecture, 1024 is texture size, it must be multiple of 2, so 2, 4, 8, 16, 32, 64...etc.
 		DEF_LOG_RESULT_SMART(result.code, Draw_texture_init(&sapp0_image[0], 1024, 1024, parameters.out_color_format), (result.code == DEF_SUCCESS), result.code);
@@ -352,7 +352,7 @@ static void Sapp0_init_thread(void* arg)
 		DEF_LOG_FORMAT("Picture size : %" PRId32 "x%" PRId32, width, height);
 		if(result.code == 0)
 		{
-			Color_converter_parameters parameters;
+			Color_converter_parameters parameters = { 0, };
 
 			//3. Convert color format.
 			parameters.source = buffer;
@@ -368,7 +368,7 @@ static void Sapp0_init_thread(void* arg)
 			else
 				parameters.out_color_format = PIXEL_FORMAT_RGB565LE;
 
-			DEF_LOG_RESULT_SMART(result, Util_converter_convert_color(&parameters), (result.code == DEF_SUCCESS), result.code);
+			DEF_LOG_RESULT_SMART(result.code, Util_converter_convert_color(&parameters), (result.code == DEF_SUCCESS), result.code);
 
 			//4. Init tecture, 1024 is texture size, it must be multiple of 2, so 2, 4, 8, 16, 32, 64...etc.
 			DEF_LOG_RESULT_SMART(result.code, Draw_texture_init(&sapp0_image[1], 1024, 1024, parameters.out_color_format), (result.code == DEF_SUCCESS), result.code);

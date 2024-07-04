@@ -880,7 +880,7 @@ void Menu_main(void)
 
 void Menu_hid_callback(void)
 {
-	Hid_info key;
+	Hid_info key = { 0, };
 
 	Util_hid_query_key_state(&key);
 	if(menu_main_run)

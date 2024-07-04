@@ -1,5 +1,6 @@
 #ifndef DECODER_HPP
 #define DECODER_HPP
+#include "system/util/converter_types.h"
 
 #if (defined(DEF_ENABLE_VIDEO_AUDIO_DECODER_API) || defined(DEF_ENABLE_IMAGE_DECODER_API))
 #include "system/types.hpp"

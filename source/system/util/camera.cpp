@@ -3,6 +3,7 @@
 #if DEF_ENABLE_CAM_API
 #include "system/types.hpp"
 
+#include "system/util/converter_types.h"
 #include "system/util/log.hpp"
 #include "system/util/util.hpp"
 

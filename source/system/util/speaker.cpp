@@ -1,8 +1,6 @@
 #include "definitions.hpp"
 
 #if DEF_ENABLE_SPEAKER_API
-#include "system/types.hpp"
-
 #include "system/util/log.hpp"
 #include "system/util/util.hpp"
 

@@ -515,7 +515,7 @@ static void Sapp4_worker_thread(void* arg)
 						int samples = 0;
 						uint8_t* audio = NULL;
 						double pos = 0;
-						Audio_converter_parameters parameters;
+						Audio_converter_parameters parameters = { 0, };
 
 						//3. Prepare packet.
 						//Since we are interested in audio, so tell API to we want to use this packet.
@@ -544,7 +544,7 @@ static void Sapp4_worker_thread(void* arg)
 								parameters.out_sample_format = SAMPLE_FORMAT_S16;
 								parameters.out_sample_rate = sapp4_audio_info.sample_rate;
 
-								result = Util_converter_convert_audio(&parameters);
+								result.code = Util_converter_convert_audio(&parameters);
 								if(result.code == DEF_SUCCESS)
 								{
 									while(true)

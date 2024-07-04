@@ -595,7 +595,7 @@ static void Sapp3_camera_thread(void* arg)
 
 					if(sapp3_camera_state == CAM_SAVING_A_PICTURE)
 					{
-						Color_converter_parameters parameters;
+						Color_converter_parameters parameters = { 0, };
 
 						/*
 						Note : Preview on the screen won't be updated while saving the picture
@@ -614,7 +614,7 @@ static void Sapp3_camera_thread(void* arg)
 						parameters.in_color_format = PIXEL_FORMAT_RGB565LE;
 						parameters.out_color_format = PIXEL_FORMAT_RGB888;
 
-						DEF_LOG_RESULT_SMART(result, Util_converter_convert_color(&parameters), (result.code == DEF_SUCCESS), result.code);
+						DEF_LOG_RESULT_SMART(result.code, Util_converter_convert_color(&parameters), (result.code == DEF_SUCCESS), result.code);
 
 						if(result.code == DEF_SUCCESS)
 						{

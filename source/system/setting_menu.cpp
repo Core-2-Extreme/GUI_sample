@@ -1778,8 +1778,6 @@ void Sem_record_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
 	bool new_3ds = false;
-	int new_width = 0;
-	int new_height = 0;
 	uint8_t mode = 0;
 	uint8_t rec_framerate = 10;
 	uint8_t* top_framebuffer = NULL;
@@ -1793,6 +1791,8 @@ void Sem_record_thread(void* arg)
 	uint16_t height = 0;
 	uint32_t offset = 0;
 	uint32_t bot_bgr_offset = 0;
+	uint32_t new_width = 0;
+	uint32_t new_height = 0;
 	double time = 0;
 	Result_with_string result;
 	TickCounter counter;
@@ -1861,7 +1861,7 @@ void Sem_record_thread(void* arg)
 
 			while(sem_record_request)
 			{
-				Color_converter_parameters parameters;
+				Color_converter_parameters parameters = { 0, };
 
 				if(sem_stop_record_request)
 					break;
@@ -1871,16 +1871,16 @@ void Sem_record_thread(void* arg)
 				if(mode == DEF_SEM_RECORD_BOTH)
 				{
 					top_framebuffer = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, &width, &height);
-					result = Util_converter_rgb888_rotate_90_degree(top_framebuffer, &top_bgr, width, height, &new_width, &new_height);
-					if(result.code != 0)
+					result.code = Util_converter_rgb888_rotate_90_degree(top_framebuffer, &top_bgr, width, height, &new_width, &new_height);
+					if(result.code != DEF_SUCCESS)
 					{
 						DEF_LOG_RESULT(Util_converter_rgb888_rotate_90_degree, false, result.code);
 						break;
 					}
 
 					bot_framebuffer = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, &width, &height);
-					result = Util_converter_rgb888_rotate_90_degree(bot_framebuffer, &bot_bgr, width, height, &new_width, &new_height);
-					if(result.code != 0)
+					result.code = Util_converter_rgb888_rotate_90_degree(bot_framebuffer, &bot_bgr, width, height, &new_width, &new_height);
+					if(result.code != DEF_SUCCESS)
 					{
 						DEF_LOG_RESULT(Util_converter_rgb888_rotate_90_degree, false, result.code);
 						break;
@@ -1897,7 +1897,7 @@ void Sem_record_thread(void* arg)
 					offset = 400 * 240 * 3;
 					bot_bgr_offset = 0;
 
-					for(int i = 0; i < 240; i++)
+					for(uint16_t i = 0; i < 240; i++)
 					{
 						memset(both_bgr + offset, 0x0, 40 * 3);
 						offset += 40 * 3;
@@ -1913,8 +1913,8 @@ void Sem_record_thread(void* arg)
 				else if(mode == DEF_SEM_RECORD_TOP)
 				{
 					top_framebuffer = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, &width, &height);
-					result = Util_converter_rgb888_rotate_90_degree(top_framebuffer, &both_bgr, width, height, &new_width, &new_height);
-					if(result.code != 0)
+					result.code = Util_converter_rgb888_rotate_90_degree(top_framebuffer, &both_bgr, width, height, &new_width, &new_height);
+					if(result.code != DEF_SUCCESS)
 					{
 						DEF_LOG_RESULT(Util_converter_rgb888_rotate_90_degree, false, result.code);
 						break;
@@ -1923,8 +1923,8 @@ void Sem_record_thread(void* arg)
 				else if(mode == DEF_SEM_RECORD_BOTTOM)
 				{
 					bot_framebuffer = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, &width, &height);
-					result = Util_converter_rgb888_rotate_90_degree(bot_framebuffer, &both_bgr, width, height, &new_width, &new_height);
-					if(result.code != 0)
+					result.code = Util_converter_rgb888_rotate_90_degree(bot_framebuffer, &both_bgr, width, height, &new_width, &new_height);
+					if(result.code != DEF_SUCCESS)
 					{
 						DEF_LOG_RESULT(Util_converter_rgb888_rotate_90_degree, false, result.code);
 						break;
@@ -1940,10 +1940,10 @@ void Sem_record_thread(void* arg)
 				parameters.out_width = rec_width;
 				parameters.source = both_bgr;
 
-				result = Util_converter_convert_color(&parameters);
+				result.code = Util_converter_convert_color(&parameters);
 				Util_safe_linear_free(both_bgr);
 				both_bgr = NULL;
-				if(result.code != 0)
+				if(result.code != DEF_SUCCESS)
 				{
 					DEF_LOG_RESULT(Util_converter_convert_color, false, result.code);
 					break;

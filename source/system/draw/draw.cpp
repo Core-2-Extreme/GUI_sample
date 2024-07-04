@@ -4,6 +4,7 @@
 
 #include "system/draw/external_font.hpp"
 
+#include "system/util/converter_types.h"
 #include "system/util/cpu_usage.h"
 #include "system/util/hid.hpp"
 #include "system/util/log.hpp"
@@ -1039,7 +1040,7 @@ void Draw_cpu_usage_info(void)
 static void Draw_debug_info(void)
 {
 	uint32_t color = DEF_DRAW_BLACK;
-	Hid_info key;
+	Hid_info key = { 0, };
 	Draw_image_data background = { 0, };
 	Util_str temp = { 0, };
 	char empty_p_h[4] = { ' ', 'p', 'h', 'h' };
