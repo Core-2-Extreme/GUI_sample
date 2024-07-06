@@ -1,8 +1,12 @@
 #include "definitions.hpp"
 
 #if DEF_ENABLE_CURL_API
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/types.hpp"
 
+#include "system/util/error_types.h"
 #include "system/util/file.hpp"
 #include "system/util/util.hpp"
 

@@ -1,6 +1,11 @@
 #include "definitions.hpp"
+
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/types.hpp"
 
+#include "system/util/error_types.h"
 #include "system/util/file.hpp"
 
 #include "base64/base64.h"
@@ -8,12 +13,14 @@
 //Include myself.
 #include "system/util/util.hpp"
 
+
 bool util_safe_linear_alloc_init = false, util_init = false;
 uint32_t util_max_core_1 = 0;
 LightLock util_safe_linear_alloc_mutex = 1, util_watch_variables_mutex = 1;//Initially unlocked state.
 
 uint32_t util_num_of_watch[WATCH_HANDLE_MAX] = { 0, };
 Watch_data util_watch_data[DEF_MAX_WATCH_VARIABLES];
+
 
 extern "C" void memcpy_asm(uint8_t*, uint8_t*, int);
 

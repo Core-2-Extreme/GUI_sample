@@ -1,7 +1,12 @@
 #include "definitions.hpp"
+
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/types.hpp"
 
 #include "system/util/converter_types.h"
+#include "system/util/error_types.h"
 #include "system/util/fake_pthread.hpp"
 #include "system/util/util.hpp"
 

@@ -1,22 +1,8 @@
 #if !defined(DEF_MIC_H)
 #define DEF_MIC_H
-
-extern "C"
-{
 #include <stdbool.h>
 #include <stdint.h>
-
-enum Mic_sample_rate
-{
-	MIC_SAMPLE_RATE_INVALID = -1,
-
-	MIC_SAMPLE_RATE_8182HZ,
-	MIC_SAMPLE_RATE_10909HZ,
-	MIC_SAMPLE_RATE_16364HZ,
-	MIC_SAMPLE_RATE_32728HZ,
-
-	MIC_SAMPLE_RATE_MAX,
-};
+#include "system/util/mic_types.h"
 
 #if defined(DEF_ENABLE_MIC_API)
 
@@ -88,5 +74,5 @@ void Util_mic_exit(void);
 #define Util_mic_exit()
 
 #endif //defined(DEF_ENABLE_MIC_API)
-}
+
 #endif //!defined(DEF_MIC_H)

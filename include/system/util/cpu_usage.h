@@ -1,12 +1,10 @@
-#if !defined(CPU_USAGE_H)
-#define CPU_USAGE_H
+#if !defined(DEF_CPU_USAGE_H)
+#define DEF_CPU_USAGE_H
 #include <stdbool.h>
 #include <stdint.h>
 
 #if DEF_ENABLE_CPU_MONITOR_API
 
-extern "C"
-{
 /**
  * @brief Initialize cpu usage monitor API.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
@@ -37,5 +35,5 @@ float Util_cpu_usage_monitor_get_cpu_usage(int8_t core_id);
 #define Util_cpu_usage_monitor_get_cpu_usage(...) NAN
 
 #endif //DEF_ENABLE_CPU_MONITOR_API
-}
-#endif //!defined(CPU_USAGE_H)
+
+#endif //!defined(DEF_CPU_USAGE_H)

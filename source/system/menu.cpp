@@ -1,4 +1,8 @@
 #include "definitions.hpp"
+
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/types.hpp"
 
 #include "system/setting_menu.hpp"
@@ -7,16 +11,20 @@
 #include "system/draw/draw.hpp"
 #include "system/draw/external_font.hpp"
 
-#include "system/util/cpu_usage.h"
 #include "system/util/curl.hpp"
-#include "system/util/error.hpp"
-#include "system/util/explorer.hpp"
 #include "system/util/file.hpp"
-#include "system/util/hid.hpp"
-#include "system/util/hw_config.h"
 #include "system/util/httpc.hpp"
-#include "system/util/log.hpp"
 #include "system/util/util.hpp"
+
+extern "C"
+{
+#include "system/util/cpu_usage.h"
+#include "system/util/error.h"
+#include "system/util/explorer.h"
+#include "system/util/hid.h"
+#include "system/util/hw_config.h"
+#include "system/util/log.h"
+}
 
 #ifdef DEF_ENABLE_SUB_APP0
 #include "sub_app0.hpp"
@@ -53,6 +61,7 @@
 //Include myself.
 #include "system/menu.hpp"
 
+
 bool menu_thread_run = false;
 bool menu_main_run = true;
 bool menu_must_exit = false;
@@ -87,6 +96,7 @@ void Menu_check_connectivity_thread(void* arg);
 void Menu_update_thread(void* arg);
 
 #endif
+
 
 bool Menu_query_must_exit_flag(void)
 {

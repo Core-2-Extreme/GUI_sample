@@ -1,8 +1,5 @@
-#if !defined(SPEAKER_HPP)
-#define SPEAKER_HPP
-
-extern "C"
-{
+#if !defined(DEF_SPEAKER_HPP)
+#define DEF_SPEAKER_HPP
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -118,5 +115,5 @@ void Util_speaker_exit(void);
 #define Util_speaker_exit()
 
 #endif //DEF_ENABLE_SPEAKER_API
-}
-#endif //!defined(SPEAKER_HPP)
+
+#endif //!defined(DEF_SPEAKER_HPP)

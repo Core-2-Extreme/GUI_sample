@@ -1,5 +1,5 @@
-#if !defined(CONVERTER_TYPES_H)
-#define CONVERTER_TYPES_H
+#if !defined(DEF_CONVERTER_TYPES_H)
+#define DEF_CONVERTER_TYPES_H
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -207,4 +207,4 @@ typedef struct
 	Sample_format out_sample_format;	//(in) Converted audio sample format.
 } Audio_converter_parameters;
 
-#endif //!defined(CONVERTER_TYPES_H)
+#endif //!defined(DEF_CONVERTER_TYPES_H)

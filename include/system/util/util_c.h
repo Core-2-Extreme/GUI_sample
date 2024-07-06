@@ -1,5 +1,5 @@
-#ifndef UTIL_H_
-#define UTIL_H_
+#if !defined(DEF_UTIL_H)
+#define DEF_UTIL_H
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -10,4 +10,4 @@
 */
 void Util_sleep(int64_t us);
 
-#endif //UTIL_H_
+#endif //!defined(DEF_UTIL_H)

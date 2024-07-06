@@ -1,21 +1,10 @@
-#if !defined(EXPLORER_HPP)
-#define EXPLORER_HPP
+#if !defined(DEF_EXPLORER_HPP)
+#define DEF_EXPLORER_HPP
 #include <stdbool.h>
 #include <stdint.h>
-#include "system/util/hid.hpp"
-
-extern "C"
-{
-#include "system/util/str.h"
-
-#define DEF_EXPL_INVALID_INDEX		(uint32_t)(UINT32_MAX)
-
-#define EXPL_FILE_TYPE_NONE			(Expl_file_type)(0 << 0)	//File type is not set.
-#define EXPL_FILE_TYPE_FILE			(Expl_file_type)(1 << 0)	//This entry is a file.
-#define EXPL_FILE_TYPE_DIR			(Expl_file_type)(1 << 1)	//This entry is a directory.
-#define EXPL_FILE_TYPE_READ_ONLY	(Expl_file_type)(1 << 2)	//This entry is read only.
-#define EXPL_FILE_TYPE_HIDDEN		(Expl_file_type)(1 << 3)	//This entry is hidden.
-typedef uint8_t Expl_file_type;
+#include "system/util/explorer_types.h"
+#include "system/util/hid_types.h"
+#include "system/util/str_types.h"
 
 #if DEF_ENABLE_EXPL_API
 
@@ -157,5 +146,5 @@ void Util_expl_main(Hid_info key);
 #define Util_expl_main(...)
 
 #endif //DEF_ENABLE_EXPL_API
-}
-#endif //!defined(EXPLORER_HPP)
+
+#endif //!defined(DEF_EXPLORER_HPP)

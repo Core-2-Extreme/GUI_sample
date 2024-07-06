@@ -1,5 +1,7 @@
-#ifndef SWKBD_HPP
-#define SWKBD_HPP
+#if !defined(DEF_SWKBD_HPP)
+#define DEF_SWKBD_HPP
+#include <stdbool.h>
+#include <stdint.h>
 
 #if DEF_ENABLE_SWKBD_API
 #include "system/types.hpp"
@@ -113,6 +115,6 @@ void Util_swkbd_exit(void);
 #define Util_swkbd_launch(...) Util_return_result_with_string(var_disabled_result)
 #define Util_swkbd_exit()
 
-#endif
+#endif //DEF_ENABLE_SWKBD_API
 
-#endif
+#endif //!defined(DEF_SWKBD_HPP)

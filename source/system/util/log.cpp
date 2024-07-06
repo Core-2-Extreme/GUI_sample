@@ -1,6 +1,9 @@
 #include "definitions.hpp"
 
 #include <inttypes.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 #include "system/types.hpp"
 
@@ -8,14 +11,20 @@
 
 #include "system/draw/draw.hpp"
 
+#include "system/util/error_types.h"
 #include "system/util/file.hpp"
+
 extern "C"
 {
 	#include "system/util/str.h"
 }
 
 //Include myself.
-#include "system/util/log.hpp"
+extern "C"
+{
+	#include "system/util/log.h"
+}
+
 
 extern "C"
 {

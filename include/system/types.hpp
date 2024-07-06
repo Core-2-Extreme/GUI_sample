@@ -1,6 +1,7 @@
-#ifndef TYPES_HPP
-#define TYPES_HPP
-
+#if !defined(DEF_TYPES_HPP)
+#define DEF_TYPES_HPP
+#include <stdbool.h>
+#include <stdint.h>
 #include <string>
 
 #include <3ds.h>
@@ -9,6 +10,7 @@
 #include "system_definitions.hpp"
 
 #include "system/util/converter_types.h"
+#include "system/util/error_types.h"
 
 enum Multi_thread_type
 {
@@ -187,4 +189,4 @@ struct Subtitle_data
 	std::string text = "";	//Subtitle text.
 };
 
-#endif
+#endif //!defined(DEF_TYPES_HPP)

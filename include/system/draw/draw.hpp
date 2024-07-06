@@ -1,5 +1,5 @@
-#if !defined(DRAW_HPP)
-#define DRAW_HPP
+#if !defined(DEF_DRAW_HPP)
+#define DEF_DRAW_HPP
 
 #include "system/types.hpp"
 
@@ -381,4 +381,5 @@ void Draw_screen_ready(Draw_screen screen, uint32_t abgr8888);
 */
 void Draw_apply_draw(void);
 }
-#endif //!defined(DRAW_HPP)
+
+#endif //!defined(DEF_DRAW_HPP)

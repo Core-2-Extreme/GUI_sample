@@ -1,9 +1,11 @@
-#ifndef ENCODER_HPP
-#define ENCODER_HPP
+#if !defined(DEF_ENCODER_HPP)
+#define DEF_ENCODER_HPP
+#include <stdbool.h>
+#include <stdint.h>
 
 #if (defined(DEF_ENABLE_VIDEO_AUDIO_ENCODER_API) || defined(DEF_ENABLE_IMAGE_ENCODER_API))
 #include "system/types.hpp"
-#endif
+#endif //(defined(DEF_ENABLE_VIDEO_AUDIO_ENCODER_API) || defined(DEF_ENABLE_IMAGE_ENCODER_API))
 
 #if DEF_ENABLE_VIDEO_AUDIO_ENCODER_API
 
@@ -94,7 +96,7 @@ void Util_encoder_close_output_file(int session);
 #define Util_video_encoder_encode(...) Util_return_result_with_string(var_disabled_result)
 #define Util_encoder_close_output_file(...)
 
-#endif
+#endif //DEF_ENABLE_VIDEO_AUDIO_ENCODER_API
 
 #if DEF_ENABLE_IMAGE_ENCODER_API
 
@@ -116,6 +118,6 @@ Result_with_string Util_image_encoder_encode(std::string file_path, uint8_t* raw
 
 #define Util_image_encoder_encode(...) Util_return_result_with_string(var_disabled_result)
 
-#endif
+#endif //DEF_ENABLE_IMAGE_ENCODER_API
 
-#endif
+#endif //!defined(DEF_ENCODER_HPP)

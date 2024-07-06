@@ -1,6 +1,7 @@
-#ifndef UTIL_HPP
-#define UTIL_HPP
-
+#if !defined(DEF_UTIL_HPP)
+#define DEF_UTIL_HPP
+#include <stdbool.h>
+#include <stdint.h>
 #include "system/types.hpp"
 
 extern "C" void* __real_malloc(size_t size);
@@ -247,4 +248,4 @@ std::string Util_return_string(std::string string);
 */
 Result_with_string Util_return_result_with_string(Result_with_string value);
 
-#endif
+#endif //!defined(DEF_UTIL_HPP)

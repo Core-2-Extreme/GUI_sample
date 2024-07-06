@@ -1,5 +1,7 @@
-#ifndef CURL_HPP
-#define CURL_HPP
+#if !defined(DEF_CURL_HPP)
+#define DEF_CURL_HPP
+#include <stdbool.h>
+#include <stdint.h>
 
 #if DEF_ENABLE_CURL_API
 #include "system/types.hpp"
@@ -449,6 +451,6 @@ int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_da
 #define Util_curl_post_and_dl_data(...) Util_return_result_with_string(var_disabled_result)
 #define Util_curl_post_and_save_data(...) Util_return_result_with_string(var_disabled_result)
 
-#endif
+#endif //DEF_ENABLE_CURL_API
 
-#endif
+#endif //!defined(DEF_CURL_HPP)

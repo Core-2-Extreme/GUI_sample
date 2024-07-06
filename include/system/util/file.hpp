@@ -1,13 +1,12 @@
-#ifndef FILE_HPP
-#define FILE_HPP
+#if !defined(DEF_FILE_HPP)
+#define DEF_FILE_HPP
+#include <stdbool.h>
+#include <stdint.h>
 
 #include "system/types.hpp"
 
-#include "system/util/explorer.hpp"
-extern "C"
-{
-#include "system/util/str.h"
-}
+#include "system/util/explorer_types.h"
+#include "system/util/str_types.h"
 
 /**
  * @brief Save data to a file.
@@ -134,4 +133,4 @@ Result_with_string Util_file_check_file_exist(std::string file_name, std::string
 */
 uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Util_str* file_name, Expl_file_type* type, uint32_t array_length);
 
-#endif
+#endif //!defined(DEF_FILE_HPP)

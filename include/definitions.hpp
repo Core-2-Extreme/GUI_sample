@@ -1,5 +1,5 @@
-#ifndef DEFINITIONS_HPP
-#define DEFINITIONS_HPP
+#if !defined(DEF_DEFINITIONS_HPP)
+#define DEF_DEFINITIONS_HPP
 
 //settings
 #define DEF_MAIN_DIR_C (const char*)"/GUI_sample/"
@@ -123,4 +123,4 @@
 #define DEF_SAPP7_NAME (std::string)"sample 7"
 #define DEF_SAPP7_VER (std::string)"v0.0.1"
 
-#endif
+#endif //!defined(DEF_DEFINITIONS_HPP)

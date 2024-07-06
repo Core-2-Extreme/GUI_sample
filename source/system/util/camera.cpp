@@ -1,14 +1,25 @@
 #include "definitions.hpp"
 
 #if DEF_ENABLE_CAM_API
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/types.hpp"
 
 #include "system/util/converter_types.h"
-#include "system/util/log.hpp"
+#include "system/util/error_types.h"
 #include "system/util/util.hpp"
 
+extern "C"
+{
+#include "system/util/log.h"
+}
+
 //Include myself.
-#include "system/util/camera.hpp"
+extern "C"
+{
+#include "system/util/camera.h"
+}
 
 
 extern "C"

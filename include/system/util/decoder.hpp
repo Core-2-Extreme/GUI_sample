@@ -1,10 +1,12 @@
-#ifndef DECODER_HPP
-#define DECODER_HPP
+#if !defined(DEF_DECODER_HPP)
+#define DEF_DECODER_HPP
+#include <stdbool.h>
+#include <stdint.h>
 #include "system/util/converter_types.h"
 
 #if (defined(DEF_ENABLE_VIDEO_AUDIO_DECODER_API) || defined(DEF_ENABLE_IMAGE_DECODER_API))
 #include "system/types.hpp"
-#endif
+#endif //(defined(DEF_ENABLE_VIDEO_AUDIO_DECODER_API) || defined(DEF_ENABLE_IMAGE_DECODER_API))
 
 #if DEF_ENABLE_VIDEO_AUDIO_DECODER_API
 
@@ -433,7 +435,7 @@ void Util_decoder_close_file(int session);
 #define Util_decoder_seek(...) Util_return_result_with_string(var_disabled_result)
 #define Util_decoder_close_file(...)
 
-#endif
+#endif //DEF_ENABLE_VIDEO_AUDIO_DECODER_API
 
 #if DEF_ENABLE_IMAGE_DECODER_API
 
@@ -468,6 +470,6 @@ Result_with_string Util_image_decoder_decode(uint8_t* compressed_data, int compr
 
 #define Util_image_decoder_decode(...) Util_return_result_with_string(var_disabled_result)
 
-#endif
+#endif //DEF_ENABLE_IMAGE_DECODER_API
 
-#endif
+#endif //!defined(DEF_DECODER_HPP)

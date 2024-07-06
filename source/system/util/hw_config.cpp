@@ -1,10 +1,22 @@
 #include "definitions.hpp"
+
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/types.hpp"
 
-#include "system/util/log.hpp"
+#include "system/util/error_types.h"
+extern "C"
+{
+#include "system/util/log.h"
+}
 
 //Include myself.
+extern "C"
+{
 #include "system/util/hw_config.h"
+}
+
 
 extern "C"
 {

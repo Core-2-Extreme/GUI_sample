@@ -1,8 +1,9 @@
-#if !defined(SAPP4_HPP)
-#define SAPP4_HPP
-
+#if !defined(DEF_SAPP4_HPP)
+#define DEF_SAPP4_HPP
+#include <stdbool.h>
+#include <stdint.h>
 #include "system/types.hpp"
-#include "system/util/hid.hpp"
+#include "system/util/hid_types.h"
 
 bool Sapp4_query_init_flag(void);
 
@@ -22,4 +23,4 @@ void Sapp4_exit(bool draw);
 
 void Sapp4_main(void);
 
-#endif //!defined(SAPP4_HPP)
+#endif //!defined(DEF_SAPP4_HPP)

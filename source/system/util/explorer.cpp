@@ -2,6 +2,8 @@
 
 #if DEF_ENABLE_EXPL_API
 #include <algorithm>
+#include <stdbool.h>
+#include <stdint.h>
 
 #include "system/types.hpp"
 
@@ -10,17 +12,21 @@
 #include "system/menu.hpp"
 #include "system/variables.hpp"
 
+#include "system/util/error_types.h"
 #include "system/util/file.hpp"
-#include "system/util/hid.hpp"
-#include "system/util/log.hpp"
 #include "system/util/util.hpp"
 extern "C"
 {
+#include "system/util/hid.h"
+#include "system/util/log.h"
 #include "system/util/str.h"
 }
 
 //Include myself.
-#include "system/util/explorer.hpp"
+extern "C"
+{
+#include "system/util/explorer.h"
+}
 
 
 extern "C"

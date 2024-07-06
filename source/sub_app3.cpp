@@ -1,4 +1,8 @@
 #include "definitions.hpp"
+
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/types.hpp"
 
 #include "system/menu.hpp"
@@ -6,18 +10,18 @@
 
 #include "system/draw/draw.hpp"
 
-#include "system/util/camera.hpp"
 #include "system/util/converter.hpp"
 #include "system/util/encoder.hpp"
-#include "system/util/error.hpp"
 #include "system/util/file.hpp"
-#include "system/util/hid.hpp"
-#include "system/util/log.hpp"
-#include "system/util/mic.h"
 #include "system/util/util.hpp"
 
 extern "C"
 {
+	#include "system/util/camera.h"
+	#include "system/util/error.h"
+	#include "system/util/hid.h"
+	#include "system/util/log.h"
+	#include "system/util/mic.h"
 	#include "system/util/queue.h"
 	#include "system/util/str.h"
 }

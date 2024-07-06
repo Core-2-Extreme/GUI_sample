@@ -3,11 +3,16 @@
 #if DEF_ENABLE_HTTPC_API
 #include "system/types.hpp"
 
+#include <stdbool.h>
+#include <stdint.h>
+
+#include "system/util/error_types.h"
 #include "system/util/file.hpp"
 #include "system/util/util.hpp"
 
 //Include myself.
 #include "system/util/httpc.hpp"
+
 
 bool util_httpc_init = false;
 

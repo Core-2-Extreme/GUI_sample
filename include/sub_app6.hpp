@@ -1,8 +1,9 @@
-#if !defined(SAPP6_HPP)
-#define SAPP6_HPP
-
+#if !defined(DEF_SAPP6_HPP)
+#define DEF_SAPP6_HPP
+#include <stdbool.h>
+#include <stdint.h>
 #include "system/types.hpp"
-#include "system/util/hid.hpp"
+#include "system/util/hid_types.h"
 
 bool Sapp6_query_init_flag(void);
 
@@ -22,4 +23,4 @@ void Sapp6_exit(bool draw);
 
 void Sapp6_main(void);
 
-#endif //!defined(SAPP6_HPP)
+#endif //!defined(DEF_SAPP6_HPP)

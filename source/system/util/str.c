@@ -8,6 +8,8 @@
 
 #include "system/system_definitions.hpp"
 
+#include "system/util/error_types.h"
+
 //Include myself.
 #include "system/util/str.h"
 

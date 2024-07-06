@@ -1,18 +1,9 @@
-#ifndef _STR_H
-#define _STR_H
+#if !defined(DEF_STR_H)
+#define DEF_STR_H
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
-
-#define DEF_STR_INITIAL_CAPACITY 16
-
-typedef struct
-{
-	uint8_t sequencial_id;	//Used to detect string buffer changes.
-	uint32_t capacity;		//Current buffer capacity (without NULL terminator, so (capacity + 1) bytes are allocated).
-	uint32_t length;		//Current string length (without NULL terminator).
-	char* buffer;		    //String buffer.
-} Util_str;
+#include "system/util/str_types.h"
 
 /**
  * @brief Initialize a string struct.
@@ -127,4 +118,4 @@ bool Util_str_is_valid(Util_str* string);
 */
 bool Util_str_has_data(Util_str* string);
 
-#endif //_STR_H
+#endif //!defined(DEF_STR_H)

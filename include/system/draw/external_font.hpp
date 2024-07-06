@@ -1,8 +1,6 @@
-#ifndef EXTERNAL_FONT_HPP
-#define EXTERNAL_FONT_HPP
+#if !defined(DEF_EXTERNAL_FONT_HPP)
+#define DEF_EXTERNAL_FONT_HPP
 
-extern "C"
-{
 #define DEF_EXFONT_MAX_CHAR_LENGTH		(uint8_t)(4)
 
 typedef struct
@@ -136,5 +134,5 @@ float texture_size_x, float texture_size_y, uint32_t abgr8888, float* out_width,
 */
 void Exfont_draw_get_text_size(Exfont_one_char* in_part_string, uint32_t num_of_characters, float texture_size_x,
 float texture_size_y, float* out_width, float* out_height);
-}
-#endif
+
+#endif //!defined(DEF_EXTERNAL_FONT_HPP)

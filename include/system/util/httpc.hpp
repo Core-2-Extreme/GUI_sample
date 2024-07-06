@@ -1,5 +1,7 @@
-#ifndef HTTPC_HPP
-#define HTTPC_HPP
+#if !defined(DEF_HTTPC_HPP)
+#define DEF_HTTPC_HPP
+#include <stdbool.h>
+#include <stdint.h>
 
 #if DEF_ENABLE_HTTPC_API
 #include "system/types.hpp"
@@ -317,6 +319,6 @@ uint32_t* status_code, bool follow_redirect, int max_redirect, std::string* last
 #define Util_httpc_post_and_dl_data(...) Util_return_result_with_string(var_disabled_result)
 #define Util_httpc_post_and_save_data(...) Util_return_result_with_string(var_disabled_result)
 
-#endif
+#endif //DEF_ENABLE_HTTPC_API
 
-#endif
+#endif //!defined(DEF_HTTPC_HPP)

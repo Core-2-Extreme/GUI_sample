@@ -1,13 +1,26 @@
 #include "definitions.hpp"
+
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/types.hpp"
 
 #include "system/variables.hpp"
 
 #include "system/draw/draw.hpp"
-#include "system/util/log.hpp"
+
+#include "system/util/error_types.h"
+extern "C"
+{
+#include "system/util/log.h"
+}
 
 //Include myself.
-#include "system/util/hid.hpp"
+extern "C"
+{
+#include "system/util/hid.h"
+}
+
 
 extern "C"
 {
@@ -99,7 +112,9 @@ void (*util_hid_callbacks[DEF_HID_NUM_OF_CALLBACKS])(void) = { NULL, };
 Thread util_hid_scan_thread = NULL;
 LightLock util_hid_callback_mutex = 1;//Initially unlocked state.
 
+
 void Util_hid_scan_hid_thread(void* arg);
+
 
 uint32_t Util_hid_init(void)
 {

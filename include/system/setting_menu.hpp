@@ -1,8 +1,9 @@
-#if !defined(SETTING_MENU_HPP)
-#define SETTING_MENU_HPP
-
+#if !defined(DEF_SETTING_MENU_HPP)
+#define DEF_SETTING_MENU_HPP
+#include <stdbool.h>
+#include <stdint.h>
 #include "types.hpp"
-#include "system/util/hid.hpp"
+#include "system/util/hid_types.h"
 
 bool Sem_query_init_flag(void);
 
@@ -24,4 +25,4 @@ void Sem_main(void);
 
 void Sem_hid(Hid_info key);
 
-#endif //!defined(SETTING_MENU_HPP)
+#endif //!defined(DEF_SETTING_MENU_HPP)

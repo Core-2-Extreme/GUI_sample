@@ -1,5 +1,8 @@
-#include "system/types.hpp"
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/menu.hpp"
+
 
 int main()
 {

@@ -1,16 +1,20 @@
 #include "definitions.hpp"
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/variables.hpp"
 
 #include "system/draw/external_font.hpp"
 
 #include "system/util/converter_types.h"
-#include "system/util/cpu_usage.h"
-#include "system/util/hid.hpp"
-#include "system/util/log.hpp"
+#include "system/util/error_types.h"
 #include "system/util/util.hpp"
 extern "C"
 {
+	#include "system/util/cpu_usage.h"
+	#include "system/util/hid.h"
+	#include "system/util/log.h"
 	#include "system/util/str.h"
 }
 

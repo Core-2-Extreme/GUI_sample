@@ -1,8 +1,9 @@
-#if !defined(SAPP1_HPP)
-#define SAPP1_HPP
-
+#if !defined(DEF_SAPP1_HPP)
+#define DEF_SAPP1_HPP
+#include <stdbool.h>
+#include <stdint.h>
 #include "system/types.hpp"
-#include "system/util/hid.hpp"
+#include "system/util/hid_types.h"
 
 bool Sapp1_query_init_flag(void);
 
@@ -22,4 +23,4 @@ void Sapp1_exit(bool draw);
 
 void Sapp1_main(void);
 
-#endif //!defined(SAPP1_HPP)
+#endif //!defined(DEF_SAPP1_HPP)

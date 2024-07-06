@@ -1,17 +1,29 @@
 #include "definitions.hpp"
 
 #if DEF_ENABLE_SPEAKER_API
-#include "system/util/log.hpp"
+#include <stdbool.h>
+#include <stdint.h>
+
+#include "system/util/error_types.h"
 #include "system/util/util.hpp"
+extern "C"
+{
+#include "system/util/log.h"
+}
 
 //Include myself.
+extern "C"
+{
 #include "system/util/speaker.h"
+}
+
 
 extern "C"
 {
 bool util_speaker_init = false;
 uint32_t util_speaker_music_ch[24] = { 0, };
 ndspWaveBuf util_ndsp_buffer[24][DEF_SPEAKER_MAX_BUFFERS] = { 0, };
+
 
 uint32_t Util_speaker_init(void)
 {

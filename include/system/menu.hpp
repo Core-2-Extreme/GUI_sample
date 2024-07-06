@@ -1,6 +1,7 @@
-#ifndef MENU_HPP
-#define MENU_HPP
-
+#if !defined(DEF_MENU_HPP)
+#define DEF_MENU_HPP
+#include <stdbool.h>
+#include <stdint.h>
 #include "types.hpp"
 
 bool Menu_query_must_exit_flag(void);
@@ -23,4 +24,4 @@ void Menu_exit(void);
 
 void Menu_main(void);
 
-#endif
+#endif //!defined(DEF_MENU_HPP)

@@ -1,6 +1,7 @@
-#ifndef VARIABLES_HPP
-#define VARIABLES_HPP
-
+#if !defined(DEF_VARIABLES_HPP)
+#define DEF_VARIABLES_HPP
+#include <stdbool.h>
+#include <stdint.h>
 #include "system/types.hpp"
 
 extern bool var_connect_test_succes;
@@ -55,4 +56,4 @@ extern C2D_Image var_square_image[1];
 extern C2D_Image var_null_image;
 extern Result_with_string var_disabled_result;
 
-#endif
+#endif //!defined(DEF_VARIABLES_HPP)

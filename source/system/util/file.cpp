@@ -1,11 +1,16 @@
 #include "definitions.hpp"
+
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/types.hpp"
 
-#include "system/util/explorer.hpp"
-#include "system/util/log.hpp"
+#include "system/util/error_types.h"
 #include "system/util/util.hpp"
 extern "C"
 {
+#include "system/util/explorer.h"
+#include "system/util/log.h"
 #include "system/util/str.h"
 }
 

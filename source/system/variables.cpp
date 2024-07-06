@@ -1,8 +1,12 @@
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/types.hpp"
 #include "system/util/util.hpp"
 
 //Include myself.
 #include "system/variables.hpp"
+
 
 //set heap size, rest memory will be linear ram
 uint32_t __ctru_heap_size = 1024 * 1024 * 10;

@@ -1,4 +1,8 @@
 #include "definitions.hpp"
+
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/types.hpp"
 
 #include "system/menu.hpp"
@@ -6,9 +10,15 @@
 
 #include "system/draw/draw.hpp"
 
+#include "system/util/error_types.h"
 #include "system/util/file.hpp"
-#include "system/util/log.hpp"
 #include "system/util/util.hpp"
+
+extern "C"
+{
+	#include "system/util/log.h"
+	#include "system/util/str.h"
+}
 
 //Include myself.
 #include "system/draw/external_font.hpp"

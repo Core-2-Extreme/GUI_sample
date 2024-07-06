@@ -1,4 +1,8 @@
 #include "definitions.hpp"
+
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/types.hpp"
 
 #include "system/menu.hpp"
@@ -8,16 +12,20 @@
 #include "system/draw/external_font.hpp"
 
 #include "system/util/converter.hpp"
-#include "system/util/cpu_usage.h"
 #include "system/util/curl.hpp"
 #include "system/util/encoder.hpp"
-#include "system/util/error.hpp"
 #include "system/util/file.hpp"
-#include "system/util/hid.hpp"
 #include "system/util/httpc.hpp"
-#include "system/util/hw_config.h"
-#include "system/util/log.hpp"
 #include "system/util/util.hpp"
+
+extern "C"
+{
+#include "system/util/cpu_usage.h"
+#include "system/util/error.h"
+#include "system/util/hid.h"
+#include "system/util/hw_config.h"
+#include "system/util/log.h"
+}
 
 //Include myself.
 #include "system/setting_menu.hpp"
@@ -53,6 +61,7 @@
 #ifdef DEF_ENABLE_SUB_APP7
 #include "sub_app7.hpp"
 #endif
+
 
 bool sem_main_run = false;
 bool sem_already_init = false;
@@ -109,7 +118,6 @@ uint32_t sem_dled_size = 0;
 
 #endif
 
-
 #if DEF_ENABLE_CPU_MONITOR_API
 
 Draw_image_data sem_monitor_cpu_usage_on_button = { 0, }, sem_monitor_cpu_usage_off_button = { 0, };
@@ -128,6 +136,7 @@ uint16_t sem_rec_width = 400;
 uint16_t sem_rec_height = 480;
 Thread sem_record_thread, sem_encode_thread;
 
+
 void Sem_encode_thread(void* arg);
 void Sem_record_thread(void* arg);
 
@@ -140,6 +149,7 @@ void Sem_worker_callback(void);
 void Sem_update_thread(void* arg);
 
 #endif
+
 
 bool Sem_query_init_flag(void)
 {

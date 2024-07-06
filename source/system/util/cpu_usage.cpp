@@ -1,11 +1,19 @@
 #include "definitions.hpp"
 
 #if DEF_ENABLE_CPU_MONITOR_API
-#include "system/util/log.hpp"
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdint.h>
+
+#include "system/util/error_types.h"
 #include "system/util/util.hpp"
 
 //Include myself.
+extern "C"
+{
+#include "system/util/log.h"
 #include "system/util/cpu_usage.h"
+}
 
 extern "C"
 {

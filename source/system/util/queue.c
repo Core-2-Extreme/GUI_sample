@@ -5,7 +5,7 @@
 
 #include <3ds/synchronization.h>
 
-#include "system/util/error.h"
+#include "system/util/error_types.h"
 #include "system/util/util_c.h"
 
 //Include myself.

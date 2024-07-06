@@ -1,45 +1,78 @@
-#ifndef ERROR_H_
-#define ERROR_H_
+#if !defined(DEF_ERROR_HPP)
+#define DEF_ERROR_HPP
 #include <stdbool.h>
 #include <stdint.h>
+#include "system/util/error_types.h"
+#include "system/util/hid_types.h"
 
-#define DEF_SUCCESS								(uint32_t)(0x00000000)
-#define DEF_ERR_OTHER							(uint32_t)(0xFFFFFFFF)
-#define DEF_ERR_OUT_OF_MEMORY					(uint32_t)(0xFFFFFFFE)
-#define DEF_ERR_OUT_OF_LINEAR_MEMORY			(uint32_t)(0xFFFFFFFD)
-#define DEF_ERR_GAS_RETURNED_NOT_SUCCESS		(uint32_t)(0xFFFFFFFC)
-#define DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS	(uint32_t)(0xFFFFFFFB)
-#define DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS		(uint32_t)(0xFFFFFFFA)
-#define DEF_ERR_INVALID_ARG						(uint32_t)(0xFFFFFFF9)
-#define DEF_ERR_JSMN_RETURNED_NOT_SUCCESS		(uint32_t)(0xFFFFFFF8)
-#define DEF_ERR_TRY_AGAIN						(uint32_t)(0xFFFFFFF7)
-#define DEF_ERR_ALREADY_INITIALIZED				(uint32_t)(0xFFFFFFF6)
-#define DEF_ERR_NOT_INITIALIZED					(uint32_t)(0xFFFFFFF5)
-#define DEF_ERR_CURL_RETURNED_NOT_SUCCESS		(uint32_t)(0xFFFFFFF4)
-#define DEF_ERR_NEED_MORE_INPUT					(uint32_t)(0xFFFFFFF3)
-//This is different from DEF_ERR_DECODER_TRY_AGAIN, No video output was made at this call, try again without calling Util_decoder_ready_video_packet().
-#define DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT		(uint32_t)(0xFFFFFFF2)
-//This is different from DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT, Video output was made at this call, try again without calling Util_decoder_ready_video_packet().
-#define DEF_ERR_DECODER_TRY_AGAIN				(uint32_t)(0xFFFFFFF1)
-#define DEF_ERR_DISABLED						(uint32_t)(0xFFFFFFF0)
+/**
+ * @brief Initialize a error api.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
+ * @warning Thread dangerous (untested)
+*/
+uint32_t Util_err_init(void);
 
-// #define DEF_ERR_OTHER_STR (std::string)"[Error] Something went wrong. "
-// #define DEF_ERR_OUT_OF_MEMORY_STR (std::string)"[Error] Out of memory. "
-// #define DEF_ERR_OUT_OF_LINEAR_MEMORY_STR (std::string)"[Error] Out of linear memory. "
-// #define DEF_ERR_GAS_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] Google apps script returned NOT success. "
-// #define DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] stb image returned NOT success. "
-// #define DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] ffmpeg returned NOT success. "
-// #define DEF_ERR_INVALID_ARG_STR (std::string)"[Error] Invalid arg. "
-// #define DEF_ERR_JSMN_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] jsmn returned NOT success. "
-// #define DEF_ERR_TRY_AGAIN_STR (std::string)"[Error] Try again later. "
-// #define DEF_ERR_ALREADY_INITIALIZED_STR (std::string)"[Error] Already initialized. "
-// #define DEF_ERR_NOT_INITIALIZED_STR (std::string)"[Error] Not initialized. "
-// #define DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] Nintendo api returned NOT success. "
-// #define DEF_ERR_CURL_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] curl returned NOT success. "
-// #define DEF_ERR_NEED_MORE_INPUT_STR (std::string)"[Error] Need more input to produce the output. "
-// #define DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT_STR (std::string)"[Error] Try again (video output was made). "
-// #define DEF_ERR_DECODER_TRY_AGAIN_STR (std::string)"[Error] Try again. "
-// #define DEF_ERR_DISABLED_STR (std::string)"[Error] This function is disabled. "
+/**
+ * @brief Uninitialize a error API.
+ * Do nothing if error api is not initialized.
+ * @warning Thread dangerous (untested)
+*/
+void Util_err_exit(void);
 
+/**
+ * @brief Query error show flag.
+ * Always return false if error api is not initialized.
+ * @return Internal error show flag.
+ * @warning Thread dangerous (untested)
+*/
+bool Util_err_query_error_show_flag(void);
 
-#endif //ERROR_H_
+/**
+ * @brief Set error message.
+ * Do nothing if error api is not initialized.
+ * @param summary (in) Error summary.
+ * @param description (in) Error description.
+ * @param location (in) Error location.
+ * @param error_code (in) Error code.
+ * @warning Thread dangerous (untested)
+*/
+void Util_err_set_error_message(const char* summary, const char* description, const char* location, uint32_t error_code);
+
+/**
+ * @brief Set error show flag.
+ * Do nothing if error api is not initialized.
+ * @param flag (in) When true, internal error show flag will be set to true otherwise set to false.
+ * @warning Thread dangerous (untested)
+*/
+void Util_err_set_error_show_flag(bool flag);
+
+/**
+ * @brief Clear error message.
+ * Do nothing if error api is not initialized.
+ * @warning Thread dangerous (untested)
+*/
+void Util_err_clear_error_message(void);
+
+/**
+ * @brief Save error message to SD card.
+ * After saving error message, error show flag will be set to false.
+ * Do nothing if error api is not initialized.
+ * @warning Thread dangerous (untested)
+*/
+void Util_err_save_error(void);
+
+/**
+ * @brief Process user input for Util_err_draw().
+ * @param key (in) key info returned by Util_hid_query_key_state().
+ * @warning Thread dangerous (untested)
+*/
+void Util_err_main(Hid_info key);
+
+/**
+ * @brief Draw error message.
+ * @warning Thread dangerous (untested)
+ * @warning Call it from only drawing thread.
+*/
+void Util_err_draw(void);
+
+#endif //!defined(DEF_ERROR_HPP)

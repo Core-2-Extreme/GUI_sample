@@ -1,7 +1,10 @@
+#include "definitions.hpp"
+
 #include <malloc.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <unistd.h>
 
-#include "definitions.hpp"
 #include "system/types.hpp"
 
 #include "system/variables.hpp"
@@ -9,13 +12,14 @@
 //Include myself.
 #include "system/util/fake_pthread.hpp"
 
+
 extern "C"
 {
-
 int util_fake_pthread_core_offset = 0;
 int util_fake_pthread_enabled_core_list[4] = { 0, 1, -3, -3, };
 int util_fake_pthread_enabled_cores = 2;
 LightLock util_fake_pthread_mutex = 1;//Initially unlocked state.
+
 
 void Util_fake_pthread_set_enabled_core(bool enabled_core[4])
 {

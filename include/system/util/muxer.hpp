@@ -1,5 +1,7 @@
-#ifndef MUXER_HPP
-#define MUXER_HPP
+#if !defined(DEF_MUXER_HPP)
+#define DEF_MUXER_HPP
+#include <stdbool.h>
+#include <stdint.h>
 
 #if DEF_ENABLE_MUXER_API
 #include "system/types.hpp"
@@ -50,6 +52,6 @@ void Util_muxer_close(int session);
 #define Util_muxer_mux(...) Util_return_result_with_string(var_disabled_result)
 #define Util_muxer_close(...)
 
-#endif
+#endif //DEF_ENABLE_MUXER_API
 
-#endif
+#endif //!defined(DEF_MUXER_HPP)

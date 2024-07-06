@@ -1,13 +1,23 @@
 #include "definitions.hpp"
 
 #if DEF_ENABLE_MIC_API
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/types.hpp"
 
-#include "system/util/log.hpp"
+#include "system/util/error_types.h"
 #include "system/util/util.hpp"
+extern "C"
+{
+#include "system/util/log.h"
+}
 
 //Include myself.
+extern "C"
+{
 #include "system/util/mic.h"
+}
 
 
 extern "C"
@@ -16,6 +26,7 @@ bool util_mic_init = false;
 uint8_t* util_mic_buffer = NULL;
 uint32_t util_mic_last_pos = 0;
 uint32_t util_mic_sample_rate = 0;
+
 
 uint32_t Util_mic_init(uint32_t buffer_size)
 {

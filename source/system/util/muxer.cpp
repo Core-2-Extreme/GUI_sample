@@ -1,7 +1,12 @@
 #include "definitions.hpp"
 
 #if DEF_ENABLE_MUXER_API
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/types.hpp"
+
+#include "system/util/error_types.h"
 
 extern "C"
 {
@@ -11,6 +16,7 @@ extern "C"
 
 //Include myself.
 #include "system/util/muxer.hpp"
+
 
 bool util_audio_muxer_init[DEF_MUXER_MAX_SESSIONS];
 int util_audio_muxer_stream_num[DEF_MUXER_MAX_SESSIONS];
@@ -29,6 +35,7 @@ const AVCodec* util_video_muxer_codec[DEF_MUXER_MAX_SESSIONS];
 AVStream* util_video_muxer_format_stream[DEF_MUXER_MAX_SESSIONS];
 
 AVFormatContext* util_muxer_format_context[DEF_MUXER_MAX_SESSIONS];
+
 
 Result_with_string Util_muxer_open_audio_file(std::string file_path, int session)
 {

@@ -1,16 +1,11 @@
-#ifndef LOG_HPP
-#define LOG_HPP
+#if !defined(DEF_LOG_HPP)
+#define DEF_LOG_HPP
 #include <inttypes.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "system/util/hid.hpp"
-
-extern "C"
-{
-#define DEF_LOG_MAX_LENGTH				(uint32_t)(1024)			//Maximum log text length in bytes.
-#define DEF_LOG_INDEX_AUTO				(uint32_t)(UINT32_MAX)		//Use next log index.
-#define DEF_LOG_GET_SYMBOL(x)			#x							//Get symbol name.
-#define DEF_LOG_GET_FUNCTION_NAME(x)	(const char*)(__func__)		//Get function name.
+#include "system/util/hid_types.h"
+#include "system/util/log_types.h"
 
 /**
  * @brief Initialize a log api.
@@ -220,5 +215,5 @@ void Util_log_main(Hid_info key);
  * @warning Call it from only drawing thread.
 */
 void Util_log_draw(void);
-}
-#endif
+
+#endif //!defined(DEF_LOG_HPP)

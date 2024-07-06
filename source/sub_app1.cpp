@@ -1,4 +1,8 @@
 #include "definitions.hpp"
+
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "system/types.hpp"
 
 #include "system/menu.hpp"
@@ -6,15 +10,15 @@
 
 #include "system/draw/draw.hpp"
 
-#include "system/util/error.hpp"
-#include "system/util/explorer.hpp"
-#include "system/util/hid.hpp"
-#include "system/util/log.hpp"
 #include "system/util/util.hpp"
 
 extern "C"
 {
+	#include "system/util/error.h"
+	#include "system/util/explorer.h"
+	#include "system/util/hid.h"
 	#include "system/util/str.h"
+	#include "system/util/log.h"
 }
 
 //Include myself.

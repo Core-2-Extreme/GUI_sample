@@ -1,5 +1,5 @@
-#ifndef CONVERTER_HPP
-#define CONVERTER_HPP
+#if !defined(DEF_CONVERTER_HPP)
+#define DEF_CONVERTER_HPP
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/converter_types.h"
@@ -18,7 +18,7 @@ uint32_t Util_converter_convert_color(Color_converter_parameters* paraeters);
 
 #define Util_converter_convert_color(...) DEF_ERR_DISABLED
 
-#endif
+#endif //DEF_ENABLE_SW_FFMPEG_COLOR_CONVERTER_API
 
 #if DEF_ENABLE_SW_FFMPEG_AUDIO_CONVERTER_API
 
@@ -34,7 +34,7 @@ uint32_t Util_converter_convert_audio(Audio_converter_parameters* parameters);
 
 #define Util_converter_convert_audio(...) DEF_ERR_DISABLED
 
-#endif
+#endif //DEF_ENABLE_SW_FFMPEG_AUDIO_CONVERTER_API
 
 #if DEF_ENABLE_SW_CONVERTER_API
 
@@ -105,7 +105,7 @@ uint32_t Util_converter_rgb888_rotate_90_degree(uint8_t* rgb888, uint8_t** rotat
 #define Util_converter_rgb888le_to_yuv420p(...) DEF_ERR_DISABLED
 #define Util_converter_rgb565le_to_rgb888le(...) DEF_ERR_DISABLED
 
-#endif
+#endif //DEF_ENABLE_SW_CONVERTER_API
 
 #if DEF_ENABLE_SW_ASM_CONVERTER_API
 
@@ -136,7 +136,7 @@ uint32_t Util_converter_yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t** rgb5
 #define Util_converter_yuv420p_to_rgb888le_asm(...) DEF_ERR_DISABLED
 #define Util_converter_yuv420p_to_rgb565le_asm(...) DEF_ERR_DISABLED
 
-#endif
+#endif //DEF_ENABLE_SW_ASM_CONVERTER_API
 
 #if DEF_ENABLE_HW_CONVERTER_API
 
@@ -173,6 +173,6 @@ void Util_converter_y2r_exit(void);
 #define Util_converter_y2r_yuv420p_to_rgb565le(...) DEF_ERR_DISABLED
 #define Util_converter_y2r_exit()
 
-#endif
+#endif //DEF_ENABLE_HW_CONVERTER_API
 
-#endif
+#endif //!defined(DEF_CONVERTER_HPP)
