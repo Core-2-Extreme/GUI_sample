@@ -210,7 +210,7 @@ uint32_t Util_expl_query_file_name(uint32_t index, Util_str* file_name)
 	if(!util_expl_init)
 		goto not_inited;
 
-	if(index > DEF_EXPL_MAX_FILES || !file_name)
+	if(index >= DEF_EXPL_MAX_FILES || !file_name)
 		goto invalid_arg;
 
 	result = Util_str_init(file_name);
@@ -518,23 +518,28 @@ void Util_expl_main(Hid_info key)
 
 			if (!is_root_dir)
 			{
-				//Back to parent directory.
-				char* last_slash_pos = strrchr(dir.buffer, '/');
-
-				if(last_slash_pos)
+				if(Util_str_has_data(&dir))
 				{
-					//Remove last slash first.
-					uint32_t new_length = (last_slash_pos - dir.buffer);
+					//Back to parent directory.
+					char* last_slash_pos = strrchr(dir.buffer, '/');
 
-					Util_str_resize(&dir, new_length);
-
-					last_slash_pos = strrchr(dir.buffer, '/');
 					if(last_slash_pos)
 					{
-						//Then remove until next slash.
-						new_length = (last_slash_pos - dir.buffer) + 1;
+						//Remove last slash first.
+						uint32_t new_length = (last_slash_pos - dir.buffer);
+
 						Util_str_resize(&dir, new_length);
+
+						last_slash_pos = strrchr(dir.buffer, '/');
+						if(last_slash_pos)
+						{
+							//Then remove until next slash.
+							new_length = (last_slash_pos - dir.buffer) + 1;
+							Util_str_resize(&dir, new_length);
+						}
 					}
+					else
+						Util_str_set(&dir, "/");
 				}
 				else
 					Util_str_set(&dir, "/");

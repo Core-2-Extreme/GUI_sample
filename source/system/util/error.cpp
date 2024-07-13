@@ -242,7 +242,7 @@ static void Util_err_save_callback(void)
 		if(Util_str_is_valid(&file_name) && Util_str_is_valid(&save_data))
 		{
 			Util_str_format(&file_name, "%04d_%02d_%02d_%02d_%02d_%02d.txt", var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
-			Util_str_format(&save_data, "\n\n##ERROR MESSAGE##\n%s\n%s\n%s\n%s\n", util_err_summary, util_err_description, util_err_location, util_err_code);
+			Util_str_format(&save_data, "\n\n##ERROR MESSAGE##\n%s\n%s\n%s\n%s\n", util_err_summary.buffer, util_err_description.buffer, util_err_location.buffer, util_err_code.buffer);
 
 			result = Util_log_dump(file_name.buffer, (DEF_MAIN_DIR_C "error/"));
 			if(result != DEF_SUCCESS)

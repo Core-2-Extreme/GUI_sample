@@ -35,7 +35,7 @@ uint32_t Util_hw_config_set_screen_brightness(bool top_screen, bool bottom_scree
 	else
 		goto invalid_arg;
 
-	if(brightness < 0 || brightness > 200)
+	if(brightness > 200)
 		goto invalid_arg;
 
 	result = gspLcdInit();

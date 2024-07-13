@@ -108,7 +108,7 @@ uint32_t Util_queue_add(Util_queue* queue, uint32_t event_id, void* data, int64_
 		if(option & QUEUE_OPTION_SEND_TO_FRONT)
 		{
 			//Move other data to back.
-			for(int64_t i = (queue->next_index - 1); i > -1; i--)
+			for(int64_t i = ((int64_t)queue->next_index - 1); i > -1; i--)
 			{
 				queue->data[i + 1] = queue->data[i];
 				queue->event_id[i + 1] = queue->event_id[i];
