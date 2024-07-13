@@ -1743,8 +1743,6 @@ void Sem_hid(Hid_info key)
 void Sem_encode_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
-	uint8_t* yuv420p = NULL;
-	Result_with_string result;
 
 	while (sem_thread_run)
 	{
@@ -1752,6 +1750,9 @@ void Sem_encode_thread(void* arg)
 		{
 			if(sem_encode_request)
 			{
+				uint8_t* yuv420p = NULL;
+				uint32_t result = DEF_ERR_OTHER;
+
 				sem_wait_request = true;
 				sem_encode_request = false;
 				yuv420p = (uint8_t*)Util_safe_linear_alloc(sem_rec_width * sem_rec_height * 1.5);
@@ -1762,9 +1763,9 @@ void Sem_encode_thread(void* arg)
 					memcpy(yuv420p, sem_yuv420p, sem_rec_width * sem_rec_height * 1.5);
 
 					result = Util_video_encoder_encode(yuv420p, 0);
-					if(result.code != 0)
+					if(result != DEF_SUCCESS)
 					{
-						DEF_LOG_RESULT(Util_video_encoder_encode, false, result.code);
+						DEF_LOG_RESULT(Util_video_encoder_encode, false, result);
 						break;
 					}
 				}
@@ -1804,7 +1805,6 @@ void Sem_record_thread(void* arg)
 	uint32_t new_width = 0;
 	uint32_t new_height = 0;
 	double time = 0;
-	Result_with_string result;
 	TickCounter counter;
 	APT_CheckNew3DS(&new_3ds);
 	osTickCounterStart(&counter);
@@ -1813,6 +1813,7 @@ void Sem_record_thread(void* arg)
 	{
 		if (sem_record_request)
 		{
+			uint32_t result = DEF_ERR_OTHER;
 			std::string file_path = "";
 
 			if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DS || var_model == CFG_MODEL_N3DSXL)
@@ -1853,16 +1854,16 @@ void Sem_record_thread(void* arg)
 			file_path = DEF_MAIN_DIR + "screen_recording/" + std::to_string(var_years) + "_" + std::to_string(var_months) + "_"
 			+ std::to_string(var_days) + "_" + std::to_string(var_hours) + "_" + std::to_string(var_minutes) + "_" + std::to_string(var_seconds) + ".mp4";
 
-			DEF_LOG_RESULT_SMART(result, Util_encoder_create_output_file(file_path, 0), (result.code == DEF_SUCCESS), result.code);
-			if(result.code != 0)
+			DEF_LOG_RESULT_SMART(result, Util_encoder_create_output_file(file_path.c_str(), 0), (result == DEF_SUCCESS), result);
+			if(result != DEF_SUCCESS)
 				sem_record_request = false;
 
-			DEF_LOG_RESULT_SMART(result, Util_video_encoder_init(VIDEO_CODEC_MJPEG, rec_width, rec_height, 1500000, rec_framerate, 0), (result.code == DEF_SUCCESS), result.code);
-			if(result.code != 0)
+			DEF_LOG_RESULT_SMART(result, Util_video_encoder_init(VIDEO_CODEC_MJPEG, rec_width, rec_height, 1500000, rec_framerate, 0), (result == DEF_SUCCESS), result);
+			if(result != DEF_SUCCESS)
 				sem_record_request = false;
 
-			DEF_LOG_RESULT_SMART(result, Util_encoder_write_header(0), (result.code == DEF_SUCCESS), result.code);
-			if(result.code != 0)
+			DEF_LOG_RESULT_SMART(result, Util_encoder_write_header(0), (result == DEF_SUCCESS), result);
+			if(result != DEF_SUCCESS)
 				sem_record_request = false;
 
 			sem_yuv420p = (uint8_t*)Util_safe_linear_alloc(rec_width * rec_height * 1.5);
@@ -1881,18 +1882,18 @@ void Sem_record_thread(void* arg)
 				if(mode == DEF_SEM_RECORD_BOTH)
 				{
 					top_framebuffer = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, &width, &height);
-					result.code = Util_converter_rgb888_rotate_90_degree(top_framebuffer, &top_bgr, width, height, &new_width, &new_height);
-					if(result.code != DEF_SUCCESS)
+					result = Util_converter_rgb888_rotate_90_degree(top_framebuffer, &top_bgr, width, height, &new_width, &new_height);
+					if(result != DEF_SUCCESS)
 					{
-						DEF_LOG_RESULT(Util_converter_rgb888_rotate_90_degree, false, result.code);
+						DEF_LOG_RESULT(Util_converter_rgb888_rotate_90_degree, false, result);
 						break;
 					}
 
 					bot_framebuffer = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, &width, &height);
-					result.code = Util_converter_rgb888_rotate_90_degree(bot_framebuffer, &bot_bgr, width, height, &new_width, &new_height);
-					if(result.code != DEF_SUCCESS)
+					result = Util_converter_rgb888_rotate_90_degree(bot_framebuffer, &bot_bgr, width, height, &new_width, &new_height);
+					if(result != DEF_SUCCESS)
 					{
-						DEF_LOG_RESULT(Util_converter_rgb888_rotate_90_degree, false, result.code);
+						DEF_LOG_RESULT(Util_converter_rgb888_rotate_90_degree, false, result);
 						break;
 					}
 
@@ -1923,20 +1924,20 @@ void Sem_record_thread(void* arg)
 				else if(mode == DEF_SEM_RECORD_TOP)
 				{
 					top_framebuffer = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, &width, &height);
-					result.code = Util_converter_rgb888_rotate_90_degree(top_framebuffer, &both_bgr, width, height, &new_width, &new_height);
-					if(result.code != DEF_SUCCESS)
+					result = Util_converter_rgb888_rotate_90_degree(top_framebuffer, &both_bgr, width, height, &new_width, &new_height);
+					if(result != DEF_SUCCESS)
 					{
-						DEF_LOG_RESULT(Util_converter_rgb888_rotate_90_degree, false, result.code);
+						DEF_LOG_RESULT(Util_converter_rgb888_rotate_90_degree, false, result);
 						break;
 					}
 				}
 				else if(mode == DEF_SEM_RECORD_BOTTOM)
 				{
 					bot_framebuffer = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, &width, &height);
-					result.code = Util_converter_rgb888_rotate_90_degree(bot_framebuffer, &both_bgr, width, height, &new_width, &new_height);
-					if(result.code != DEF_SUCCESS)
+					result = Util_converter_rgb888_rotate_90_degree(bot_framebuffer, &both_bgr, width, height, &new_width, &new_height);
+					if(result != DEF_SUCCESS)
 					{
-						DEF_LOG_RESULT(Util_converter_rgb888_rotate_90_degree, false, result.code);
+						DEF_LOG_RESULT(Util_converter_rgb888_rotate_90_degree, false, result);
 						break;
 					}
 				}
@@ -1950,12 +1951,12 @@ void Sem_record_thread(void* arg)
 				parameters.out_width = rec_width;
 				parameters.source = both_bgr;
 
-				result.code = Util_converter_convert_color(&parameters);
+				result = Util_converter_convert_color(&parameters);
 				Util_safe_linear_free(both_bgr);
 				both_bgr = NULL;
-				if(result.code != DEF_SUCCESS)
+				if(result != DEF_SUCCESS)
 				{
-					DEF_LOG_RESULT(Util_converter_convert_color, false, result.code);
+					DEF_LOG_RESULT(Util_converter_convert_color, false, result);
 					break;
 				}
 				memcpy(sem_yuv420p, parameters.converted, rec_width * rec_height * 1.5);

@@ -286,7 +286,7 @@ static void Sapp0_init_thread(void* arg)
 	DEF_LOG_STRING("Thread started.");
 	uint8_t* buffer = NULL;
 	uint8_t* png_data = NULL;
-	int width = 0, height = 0;
+	uint32_t width = 0, height = 0;
 	int dled_size = 0;
 	char file_path[] = "romfs:/gfx/draw/sapp0/sample.jpg";
 	char url[] = "https://user-images.githubusercontent.com/45873899/167138864-b6a9e25e-2dce-49d0-9b5a-d5986e768ad6.png";
@@ -305,9 +305,9 @@ static void Sapp0_init_thread(void* arg)
 	//Load picture from romfs (or SD card).
 
 	//1. Decode a picture.
-	DEF_LOG_RESULT_SMART(result, Util_image_decoder_decode(file_path, &buffer, &width, &height, &color_format), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Util_image_decoder_decode(file_path, &buffer, &width, &height, &color_format), (result.code == DEF_SUCCESS), result.code);
 	DEF_LOG_FORMAT("Picture size : %" PRId32 "x%" PRId32, width, height);
-	if(result.code == 0)
+	if(result.code == DEF_SUCCESS)
 	{
 		Color_converter_parameters parameters = { 0, };
 
@@ -329,7 +329,7 @@ static void Sapp0_init_thread(void* arg)
 
 		//3. Init tecture, 1024 is texture size, it must be multiple of 2, so 2, 4, 8, 16, 32, 64...etc.
 		DEF_LOG_RESULT_SMART(result.code, Draw_texture_init(&sapp0_image[0], 1024, 1024, parameters.out_color_format), (result.code == DEF_SUCCESS), result.code);
-		if(result.code == 0)
+		if(result.code == DEF_SUCCESS)
 		{
 			//4. Set raw image data to texture.
 			Draw_set_texture_data(&sapp0_image[0], parameters.converted, parameters.out_width, parameters.out_height, 0, 0);
@@ -349,12 +349,12 @@ static void Sapp0_init_thread(void* arg)
 
 	//1. Download png from the Internet.
 	DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(url, &png_data, 1024 * 1024, &dled_size, true, 5), (result.code == DEF_SUCCESS), result.code);
-	if(result.code == 0)
+	if(result.code == DEF_SUCCESS)
 	{
 		//2. Decode a picture.
-		DEF_LOG_RESULT_SMART(result, Util_image_decoder_decode(png_data, dled_size, &buffer, &width, &height, &color_format), (result.code == DEF_SUCCESS), result.code);
+		DEF_LOG_RESULT_SMART(result.code, Util_image_decoder_decode_data(png_data, dled_size, &buffer, &width, &height, &color_format), (result.code == DEF_SUCCESS), result.code);
 		DEF_LOG_FORMAT("Picture size : %" PRId32 "x%" PRId32, width, height);
-		if(result.code == 0)
+		if(result.code == DEF_SUCCESS)
 		{
 			Color_converter_parameters parameters = { 0, };
 
@@ -376,7 +376,7 @@ static void Sapp0_init_thread(void* arg)
 
 			//4. Init tecture, 1024 is texture size, it must be multiple of 2, so 2, 4, 8, 16, 32, 64...etc.
 			DEF_LOG_RESULT_SMART(result.code, Draw_texture_init(&sapp0_image[1], 1024, 1024, parameters.out_color_format), (result.code == DEF_SUCCESS), result.code);
-			if(result.code == 0)
+			if(result.code == DEF_SUCCESS)
 			{
 				//5. Set raw image data to texture.
 				Draw_set_texture_data(&sapp0_image[1], parameters.converted, parameters.out_width, parameters.out_height, 0, 0);

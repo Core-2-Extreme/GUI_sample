@@ -2,36 +2,30 @@
 #define DEF_DECODER_HPP
 #include <stdbool.h>
 #include <stdint.h>
-#include "system/util/converter_types.h"
-
-#if (defined(DEF_ENABLE_VIDEO_AUDIO_DECODER_API) || defined(DEF_ENABLE_IMAGE_DECODER_API))
-#include "system/types.hpp"
-#endif //(defined(DEF_ENABLE_VIDEO_AUDIO_DECODER_API) || defined(DEF_ENABLE_IMAGE_DECODER_API))
+#include "system/util/media_types.h"
 
 #if DEF_ENABLE_VIDEO_AUDIO_DECODER_API
 
 /**
  * @brief Open media file.
- * @param file_path (in) File path.
+ * @param path (in) File path.
  * @param num_of_audio_tracks (out) Number of audio tracks.
  * @param num_of_video_tracks (out) Number of video tracks.
  * @param num_of_subtitle_tracks (out) Number of subtitle tracks.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_decoder_open_file(std::string file_path, int* num_of_audio_tracks, int* num_of_video_tracks, int* num_of_subtitle_tracks, int session);
+uint32_t Util_decoder_open_file(const char* path, uint8_t* num_of_audio_tracks, uint8_t* num_of_video_tracks, uint8_t* num_of_subtitle_tracks, uint8_t session);
 
 /**
  * @brief Initialize a audio decoder.
  * @param num_of_audio_tracks (in) Number of audio tracks.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_audio_decoder_init(int num_of_audio_tracks, int session);
+uint32_t Util_audio_decoder_init(uint8_t num_of_audio_tracks, uint8_t session);
 
 /**
  * @brief Set core mask for multi-threaded decoding.
@@ -48,31 +42,28 @@ void Util_video_decoder_set_enabled_cores(bool frame_threading_cores[4], bool sl
  * @param num_of_threads (in) Number of threads.
  * @param thread_type (in) Thread type when not THREAD_TYPE_NONE, enable multi-threaded decoding if video codec supports it.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_tracks, int num_of_threads, Multi_thread_type thread_type, int session);
+uint32_t Util_video_decoder_init(uint8_t low_resolution, uint8_t num_of_video_tracks, uint8_t num_of_threads, Multi_thread_type thread_type, uint8_t session);
 
 /**
  * @brief Initialize a mvd (hardware) video decoder.
  * You need to call Util_video_decoder_init() first, then call this function.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_mvd_video_decoder_init(int session);
+uint32_t Util_mvd_video_decoder_init(uint8_t session);
 
 /**
  * @brief Initialize a subtitle decoder.
  * @param num_of_subtitle_tracks (in) Number of subtitle tracks.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_subtitle_decoder_init(int num_of_subtitle_tracks, int session);
+uint32_t Util_subtitle_decoder_init(uint8_t num_of_subtitle_tracks, uint8_t session);
 
 /**
  * @brief Get audio info.
@@ -82,7 +73,7 @@ Result_with_string Util_subtitle_decoder_init(int num_of_subtitle_tracks, int se
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)
 */
-void Util_audio_decoder_get_info(Audio_info* audio_info, int audio_index, int session);
+void Util_audio_decoder_get_info(Audio_info* audio_info, uint8_t audio_index, uint8_t session);
 
 /**
  * @brief Get video info.
@@ -92,7 +83,7 @@ void Util_audio_decoder_get_info(Audio_info* audio_info, int audio_index, int se
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)
 */
-void Util_video_decoder_get_info(Video_info* video_info, int video_index, int session);
+void Util_video_decoder_get_info(Video_info* video_info, uint8_t video_index, uint8_t session);
 
 /**
  * @brief Get subtitle info.
@@ -102,7 +93,7 @@ void Util_video_decoder_get_info(Video_info* video_info, int video_index, int se
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)
 */
-void Util_subtitle_decoder_get_info(Subtitle_info* subtitle_info, int subtitle_index, int session);
+void Util_subtitle_decoder_get_info(Subtitle_info* subtitle_info, uint8_t subtitle_index, uint8_t session);
 
 /**
  * @brief Clear cache packet.
@@ -110,7 +101,7 @@ void Util_subtitle_decoder_get_info(Subtitle_info* subtitle_info, int subtitle_i
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)
 */
-void Util_decoder_clear_cache_packet(int session);
+void Util_decoder_clear_cache_packet(uint8_t session);
 
 /**
  * @brief Get number of buffered packet.
@@ -119,16 +110,15 @@ void Util_decoder_clear_cache_packet(int session);
  * @return Number of buffered packet.
  * @warning Thread dangerous (untested)
 */
-int Util_decoder_get_available_packet_num(int session);
+uint16_t Util_decoder_get_available_packet_num(uint8_t session);
 
 /**
  * @brief Read packet.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_decoder_read_packet(int session);
+uint32_t Util_decoder_read_packet(uint8_t session);
 
 /**
  * @brief Parse packet type.
@@ -136,44 +126,40 @@ Result_with_string Util_decoder_read_packet(int session);
  * @param packet_index (out) Pointer for packet index.
  * @param key_frame (out) Pointer for key frame (video packet only).
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_decoder_parse_packet(Packet_type* type, int* packet_index, bool* key_frame, int session);
+uint32_t Util_decoder_parse_packet(Packet_type* type, uint8_t* packet_index, bool* key_frame, uint8_t session);
 
 /**
  * @brief Ready audio packet for decoding.
  * Call it after Util_decoder_parse_packet() returned PACKET_TYPE_AUDIO.
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_decoder_ready_audio_packet(int packet_index, int session);
+uint32_t Util_decoder_ready_audio_packet(uint8_t packet_index, uint8_t session);
 
 /**
  * @brief Ready video packet for decoding.
  * Call it after Util_decoder_parse_packet() returned PACKET_TYPE_VIDEO.
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_decoder_ready_video_packet(int packet_index, int session);
+uint32_t Util_decoder_ready_video_packet(int8_t packet_index, int8_t session);
 
 /**
  * @brief Ready subtitle packet for decoding.
  * Call it after Util_decoder_parse_packet() returned PACKET_TYPE_SUBTITLE.
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_decoder_ready_subtitle_packet(int packet_index, int session);
+uint32_t Util_decoder_ready_subtitle_packet(uint8_t packet_index, uint8_t session);
 
 /**
  * @brief Skip audio packet.
@@ -183,7 +169,7 @@ Result_with_string Util_decoder_ready_subtitle_packet(int packet_index, int sess
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)
 */
-void Util_decoder_skip_audio_packet(int packet_index, int session);
+void Util_decoder_skip_audio_packet(uint8_t packet_index, uint8_t session);
 
 /**
  * @brief Skip video packet.
@@ -193,7 +179,7 @@ void Util_decoder_skip_audio_packet(int packet_index, int session);
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)
 */
-void Util_decoder_skip_video_packet(int packet_index, int session);
+void Util_decoder_skip_video_packet(uint8_t packet_index, uint8_t session);
 
 /**
  * @brief Skip subtitle packet.
@@ -203,7 +189,7 @@ void Util_decoder_skip_video_packet(int packet_index, int session);
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)
 */
-void Util_decoder_skip_subtitle_packet(int packet_index, int session);
+void Util_decoder_skip_subtitle_packet(uint8_t packet_index, uint8_t session);
 
 /**
  * @brief Set max raw buffer size.
@@ -214,7 +200,7 @@ void Util_decoder_skip_subtitle_packet(int packet_index, int session);
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)
 */
-void Util_video_decoder_set_raw_image_buffer_size(int max_num_of_buffer, int packet_index, int session);
+void Util_video_decoder_set_raw_image_buffer_size(uint32_t max_num_of_buffer, uint8_t packet_index, uint8_t session);
 
 /**
  * @brief Set max raw buffer size.
@@ -224,7 +210,7 @@ void Util_video_decoder_set_raw_image_buffer_size(int max_num_of_buffer, int pac
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)
 */
-void Util_mvd_video_decoder_set_raw_image_buffer_size(int max_num_of_buffer, int session);
+void Util_mvd_video_decoder_set_raw_image_buffer_size(uint32_t max_num_of_buffer, uint8_t session);
 
 /**
  * @brief Get max raw buffer size.
@@ -234,7 +220,7 @@ void Util_mvd_video_decoder_set_raw_image_buffer_size(int max_num_of_buffer, int
  * @return Max number of buffer (in frames, not in memory size).
  * @warning Thread dangerous (untested)
 */
-int Util_video_decoder_get_raw_image_buffer_size(int packet_index, int session);
+uint32_t Util_video_decoder_get_raw_image_buffer_size(uint8_t packet_index, uint8_t session);
 
 /**
  * @brief Get max raw buffer size.
@@ -243,7 +229,7 @@ int Util_video_decoder_get_raw_image_buffer_size(int packet_index, int session);
  * @return Max number of buffer (in frames, not in memory size).
  * @warning Thread dangerous (untested)
 */
-int Util_mvd_video_decoder_get_raw_image_buffer_size(int session);
+uint32_t Util_mvd_video_decoder_get_raw_image_buffer_size(uint8_t session);
 
 /**
  * @brief Decode audio.
@@ -253,32 +239,29 @@ int Util_mvd_video_decoder_get_raw_image_buffer_size(int session);
  * @param current_pos (out) Current audio pos (in ms).
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_audio_decoder_decode(int* samples, uint8_t** raw_data, double* current_pos, int packet_index, int session);
+uint32_t Util_audio_decoder_decode(uint32_t* samples, uint8_t** raw_data, double* current_pos, uint8_t packet_index, uint8_t session);
 
 /**
  * @brief Decode video.
  * Call it after calling Util_decoder_ready_video_packet().
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_video_decoder_decode(int packet_index, int session);
+uint32_t Util_video_decoder_decode(uint8_t packet_index, uint8_t session);
 
 /**
  * @brief Decode video using mvd service.
  * Call it after calling Util_decoder_ready_video_packet().
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-Result_with_string Util_mvd_video_decoder_decode(int session);
+uint32_t Util_mvd_video_decoder_decode(uint8_t session);
 
 /**
  * @brief Decode subtitle.
@@ -286,11 +269,10 @@ Result_with_string Util_mvd_video_decoder_decode(int session);
  * @param Subtitle_data (out) Pointer for subtitle data.
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, int packet_index, int session);
+uint32_t Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, uint8_t packet_index, uint8_t session);
 
 /**
  * @brief Clear raw buffer (created by Util_video_decoder_decode()).
@@ -299,7 +281,7 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)
 */
-void Util_video_decoder_clear_raw_image(int packet_index, int session);
+void Util_video_decoder_clear_raw_image(uint8_t packet_index, uint8_t session);
 
 /**
  * @brief Clear raw buffer (created by Util_mvd_video_decoder_decode()).
@@ -307,7 +289,7 @@ void Util_video_decoder_clear_raw_image(int packet_index, int session);
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)
 */
-void Util_mvd_video_decoder_clear_raw_image(int session);
+void Util_mvd_video_decoder_clear_raw_image(uint8_t session);
 
 /**
  * @brief Get buffered raw images (created by Util_video_decoder_decode()).
@@ -317,7 +299,7 @@ void Util_mvd_video_decoder_clear_raw_image(int session);
  * @return Number of buffered images (in frames, not in memory size).
  * @warning Thread dangerous (untested)
 */
-int Util_video_decoder_get_available_raw_image_num(int packet_index, int session);
+uint16_t Util_video_decoder_get_available_raw_image_num(uint8_t packet_index, uint8_t session);
 
 /**
  * @brief Get buffered raw images (created by Util_mvd_video_decoder_decode()).
@@ -326,7 +308,7 @@ int Util_video_decoder_get_available_raw_image_num(int packet_index, int session
  * @return Number of buffered images (in frames, not in memory size).
  * @warning Thread dangerous (untested)
 */
-int Util_mvd_video_decoder_get_available_raw_image_num(int session);
+uint16_t Util_mvd_video_decoder_get_available_raw_image_num(uint8_t session);
 
 /**
  * @brief Get raw image.
@@ -337,11 +319,10 @@ int Util_mvd_video_decoder_get_available_raw_image_num(int session);
  * @param height (in) Image height.
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_video_decoder_get_image(uint8_t** raw_data, double* current_pos, int width, int height, int packet_index, int session);
+uint32_t Util_video_decoder_get_image(uint8_t** raw_data, double* current_pos, uint32_t width, uint32_t height, uint8_t packet_index, uint8_t session);
 
 /**
  * @brief Get raw image.
@@ -351,11 +332,10 @@ Result_with_string Util_video_decoder_get_image(uint8_t** raw_data, double* curr
  * @param width (in) Image width.
  * @param height (in) Image height.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_mvd_video_decoder_get_image(uint8_t** raw_data, double* current_pos, int width, int height, int session);
+uint32_t Util_mvd_video_decoder_get_image(uint8_t** raw_data, double* current_pos, uint32_t width, uint32_t height, uint8_t session);
 
 /**
  * @brief Skip image.
@@ -366,7 +346,7 @@ Result_with_string Util_mvd_video_decoder_get_image(uint8_t** raw_data, double* 
  * @param session (in) Session number.
  * @note Thread safe
 */
-void Util_video_decoder_skip_image(double* current_pos, int packet_index, int session);
+void Util_video_decoder_skip_image(double* current_pos, uint8_t packet_index, uint8_t session);
 
 /**
  * @brief Skip image.
@@ -376,7 +356,7 @@ void Util_video_decoder_skip_image(double* current_pos, int packet_index, int se
  * @param session (in) Session number.
  * @note Thread safe
 */
-void Util_mvd_video_decoder_skip_image(double* current_pos, int session);
+void Util_mvd_video_decoder_skip_image(double* current_pos, uint8_t session);
 
 /**
  * @brief Seek file.
@@ -385,7 +365,7 @@ void Util_mvd_video_decoder_skip_image(double* current_pos, int session);
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_decoder_seek(uint64_t seek_pos, Seek_flag flag, int session);
+uint32_t Util_decoder_seek(uint64_t seek_pos, Seek_flag flag, uint8_t session);
 
 /**
  * @brief Uninitialize decoders and close the file.
@@ -393,46 +373,46 @@ Result_with_string Util_decoder_seek(uint64_t seek_pos, Seek_flag flag, int sess
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)
 */
-void Util_decoder_close_file(int session);
+void Util_decoder_close_file(uint8_t session);
 
 #else
 
-#define Util_decoder_open_file(...) Util_return_result_with_string(var_disabled_result)
-#define Util_audio_decoder_init(...) Util_return_result_with_string(var_disabled_result)
+#define Util_decoder_open_file(...) DEF_ERR_DISABLED
+#define Util_audio_decoder_init(...) DEF_ERR_DISABLED
 #define Util_video_decoder_set_enabled_cores(...)
-#define Util_video_decoder_init(...) Util_return_result_with_string(var_disabled_result)
-#define Util_mvd_video_decoder_init(...) Util_return_result_with_string(var_disabled_result)
-#define Util_subtitle_decoder_init(...) Util_return_result_with_string(var_disabled_result)
+#define Util_video_decoder_init(...) DEF_ERR_DISABLED
+#define Util_mvd_video_decoder_init(...) DEF_ERR_DISABLED
+#define Util_subtitle_decoder_init(...) DEF_ERR_DISABLED
 #define Util_audio_decoder_get_info(...)
 #define Util_video_decoder_get_info(...)
 #define Util_subtitle_decoder_get_info(...)
 #define Util_decoder_clear_cache_packet(...)
-#define Util_decoder_get_available_packet_num(...) Util_return_int(0)
-#define Util_decoder_read_packet(...) Util_return_result_with_string(var_disabled_result)
-#define Util_decoder_parse_packet(...) Util_return_result_with_string(var_disabled_result)
-#define Util_decoder_ready_audio_packet(...) Util_return_result_with_string(var_disabled_result)
-#define Util_decoder_ready_video_packet(...) Util_return_result_with_string(var_disabled_result)
-#define Util_decoder_ready_subtitle_packet(...) Util_return_result_with_string(var_disabled_result)
+#define Util_decoder_get_available_packet_num(...) 0
+#define Util_decoder_read_packet(...) DEF_ERR_DISABLED
+#define Util_decoder_parse_packet(...) DEF_ERR_DISABLED
+#define Util_decoder_ready_audio_packet(...) DEF_ERR_DISABLED
+#define Util_decoder_ready_video_packet(...) DEF_ERR_DISABLED
+#define Util_decoder_ready_subtitle_packet(...) DEF_ERR_DISABLED
 #define Util_decoder_skip_audio_packet(...)
 #define Util_decoder_skip_video_packet(...)
 #define Util_decoder_skip_subtitle_packet(...)
-#define Util_video_decoder_set_raw_image_buffer_size(...) Util_return_int(0)
+#define Util_video_decoder_set_raw_image_buffer_size(...) 0
 #define Util_mvd_video_decoder_set_raw_image_buffer_size(...)
-#define Util_video_decoder_get_raw_image_buffer_size(...) Util_return_int(0)
-#define Util_mvd_video_decoder_get_raw_image_buffer_size(...) Util_return_int(0)
-#define Util_audio_decoder_decode(...) Util_return_result_with_string(var_disabled_result)
-#define Util_video_decoder_decode(...) Util_return_result_with_string(var_disabled_result)
-#define Util_mvd_video_decoder_decode(...) Util_return_result_with_string(var_disabled_result)
-#define Util_subtitle_decoder_decode(...) Util_return_result_with_string(var_disabled_result)
+#define Util_video_decoder_get_raw_image_buffer_size(...) 0
+#define Util_mvd_video_decoder_get_raw_image_buffer_size(...) 0
+#define Util_audio_decoder_decode(...) DEF_ERR_DISABLED
+#define Util_video_decoder_decode(...) DEF_ERR_DISABLED
+#define Util_mvd_video_decoder_decode(...) DEF_ERR_DISABLED
+#define Util_subtitle_decoder_decode(...) DEF_ERR_DISABLED
 #define Util_video_decoder_clear_raw_image(...)
 #define Util_mvd_video_decoder_clear_raw_image(...)
-#define Util_video_decoder_get_available_raw_image_num(...) Util_return_int(0)
-#define Util_mvd_video_decoder_get_available_raw_image_num(...) Util_return_int(0)
-#define Util_video_decoder_get_image(...) Util_return_result_with_string(var_disabled_result)
-#define Util_mvd_video_decoder_get_image(...) Util_return_result_with_string(var_disabled_result)
+#define Util_video_decoder_get_available_raw_image_num(...) 0
+#define Util_mvd_video_decoder_get_available_raw_image_num(...) 0
+#define Util_video_decoder_get_image(...) DEF_ERR_DISABLED
+#define Util_mvd_video_decoder_get_image(...) DEF_ERR_DISABLED
 #define Util_video_decoder_skip_image(...)
 #define Util_mvd_video_decoder_skip_image(...)
-#define Util_decoder_seek(...) Util_return_result_with_string(var_disabled_result)
+#define Util_decoder_seek(...) DEF_ERR_DISABLED
 #define Util_decoder_close_file(...)
 
 #endif //DEF_ENABLE_VIDEO_AUDIO_DECODER_API
@@ -441,34 +421,32 @@ void Util_decoder_close_file(int session);
 
 /**
  * @brief Decode image file.
- * @param file_path (in) File path.
+ * @param path (in) File path.
  * @param raw_data (out) Pointer for raw image (RGB888BE or RGBA8888BE), the pointer will be allocated inside of function.
  * @param width (out) Image width.
  * @param height (out) Image height.
  * @param format (out) Image format (PIXEL_FORMAT_RGBA8888, PIXEL_FORMAT_RGB888, PIXEL_FORMAT_GRAYALPHA88 or PIXEL_FORMAT_GRAY8).
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_image_decoder_decode(std::string file_name, uint8_t** raw_data, int* width, int* height, Pixel_format* format);
+uint32_t Util_image_decoder_decode(const char* path, uint8_t** raw_data, uint32_t* width, uint32_t* height, Pixel_format* format);
 
 /**
- * @brief Decode image file.
+ * @brief Decode image data.
  * @param compressed_data (in) Compressed data (.png, .jpg etc...).
  * @param compressed_buffer_size (in) Compressed data size.
  * @param raw_data (out) Pointer for raw image (RGB888BE or RGBA8888BE), the pointer will be allocated inside of function.
  * @param width (out) Image width.
  * @param height (out) Image height.
  * @param format (out) Image format (PIXEL_FORMAT_RGBA8888, PIXEL_FORMAT_RGB888, PIXEL_FORMAT_GRAYALPHA88 or PIXEL_FORMAT_GRAY8).
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_image_decoder_decode(uint8_t* compressed_data, int compressed_buffer_size, uint8_t** raw_data, int* width, int* height, Pixel_format* format);
+uint32_t Util_image_decoder_decode_data(uint8_t* compressed_data, uint32_t compressed_buffer_size, uint8_t** raw_data, uint32_t* width, uint32_t* height, Pixel_format* format);
 
 #else
 
-#define Util_image_decoder_decode(...) Util_return_result_with_string(var_disabled_result)
+#define Util_image_decoder_decode(...) DEF_ERR_DISABLED
 
 #endif //DEF_ENABLE_IMAGE_DECODER_API
 

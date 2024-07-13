@@ -12,75 +12,6 @@
 #include "system/util/converter_types.h"
 #include "system/util/error_types.h"
 
-enum Multi_thread_type
-{
-	THREAD_TYPE_INVALID = -1,
-
-	THREAD_TYPE_NONE,	//No multi-threading, using single thread.
-	THREAD_TYPE_FRAME,	//Frame level multi-threading.
-	THREAD_TYPE_SLICE,	//Slice level multi-threading.
-	THREAD_TYPE_AUTO,	//Auto (only used when request multi-threading mode).
-
-	THREAD_TYPE_MAX,
-};
-
-enum Packet_type
-{
-	PACKET_TYPE_INVALID = -1,
-
-	PACKET_TYPE_UNKNOWN,	//This packet contains unknown data.
-	PACKET_TYPE_AUDIO,		//This packet contains audio data.
-	PACKET_TYPE_VIDEO,		//This packet contains video data.
-	PACKET_TYPE_SUBTITLE,	//This packet contains subtitle data.
-
-	PACKET_TYPE_MAX,
-};
-
-enum Seek_flag
-{
-	SEEK_FLAG_NONE		= 0,		//No seek flag.
-	SEEK_FLAG_BACKWARD	= (1 << 1),	//Seek backward.
-	SEEK_FLAG_BYTE		= (1 << 2),	//Seek to given byte offset instead of time.
-	SEEK_FLAG_ANY		= (1 << 3),	//Seek to any location including non key frame.
-	SEEK_FLAG_FRAME		= (1 << 4),	//Seek to given frame number instead of time.
-};
-
-enum Audio_codec
-{
-	AUDIO_CODEC_INVALID = -1,
-
-	AUDIO_CODEC_AAC,	//Advanced audio coding.
-	AUDIO_CODEC_AC3,	//Audio codec 3.
-	AUDIO_CODEC_MP2,	//Mpeg audio layer 2.
-	AUDIO_CODEC_MP3,	//Mpeg audio layer 3.
-
-	AUDIO_CODEC_MAX,
-};
-
-enum Video_codec
-{
-	VIDEO_CODEC_INVALID = -1,
-
-	VIDEO_CODEC_MJPEG,		//Motion jpeg.
-	VIDEO_CODEC_H264,		//Advanced video coding.
-	VIDEO_CODEC_MPEG4,		//Mpeg4 part 2.
-	VIDEO_CODEC_MPEG2VIDEO,	//Mpeg2 video.
-
-	VIDEO_CODEC_MAX,
-};
-
-enum Image_codec
-{
-	IMAGE_CODEC_INVALID = -1,
-
-	IMAGE_CODEC_PNG,	//Portable network graphic.
-	IMAGE_CODEC_JPG,	//Joint photographic experts group.
-	IMAGE_CODEC_BMP,	//Bitmap.
-	IMAGE_CODEC_TGA,	//Truevision TGA.
-
-	IMAGE_CODEC_MAX,
-};
-
 enum Keyboard_button
 {
 	KEYBOARD_BUTTON_INVALID = -1,
@@ -140,53 +71,6 @@ struct Result_with_string
 	std::string string = "[Success] ";
 	std::string error_description = "";
 	uint code = DEF_SUCCESS;
-};
-
-struct Audio_info
-{
-	int bitrate = 0;					//Audio bitrate in Bps.
-	int sample_rate = 0;				//Audio smaple rate in Hz.
-	int ch = 0;							//Number of audio channels.
-	std::string format_name = "";		//Audio codec name.
-	std::string short_format_name = "";	//Audio short codec name.
-	double duration = 0;				//Audio track duration in seconds.
-	std::string track_lang = "";		//Audio track language.
-	Sample_format sample_format = SAMPLE_FORMAT_INVALID;	//Audio sample format.
-};
-
-struct Video_info
-{
-	int width = 0;						//Video width.
-	int height = 0;						//Video height.
-	int codec_width = 0;				//Video codec width (actual image width).
-	int codec_height = 0;				//Video codec height (actual image height).
-	double framerate = 0;				//Video framerate.
-	std::string format_name = "";		//Video codec name.
-	std::string short_format_name = "";	//Video short codec name.
-	double duration = 0;				//Video track duration in seconds.
-	Multi_thread_type thread_type = THREAD_TYPE_NONE;	//Threading mode.
-	double sar_width = 1;				//Sample aspect ratio for width.
-	double sar_height = 1;				//Sample aspect ratio for height.
-	Pixel_format pixel_format = PIXEL_FORMAT_INVALID;	//Video pixel format.
-};
-
-struct Subtitle_info
-{
-	std::string format_name = "";		//Subtitle codec name.
-	std::string short_format_name = "";	//Subtitle short codec name.
-	std::string track_lang = "";		//Subtitle track language.
-};
-
-struct Subtitle_data
-{
-	uint8_t* bitmap = NULL;	//Subtitle bitmap, this may NULL.
-	int bitmap_x = 0;		//X (horizontal) position, this field will be set if bitmap is not NULL.
-	int bitmap_y = 0;		//Y (vertical) position, this field will be set if bitmap is not NULL.
-	int bitmap_width = 0;	//Bitmap width, this field will be set if bitmap is not NULL.
-	int bitmap_height = 0;	//Bitmap height, this field will be set if bitmap is not NULL.
-	double start_time = 0;	//Start time in ms for this subtitle data. subtitle should be displayed if (start_time <= current_time <= end_time).
-	double end_time = 0;	//End time in ms for this subtitle data. subtitle should be displayed if (start_time <= current_time <= end_time).
-	std::string text = "";	//Subtitle text.
 };
 
 #endif //!defined(DEF_TYPES_HPP)

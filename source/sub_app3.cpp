@@ -532,7 +532,6 @@ static void Sapp3_camera_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
 	uint8_t dummy = 0;
-	Result_with_string result;
 
 	//Create directory.
 	Util_file_save_to_file(".", DEF_MAIN_DIR_C "images/", &dummy, 1, true);
@@ -540,12 +539,13 @@ static void Sapp3_camera_thread(void* arg)
 	while (sapp3_thread_run)
 	{
 		uint32_t event_id = 0;
+		uint32_t result = DEF_ERR_OTHER;
 
 		while (sapp3_thread_suspend)
 			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
 
-		result.code = Util_queue_get(&sapp3_camera_command_queue, &event_id, NULL, 0);
-		if(result.code == DEF_SUCCESS)
+		result = Util_queue_get(&sapp3_camera_command_queue, &event_id, NULL, 0);
+		if(result == DEF_SUCCESS)
 		{
 			//Got a command.
 			DEF_LOG_FORMAT("Received event : %" PRIu32, event_id);
@@ -583,16 +583,16 @@ static void Sapp3_camera_thread(void* arg)
 			uint16_t height = 0;
 
 			//1. Take a picture with shutter sound when saving the picture otherwise without shutter sound.
-			result.code = Util_cam_take_a_picture(&picture, &width, &height, shutter_sound);
-			if(result.code == DEF_SUCCESS)
+			result = Util_cam_take_a_picture(&picture, &width, &height, shutter_sound);
+			if(result == DEF_SUCCESS)
 			{
 				//2. Update texture.
-				result.code = Draw_set_texture_data(&sapp3_camera_image[sapp3_camera_buffer_index], picture, width, height, 0, 0);
+				result = Draw_set_texture_data(&sapp3_camera_image[sapp3_camera_buffer_index], picture, width, height, 0, 0);
 
 				//3. Update buffer index.
 				sapp3_camera_buffer_index = (sapp3_camera_buffer_index == 0 ? 1 : 0);
 
-				if(result.code == DEF_SUCCESS)
+				if(result == DEF_SUCCESS)
 				{
 					//4. Refresh screen.
 					var_need_reflesh = true;
@@ -618,19 +618,18 @@ static void Sapp3_camera_thread(void* arg)
 						parameters.in_color_format = PIXEL_FORMAT_RGB565LE;
 						parameters.out_color_format = PIXEL_FORMAT_RGB888;
 
-						DEF_LOG_RESULT_SMART(result.code, Util_converter_convert_color(&parameters), (result.code == DEF_SUCCESS), result.code);
+						DEF_LOG_RESULT_SMART(result, Util_converter_convert_color(&parameters), (result == DEF_SUCCESS), result);
 
-						if(result.code == DEF_SUCCESS)
+						if(result == DEF_SUCCESS)
 						{
 							char path[96];
 							snprintf(path, sizeof(path), "%simages/%04d_%02d_%02d_%02d_%02d_%02d.png", (DEF_MAIN_DIR).c_str(),
 							var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
 
 							//6. Save the picture as png.
-							DEF_LOG_RESULT_SMART(result, Util_image_encoder_encode(path, parameters.converted, parameters.out_width, parameters.out_height, IMAGE_CODEC_PNG, 0),
-							(result.code == DEF_SUCCESS), result.code);
+							DEF_LOG_RESULT_SMART(result, Util_image_encoder_encode(path, parameters.converted, width, height, IMAGE_CODEC_PNG, 0), (result == DEF_SUCCESS), result);
 
-							if(result.code == DEF_SUCCESS)
+							if(result == DEF_SUCCESS)
 								Util_str_set(&sapp3_camera_saved_file_path, path);
 							else
 								Util_str_set(&sapp3_camera_saved_file_path, "");
@@ -641,11 +640,11 @@ static void Sapp3_camera_thread(void* arg)
 					}
 				}
 				else
-					DEF_LOG_RESULT(Draw_set_texture_data, false, result.code);
+					DEF_LOG_RESULT(Draw_set_texture_data, false, result);
 			}
 			else
 			{
-				DEF_LOG_RESULT(Util_cam_take_a_picture, false, result.code);
+				DEF_LOG_RESULT(Util_cam_take_a_picture, false, result);
 				Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
 			}
 
@@ -665,7 +664,6 @@ static void Sapp3_mic_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
 	uint8_t dummy = 0;
-	Result_with_string result;
 
 	//Create directory.
 	Util_file_save_to_file(".", DEF_MAIN_DIR_C "sound/", &dummy, 1, true);
@@ -673,12 +671,13 @@ static void Sapp3_mic_thread(void* arg)
 	while (sapp3_thread_run)
 	{
 		uint32_t event_id = 0;
+		uint32_t result = DEF_ERR_OTHER;
 
 		while (sapp3_thread_suspend)
 			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
 
-		result.code = Util_queue_get(&sapp3_mic_command_queue, &event_id, NULL, 0);
-		if(result.code == DEF_SUCCESS)
+		result = Util_queue_get(&sapp3_mic_command_queue, &event_id, NULL, 0);
+		if(result == DEF_SUCCESS)
 		{
 			//Got a command.
 			DEF_LOG_FORMAT("Received event : %" PRIu32, event_id);
@@ -692,33 +691,31 @@ static void Sapp3_mic_thread(void* arg)
 					var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
 
 					//1. Create an output file.
-					DEF_LOG_RESULT_SMART(result, Util_encoder_create_output_file(path, 0), (result.code == DEF_SUCCESS), result.code);
+					DEF_LOG_RESULT_SMART(result, Util_encoder_create_output_file(path, 0), (result == DEF_SUCCESS), result);
 
 					//2. Init encoder.
 					if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
 					{
 						//For new 3ds, codec : mp3, sample rate : 32KHz, bit rate : 128kbps.
-						DEF_LOG_RESULT_SMART(result, Util_audio_encoder_init(AUDIO_CODEC_MP3, 32728, 32000, 128000, 0),
-						(result.code == DEF_SUCCESS), result.code);
+						DEF_LOG_RESULT_SMART(result, Util_audio_encoder_init(AUDIO_CODEC_MP3, 32728, 32000, 128000, 0), (result == DEF_SUCCESS), result);
 					}
 					else
 					{
 						//For old 3ds, codec : mp3, sample rate : 16KHz, bit rate : 96kbps.
-						DEF_LOG_RESULT_SMART(result, Util_audio_encoder_init(AUDIO_CODEC_MP3, 16384, 16000, 96000, 0),
-						(result.code == DEF_SUCCESS), result.code);
+						DEF_LOG_RESULT_SMART(result, Util_audio_encoder_init(AUDIO_CODEC_MP3, 16384, 16000, 96000, 0), (result == DEF_SUCCESS), result);
 					}
 
 					//3. Write a header, if needed.
-					DEF_LOG_RESULT_SMART(result, Util_encoder_write_header(0), (result.code == DEF_SUCCESS), result.code);
-					if(result.code == DEF_SUCCESS)
+					DEF_LOG_RESULT_SMART(result, Util_encoder_write_header(0), (result == DEF_SUCCESS), result);
+					if(result == DEF_SUCCESS)
 					{
 						//4. Start a recording, for new 3ds use 32728Hz, for old 3ds use 16364Hz.
 						if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
-							DEF_LOG_RESULT_SMART(result.code, Util_mic_start_recording(MIC_SAMPLE_RATE_32728HZ), (result.code == DEF_SUCCESS), result.code)
+							DEF_LOG_RESULT_SMART(result, Util_mic_start_recording(MIC_SAMPLE_RATE_32728HZ), (result == DEF_SUCCESS), result)
 						else
-							DEF_LOG_RESULT_SMART(result.code, Util_mic_start_recording(MIC_SAMPLE_RATE_16364HZ), (result.code == DEF_SUCCESS), result.code);
+							DEF_LOG_RESULT_SMART(result, Util_mic_start_recording(MIC_SAMPLE_RATE_16364HZ), (result == DEF_SUCCESS), result);
 
-						if(result.code == DEF_SUCCESS)
+						if(result == DEF_SUCCESS)
 						{
 							sapp3_mic_state = MIC_RECORDING;
 							Util_str_set(&sapp3_mic_saved_file, path);
@@ -762,9 +759,9 @@ static void Sapp3_mic_thread(void* arg)
 				uint8_t* audio = NULL;
 				uint32_t size = 0;
 
-				DEF_LOG_RESULT_SMART(result.code, Util_mic_get_audio_data(&audio, &size), (result.code == DEF_SUCCESS), result.code);
-				if(result.code == DEF_SUCCESS)
-					DEF_LOG_RESULT_SMART(result, Util_audio_encoder_encode(size, audio, 0), (result.code == DEF_SUCCESS), result.code);
+				DEF_LOG_RESULT_SMART(result, Util_mic_get_audio_data(&audio, &size), (result == DEF_SUCCESS), result);
+				if(result == DEF_SUCCESS)
+					DEF_LOG_RESULT_SMART(result, Util_audio_encoder_encode(size, audio, 0), (result == DEF_SUCCESS), result);
 
 				free(audio);
 				audio = NULL;

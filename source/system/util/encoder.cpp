@@ -3,10 +3,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "system/types.hpp"
-
 #include "system/util/error_types.h"
 #include "system/util/util.hpp"
+extern "C"
+{
+#include "system/util/log.h"
+#include "system/util/media_types.h"
+}
 
 //Include myself.
 #include "system/util/encoder.hpp"
@@ -22,100 +25,55 @@ extern "C"
 #include "libavutil/opt.h"
 }
 
-#endif
+#endif //DEF_ENABLE_VIDEO_AUDIO_ENCODER_API
 
 #if DEF_ENABLE_IMAGE_ENCODER_API
 
 #include "stb_image/stb_image_write.h"
 
-#endif
+#endif //DEF_ENABLE_IMAGE_ENCODER_API
 
 #if DEF_ENABLE_VIDEO_AUDIO_ENCODER_API
 
-bool util_audio_encoder_init[DEF_ENCODER_MAX_SESSIONS];
-int util_audio_stream_index[DEF_ENCODER_MAX_SESSIONS];
-int util_audio_pos[DEF_ENCODER_MAX_SESSIONS];
-int util_audio_increase_pts[DEF_ENCODER_MAX_SESSIONS];
-int util_audio_encoder_cache_size[DEF_ENCODER_MAX_SESSIONS];
-double util_audio_encoder_conversion_size_rate[DEF_ENCODER_MAX_SESSIONS];
-uint8_t* util_audio_encoder_cache[DEF_ENCODER_MAX_SESSIONS];
-AVPacket* util_audio_encoder_packet[DEF_ENCODER_MAX_SESSIONS];
-AVFrame* util_audio_encoder_raw_data[DEF_ENCODER_MAX_SESSIONS];
-AVCodecContext* util_audio_encoder_context[DEF_ENCODER_MAX_SESSIONS];
-const AVCodec* util_audio_encoder_codec[DEF_ENCODER_MAX_SESSIONS];
-SwrContext* util_audio_encoder_swr_context[DEF_ENCODER_MAX_SESSIONS];
-AVStream* util_audio_encoder_stream[DEF_ENCODER_MAX_SESSIONS];
+bool util_audio_encoder_init[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+uint8_t util_audio_stream_index[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+uint8_t* util_audio_encoder_cache[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+uint32_t util_audio_encoder_cache_size[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+int64_t util_audio_pos[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+int64_t util_audio_increase_pts[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+double util_audio_encoder_conversion_size_rate[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+AVPacket* util_audio_encoder_packet[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+AVFrame* util_audio_encoder_raw_data[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+AVCodecContext* util_audio_encoder_context[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+const AVCodec* util_audio_encoder_codec[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+SwrContext* util_audio_encoder_swr_context[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+AVStream* util_audio_encoder_stream[DEF_ENCODER_MAX_SESSIONS] = { 0, };
 
-bool util_video_encoder_init[DEF_ENCODER_MAX_SESSIONS];
-int util_video_stream_index[DEF_ENCODER_MAX_SESSIONS];
-int util_video_pos[DEF_ENCODER_MAX_SESSIONS];
-int util_video_increase_pts[DEF_ENCODER_MAX_SESSIONS];
-AVPacket* util_video_encoder_packet[DEF_ENCODER_MAX_SESSIONS];
-AVFrame* util_video_encoder_raw_data[DEF_ENCODER_MAX_SESSIONS];
-AVCodecContext* util_video_encoder_context[DEF_ENCODER_MAX_SESSIONS];
-const AVCodec* util_video_encoder_codec[DEF_ENCODER_MAX_SESSIONS];
-AVStream* util_video_encoder_stream[DEF_ENCODER_MAX_SESSIONS];
+bool util_video_encoder_init[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+uint8_t util_video_stream_index[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+int64_t util_video_pos[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+int64_t util_video_increase_pts[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+AVPacket* util_video_encoder_packet[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+AVFrame* util_video_encoder_raw_data[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+AVCodecContext* util_video_encoder_context[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+const AVCodec* util_video_encoder_codec[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+AVStream* util_video_encoder_stream[DEF_ENCODER_MAX_SESSIONS] = { 0, };
 
-bool util_encoder_created_file[DEF_ENCODER_MAX_SESSIONS];
-bool util_encoder_wrote_header[DEF_ENCODER_MAX_SESSIONS];
-bool util_encoder_init = false;
-int util_encoder_next_stream_index[DEF_ENCODER_MAX_SESSIONS];
-AVFormatContext* util_encoder_format_context[DEF_ENCODER_MAX_SESSIONS];
+bool util_encoder_created_file[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+bool util_encoder_wrote_header[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+uint8_t util_encoder_next_stream_index[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+AVFormatContext* util_encoder_format_context[DEF_ENCODER_MAX_SESSIONS] = { 0, };
 
 
-void Util_audio_encoder_exit(int session);
-void Util_video_encoder_exit(int session);
+static void Util_audio_encoder_exit(uint8_t session);
+static void Util_video_encoder_exit(uint8_t session);
 
-void Util_encoder_init_variables(void)
+
+uint32_t Util_encoder_create_output_file(const char* path, uint8_t session)
 {
-	if(util_encoder_init)
-		return;
+	int32_t ffmpeg_result = 0;
 
-	for(int i = 0; i < DEF_ENCODER_MAX_SESSIONS; i++)
-	{
-		util_audio_encoder_init[i] = false;
-		util_audio_stream_index[i] = 0;
-		util_audio_pos[i] = 0;
-		util_audio_increase_pts[i] = 0;
-		util_audio_encoder_cache_size[i] = 0;
-		util_audio_encoder_conversion_size_rate[i] = 0;
-		util_audio_encoder_cache[i] = NULL;
-		util_audio_encoder_packet[i] = NULL;
-		util_audio_encoder_raw_data[i] = NULL;
-		util_audio_encoder_context[i] = NULL;
-		util_audio_encoder_codec[i] = NULL;
-		util_audio_encoder_swr_context[i] = NULL;
-		util_audio_encoder_stream[i] = NULL;
-
-		util_video_encoder_init[i] = false;
-		util_video_stream_index[i] = 0;
-		util_video_pos[i] = 0;
-		util_video_increase_pts[i] = 0;
-		util_video_encoder_packet[i] = NULL;
-		util_video_encoder_raw_data[i] = NULL;
-		util_video_encoder_context[i] = NULL;
-		util_video_encoder_codec[i] = NULL;
-		util_video_encoder_stream[i] = NULL;
-
-		util_encoder_created_file[i] = false;
-		util_encoder_wrote_header[i] = false;
-		util_encoder_next_stream_index[i] = 0;
-		util_encoder_format_context[i] = NULL;
-	}
-
-	util_encoder_init = true;
-	return;
-}
-
-Result_with_string Util_encoder_create_output_file(std::string file_path, int session)
-{
-	Result_with_string result;
-	int ffmpeg_result = 0;
-
-	if(!util_encoder_init)
-		Util_encoder_init_variables();
-
-	if(session < 0 || session >= DEF_ENCODER_MAX_SESSIONS || file_path == "")
+	if(session >= DEF_ENCODER_MAX_SESSIONS || !path)
 		goto invalid_arg;
 
 	if(util_encoder_created_file[session])
@@ -124,58 +82,49 @@ Result_with_string Util_encoder_create_output_file(std::string file_path, int se
 	util_encoder_format_context[session] = avformat_alloc_context();
 	if(!util_encoder_format_context[session])
 	{
-		result.error_description = "[Error] avformat_alloc_context() failed. ";
+		DEF_LOG_RESULT(avformat_alloc_context, false, DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS);
 		goto ffmpeg_api_failed_0;
 	}
 
-	util_encoder_format_context[session]->oformat = av_guess_format(NULL, file_path.c_str(), NULL);
+	util_encoder_format_context[session]->oformat = av_guess_format(NULL, path, NULL);
 	if(!util_encoder_format_context[session]->oformat)
 	{
-		result.error_description = "[Error] av_guess_format() failed. ";
+		DEF_LOG_RESULT(av_guess_format, false, DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS);
 		goto ffmpeg_api_failed_0;
 	}
 
-	ffmpeg_result = avio_open(&util_encoder_format_context[session]->pb, file_path.c_str(), AVIO_FLAG_READ_WRITE);
+	ffmpeg_result = avio_open(&util_encoder_format_context[session]->pb, path, AVIO_FLAG_READ_WRITE);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "[Error] avio_open() failed. " + std::to_string(ffmpeg_result) + " ";
+		DEF_LOG_RESULT(avio_open, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
 	util_encoder_created_file[session] = true;
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	already_inited:
-	result.code = DEF_ERR_ALREADY_INITIALIZED;
-	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_ALREADY_INITIALIZED;
 
 	ffmpeg_api_failed:
 	avio_close(util_encoder_format_context[session]->pb);
+	//Fallthrough.
 
 	ffmpeg_api_failed_0:
-	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	avformat_free_context(util_encoder_format_context[session]);
-	return result;
+	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sample_rate, int encode_sample_rate, int bitrate, int session)
+uint32_t Util_audio_encoder_init(Audio_codec codec, uint32_t original_sample_rate, uint32_t encode_sample_rate, uint32_t bitrate, uint8_t session)
 {
-	int ffmpeg_result = 0;
-	Result_with_string result;
-	AVCodecID codec_id = AV_CODEC_ID_NONE;
+	int32_t ffmpeg_result = 0;
+	enum AVCodecID codec_id = AV_CODEC_ID_NONE;
 
-	if(!util_encoder_init)
-		Util_encoder_init_variables();
-
-	if(session < 0 || session >= DEF_ENCODER_MAX_SESSIONS || original_sample_rate <= 0 || encode_sample_rate <= 0
-	|| bitrate <= 0 || codec <= AUDIO_CODEC_INVALID || codec >= AUDIO_CODEC_MAX)
+	if(session >= DEF_ENCODER_MAX_SESSIONS || original_sample_rate == 0 || encode_sample_rate == 0
+	|| bitrate == 0 || codec <= AUDIO_CODEC_INVALID || codec >= AUDIO_CODEC_MAX)
 		goto invalid_arg;
 
 	if(!util_encoder_created_file[session])
@@ -199,14 +148,14 @@ Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sampl
 	util_audio_encoder_codec[session] = avcodec_find_encoder(codec_id);
 	if(!util_audio_encoder_codec[session])
 	{
-		result.error_description = "[Error] avcodec_find_encoder() failed. ";
+		DEF_LOG_RESULT(avcodec_find_encoder, false, DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS);
 		goto ffmpeg_api_failed;
 	}
 
 	util_audio_encoder_context[session] = avcodec_alloc_context3(util_audio_encoder_codec[session]);
 	if(!util_audio_encoder_context[session])
 	{
-		result.error_description = "[Error] avcodec_alloc_context3() failed. ";
+		DEF_LOG_RESULT(avcodec_alloc_context3, false, DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS);
 		goto ffmpeg_api_failed;
 	}
 
@@ -219,16 +168,16 @@ Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sampl
 
 	util_audio_encoder_context[session]->bit_rate = bitrate;
 	util_audio_encoder_context[session]->sample_rate = encode_sample_rate;
-	util_audio_encoder_context[session]->ch_layout = AV_CHANNEL_LAYOUT_MONO;
+	util_audio_encoder_context[session]->ch_layout = (AVChannelLayout)AV_CHANNEL_LAYOUT_MONO;
 	util_audio_encoder_context[session]->codec_type = AVMEDIA_TYPE_AUDIO;
-	util_audio_encoder_context[session]->time_base = (AVRational){ 1, encode_sample_rate };
+	util_audio_encoder_context[session]->time_base = (AVRational){ 1, (int32_t)encode_sample_rate };
 	if(codec_id == AV_CODEC_ID_AAC)
 		util_audio_encoder_context[session]->profile = FF_PROFILE_AAC_LOW;
 
 	ffmpeg_result = avcodec_open2(util_audio_encoder_context[session], util_audio_encoder_codec[session], NULL);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "[Error] avcodec_open2() failed. " + std::to_string(ffmpeg_result) + " ";
+		DEF_LOG_RESULT(avcodec_open2, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
@@ -237,7 +186,11 @@ Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sampl
 	util_audio_encoder_raw_data[session] = av_frame_alloc();
 	if(!util_audio_encoder_raw_data[session] || !util_audio_encoder_packet[session])
 	{
-		result.error_description = "[Error] av_packet_alloc() / av_frame_alloc() failed. ";
+		if(!util_audio_encoder_packet[session])
+			DEF_LOG_RESULT(av_packet_alloc, false, DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS);
+		if(!util_audio_encoder_raw_data[session])
+			DEF_LOG_RESULT(av_frame_alloc, false, DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS);
+
 		goto ffmpeg_api_failed;
 	}
 
@@ -249,14 +202,14 @@ Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sampl
 	ffmpeg_result = av_frame_get_buffer(util_audio_encoder_raw_data[session], 0);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "[Error] av_frame_get_buffer() failed. " + std::to_string(ffmpeg_result) + " ";
+		DEF_LOG_RESULT(av_frame_get_buffer, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
 	ffmpeg_result = av_frame_make_writable(util_audio_encoder_raw_data[session]);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "[Error] av_frame_make_writable() failed. " + std::to_string(ffmpeg_result) + " ";
+		DEF_LOG_RESULT(av_frame_make_writable, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
@@ -264,14 +217,14 @@ Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sampl
 	&util_audio_encoder_context[session]->ch_layout, AV_SAMPLE_FMT_S16, original_sample_rate, 0, NULL);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "[Error] swr_alloc_set_opts() failed. " + std::to_string(ffmpeg_result) + " ";
+		DEF_LOG_RESULT(swr_alloc_set_opts2, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
 	ffmpeg_result = swr_init(util_audio_encoder_swr_context[session]);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "[Error] swr_init() failed. ";
+		DEF_LOG_RESULT(swr_init, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 	util_audio_encoder_conversion_size_rate[session] = (double)encode_sample_rate / original_sample_rate;
@@ -280,7 +233,7 @@ Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sampl
 	util_audio_encoder_stream[session] = avformat_new_stream(util_encoder_format_context[session], util_audio_encoder_codec[session]);
 	if(!util_audio_encoder_stream[session])
 	{
-		result.error_description = "[Error] avformat_new_stream() failed. ";
+		DEF_LOG_RESULT(avformat_new_stream, false, DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS);
 		goto ffmpeg_api_failed;
 	}
 
@@ -290,7 +243,7 @@ Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sampl
 	ffmpeg_result = avcodec_parameters_from_context(util_audio_encoder_stream[session]->codecpar, util_audio_encoder_context[session]);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "[Error] avcodec_parameters_from_context() failed. ";
+		DEF_LOG_RESULT(avcodec_parameters_from_context, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
@@ -299,40 +252,28 @@ Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sampl
 	util_audio_encoder_cache_size[session] = 0;
 
 	util_audio_encoder_init[session] = true;
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_NOT_INITIALIZED;
 
 	already_inited:
-	result.code = DEF_ERR_ALREADY_INITIALIZED;
-	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_ALREADY_INITIALIZED;
 
 	ffmpeg_api_failed:
-	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	Util_audio_encoder_exit(session);
-	return result;
+	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-Result_with_string Util_video_encoder_init(Video_codec codec, int width, int height, int bitrate, int fps, int session)
+uint32_t Util_video_encoder_init(Video_codec codec, uint32_t width, uint32_t height, uint32_t bitrate, uint32_t fps, uint8_t session)
 {
-	int ffmpeg_result = 0;
-	Result_with_string result;
-	AVCodecID video_codec = AV_CODEC_ID_NONE;
+	int32_t ffmpeg_result = 0;
+	enum AVCodecID video_codec = AV_CODEC_ID_NONE;
 
-	if(!util_encoder_init)
-		Util_encoder_init_variables();
-
-	if(session < 0 || session >= DEF_ENCODER_MAX_SESSIONS || width <= 0 || height <= 0
+	if(session >= DEF_ENCODER_MAX_SESSIONS || width == 0 || height == 0
 	|| codec <= VIDEO_CODEC_INVALID || codec >= VIDEO_CODEC_MAX)
 		goto invalid_arg;
 
@@ -356,21 +297,21 @@ Result_with_string Util_video_encoder_init(Video_codec codec, int width, int hei
 	util_video_encoder_codec[session] = avcodec_find_encoder(video_codec);
 	if(!util_video_encoder_codec[session])
 	{
-		result.error_description = "[Error] avcodec_find_encoder() failed. ";
+		DEF_LOG_RESULT(avcodec_find_encoder, false, DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS);
 		goto ffmpeg_api_failed;
 	}
 
 	util_video_encoder_context[session] = avcodec_alloc_context3(util_video_encoder_codec[session]);
 	if(!util_video_encoder_context[session])
 	{
-		result.error_description = "[Error] avcodec_alloc_context3() failed. ";
+		DEF_LOG_RESULT(avcodec_alloc_context3, false, DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS);
 		goto ffmpeg_api_failed;
 	}
 
 	util_video_encoder_context[session]->bit_rate = bitrate;
 	util_video_encoder_context[session]->width = width;
 	util_video_encoder_context[session]->height = height;
-	util_video_encoder_context[session]->time_base = (AVRational){ 1, fps };
+	util_video_encoder_context[session]->time_base = (AVRational){ 1, (int32_t)fps };
 	util_video_encoder_context[session]->gop_size = fps;
 	if(video_codec == AV_CODEC_ID_MJPEG)
 		util_video_encoder_context[session]->pix_fmt = AV_PIX_FMT_YUVJ420P;
@@ -382,28 +323,32 @@ Result_with_string Util_video_encoder_init(Video_codec codec, int width, int hei
 		ffmpeg_result = av_opt_set(util_video_encoder_context[session]->priv_data, "crf", "32", 0);
 		if(ffmpeg_result < 0)
 		{
-			result.error_description = "[Error] av_opt_set() failed. " + std::to_string(ffmpeg_result) + " ";
+			DEF_LOG_RESULT(av_opt_set, false, ffmpeg_result);
+			DEF_LOG_STRING("crf : 32");
 			goto ffmpeg_api_failed;
 		}
 
 		ffmpeg_result = av_opt_set(util_video_encoder_context[session]->priv_data, "profile", "baseline", 0);
 		if(ffmpeg_result < 0)
 		{
-			result.error_description = "[Error] av_opt_set() failed. " + std::to_string(ffmpeg_result) + " ";
+			DEF_LOG_RESULT(av_opt_set, false, ffmpeg_result);
+			DEF_LOG_STRING("profile : baseline");
 			goto ffmpeg_api_failed;
 		}
 
 		ffmpeg_result = av_opt_set(util_video_encoder_context[session]->priv_data, "preset", "ultrafast", 0);
 		if(ffmpeg_result < 0)
 		{
-			result.error_description = "[Error] av_opt_set() failed. " + std::to_string(ffmpeg_result) + " ";
+			DEF_LOG_RESULT(av_opt_set, false, ffmpeg_result);
+			DEF_LOG_STRING("preset : ultrafast");
 			goto ffmpeg_api_failed;
 		}
 
 		ffmpeg_result = av_opt_set(util_video_encoder_context[session]->priv_data, "me_method", "dia", 0);
 		if(ffmpeg_result < 0)
 		{
-			result.error_description = "[Error] av_opt_set() failed. " + std::to_string(ffmpeg_result) + " ";
+			DEF_LOG_RESULT(av_opt_set, false, ffmpeg_result);
+			DEF_LOG_STRING("me_method : dia");
 			goto ffmpeg_api_failed;
 		}
 	}
@@ -411,7 +356,7 @@ Result_with_string Util_video_encoder_init(Video_codec codec, int width, int hei
 	ffmpeg_result = avcodec_open2(util_video_encoder_context[session], util_video_encoder_codec[session], NULL);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "[Error] avcodec_open2() failed. " + std::to_string(ffmpeg_result) + " ";
+		DEF_LOG_RESULT(avcodec_open2, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
@@ -421,7 +366,11 @@ Result_with_string Util_video_encoder_init(Video_codec codec, int width, int hei
 	util_video_encoder_raw_data[session] = av_frame_alloc();
 	if(!util_video_encoder_raw_data[session] || !util_video_encoder_packet[session])
 	{
-		result.error_description = "[Error] av_packet_alloc() / av_frame_alloc() failed. ";
+		if(!util_video_encoder_packet[session])
+			DEF_LOG_RESULT(av_packet_alloc, false, DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS);
+		if(!util_video_encoder_raw_data[session])
+			DEF_LOG_RESULT(av_frame_alloc, false, DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS);
+
 		goto ffmpeg_api_failed;
 	}
 
@@ -431,28 +380,28 @@ Result_with_string Util_video_encoder_init(Video_codec codec, int width, int hei
 	ffmpeg_result = av_frame_get_buffer(util_video_encoder_raw_data[session], 0);
 	if(ffmpeg_result < 0)
 	{
-		result.error_description = "[Error] av_image_alloc() failed. " + std::to_string(ffmpeg_result) + " ";
+		DEF_LOG_RESULT(av_frame_get_buffer, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
 	ffmpeg_result = av_frame_make_writable(util_video_encoder_raw_data[session]);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "[Error] av_frame_make_writable() failed. " + std::to_string(ffmpeg_result) + " ";
+		DEF_LOG_RESULT(av_frame_make_writable, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
 	util_video_encoder_stream[session] = avformat_new_stream(util_encoder_format_context[session], util_video_encoder_codec[session]);
 	if(!util_video_encoder_stream[session])
 	{
-		result.error_description = "[Error] avformat_new_stream() failed. ";
+		DEF_LOG_RESULT(avformat_new_stream, false, DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS);
 		goto ffmpeg_api_failed;
 	}
 
 	ffmpeg_result = avcodec_parameters_from_context(util_video_encoder_stream[session]->codecpar, util_video_encoder_context[session]);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "[Error] avcodec_parameters_from_context() failed. ";
+		DEF_LOG_RESULT(avcodec_parameters_from_context, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
@@ -460,39 +409,27 @@ Result_with_string Util_video_encoder_init(Video_codec codec, int width, int hei
 	util_encoder_next_stream_index[session]++;
 
 	util_video_encoder_init[session] = true;
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_NOT_INITIALIZED;
 
 	already_inited:
-	result.code = DEF_ERR_ALREADY_INITIALIZED;
-	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_ALREADY_INITIALIZED;
 
 	ffmpeg_api_failed:
-	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	Util_video_encoder_exit(session);
-	return result;
+	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-Result_with_string Util_encoder_write_header(int session)
+uint32_t Util_encoder_write_header(uint8_t session)
 {
-	int ffmpeg_result = 0;
-	Result_with_string result;
+	int32_t ffmpeg_result = 0;
 
-	if(!util_encoder_init)
-		Util_encoder_init_variables();
-
-	if(session < 0 || session >= DEF_ENCODER_MAX_SESSIONS)
+	if(session >= DEF_ENCODER_MAX_SESSIONS)
 		goto invalid_arg;
 
 	if(util_encoder_wrote_header[session])
@@ -506,54 +443,42 @@ Result_with_string Util_encoder_write_header(int session)
 	ffmpeg_result = avformat_write_header(util_encoder_format_context[session], NULL);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "[Error] avformat_write_header() failed. ";
+		DEF_LOG_RESULT(avformat_write_header, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
 	util_encoder_wrote_header[session] = true;
 
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	already_inited:
-	result.code = DEF_ERR_ALREADY_INITIALIZED;
-	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_ALREADY_INITIALIZED;
 
 	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_NOT_INITIALIZED;
 
 	ffmpeg_api_failed:
-	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
-	return result;
+	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-Result_with_string Util_audio_encoder_encode(int size, uint8_t* raw_data, int session)
+uint32_t Util_audio_encoder_encode(uint32_t size, uint8_t* raw_data, uint8_t session)
 {
-	int encode_offset = 0;
-	int ffmpeg_result = 0;
-	int one_frame_size = 0;
-	int max_out_samples = 0;
-	int out_samples = 0;
-	int out_size = 0;
-	int in_samples = 0;
-	int bytes_per_sample = 0;
+	uint8_t bytes_per_sample = 0;
 	uint8_t* swr_in_cache[1] = { NULL, };
 	uint8_t* swr_out_cache[1] = { NULL, };
 	uint8_t* raw_audio = NULL;
-	Result_with_string result;
+	int32_t out_samples = 0;
+	int32_t ffmpeg_result = 0;
+	uint32_t encode_offset = 0;
+	uint32_t one_frame_size = 0;
+	uint32_t max_out_samples = 0;
+	uint32_t out_size = 0;
+	uint32_t in_samples = 0;
 
-	if(!util_encoder_init)
-		Util_encoder_init_variables();
-
-	if(session < 0 || session >= DEF_ENCODER_MAX_SESSIONS || size <= 0 || !raw_data)
+	if(session >= DEF_ENCODER_MAX_SESSIONS || size == 0 || !raw_data)
 		goto invalid_arg;
 
 	if(!util_audio_encoder_init[session] || !util_encoder_wrote_header[session])
@@ -580,7 +505,7 @@ Result_with_string Util_audio_encoder_encode(int size, uint8_t* raw_data, int se
 	out_samples = swr_convert(util_audio_encoder_swr_context[session], (uint8_t**)swr_out_cache, max_out_samples, (const uint8_t**)swr_in_cache, in_samples);
 	if(out_samples < 0)
 	{
-		result.error_description = "[Error] swr_convert() failed. " + std::to_string(ffmpeg_result);
+		DEF_LOG_RESULT(swr_convert, false, out_samples);
 		goto ffmpeg_api_failed;
 	}
 	out_size = out_samples * bytes_per_sample;
@@ -589,14 +514,14 @@ Result_with_string Util_audio_encoder_encode(int size, uint8_t* raw_data, int se
 	while(true)
 	{
 		memcpy(util_audio_encoder_raw_data[session]->data[0], raw_audio + encode_offset, one_frame_size);
-		//set pts
+		//Set pts.
 		util_audio_encoder_raw_data[session]->pts = util_audio_pos[session];
 		util_audio_pos[session] += util_audio_increase_pts[session];
 
 		ffmpeg_result = avcodec_send_frame(util_audio_encoder_context[session], util_audio_encoder_raw_data[session]);
 		if(ffmpeg_result != 0)
 		{
-			result.error_description = "[Error] avcodec_send_frame() failed. " + std::to_string(ffmpeg_result);
+			DEF_LOG_RESULT(avcodec_send_frame, false, ffmpeg_result);
 			goto ffmpeg_api_failed;
 		}
 
@@ -608,13 +533,13 @@ Result_with_string Util_audio_encoder_encode(int size, uint8_t* raw_data, int se
 			av_packet_unref(util_audio_encoder_packet[session]);
 			if(ffmpeg_result != 0)
 			{
-				result.error_description = "[Error] av_interleaved_write_frame() failed. " + std::to_string(ffmpeg_result) + " ";
+				DEF_LOG_RESULT(av_interleaved_write_frame, false, ffmpeg_result);
 				goto ffmpeg_api_failed;
 			}
 		}
 		else
 		{
-			//DEF_LOG_FORMAT("avcodec_receive_packet()...%" PRId32, ffmpeg_result);
+			// DEF_LOG_RESULT(avcodec_receive_packet, false, ffmpeg_result);
 			av_packet_unref(util_audio_encoder_packet[session]);
 		}
 
@@ -635,18 +560,13 @@ Result_with_string Util_audio_encoder_encode(int size, uint8_t* raw_data, int se
 
 	Util_safe_linear_free(raw_audio);
 	raw_audio = NULL;
-
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_NOT_INITIALIZED;
 
 	out_of_memory:
 	util_audio_encoder_cache_size[session] = 0;
@@ -654,9 +574,7 @@ Result_with_string Util_audio_encoder_encode(int size, uint8_t* raw_data, int se
 	Util_safe_linear_free(raw_audio);
 	util_audio_encoder_cache[session] = NULL;
 	raw_audio = NULL;
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
+	return DEF_ERR_OUT_OF_MEMORY;
 
 	ffmpeg_api_failed:
 	util_audio_encoder_cache_size[session] = 0;
@@ -664,22 +582,16 @@ Result_with_string Util_audio_encoder_encode(int size, uint8_t* raw_data, int se
 	Util_safe_linear_free(raw_audio);
 	util_audio_encoder_cache[session] = NULL;
 	raw_audio = NULL;
-	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
-	return result;
+	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-Result_with_string Util_video_encoder_encode(uint8_t* raw_image, int session)
+uint32_t Util_video_encoder_encode(uint8_t* raw_image, uint8_t session)
 {
-	int ffmpeg_result = 0;
-	int width = 0;
-	int height = 0;
-	Result_with_string result;
+	int32_t ffmpeg_result = 0;
+	uint32_t width = 0;
+	uint32_t height = 0;
 
-	if(!util_encoder_init)
-		Util_encoder_init_variables();
-
-	if(session < 0 || session >= DEF_ENCODER_MAX_SESSIONS || !raw_image)
+	if(session >= DEF_ENCODER_MAX_SESSIONS || !raw_image)
 		goto invalid_arg;
 
 	if(!util_video_encoder_init[session] || !util_encoder_wrote_header[session])
@@ -695,14 +607,14 @@ Result_with_string Util_video_encoder_encode(uint8_t* raw_image, int session)
 	util_video_encoder_raw_data[session]->linesize[1] = width / 2;
 	util_video_encoder_raw_data[session]->linesize[2] = width / 2;
 
-	//set pts
+	//Set pts.
 	util_video_encoder_raw_data[session]->pts = util_video_pos[session];
 	util_video_pos[session] += util_video_increase_pts[session];
 
 	ffmpeg_result = avcodec_send_frame(util_video_encoder_context[session], util_video_encoder_raw_data[session]);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "avcodec_send_frame() failed. " + std::to_string(ffmpeg_result);
+		DEF_LOG_RESULT(avcodec_send_frame, false, ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
@@ -714,40 +626,31 @@ Result_with_string Util_video_encoder_encode(uint8_t* raw_image, int session)
 		av_packet_unref(util_video_encoder_packet[session]);
 		if(ffmpeg_result != 0)
 		{
-			result.error_description = "av_interleaved_write_frame() failed. " + std::to_string(ffmpeg_result);
+			DEF_LOG_RESULT(av_interleaved_write_frame, false, ffmpeg_result);
 			goto ffmpeg_api_failed;
 		}
 	}
 	else
 	{
-		//DEF_LOG_FORMAT("avcodec_receive_packet()...%" PRId32, ffmpeg_result);
+		// DEF_LOG_RESULT(avcodec_receive_packet, false, ffmpeg_result);
 		av_packet_unref(util_video_encoder_packet[session]);
 	}
 
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_NOT_INITIALIZED;
 
 	ffmpeg_api_failed:
-	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
-	return result;
+	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-void Util_encoder_close_output_file(int session)
+void Util_encoder_close_output_file(uint8_t session)
 {
-	if(!util_encoder_init)
-		Util_encoder_init_variables();
-
-	if(session < 0 || session >= DEF_ENCODER_MAX_SESSIONS)
+	if(session >= DEF_ENCODER_MAX_SESSIONS)
 		return;
 
 	if(util_encoder_created_file[session])
@@ -766,7 +669,7 @@ void Util_encoder_close_output_file(int session)
 	}
 }
 
-void Util_audio_encoder_exit(int session)
+static void Util_audio_encoder_exit(uint8_t session)
 {
 	if(util_audio_encoder_init[session])
 	{
@@ -780,7 +683,7 @@ void Util_audio_encoder_exit(int session)
 	util_audio_encoder_init[session] = false;
 }
 
-void Util_video_encoder_exit(int session)
+static void Util_video_encoder_exit(uint8_t session)
 {
 	if(util_video_encoder_init[session])
 	{
@@ -795,50 +698,44 @@ void Util_video_encoder_exit(int session)
 
 #if DEF_ENABLE_IMAGE_ENCODER_API
 
-Result_with_string Util_image_encoder_encode(std::string file_path, uint8_t* raw_data, int width, int height, Image_codec codec, int quality)
+uint32_t Util_image_encoder_encode(const char* path, uint8_t* raw_data, uint32_t width, uint32_t height, Image_codec codec, uint8_t quality)
 {
-	Result_with_string result;
-	if(!raw_data || width <= 0 || height <= 0 || codec <= IMAGE_CODEC_INVALID || codec >= IMAGE_CODEC_MAX
-	|| (codec == IMAGE_CODEC_JPG && (quality < 0 || quality > 100)))
+	int32_t stbi_result = 0;
+
+	if(!path || !raw_data || width == 0 || height == 0 || codec <= IMAGE_CODEC_INVALID
+	|| codec >= IMAGE_CODEC_MAX || (codec == IMAGE_CODEC_JPG && quality > 100))
 		goto invalid_arg;
 
-
 	if(codec == IMAGE_CODEC_PNG)
-		result.code = stbi_write_png(file_path.c_str(), width, height, 3, raw_data, 0);
+		stbi_result = stbi_write_png(path, width, height, 3, raw_data, 0);
 	else if(codec == IMAGE_CODEC_JPG)
-		result.code = stbi_write_jpg(file_path.c_str(), width, height, 3, raw_data, quality);
+		stbi_result = stbi_write_jpg(path, width, height, 3, raw_data, quality);
 	else if(codec == IMAGE_CODEC_BMP)
-		result.code = stbi_write_bmp(file_path.c_str(), width, height, 3, raw_data);
+		stbi_result = stbi_write_bmp(path, width, height, 3, raw_data);
 	else if(codec == IMAGE_CODEC_TGA)
-		result.code = stbi_write_tga(file_path.c_str(), width, height, 3, raw_data);
+		stbi_result = stbi_write_tga(path, width, height, 3, raw_data);
 
-	if(result.code == 0)
+	if(stbi_result == 0)
 	{
 		if(codec == IMAGE_CODEC_PNG)
-			result.error_description = "[Error] stbi_write_png() failed. ";
+			DEF_LOG_RESULT(stbi_write_png, false, stbi_result);
 		else if(codec == IMAGE_CODEC_JPG)
-			result.error_description = "[Error] stbi_write_jpg() failed. ";
+			DEF_LOG_RESULT(stbi_write_jpg, false, stbi_result);
 		else if(codec == IMAGE_CODEC_BMP)
-			result.error_description = "[Error] stbi_write_bmp() failed. ";
+			DEF_LOG_RESULT(stbi_write_bmp, false, stbi_result);
 		else if(codec == IMAGE_CODEC_TGA)
-			result.error_description = "[Error] stbi_write_tga() failed. ";
+			DEF_LOG_RESULT(stbi_write_tga, false, stbi_result);
 
 		goto stbi_api_failed;
 	}
-	else
-		result.code = 0;
 
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	stbi_api_failed:
-	result.code = DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS_STR;
-	return result;
+	return DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS;
 }
 
-#endif
+#endif //DEF_ENABLE_VIDEO_AUDIO_ENCODER_API
