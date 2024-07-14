@@ -236,23 +236,23 @@ void Sapp4_main(void)
 
 			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
-			Draw(sapp4_msg[0].c_str(), 0, 20, 0.5, 0.5, color);
+			Draw_c(sapp4_msg[0].c_str(), 0, 20, 0.5, 0.5, color);
 
 			//Draw controls.
 			if(sapp4_speaker_state == SPEAKER_IDLE)
-				Draw("Press A to play music.", 0, 40, 0.425, 0.425, color);
+				Draw_c("Press A to play music.", 0, 40, 0.425, 0.425, color);
 			else
-				Draw("Press B to stop music.", 0, 40, 0.425, 0.425, color);
+				Draw_c("Press B to stop music.", 0, 40, 0.425, 0.425, color);
 
 			//Draw buffer health.
 			snprintf(msg, sizeof(msg), "%.2fs of data is cached in speaker buffer.", sapp4_buffer_health);
-			Draw(msg, 0, 70, 0.425, 0.425, color);
+			Draw_c(msg, 0, 70, 0.425, 0.425, color);
 
 			//Draw playback position.
-			Draw(("Current pos : " + Util_convert_seconds_to_time(current_pos)).c_str(), 0, 80, 0.425, 0.425, color);
+			Draw_c(("Current pos : " + Util_convert_seconds_to_time(current_pos)).c_str(), 0, 80, 0.425, 0.425, color);
 
 			//Draw dsp warning.
-			Draw(((std::string)"If you can't hear any audio, then you need to dump dsp firmawre.\n"
+			Draw_c(((std::string)"If you can't hear any audio, then you need to dump dsp firmawre.\n"
 			+ "On luma3ds >= v10.3, you can use luma3ds menu -> miscellaneous\n"
 			+ "-> dump dsp firmware.\n"
 			+ "On older luma3ds, run dsp1 (https://github.com/zoogie/DSP1/releases).").c_str(), 0, 180, 0.45, 0.45, DEF_DRAW_RED);
@@ -283,7 +283,7 @@ void Sapp4_main(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
-			Draw((DEF_SAPP4_VER).c_str(), 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+			Draw_c((DEF_SAPP4_VER).c_str(), 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
 
 			if(Util_err_query_error_show_flag())
 				Util_err_draw();
@@ -324,7 +324,7 @@ static void Sapp4_draw_init_exit_message(void)
 		if(var_monitor_cpu_usage)
 			Draw_cpu_usage_info();
 
-		Draw(sapp4_status.buffer, 0, 20, 0.65, 0.65, color);
+		Draw(&sapp4_status, 0, 20, 0.65, 0.65, color);
 
 		//Draw the same things on right screen if 3D mode is enabled.
 		//So that user can easily see them.
@@ -339,7 +339,7 @@ static void Sapp4_draw_init_exit_message(void)
 			if(var_monitor_cpu_usage)
 				Draw_cpu_usage_info();
 
-			Draw(sapp4_status.buffer, 0, 20, 0.65, 0.65, color);
+			Draw(&sapp4_status, 0, 20, 0.65, 0.65, color);
 		}
 
 		Draw_apply_draw();

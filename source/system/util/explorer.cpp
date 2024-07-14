@@ -316,13 +316,13 @@ void Util_expl_draw(void)
 	if(!util_expl_init)
 	{
 		Draw_texture(&background, DEF_DRAW_AQUA, 10.0, 20.0, 300.0, 190.0);
-		Draw("Explorer api is not initialized.\nPress A to close.", 12.5, 30.0, 0.45, 0.45, DEF_DRAW_RED);
+		Draw_c("Explorer api is not initialized.\nPress A to close.", 12.5, 30.0, 0.45, 0.45, DEF_DRAW_RED);
 		return;
 	}
 
 	Draw_texture(&background, DEF_DRAW_AQUA, 10.0, 20.0, 300.0, 190.0);
-	Draw("A : OK, B : Back, Y : Close, ↑↓→← : Move", 12.5, 185.0, 0.425, 0.425, DEF_DRAW_BLACK);
-	Draw(util_expl_current_dir.buffer, 12.5, 195.0, 0.45, 0.45, DEF_DRAW_BLACK);
+	Draw_c("A : OK, B : Back, Y : Close, ↑↓→← : Move", 12.5, 185.0, 0.425, 0.425, DEF_DRAW_BLACK);
+	Draw(&util_expl_current_dir, 12.5, 195.0, 0.45, 0.45, DEF_DRAW_BLACK);
 
 	for (uint8_t i = 0; i < 16; i++)
 	{
@@ -369,7 +369,7 @@ void Util_expl_draw(void)
 		}
 		Util_str_free(&type);
 
-		Draw(message.buffer, 12.5, 19 + (i * 10), 0.425, 0.425, i == (uint8_t)util_expl_selected_file_num ? DEF_DRAW_RED : color);
+		Draw(&message, 12.5, 19 + (i * 10), 0.425, 0.425, i == (uint8_t)util_expl_selected_file_num ? DEF_DRAW_RED : color);
 		Util_str_free(&message);
 	}
 }

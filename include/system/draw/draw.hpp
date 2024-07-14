@@ -1,7 +1,8 @@
 #if !defined(DEF_DRAW_HPP)
 #define DEF_DRAW_HPP
-
-#include "system/types.hpp"
+#include <stdbool.h>
+#include <stdint.h>
+#include "system/util/str_types.h"
 
 extern "C"
 {
@@ -199,7 +200,8 @@ void Draw_get_text_size(const char* text, float text_size_x, float text_size_y, 
  * @warning Thread dangerous (untested)
  * @warning Call it from only rendering thread.
 */
-void Draw(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888);
+void Draw_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888);
+void Draw(Util_str* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888);
 
 /**
  * @brief Draw text with specified alignment.
@@ -217,7 +219,9 @@ void Draw(const char* text, float x, float y, float text_size_x, float text_size
  * @warning Thread dangerous (untested)
  * @warning Call it from only rendering thread.
 */
-void Draw_align(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888,
+void Draw_align_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888,
+Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y);
+void Draw_align(Util_str* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888,
 Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y);
 
 /**
@@ -239,7 +243,9 @@ Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float bo
  * @warning Thread dangerous (untested)
  * @warning Call it from only rendering thread.
 */
-void Draw_with_background(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
+void Draw_with_background_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
+Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888);
+void Draw_with_background(Util_str* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
 Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888);
 
 /**

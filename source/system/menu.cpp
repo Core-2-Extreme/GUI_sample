@@ -580,14 +580,14 @@ void Menu_main(void)
 
 			if(menu_check_exit_request)
 			{
-				Draw_align(menu_msg[DEF_MENU_EXIST_MSG].c_str(), 0, 105, 0.5, 0.5, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 20);
-				Draw_align(menu_msg[DEF_MENU_CONFIRM_MSG].c_str(), 10, 140, 0.5, 0.5, DEF_DRAW_GREEN, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER, 190, 20);
-				Draw_align(menu_msg[DEF_MENU_CANCEL_MSG].c_str(), 210, 140, 0.5, 0.5, DEF_DRAW_RED, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 190, 20);
+				Draw_align_c(menu_msg[DEF_MENU_EXIST_MSG].c_str(), 0, 105, 0.5, 0.5, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 20);
+				Draw_align_c(menu_msg[DEF_MENU_CONFIRM_MSG].c_str(), 10, 140, 0.5, 0.5, DEF_DRAW_GREEN, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER, 190, 20);
+				Draw_align_c(menu_msg[DEF_MENU_CANCEL_MSG].c_str(), 210, 140, 0.5, 0.5, DEF_DRAW_RED, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 190, 20);
 			}
 			else if(menu_update_available)
 			{
-				Draw(menu_msg[DEF_MENU_NEW_VERSION_MSG].c_str(), 10, 30, 0.7, 0.7, DEF_DRAW_RED);
-				Draw(menu_msg[DEF_MENU_HOW_TO_UPDATE_MSG].c_str(), 10, 60, 0.5, 0.5, color);
+				Draw_c(menu_msg[DEF_MENU_NEW_VERSION_MSG].c_str(), 10, 30, 0.7, 0.7, DEF_DRAW_RED);
+				Draw_c(menu_msg[DEF_MENU_HOW_TO_UPDATE_MSG].c_str(), 10, 60, 0.5, 0.5, color);
 			}
 
 			if(Util_log_query_log_show_flag())
@@ -607,13 +607,13 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[0], DEF_DRAW_NO_COLOR, 0, 0, 60, 60);
 			#endif
 			#ifdef DEF_SAPP0_ENABLE_NAME
-			Draw_align((DEF_SAPP0_NAME).c_str(), 0, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c((DEF_SAPP0_NAME).c_str(), 0, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp0_query_init_flag())
 			{
 				Draw_texture(&menu_sapp_close_button[0], menu_sapp_close_button[0].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 45, 0, 15, 15);
-				Draw("X", 47.5, 0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_c("X", 47.5, 0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP1
@@ -623,13 +623,13 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[1], DEF_DRAW_NO_COLOR, 80, 0, 60, 60);
 			#endif
 			#ifdef DEF_SAPP1_ENABLE_NAME
-			Draw_align((DEF_SAPP1_NAME).c_str(), 80, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c((DEF_SAPP1_NAME).c_str(), 80, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp1_query_init_flag())
 			{
 				Draw_texture(&menu_sapp_close_button[1], menu_sapp_close_button[1].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 125, 0, 15, 15.0);
-				Draw("X", 127.5, 0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_c("X", 127.5, 0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP2
@@ -639,13 +639,13 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[2], DEF_DRAW_NO_COLOR, 160, 0, 60, 60);
 			#endif
 			#ifdef DEF_SAPP2_ENABLE_NAME
-			Draw_align((DEF_SAPP2_NAME).c_str(), 160, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c((DEF_SAPP2_NAME).c_str(), 160, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp2_query_init_flag())
 			{
 				Draw_texture(&menu_sapp_close_button[2], menu_sapp_close_button[2].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 205, 0, 15, 15.0);
-				Draw("X", 207.5, 0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_c("X", 207.5, 0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP3
@@ -655,13 +655,13 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[3], DEF_DRAW_NO_COLOR, 240, 0, 60, 60);
 			#endif
 			#ifdef DEF_SAPP3_ENABLE_NAME
-			Draw_align((DEF_SAPP3_NAME).c_str(), 240, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c((DEF_SAPP3_NAME).c_str(), 240, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp3_query_init_flag())
 			{
 				Draw_texture(&menu_sapp_close_button[3], menu_sapp_close_button[3].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 285, 0, 15, 15.0);
-				Draw("X", 287.5, 0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_c("X", 287.5, 0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP4
@@ -671,13 +671,13 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[4], DEF_DRAW_NO_COLOR, 0, 80, 60, 60);
 			#endif
 			#ifdef DEF_SAPP4_ENABLE_NAME
-			Draw_align((DEF_SAPP4_NAME).c_str(), 0, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c((DEF_SAPP4_NAME).c_str(), 0, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp4_query_init_flag())
 			{
 				Draw_texture(&menu_sapp_close_button[4], menu_sapp_close_button[4].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 45, 80, 15, 15.0);
-				Draw("X", 47.5, 80, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_c("X", 47.5, 80, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP5
@@ -687,13 +687,13 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[5], DEF_DRAW_NO_COLOR, 80, 80, 60, 60);
 			#endif
 			#ifdef DEF_SAPP5_ENABLE_NAME
-			Draw_align((DEF_SAPP5_NAME).c_str(), 80, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c((DEF_SAPP5_NAME).c_str(), 80, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp5_query_init_flag())
 			{
 				Draw_texture(&menu_sapp_close_button[5], menu_sapp_close_button[5].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 125, 80, 15, 15.0);
-				Draw("X", 127.5, 80, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_c("X", 127.5, 80, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP6
@@ -703,13 +703,13 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[6], DEF_DRAW_NO_COLOR, 160, 80, 60, 60);
 			#endif
 			#ifdef DEF_SAPP6_ENABLE_NAME
-			Draw_align((DEF_SAPP6_NAME).c_str(), 160, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c((DEF_SAPP6_NAME).c_str(), 160, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp6_query_init_flag())
 			{
 				Draw_texture(&menu_sapp_close_button[6], menu_sapp_close_button[6].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 205, 80, 15, 15.0);
-				Draw("X", 207.5, 80, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_c("X", 207.5, 80, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP7
@@ -719,13 +719,13 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[7], DEF_DRAW_NO_COLOR, 240, 80, 60, 60);
 			#endif
 			#ifdef DEF_SAPP7_ENABLE_NAME
-			Draw_align((DEF_SAPP7_NAME).c_str(), 240, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c((DEF_SAPP7_NAME).c_str(), 240, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp7_query_init_flag())
 			{
 				Draw_texture(&menu_sapp_close_button[7], menu_sapp_close_button[7].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 285, 80, 15, 15.0);
-				Draw("X", 287.5, 80, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_c("X", 287.5, 80, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 
@@ -735,7 +735,7 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[8 + var_night_mode], DEF_DRAW_NO_COLOR, 260, 170, 60, 60);
 			#endif
 			#ifdef DEF_SEM_ENABLE_NAME
-			Draw((DEF_SEM_NAME).c_str(), 270, 205, 0.4, 0.4, color);
+			Draw_c((DEF_SEM_NAME).c_str(), 270, 205, 0.4, 0.4, color);
 			#endif
 
 			if(Util_err_query_error_show_flag())

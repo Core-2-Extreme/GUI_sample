@@ -203,7 +203,7 @@ void Util_err_draw(void)
 	if(!util_err_init)
 	{
 		Draw_texture(&background, DEF_DRAW_AQUA, 20.0, 30.0, 280.0, 150.0);
-		Draw("Error api is not initialized.\nPress A to close.", 22.5, 40.0, 0.45, 0.45, DEF_DRAW_RED);
+		Draw_c("Error api is not initialized.\nPress A to close.", 22.5, 40.0, 0.45, 0.45, DEF_DRAW_RED);
 		return;
 	}
 
@@ -211,16 +211,16 @@ void Util_err_draw(void)
 	Draw_texture(&util_err_ok_button, util_err_ok_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 150.0, 150.0, 30.0, 20.0);
 	Draw_texture(&util_err_save_button, util_err_save_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 210.0, 150.0, 40.0, 20.0);
 
-	Draw("Summary : ", 22.5, 40.0, 0.45, 0.45, DEF_DRAW_RED);
-	Draw(util_err_summary.buffer, 22.5, 50.0, 0.45, 0.45, DEF_DRAW_BLACK);
-	Draw("Description : ", 22.5, 60.0, 0.45, 0.45, DEF_DRAW_RED);
-	Draw(util_err_description.buffer, 22.5, 70.0, 0.4, 0.4, DEF_DRAW_BLACK);
-	Draw("Place : ", 22.5, 90.0, 0.45, 0.45, DEF_DRAW_RED);
-	Draw(util_err_location.buffer, 22.5, 100.0, 0.45, 0.45, DEF_DRAW_BLACK);
-	Draw("Error code : ", 22.5, 110.0, 0.45, 0.45, DEF_DRAW_RED);
-	Draw(util_err_code.buffer, 22.5, 120.0, 0.45, 0.45, DEF_DRAW_BLACK);
-	Draw("OK(A)", 152.5, 152.5, 0.375, 0.375, util_err_save_request ? DEF_DRAW_WEAK_BLACK : DEF_DRAW_BLACK);
-	Draw("SAVE(X)", 212.5, 152.5, 0.375, 0.375, util_err_save_request ? DEF_DRAW_WEAK_BLACK : DEF_DRAW_BLACK);
+	Draw_c("Summary : ", 22.5, 40.0, 0.45, 0.45, DEF_DRAW_RED);
+	Draw(&util_err_summary, 22.5, 50.0, 0.45, 0.45, DEF_DRAW_BLACK);
+	Draw_c("Description : ", 22.5, 60.0, 0.45, 0.45, DEF_DRAW_RED);
+	Draw(&util_err_description, 22.5, 70.0, 0.4, 0.4, DEF_DRAW_BLACK);
+	Draw_c("Location : ", 22.5, 90.0, 0.45, 0.45, DEF_DRAW_RED);
+	Draw(&util_err_location, 22.5, 100.0, 0.45, 0.45, DEF_DRAW_BLACK);
+	Draw_c("Error code : ", 22.5, 110.0, 0.45, 0.45, DEF_DRAW_RED);
+	Draw(&util_err_code, 22.5, 120.0, 0.45, 0.45, DEF_DRAW_BLACK);
+	Draw_c("OK(A)", 152.5, 152.5, 0.375, 0.375, util_err_save_request ? DEF_DRAW_WEAK_BLACK : DEF_DRAW_BLACK);
+	Draw_c("SAVE(X)", 212.5, 152.5, 0.375, 0.375, util_err_save_request ? DEF_DRAW_WEAK_BLACK : DEF_DRAW_BLACK);
 }
 
 static void Util_err_save_callback(void)

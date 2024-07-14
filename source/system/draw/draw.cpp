@@ -822,14 +822,25 @@ Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background t
 	x_start = NULL;
 }
 
-void Draw(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888)
+void Draw_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888)
 {
 	Draw_image_data dummy = { 0, };
 	dummy.c2d = var_null_image;
 	Draw_internal(text, x, y, text_size_x, text_size_y, abgr8888, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_TOP, 0, 0, DRAW_BACKGROUND_NONE, &dummy, DEF_DRAW_NO_COLOR);
 }
 
-void Draw_align(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
+void Draw(Util_str* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888)
+{
+	Draw_image_data dummy = { 0, };
+
+	if(!Util_str_has_data(text))
+		return;
+
+	dummy.c2d = var_null_image;
+	Draw_internal(text->buffer, x, y, text_size_x, text_size_y, abgr8888, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_TOP, 0, 0, DRAW_BACKGROUND_NONE, &dummy, DEF_DRAW_NO_COLOR);
+}
+
+void Draw_align_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
 Draw_text_align_y y_align, float box_size_x, float box_size_y)
 {
 	Draw_image_data dummy = { 0, };
@@ -837,10 +848,31 @@ Draw_text_align_y y_align, float box_size_x, float box_size_y)
 	Draw_internal(text, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, DRAW_BACKGROUND_NONE, &dummy, DEF_DRAW_NO_COLOR);
 }
 
-void Draw_with_background(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
+void Draw_align(Util_str* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
+Draw_text_align_y y_align, float box_size_x, float box_size_y)
+{
+	Draw_image_data dummy = { 0, };
+
+	if(!Util_str_has_data(text))
+		return;
+
+	dummy.c2d = var_null_image;
+	Draw_internal(text->buffer, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, DRAW_BACKGROUND_NONE, &dummy, DEF_DRAW_NO_COLOR);
+}
+
+void Draw_with_background_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
 Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888)
 {
 	Draw_internal(text, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, texture_position, background_image, texture_abgr8888);
+}
+
+void Draw_with_background(Util_str* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
+Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888)
+{
+	if(!Util_str_has_data(text))
+		return;
+
+	Draw_internal(text->buffer, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, texture_position, background_image, texture_abgr8888);
 }
 
 uint32_t Draw_get_free_sheet_num(void)
@@ -926,11 +958,10 @@ void Draw_top_ui(void)
 	if (var_battery_charge)
 		Draw_texture(&util_draw_battery_charge_icon_image[0], DEF_DRAW_NO_COLOR, 295.0, 0.0, 20.0, 15.0);
 
-	Draw(var_status, 0.0, 0.0, 0.45, 0.45, DEF_DRAW_GREEN);
+	Draw_c(var_status, 0.0, 0.0, 0.45, 0.45, DEF_DRAW_GREEN);
 
 	Util_str_format(&temp, "%" PRIi8, var_battery_level_raw);
-	if(Util_str_has_data(&temp))
-		Draw(temp.buffer, 322.5, 1.25, 0.425, 0.425, DEF_DRAW_BLACK);
+	Draw(&temp, 322.5, 1.25, 0.425, 0.425, DEF_DRAW_BLACK);
 
 	if (var_debug_mode)
 		Draw_debug_info();
@@ -944,7 +975,7 @@ void Draw_bot_ui(void)
 		return;
 
 	Draw_texture(&util_draw_bot_ui, DEF_DRAW_BLACK, 0.0, 225.0, 320.0, 15.0);
-	Draw("▽", 155.0, 220.0, 0.75, 0.75, DEF_DRAW_WHITE);
+	Draw_c("▽", 155.0, 220.0, 0.75, 0.75, DEF_DRAW_WHITE);
 }
 
 Draw_image_data* Draw_get_bot_ui_button(void)
@@ -1036,7 +1067,7 @@ void Draw_cpu_usage_info(void)
 
 	snprintf((msg_cache + char_length), 128 - char_length, "\n(#1 max : %ld%%)", Util_get_core_1_max());
 
-	Draw_with_background(msg_cache, 300, 25, 0.4, 0.4, DEF_DRAW_BLACK, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER,
+	Draw_with_background_c(msg_cache, 300, 25, 0.4, 0.4, DEF_DRAW_BLACK, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER,
 	100, 60, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
 }
 #endif //DEF_ENABLE_CPU_MONITOR_API
@@ -1061,72 +1092,55 @@ static void Draw_debug_info(void)
 	background.c2d = var_square_image[0];
 
 	Util_str_format(&temp, "A:%c B:%c", empty_p_h[key.p_a + (key.h_a * 2)], empty_p_h[key.p_b + (key.h_b * 2)]);
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 40, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 40, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "X:%c Y:%c", empty_p_h[key.p_x + (key.h_x * 2)], empty_p_h[key.p_y + (key.h_y * 2)]);
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 50, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 50, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "L:%c R:%c", empty_p_h[key.p_l + (key.h_l * 2)], empty_p_h[key.p_r + (key.h_r * 2)]);
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 60, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 60, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "ZL:%c ZR:%c", empty_p_h[key.p_zl + (key.h_zl * 2)], empty_p_h[key.p_zr + (key.h_zr * 2)]);
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 70, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 70, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "C↓:%c C→:%c", empty_p_h[key.p_c_down + (key.h_c_down * 2)], empty_p_h[key.p_c_right + (key.h_c_right * 2)]);
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 80, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 80, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "C↑:%c C←:%c", empty_p_h[key.p_c_up + (key.h_c_up * 2)], empty_p_h[key.p_c_left + (key.h_c_left * 2)]);
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 90, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 90, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "D↓:%c D→:%c", empty_p_h[key.p_d_down + (key.h_d_down * 2)], empty_p_h[key.p_d_right + (key.h_d_right * 2)]);
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 100, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 100, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "D↑:%c D←:%c", empty_p_h[key.p_d_up + (key.h_d_up * 2)], empty_p_h[key.p_d_left + (key.h_d_left * 2)]);
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 110, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 110, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "CS↓:%c CS→:%c", empty_p_h[key.p_cs_down + (key.h_cs_down * 2)], empty_p_h[key.p_cs_right + (key.h_cs_right * 2)]);
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 120, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 120, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "CS↑:%c CS←:%c", empty_p_h[key.p_cs_up + (key.h_cs_up * 2)], empty_p_h[key.p_cs_left + (key.h_cs_left * 2)]);
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 130, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 130, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "START:%c SELET:%c", empty_p_h[key.p_start + (key.h_start * 2)], empty_p_h[key.p_select + (key.h_select * 2)]);
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 140, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 140, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "touch x:%" PRIi32 " y:%" PRIi32, key.touch_x, key.touch_y);
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 150, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 150, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "CPU:%.3fms GPU:%.3fms", C3D_GetProcessingTime(), C3D_GetDrawingTime());
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 160, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 160, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "Frametime:%.4fms", util_draw_frametime);
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 170, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 170, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "RAM:%.3fMB", (var_free_ram / 1000.0 / 1000.0));
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 180, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 180, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "Linear RAM:%.3fMB", (var_free_linear_ram / 1000.0 / 1000.0));
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 190, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 190, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "Watch:%" PRIu32 "/%" PRIu32 "(%.1f%%)", Util_get_watch_total_usage(), DEF_MAX_WATCH_VARIABLES, ((double)Util_get_watch_total_usage() / DEF_MAX_WATCH_VARIABLES * 100));
-	if(Util_str_has_data(&temp))
-		Draw_with_background(temp.buffer, 0, 200, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, 0, 200, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_free(&temp);
 }

@@ -335,12 +335,12 @@ void Util_log_draw(void)
 {
 	if(!util_log_init)
 	{
-		Draw("Log api is not initialized.\nPress A to close.", 0, 10, 0.5, 0.5, DEF_DRAW_RED);
+		Draw_c("Log api is not initialized.\nPress A to close.", 0, 10, 0.5, 0.5, DEF_DRAW_RED);
 		return;
 	}
 
 	for (uint16_t i = 0; i < DEF_LOG_DISPLAYED_LINES; i++)
-		Draw(util_log_logs[util_log_y + i].buffer, util_log_x, 10.0 + (i * 10), 0.425, 0.425, DEF_LOG_COLOR);
+		Draw(&util_log_logs[util_log_y + i], util_log_x, 10.0 + (i * 10), 0.425, 0.425, DEF_LOG_COLOR);
 }
 
 static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, const char* caller, const char* format_string, va_list args)

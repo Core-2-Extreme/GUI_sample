@@ -181,7 +181,7 @@ void Sapp0_main(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
-			Draw(sapp0_msg[0].c_str(), 0, 20, 0.5, 0.5, color);
+			Draw_c(sapp0_msg[0].c_str(), 0, 20, 0.5, 0.5, color);
 
 			//Draw texture here.
 			if(sapp0_image[0].subtex)
@@ -216,7 +216,7 @@ void Sapp0_main(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
-			Draw((DEF_SAPP0_VER).c_str(), 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+			Draw_c((DEF_SAPP0_VER).c_str(), 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
 
 			if(Util_err_query_error_show_flag())
 				Util_err_draw();
@@ -257,7 +257,7 @@ static void Sapp0_draw_init_exit_message(void)
 		if(var_monitor_cpu_usage)
 			Draw_cpu_usage_info();
 
-		Draw(sapp0_status.buffer, 0, 20, 0.65, 0.65, color);
+		Draw(&sapp0_status, 0, 20, 0.65, 0.65, color);
 
 		//Draw the same things on right screen if 3D mode is enabled.
 		//So that user can easily see them.
@@ -272,7 +272,7 @@ static void Sapp0_draw_init_exit_message(void)
 			if(var_monitor_cpu_usage)
 				Draw_cpu_usage_info();
 
-			Draw(sapp0_status.buffer, 0, 20, 0.65, 0.65, color);
+			Draw(&sapp0_status, 0, 20, 0.65, 0.65, color);
 		}
 
 		Draw_apply_draw();

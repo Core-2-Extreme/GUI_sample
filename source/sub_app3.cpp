@@ -268,7 +268,7 @@ void Sapp3_main(void)
 
 			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
-			Draw(sapp3_msg[0].c_str(), 0, 20, 0.5, 0.5, color);
+			Draw_c(sapp3_msg[0].c_str(), 0, 20, 0.5, 0.5, color);
 
 			if(sapp3_camera_state != CAM_IDLE)
 			{
@@ -294,7 +294,7 @@ void Sapp3_main(void)
 				Draw_image_data background = { 0, };
 				background.c2d = var_square_image[0];
 
-				Draw_with_background(status.c_str(), 40, 40, 0.5, 0.5, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER,
+				Draw_with_background_c(status.c_str(), 40, 40, 0.5, 0.5, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER,
 				DRAW_Y_ALIGN_CENTER, 320, 20, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 			}
 
@@ -324,35 +324,35 @@ void Sapp3_main(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
-			Draw((DEF_SAPP3_VER).c_str(), 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+			Draw_c((DEF_SAPP3_VER).c_str(), 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
 
 			//Draw camera controls.
 			if(sapp3_camera_state == CAM_IDLE)
-				Draw("Press B to enable a camera.", 0, 30, 0.5, 0.5, color);
+				Draw_c("Press B to enable a camera.", 0, 30, 0.5, 0.5, color);
 			else
 			{
-				Draw("Press A to take a picture.", 0, 20, 0.5, 0.5, color);
-				Draw("Press B to disable a camera.", 0, 30, 0.5, 0.5, color);
+				Draw_c("Press A to take a picture.", 0, 20, 0.5, 0.5, color);
+				Draw_c("Press B to disable a camera.", 0, 30, 0.5, 0.5, color);
 			}
 
 			//Draw picture path.
-			if(Util_str_has_data(&sapp3_camera_saved_file_path) && sapp3_camera_state != CAM_SAVING_A_PICTURE)
+			if(sapp3_camera_state != CAM_SAVING_A_PICTURE)
 			{
-				Draw("Picture was saved as :", 0, 40, 0.45, 0.45, DEF_DRAW_BLUE);
-				Draw(sapp3_camera_saved_file_path.buffer, 0, 50, 0.45, 0.45, DEF_DRAW_BLUE);
+				Draw_c("Picture was saved as :", 0, 40, 0.45, 0.45, DEF_DRAW_BLUE);
+				Draw(&sapp3_camera_saved_file_path, 0, 50, 0.45, 0.45, DEF_DRAW_BLUE);
 			}
 
 			//Draw mic controls.
 			if(sapp3_mic_state == MIC_IDLE)
-				Draw("Press Y to start recording sound.", 0, 70, 0.5, 0.5, color);
+				Draw_c("Press Y to start recording sound.", 0, 70, 0.5, 0.5, color);
 			else
-				Draw("Press X to stop recording sound.", 0, 70, 0.5, 0.5, color);
+				Draw_c("Press X to stop recording sound.", 0, 70, 0.5, 0.5, color);
 
 			//Draw sound recording path.
-			if(Util_str_has_data(&sapp3_mic_saved_file) && sapp3_mic_state == MIC_IDLE)
+			if(sapp3_mic_state == MIC_IDLE)
 			{
-				Draw("Sound recording was saved as", 0, 80, 0.45, 0.45, DEF_DRAW_BLUE);
-				Draw(sapp3_mic_saved_file.buffer, 0, 90, 0.45, 0.45, DEF_DRAW_BLUE);
+				Draw_c("Sound recording was saved as", 0, 80, 0.45, 0.45, DEF_DRAW_BLUE);
+				Draw(&sapp3_mic_saved_file, 0, 90, 0.45, 0.45, DEF_DRAW_BLUE);
 			}
 
 			if(Util_err_query_error_show_flag())
@@ -394,7 +394,7 @@ static void Sapp3_draw_init_exit_message(void)
 		if(var_monitor_cpu_usage)
 			Draw_cpu_usage_info();
 
-		Draw(sapp3_status.buffer, 0, 20, 0.65, 0.65, color);
+		Draw(&sapp3_status, 0, 20, 0.65, 0.65, color);
 
 		//Draw the same things on right screen if 3D mode is enabled.
 		//So that user can easily see them.
@@ -409,7 +409,7 @@ static void Sapp3_draw_init_exit_message(void)
 			if(var_monitor_cpu_usage)
 				Draw_cpu_usage_info();
 
-			Draw(sapp3_status.buffer, 0, 20, 0.65, 0.65, color);
+			Draw(&sapp3_status, 0, 20, 0.65, 0.65, color);
 		}
 
 		Draw_apply_draw();
