@@ -153,6 +153,52 @@ void Util_err_save_error(void)
 	util_err_save_request = true;
 }
 
+const char* Util_err_get_error_msg(uint32_t result)
+{
+	if(!util_err_init)
+		return "";
+
+	switch (result)
+	{
+		case DEF_SUCCESS:
+			return "";
+		case DEF_ERR_OTHER:
+			return DEF_ERR_OTHER_STR;
+		case DEF_ERR_OUT_OF_MEMORY:
+			return DEF_ERR_OUT_OF_MEMORY_STR;
+		case DEF_ERR_OUT_OF_LINEAR_MEMORY:
+			return DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
+		case DEF_ERR_GAS_RETURNED_NOT_SUCCESS:
+			return DEF_ERR_GAS_RETURNED_NOT_SUCCESS_STR;
+		case DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS:
+			return DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS_STR;
+		case DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS:
+			return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
+		case DEF_ERR_INVALID_ARG:
+			return DEF_ERR_INVALID_ARG_STR;
+		case DEF_ERR_JSMN_RETURNED_NOT_SUCCESS:
+			return DEF_ERR_JSMN_RETURNED_NOT_SUCCESS_STR;
+		case DEF_ERR_TRY_AGAIN:
+			return DEF_ERR_TRY_AGAIN_STR;
+		case DEF_ERR_ALREADY_INITIALIZED:
+			return DEF_ERR_ALREADY_INITIALIZED_STR;
+		case DEF_ERR_NOT_INITIALIZED:
+			return DEF_ERR_NOT_INITIALIZED_STR;
+		case DEF_ERR_CURL_RETURNED_NOT_SUCCESS:
+			return DEF_ERR_CURL_RETURNED_NOT_SUCCESS_STR;
+		case DEF_ERR_NEED_MORE_INPUT:
+			return DEF_ERR_NEED_MORE_INPUT_STR;
+		case DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT:
+			return DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT_STR;
+		case DEF_ERR_DECODER_TRY_AGAIN:
+			return DEF_ERR_DECODER_TRY_AGAIN_STR;
+		case DEF_ERR_DISABLED:
+			return DEF_ERR_DISABLED_STR;
+		default:
+			return "Something went wrong (likely Nintendo API error).";
+	}
+}
+
 void Util_err_main(Hid_info key)
 {
 	if(!util_err_init)
@@ -244,11 +290,11 @@ static void Util_err_save_callback(void)
 			Util_str_format(&file_name, "%04d_%02d_%02d_%02d_%02d_%02d.txt", var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
 			Util_str_format(&save_data, "\n\n##ERROR MESSAGE##\n%s\n%s\n%s\n%s\n", util_err_summary.buffer, util_err_description.buffer, util_err_location.buffer, util_err_code.buffer);
 
-			result = Util_log_dump(file_name.buffer, (DEF_MAIN_DIR_C "error/"));
+			result = Util_log_dump(file_name.buffer, (DEF_MAIN_DIR "error/"));
 			if(result != DEF_SUCCESS)
 				DEF_LOG_RESULT(Util_log_dump, false, result);
 
-			result = Util_file_save_to_file(file_name.buffer, (DEF_MAIN_DIR_C "error/"), (uint8_t*)save_data.buffer , save_data.length, false);
+			result = Util_file_save_to_file(file_name.buffer, (DEF_MAIN_DIR "error/"), (uint8_t*)save_data.buffer , save_data.length, false);
 			if(result != DEF_SUCCESS)
 				DEF_LOG_RESULT(Util_file_save_to_file, false, result);
 

@@ -29,9 +29,9 @@ bool sapp1_main_run = false;
 bool sapp1_thread_run = false;
 bool sapp1_already_init = false;
 bool sapp1_thread_suspend = true;
-std::string sapp1_msg[DEF_SAPP1_NUM_OF_MSG];
 Thread sapp1_init_thread = NULL, sapp1_exit_thread = NULL, sapp1_worker_thread = NULL;
 Util_str sapp1_status = { 0, };
+Util_str sapp1_msg[DEF_SAPP1_NUM_OF_MSG] = { 0, };
 Util_str sapp1_selected_path = { 0, };
 Util_str sapp1_file_info = { 0, };
 
@@ -102,9 +102,12 @@ void Sapp1_suspend(void)
 	Menu_resume();
 }
 
-Result_with_string Sapp1_load_msg(std::string lang)
+uint32_t Sapp1_load_msg(const char* lang)
 {
-	return Util_load_msg("sapp1_" + lang + ".txt", sapp1_msg, DEF_SAPP1_NUM_OF_MSG);
+	char file_name[32] = { 0, };
+
+	snprintf(file_name, sizeof(file_name), "sapp1_%s.txt", (lang ? lang : ""));
+	return Util_load_msg(file_name, sapp1_msg, DEF_SAPP1_NUM_OF_MSG);
 }
 
 void Sapp1_init(bool draw)
@@ -191,7 +194,7 @@ void Sapp1_main(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
-			Draw_c(sapp1_msg[0].c_str(), 0, 20, 0.5, 0.5, color);
+			Draw(&sapp1_msg[0], 0, 20, 0.5, 0.5, color);
 
 			//Draw file info.
 			Draw(&sapp1_selected_path, 0, 40, 0.45, 0.45, color);
@@ -223,7 +226,7 @@ void Sapp1_main(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
-			Draw_c((DEF_SAPP1_VER).c_str(), 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+			Draw_c(DEF_SAPP1_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
 
 			if(Util_expl_query_show_flag())//Draw file explorer.
 				Util_expl_draw();

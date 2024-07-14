@@ -49,9 +49,9 @@ bool sapp2_main_run = false;
 bool sapp2_thread_run = false;
 bool sapp2_already_init = false;
 bool sapp2_thread_suspend = true;
-std::string sapp2_msg[DEF_SAPP2_NUM_OF_MSG];
 Thread sapp2_init_thread = NULL, sapp2_exit_thread = NULL, sapp2_worker_thread = NULL;
 Util_queue sapp2_command_queue = { 0, };
+Util_str sapp2_msg[DEF_SAPP2_NUM_OF_MSG] = { 0, };
 Util_str sapp2_status = { 0, };
 
 
@@ -141,9 +141,12 @@ void Sapp2_suspend(void)
 	Menu_resume();
 }
 
-Result_with_string Sapp2_load_msg(std::string lang)
+uint32_t Sapp2_load_msg(const char* lang)
 {
-	return Util_load_msg("sapp2_" + lang + ".txt", sapp2_msg, DEF_SAPP2_NUM_OF_MSG);
+	char file_name[32] = { 0, };
+
+	snprintf(file_name, sizeof(file_name), "sapp2_%s.txt", (lang ? lang : ""));
+	return Util_load_msg(file_name, sapp2_msg, DEF_SAPP2_NUM_OF_MSG);
 }
 
 void Sapp2_init(bool draw)
@@ -231,7 +234,7 @@ void Sapp2_main(void)
 			char msg[64];
 			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
-			Draw_c(sapp2_msg[0].c_str(), 0, 20, 0.45, 0.45, color);
+			Draw(&sapp2_msg[0], 0, 20, 0.45, 0.45, color);
 
 			Draw_c("Press A to sleep and wake up if you reopen the shell.", 0, 40, 0.425, 0.425, color);
 			Draw_c("Press B to sleep and wake up if you press the home button.", 0, 50, 0.425, 0.425, color);
@@ -282,7 +285,7 @@ void Sapp2_main(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
-			Draw_c((DEF_SAPP2_VER).c_str(), 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+			Draw_c(DEF_SAPP2_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
 
 			if(Util_err_query_error_show_flag())
 				Util_err_draw();

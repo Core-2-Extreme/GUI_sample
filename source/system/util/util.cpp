@@ -2,11 +2,18 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 #include "system/types.hpp"
 
 #include "system/util/error_types.h"
 #include "system/util/file.hpp"
+
+extern "C"
+{
+#include "system/util/log.h"
+#include "system/util/str.h"
+}
 
 #include "base64/base64.h"
 
@@ -133,10 +140,8 @@ extern "C" Result __wrap_APT_GetAppCpuTimeLimit(uint32_t* percent)
 	return code;
 }
 
-Result_with_string Util_init(void)
+uint32_t Util_init(void)
 {
-	Result_with_string result;
-
 	if(util_init)
 		goto already_inited;
 
@@ -154,12 +159,10 @@ Result_with_string Util_init(void)
 	}
 
 	util_init = true;
-	return result;
+	return DEF_SUCCESS;
 
 	already_inited:
-	result.code = DEF_ERR_ALREADY_INITIALIZED;
-	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_ALREADY_INITIALIZED;
 }
 
 void Util_exit(void)
@@ -203,10 +206,9 @@ uint32_t Util_get_watch_total_usage(void)
 	return used;
 }
 
-Result_with_string Util_add_watch(Watch_handle handle, void* variable, uint32_t length)
+uint32_t Util_add_watch(Watch_handle handle, void* variable, uint32_t length)
 {
 	uint32_t used = 0;
-	Result_with_string result;
 
 	if(!util_init)
 		goto not_inited;
@@ -242,24 +244,17 @@ Result_with_string Util_add_watch(Watch_handle handle, void* variable, uint32_t 
 	}
 
 	LightLock_Unlock(&util_watch_variables_mutex);
-
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_NOT_INITIALIZED;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	out_of_memory:
 	LightLock_Unlock(&util_watch_variables_mutex);
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
+	return DEF_ERR_OUT_OF_MEMORY;
 }
 
 void Util_remove_watch(Watch_handle handle, void* variable)
@@ -324,45 +319,92 @@ bool Util_is_watch_changed(Watch_handle_bit handles)
 	return is_changed;
 }
 
-Result_with_string Util_parse_file(std::string source_data, int expected_items, std::string out_data[])
+uint32_t Util_parse_file(const char* source_data, uint32_t expected_items, Util_str* out_data)
 {
-	size_t start_num = 0;
-	size_t end_num = 0;
-	std::string start_text = "";
-	std::string end_text = "";
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
+	Util_str start_text = { 0, };
+	Util_str end_text = { 0, };
 
-	if(!out_data || expected_items <= 0)
+	if(!out_data || expected_items == 0)
 		goto invalid_arg;
 
-	for (int i = 0; i < expected_items; i++)
+	for(uint32_t i = 0; i < expected_items; i++)
 	{
-		start_text = "<" + std::to_string(i) + ">";
-		start_num = source_data.find(start_text);
-		end_text = "</" + std::to_string(i) + ">";
-		end_num = source_data.find(end_text);
-
-		if (end_num == std::string::npos || start_num == std::string::npos)
+		result = Util_str_init(&out_data[i]);
+		if(result != DEF_SUCCESS)
 		{
-			result.error_description = "[Error] Failed to parse file. error pos : " + std::to_string(i) + " ";
-			goto other;
+			DEF_LOG_RESULT(Util_str_init, false, result);
+			goto api_failed;
 		}
-
-		start_num += start_text.length();
-		end_num -= start_num;
-		out_data[i] = source_data.substr(start_num, end_num);
 	}
 
-	return result;
+	result = Util_str_init(&start_text);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_init, false, result);
+		goto api_failed;
+	}
+
+	result = Util_str_init(&end_text);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_init, false, result);
+		goto api_failed;
+	}
+
+	for (uint32_t i = 0; i < expected_items; i++)
+	{
+		char* start_pos = NULL;
+		char* end_pos = NULL;
+		uint32_t copy_length = 0;
+
+		result = Util_str_format(&start_text, "<%" PRIu32 ">", i);
+		if(result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Util_str_format, false, result);
+			goto api_failed;
+		}
+
+		result = Util_str_format(&end_text, "</%" PRIu32 ">", i);
+		if(result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Util_str_format, false, result);
+			goto api_failed;
+		}
+
+		start_pos = strstr(source_data, start_text.buffer);
+		end_pos = strstr(source_data, end_text.buffer);
+
+		if (!start_pos || !end_pos || (start_pos + start_text.length) > end_pos)
+		{
+			DEF_LOG_FORMAT("Failed to parse file. Error pos : %s%s", start_text.buffer, end_text.buffer);
+			result = DEF_ERR_OTHER;
+			goto error_other;
+		}
+
+		copy_length = (end_pos - (start_pos + start_text.length));
+		result = Util_str_format(&out_data[i], "%.*s", copy_length, (start_pos + start_text.length));
+		if(result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Util_str_format, false, result);
+			goto api_failed;
+		}
+	}
+
+	Util_str_free(&start_text);
+	Util_str_free(&end_text);
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
-	other:
-	result.code = DEF_ERR_OTHER;
-	result.string = DEF_ERR_OTHER_STR;
+	api_failed:
+	error_other:
+	for(uint32_t i = 0; i < expected_items; i++)
+		Util_str_free(&out_data[i]);
+
+	Util_str_free(&start_text);
+	Util_str_free(&end_text);
 	return result;
 }
 
@@ -421,37 +463,34 @@ std::string Util_encode_to_escape(std::string in_data)
 	return return_data;
 }
 
-Result_with_string Util_load_msg(std::string file_name, std::string out_msg[], int num_of_msg)
+uint32_t Util_load_msg(const char* file_name, Util_str* out_msg, uint32_t num_of_msg)
 {
 	uint8_t* fs_buffer = NULL;
 	uint32_t read_size = 0;
 	Result_with_string result;
-	fs_buffer = NULL;
 
-	if(file_name == "" || !out_msg || num_of_msg <= 0)
+	if(!file_name || !out_msg || num_of_msg == 0)
 		goto invalid_arg;
 
 	result = Util_file_load_from_rom(file_name, "romfs:/gfx/msg/", &fs_buffer, 0x2000, &read_size);
-	if (result.code != 0)
+	if (result.code != DEF_SUCCESS)
 		goto api_failed;
 
-	result = Util_parse_file((char*)fs_buffer, num_of_msg, out_msg);
-	if (result.code != 0)
+	result.code = Util_parse_file((char*)fs_buffer, num_of_msg, out_msg);
+	if (result.code != DEF_SUCCESS)
 		goto api_failed;
 
 	Util_safe_linear_free(fs_buffer);
 	fs_buffer = NULL;
-	return result;
+	return DEF_SUCCESS;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	api_failed:
 	Util_safe_linear_free(fs_buffer);
 	fs_buffer = NULL;
-	return result;
+	return result.code;
 }
 
 std::string Util_encode_to_base64(char* source, int size)
@@ -464,21 +503,18 @@ std::string Util_decode_from_base64(std::string source)
 	return base64_decode(source);
 }
 
-Result_with_string Util_safe_linear_alloc_init(void)
+uint32_t Util_safe_linear_alloc_init(void)
 {
-	Result_with_string result;
 	if(util_safe_linear_alloc_init)
 		goto already_inited;
 
 	LightLock_Init(&util_safe_linear_alloc_mutex);
 
 	util_safe_linear_alloc_init = true;
-	return result;
+	return DEF_SUCCESS;
 
 	already_inited:
-	result.code = DEF_ERR_ALREADY_INITIALIZED;
-	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_ALREADY_INITIALIZED;
 }
 
 void Util_safe_linear_alloc_exit(void)
@@ -579,7 +615,7 @@ uint32_t Util_check_free_ram(void)
 
 	for (count = 0; count < 2000; count++)
 	{
-		malloc_check[count] = (uint8_t*)__real_malloc(0x186A0);// 100KB
+		malloc_check[count] = (uint8_t*)__real_malloc(0x186A0);//100KB.
 		if (malloc_check[count] == NULL)
 			break;
 	}
@@ -587,7 +623,7 @@ uint32_t Util_check_free_ram(void)
 	for (uint32_t i = 0; i <= count; i++)
 		__real_free(malloc_check[i]);
 
-	return count * 100 * 1024;//return free B
+	return count * 100 * 1024;//Return free bytes.
 }
 
 uint32_t Util_get_core_1_max(void)

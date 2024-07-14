@@ -24,6 +24,7 @@ extern "C"
 #include "system/util/hid.h"
 #include "system/util/hw_config.h"
 #include "system/util/log.h"
+#include "system/util/str.h"
 }
 
 #ifdef DEF_ENABLE_SUB_APP0
@@ -71,7 +72,7 @@ bool menu_init_request[9] = { false, false, false, false, false, false, false, f
 bool menu_exit_request[8] = { false, false, false, false, false, false, false, false, };
 uint32_t menu_icon_texture_num[9] = { UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, };
 void (*menu_worker_thread_callbacks[DEF_MENU_NUM_OF_CALLBACKS])(void) = { NULL, };
-std::string menu_msg[DEF_MENU_NUM_OF_MSG];
+Util_str menu_msg[DEF_MENU_NUM_OF_MSG] = { 0, };
 Thread menu_worker_thread = NULL;
 LightLock menu_callback_mutex = 1;//Initially unlocked state.
 Draw_image_data menu_icon_image[10] = { 0, };
@@ -119,9 +120,12 @@ void Menu_suspend(void)
 	menu_main_run = false;
 }
 
-Result_with_string Menu_load_msg(std::string lang)
+uint32_t Menu_load_msg(const char* lang)
 {
-	return Util_load_msg("menu_" + lang + ".txt", menu_msg, DEF_MENU_NUM_OF_MSG);
+	char file_name[32] = { 0, };
+
+	snprintf(file_name, sizeof(file_name), "menu_%s.txt", (lang ? lang : ""));
+	return Util_load_msg(file_name, menu_msg, DEF_MENU_NUM_OF_MSG);
 }
 
 void Menu_check_core_thread(void* arg)
@@ -151,7 +155,7 @@ void Menu_init(void)
 
 	result.code = Util_log_init();
 	DEF_LOG_RESULT(Util_log_init, (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_FORMAT("Initializing...%s", (DEF_CURRENT_APP_VER).c_str());
+	DEF_LOG_FORMAT("Initializing...%s", DEF_CURRENT_APP_VER);
 
 	osSetSpeedupEnable(true);
 	aptSetSleepAllowed(true);
@@ -167,13 +171,13 @@ void Menu_init(void)
 	DEF_LOG_RESULT_SMART(result.code, cfguInit(), (result.code == DEF_SUCCESS), result.code);
 	DEF_LOG_RESULT_SMART(result.code, amInit(), (result.code == DEF_SUCCESS), result.code);
 	DEF_LOG_RESULT_SMART(result.code, APT_SetAppCpuTimeLimit(30), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result, Util_safe_linear_alloc_init(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Util_safe_linear_alloc_init(), (result.code == DEF_SUCCESS), result.code);
 
 	//Create directories.
-	Util_file_save_to_file(".", DEF_MAIN_DIR_C, &dummy, 1, true);
-	Util_file_save_to_file(".", DEF_MAIN_DIR_C "screen_recording/", &dummy, 1, true);
-	Util_file_save_to_file(".", DEF_MAIN_DIR_C "error/", &dummy, 1, true);
-	Util_file_save_to_file(".", DEF_MAIN_DIR_C "logs/", &dummy, 1, true);
+	Util_file_save_to_file(".", DEF_MAIN_DIR, &dummy, 1, true);
+	Util_file_save_to_file(".", DEF_MAIN_DIR "screen_recording/", &dummy, 1, true);
+	Util_file_save_to_file(".", DEF_MAIN_DIR "error/", &dummy, 1, true);
+	Util_file_save_to_file(".", DEF_MAIN_DIR "logs/", &dummy, 1, true);
 
 	if(Util_file_load_from_file("fake_model.txt", DEF_MAIN_DIR, &data, 1, &read_size).code == 0 && *data <= 5)
 	{
@@ -211,7 +215,7 @@ void Menu_init(void)
 		osSetSpeedupEnable(false);
 
 	//Init our modules.
-	DEF_LOG_RESULT_SMART(result, Util_init(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Util_init(), (result.code == DEF_SUCCESS), result.code);
 
 	Sem_init();
 	Sem_suspend();
@@ -294,55 +298,55 @@ void Menu_init(void)
 	//Load sub application icons.
 #ifdef DEF_SAPP0_ENABLE_ICON
 	menu_icon_texture_num[0] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture((DEF_SAPP0_ICON_PATH).c_str(), menu_icon_texture_num[0], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SAPP0_ICON_PATH, menu_icon_texture_num[0], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
 	menu_icon_image[0].c2d = cache[0];
 #endif
 
 #ifdef DEF_SAPP1_ENABLE_ICON
 	menu_icon_texture_num[1] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture((DEF_SAPP1_ICON_PATH).c_str(), menu_icon_texture_num[1], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SAPP1_ICON_PATH, menu_icon_texture_num[1], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
 	menu_icon_image[1].c2d = cache[0];
 #endif
 
 #ifdef DEF_SAPP2_ENABLE_ICON
 	menu_icon_texture_num[2] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture((DEF_SAPP2_ICON_PATH).c_str(), menu_icon_texture_num[2], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SAPP2_ICON_PATH, menu_icon_texture_num[2], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
 	menu_icon_image[2].c2d = cache[0];
 #endif
 
 #ifdef DEF_SAPP3_ENABLE_ICON
 	menu_icon_texture_num[3] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture((DEF_SAPP3_ICON_PATH).c_str(), menu_icon_texture_num[3], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SAPP3_ICON_PATH, menu_icon_texture_num[3], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
 	menu_icon_image[3].c2d = cache[0];
 #endif
 
 #ifdef DEF_SAPP4_ENABLE_ICON
 	menu_icon_texture_num[4] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture((DEF_SAPP4_ICON_PATH).c_str(), menu_icon_texture_num[4], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SAPP4_ICON_PATH, menu_icon_texture_num[4], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
 	menu_icon_image[4].c2d = cache[0];
 #endif
 
 #ifdef DEF_SAPP5_ENABLE_ICON
 	menu_icon_texture_num[5] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture((DEF_SAPP5_ICON_PATH).c_str(), menu_icon_texture_num[5], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SAPP5_ICON_PATH, menu_icon_texture_num[5], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
 	menu_icon_image[5].c2d = cache[0];
 #endif
 
 #ifdef DEF_SAPP6_ENABLE_ICON
 	menu_icon_texture_num[6] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture((DEF_SAPP6_ICON_PATH).c_str(), menu_icon_texture_num[6], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SAPP6_ICON_PATH, menu_icon_texture_num[6], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
 	menu_icon_image[6].c2d = cache[0];
 #endif
 
 #ifdef DEF_SAPP7_ENABLE_ICON
 	menu_icon_texture_num[7] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture((DEF_SAPP7_ICON_PATH).c_str(), menu_icon_texture_num[7], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SAPP7_ICON_PATH, menu_icon_texture_num[7], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
 	menu_icon_image[7].c2d = cache[0];
 #endif
 
 #ifdef DEF_SEM_ENABLE_ICON
 	menu_icon_texture_num[8] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture((DEF_SEM_ICON_PATH).c_str(), menu_icon_texture_num[8], cache, 0, 2), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SEM_ICON_PATH, menu_icon_texture_num[8], cache, 0, 2), (result.code == DEF_SUCCESS), result.code);
 	menu_icon_image[8].c2d = cache[0];
 	menu_icon_image[9].c2d = cache[1];
 #endif
@@ -580,14 +584,14 @@ void Menu_main(void)
 
 			if(menu_check_exit_request)
 			{
-				Draw_align_c(menu_msg[DEF_MENU_EXIST_MSG].c_str(), 0, 105, 0.5, 0.5, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 20);
-				Draw_align_c(menu_msg[DEF_MENU_CONFIRM_MSG].c_str(), 10, 140, 0.5, 0.5, DEF_DRAW_GREEN, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER, 190, 20);
-				Draw_align_c(menu_msg[DEF_MENU_CANCEL_MSG].c_str(), 210, 140, 0.5, 0.5, DEF_DRAW_RED, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 190, 20);
+				Draw_align(&menu_msg[DEF_MENU_EXIST_MSG], 0, 105, 0.5, 0.5, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 20);
+				Draw_align(&menu_msg[DEF_MENU_CONFIRM_MSG], 10, 140, 0.5, 0.5, DEF_DRAW_GREEN, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER, 190, 20);
+				Draw_align(&menu_msg[DEF_MENU_CANCEL_MSG], 210, 140, 0.5, 0.5, DEF_DRAW_RED, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 190, 20);
 			}
 			else if(menu_update_available)
 			{
-				Draw_c(menu_msg[DEF_MENU_NEW_VERSION_MSG].c_str(), 10, 30, 0.7, 0.7, DEF_DRAW_RED);
-				Draw_c(menu_msg[DEF_MENU_HOW_TO_UPDATE_MSG].c_str(), 10, 60, 0.5, 0.5, color);
+				Draw(&menu_msg[DEF_MENU_NEW_VERSION_MSG], 10, 30, 0.7, 0.7, DEF_DRAW_RED);
+				Draw(&menu_msg[DEF_MENU_HOW_TO_UPDATE_MSG], 10, 60, 0.5, 0.5, color);
 			}
 
 			if(Util_log_query_log_show_flag())
@@ -607,7 +611,7 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[0], DEF_DRAW_NO_COLOR, 0, 0, 60, 60);
 			#endif
 			#ifdef DEF_SAPP0_ENABLE_NAME
-			Draw_align_c((DEF_SAPP0_NAME).c_str(), 0, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c(DEF_SAPP0_NAME, 0, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp0_query_init_flag())
@@ -623,7 +627,7 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[1], DEF_DRAW_NO_COLOR, 80, 0, 60, 60);
 			#endif
 			#ifdef DEF_SAPP1_ENABLE_NAME
-			Draw_align_c((DEF_SAPP1_NAME).c_str(), 80, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c(DEF_SAPP1_NAME, 80, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp1_query_init_flag())
@@ -639,7 +643,7 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[2], DEF_DRAW_NO_COLOR, 160, 0, 60, 60);
 			#endif
 			#ifdef DEF_SAPP2_ENABLE_NAME
-			Draw_align_c((DEF_SAPP2_NAME).c_str(), 160, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c(DEF_SAPP2_NAME, 160, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp2_query_init_flag())
@@ -655,7 +659,7 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[3], DEF_DRAW_NO_COLOR, 240, 0, 60, 60);
 			#endif
 			#ifdef DEF_SAPP3_ENABLE_NAME
-			Draw_align_c((DEF_SAPP3_NAME).c_str(), 240, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c(DEF_SAPP3_NAME, 240, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp3_query_init_flag())
@@ -671,7 +675,7 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[4], DEF_DRAW_NO_COLOR, 0, 80, 60, 60);
 			#endif
 			#ifdef DEF_SAPP4_ENABLE_NAME
-			Draw_align_c((DEF_SAPP4_NAME).c_str(), 0, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c(DEF_SAPP4_NAME, 0, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp4_query_init_flag())
@@ -687,7 +691,7 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[5], DEF_DRAW_NO_COLOR, 80, 80, 60, 60);
 			#endif
 			#ifdef DEF_SAPP5_ENABLE_NAME
-			Draw_align_c((DEF_SAPP5_NAME).c_str(), 80, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c(DEF_SAPP5_NAME, 80, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp5_query_init_flag())
@@ -703,7 +707,7 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[6], DEF_DRAW_NO_COLOR, 160, 80, 60, 60);
 			#endif
 			#ifdef DEF_SAPP6_ENABLE_NAME
-			Draw_align_c((DEF_SAPP6_NAME).c_str(), 160, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c(DEF_SAPP6_NAME, 160, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp6_query_init_flag())
@@ -719,7 +723,7 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[7], DEF_DRAW_NO_COLOR, 240, 80, 60, 60);
 			#endif
 			#ifdef DEF_SAPP7_ENABLE_NAME
-			Draw_align_c((DEF_SAPP7_NAME).c_str(), 240, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c(DEF_SAPP7_NAME, 240, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp7_query_init_flag())
@@ -735,7 +739,7 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[8 + var_night_mode], DEF_DRAW_NO_COLOR, 260, 170, 60, 60);
 			#endif
 			#ifdef DEF_SEM_ENABLE_NAME
-			Draw_c((DEF_SEM_NAME).c_str(), 270, 205, 0.4, 0.4, color);
+			Draw_c(DEF_SEM_NAME, 270, 205, 0.4, 0.4, color);
 			#endif
 
 			if(Util_err_query_error_show_flag())
@@ -1271,7 +1275,7 @@ void Menu_send_app_info_thread(void* arg)
 	APT_CheckNew3DS(&is_new3ds);
 	new3ds = is_new3ds ? "yes" : "no";
 
-	std::string send_data = "{ \"app_ver\": \"" + DEF_CURRENT_APP_VER + "\",\"system_ver\" : \"" + system_ver + "\",\"start_num_of_app\" : \"" + std::to_string(var_num_of_app_start) + "\",\"language\" : \"" + var_lang + "\",\"new3ds\" : \"" + new3ds + "\",\"time_to_enter_sleep\" : \"" + std::to_string(var_time_to_turn_off_lcd) + "\",\"scroll_speed\" : \"" + std::to_string(var_scroll_speed) + "\" }";
+	std::string send_data = (std::string)"{ \"app_ver\": \"" + DEF_CURRENT_APP_VER + "\",\"system_ver\" : \"" + system_ver + "\",\"start_num_of_app\" : \"" + std::to_string(var_num_of_app_start) + "\",\"language\" : \"" + var_lang + "\",\"new3ds\" : \"" + new3ds + "\",\"time_to_enter_sleep\" : \"" + std::to_string(var_time_to_turn_off_lcd) + "\",\"scroll_speed\" : \"" + std::to_string(var_scroll_speed) + "\" }";
 
 #if DEF_ENABLE_CURL_API
 	Util_curl_post_and_dl_data(DEF_SEND_APP_INFO_URL, (uint8_t*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, &downloaded_size, &uploaded_size, true, 5);

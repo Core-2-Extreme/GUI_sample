@@ -17,8 +17,8 @@
 #define DEF_SEM_NUM_OF_MSG 71
 #define DEF_SEM_ENABLE_ICON
 //#define DEF_SEM_ENABLE_NAME
-#define DEF_SEM_ICON_PATH (std::string)"romfs:/gfx/draw/icon/sem_icon.t3x"
-#define DEF_SEM_NAME (std::string)"Settings"
+#define DEF_SEM_ICON_PATH (const char*)"romfs:/gfx/draw/icon/sem_icon.t3x"
+#define DEF_SEM_NAME (const char*)"Settings"
 
 #define DEF_SEM_MENU_TOP -1
 #define DEF_SEM_MENU_UPDATE 0

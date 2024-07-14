@@ -2,7 +2,6 @@
 #define DEF_SAPP5_HPP
 #include <stdbool.h>
 #include <stdint.h>
-#include "system/types.hpp"
 #include "system/util/hid_types.h"
 
 bool Sapp5_query_init_flag(void);
@@ -15,7 +14,7 @@ void Sapp5_resume(void);
 
 void Sapp5_suspend(void);
 
-Result_with_string Sapp5_load_msg(std::string lang);
+uint32_t Sapp5_load_msg(const char* lang);
 
 void Sapp5_init(bool draw);
 

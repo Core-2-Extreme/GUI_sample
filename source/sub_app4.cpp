@@ -51,12 +51,12 @@ bool sapp4_already_init = false;
 bool sapp4_thread_suspend = true;
 double sapp4_buffer_health = 0;
 double sapp4_last_decoded_pos_ms = 0;
-std::string sapp4_msg[DEF_SAPP4_NUM_OF_MSG];
 Thread sapp4_init_thread = NULL, sapp4_exit_thread = NULL, sapp4_worker_thread = NULL;
-Audio_info sapp4_audio_info;
+Audio_info sapp4_audio_info = { 0, };
 Util_queue sapp4_command_queue = { 0, };
+Util_str sapp4_msg[DEF_SAPP4_NUM_OF_MSG] = { 0, };
 Util_str sapp4_status = { 0, };
-Sapp4_speaker_state sapp4_speaker_state;
+Sapp4_speaker_state sapp4_speaker_state = SPEAKER_IDLE;
 
 
 static void Sapp4_draw_init_exit_message(void);
@@ -133,9 +133,12 @@ void Sapp4_suspend(void)
 	Menu_resume();
 }
 
-Result_with_string Sapp4_load_msg(std::string lang)
+uint32_t Sapp4_load_msg(const char* lang)
 {
-	return Util_load_msg("sapp4_" + lang + ".txt", sapp4_msg, DEF_SAPP4_NUM_OF_MSG);
+	char file_name[32] = { 0, };
+
+	snprintf(file_name, sizeof(file_name), "sapp4_%s.txt", (lang ? lang : ""));
+	return Util_load_msg(file_name, sapp4_msg, DEF_SAPP4_NUM_OF_MSG);
 }
 
 void Sapp4_init(bool draw)
@@ -236,7 +239,7 @@ void Sapp4_main(void)
 
 			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
-			Draw_c(sapp4_msg[0].c_str(), 0, 20, 0.5, 0.5, color);
+			Draw(&sapp4_msg[0], 0, 20, 0.5, 0.5, color);
 
 			//Draw controls.
 			if(sapp4_speaker_state == SPEAKER_IDLE)
@@ -283,7 +286,7 @@ void Sapp4_main(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
-			Draw_c((DEF_SAPP4_VER).c_str(), 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+			Draw_c(DEF_SAPP4_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
 
 			if(Util_err_query_error_show_flag())
 				Util_err_draw();

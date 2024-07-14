@@ -2,7 +2,6 @@
 #define DEF_SAPP0_HPP
 #include <stdbool.h>
 #include <stdint.h>
-#include "system/types.hpp"
 #include "system/util/hid_types.h"
 
 bool Sapp0_query_init_flag(void);
@@ -15,7 +14,7 @@ void Sapp0_resume(void);
 
 void Sapp0_suspend(void);
 
-Result_with_string Sapp0_load_msg(std::string lang);
+uint32_t Sapp0_load_msg(const char* lang);
 
 void Sapp0_init(bool draw);
 

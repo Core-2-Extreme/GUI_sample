@@ -55,8 +55,8 @@ static const uint16_t util_exfont_font_hangul_syllables_characters[11] =
 };
 static uint32_t util_exfont_num_of_right_left_charcters = 0;
 static uint32_t util_exfont_font_start_num[DEF_EXFONT_NUM_OF_FONT_NAME] = { 0, };
+static Util_str util_exfont_font_name[DEF_EXFONT_NUM_OF_FONT_NAME] = { 0, };
 static Exfont_one_char util_exfont_font_right_to_left_samples[257] = { 0, };
-static std::string util_exfont_font_name[DEF_EXFONT_NUM_OF_FONT_NAME];
 static const Exfont_one_char util_exfont_ignore_chars[] =
 {
 	{ .buffer = "\u2000", }, { .buffer = "\u2001", }, { .buffer = "\u2002", }, { .buffer = "\u2003", },
@@ -144,7 +144,7 @@ uint32_t Exfont_init(void)
 		goto api_failed;
 	}
 
-	result = Util_parse_file((char*)fs_buffer, DEF_EXFONT_NUM_OF_FONT_NAME, util_exfont_font_name).code;
+	result = Util_parse_file((char*)fs_buffer, DEF_EXFONT_NUM_OF_FONT_NAME, util_exfont_font_name);
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Util_parse_file, false, result);
@@ -218,7 +218,7 @@ const char* Exfont_query_external_font_name(uint16_t exfont_id)
 	if(!util_exfont_init)
 		return "";
 	else if (exfont_id < DEF_EXFONT_NUM_OF_FONT_NAME)
-		return util_exfont_font_name[exfont_id].c_str();
+		return util_exfont_font_name[exfont_id].buffer;
 	else
 		return "";
 }
@@ -1426,7 +1426,7 @@ static uint32_t Exfont_load_exfont(uint16_t exfont_id)
 				break;
 			}
 
-			Util_str_format(&path, "romfs:/gfx/font/%s_%" PRIu8 "_font.t3x", util_exfont_font_name[exfont_id].c_str(), i);
+			Util_str_format(&path, "romfs:/gfx/font/%s_%" PRIu8 "_font.t3x", util_exfont_font_name[exfont_id].buffer, i);
 			util_exfont_cjk_unified_ideographs_texture_num[i] = Draw_get_free_sheet_num();
 			result = Draw_load_texture(path.buffer, util_exfont_cjk_unified_ideographs_texture_num[i], util_exfont_font_images, start_pos, util_exfont_font_cjk_unified_ideographs_characters[i]);
 
@@ -1464,7 +1464,7 @@ static uint32_t Exfont_load_exfont(uint16_t exfont_id)
 				break;
 			}
 
-			Util_str_format(&path, "romfs:/gfx/font/%s_%" PRIu8 "_font.t3x", util_exfont_font_name[exfont_id].c_str(), i);
+			Util_str_format(&path, "romfs:/gfx/font/%s_%" PRIu8 "_font.t3x", util_exfont_font_name[exfont_id].buffer, i);
 			util_exfont_hangul_syllables_texture_num[i] = Draw_get_free_sheet_num();
 			result = Draw_load_texture(path.buffer, util_exfont_hangul_syllables_texture_num[i], util_exfont_font_images, start_pos, util_exfont_font_hangul_syllables_characters[i]);
 
@@ -1490,7 +1490,7 @@ static uint32_t Exfont_load_exfont(uint16_t exfont_id)
 	}
 	else
 	{
-		Util_str_format(&path, "romfs:/gfx/font/%s_font.t3x", util_exfont_font_name[exfont_id].c_str());
+		Util_str_format(&path, "romfs:/gfx/font/%s_font.t3x", util_exfont_font_name[exfont_id].buffer);
 		util_exfont_texture_num[exfont_id] = Draw_get_free_sheet_num();
 		result = Draw_load_texture(path.buffer, util_exfont_texture_num[exfont_id], util_exfont_font_images, util_exfont_font_start_num[exfont_id], util_exfont_font_characters[exfont_id]);
 

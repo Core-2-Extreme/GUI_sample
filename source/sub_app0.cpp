@@ -31,9 +31,9 @@ bool sapp0_main_run = false;
 bool sapp0_thread_run = false;
 bool sapp0_already_init = false;
 bool sapp0_thread_suspend = true;
-std::string sapp0_msg[DEF_SAPP0_NUM_OF_MSG];
 Thread sapp0_init_thread = NULL, sapp0_exit_thread = NULL, sapp0_worker_thread = NULL;
 Util_str sapp0_status = { 0, };
+Util_str sapp0_msg[DEF_SAPP0_NUM_OF_MSG] = { 0, };
 Draw_image_data sapp0_image[3] = { 0, };
 
 
@@ -92,9 +92,12 @@ void Sapp0_suspend(void)
 	Menu_resume();
 }
 
-Result_with_string Sapp0_load_msg(std::string lang)
+uint32_t Sapp0_load_msg(const char* lang)
 {
-	return Util_load_msg("sapp0_" + lang + ".txt", sapp0_msg, DEF_SAPP0_NUM_OF_MSG);
+	char file_name[32] = { 0, };
+
+	snprintf(file_name, sizeof(file_name), "sapp0_%s.txt", (lang ? lang : ""));
+	return Util_load_msg(file_name, sapp0_msg, DEF_SAPP0_NUM_OF_MSG);
 }
 
 void Sapp0_init(bool draw)
@@ -181,7 +184,7 @@ void Sapp0_main(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
-			Draw_c(sapp0_msg[0].c_str(), 0, 20, 0.5, 0.5, color);
+			Draw(&sapp0_msg[0], 0, 20, 0.5, 0.5, color);
 
 			//Draw texture here.
 			if(sapp0_image[0].subtex)
@@ -216,7 +219,7 @@ void Sapp0_main(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
-			Draw_c((DEF_SAPP0_VER).c_str(), 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+			Draw_c(DEF_SAPP0_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
 
 			if(Util_err_query_error_show_flag())
 				Util_err_draw();

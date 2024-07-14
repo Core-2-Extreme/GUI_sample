@@ -473,7 +473,7 @@ int max_redirect, Upload_data* upload_data)
 		goto curl_api_failed;
 	}
 
-	result.code = curl_easy_setopt(*curl_handle, CURLOPT_USERAGENT, (DEF_HTTP_USER_AGENT).c_str());
+	result.code = curl_easy_setopt(*curl_handle, CURLOPT_USERAGENT, DEF_HTTP_USER_AGENT);
 	if (result.code != CURLE_OK)
 	{
 		result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";

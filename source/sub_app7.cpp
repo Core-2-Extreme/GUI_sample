@@ -28,8 +28,8 @@ bool sapp7_main_run = false;
 bool sapp7_thread_run = false;
 bool sapp7_already_init = false;
 bool sapp7_thread_suspend = true;
-std::string sapp7_msg[DEF_SAPP7_NUM_OF_MSG];
 Thread sapp7_init_thread = NULL, sapp7_exit_thread = NULL, sapp7_worker_thread = NULL;
+Util_str sapp7_msg[DEF_SAPP7_NUM_OF_MSG] = { 0, };
 Util_str sapp7_status = { 0, };
 
 
@@ -88,9 +88,12 @@ void Sapp7_suspend(void)
 	Menu_resume();
 }
 
-Result_with_string Sapp7_load_msg(std::string lang)
+uint32_t Sapp7_load_msg(const char* lang)
 {
-	return Util_load_msg("sapp7_" + lang + ".txt", sapp7_msg, DEF_SAPP7_NUM_OF_MSG);
+	char file_name[32] = { 0, };
+
+	snprintf(file_name, sizeof(file_name), "sapp7_%s.txt", (lang ? lang : ""));
+	return Util_load_msg(file_name, sapp7_msg, DEF_SAPP7_NUM_OF_MSG);
 }
 
 void Sapp7_init(bool draw)
@@ -177,7 +180,7 @@ void Sapp7_main(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
-			Draw_c(sapp7_msg[0].c_str(), 0, 20, 0.5, 0.5, color);
+			Draw(&sapp7_msg[0], 0, 20, 0.5, 0.5, color);
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
@@ -204,7 +207,7 @@ void Sapp7_main(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
-			Draw_c((DEF_SAPP7_VER).c_str(), 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+			Draw_c(DEF_SAPP7_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
 
 			if(Util_err_query_error_show_flag())
 				Util_err_draw();

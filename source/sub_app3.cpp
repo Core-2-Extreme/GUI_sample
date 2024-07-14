@@ -71,11 +71,11 @@ bool sapp3_thread_run = false;
 bool sapp3_already_init = false;
 bool sapp3_thread_suspend = true;
 int sapp3_camera_buffer_index = 0;
-std::string sapp3_msg[DEF_SAPP3_NUM_OF_MSG];
 Thread sapp3_init_thread = NULL, sapp3_exit_thread = NULL, sapp3_camera_thread = NULL, sapp3_mic_thread = NULL;
 Draw_image_data sapp3_camera_image[2] = { 0, };
 Util_queue sapp3_camera_command_queue = { 0, }, sapp3_mic_command_queue = { 0, };
 Util_str sapp3_status = { 0, };
+Util_str sapp3_msg[DEF_SAPP3_NUM_OF_MSG] = { 0, };
 Util_str sapp3_camera_saved_file_path = { 0, };
 Util_str sapp3_mic_saved_file = { 0, };
 Sapp3_camera_state sapp3_camera_state = CAM_IDLE;
@@ -176,9 +176,12 @@ void Sapp3_suspend(void)
 	Menu_resume();
 }
 
-Result_with_string Sapp3_load_msg(std::string lang)
+uint32_t Sapp3_load_msg(const char* lang)
 {
-	return Util_load_msg("sapp3_" + lang + ".txt", sapp3_msg, DEF_SAPP3_NUM_OF_MSG);
+	char file_name[32] = { 0, };
+
+	snprintf(file_name, sizeof(file_name), "sapp3_%s.txt", (lang ? lang : ""));
+	return Util_load_msg(file_name, sapp3_msg, DEF_SAPP3_NUM_OF_MSG);
 }
 
 void Sapp3_init(bool draw)
@@ -268,7 +271,7 @@ void Sapp3_main(void)
 
 			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
-			Draw_c(sapp3_msg[0].c_str(), 0, 20, 0.5, 0.5, color);
+			Draw(&sapp3_msg[0], 0, 20, 0.5, 0.5, color);
 
 			if(sapp3_camera_state != CAM_IDLE)
 			{
@@ -324,7 +327,7 @@ void Sapp3_main(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
-			Draw_c((DEF_SAPP3_VER).c_str(), 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+			Draw_c(DEF_SAPP3_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
 
 			//Draw camera controls.
 			if(sapp3_camera_state == CAM_IDLE)
@@ -336,7 +339,7 @@ void Sapp3_main(void)
 			}
 
 			//Draw picture path.
-			if(sapp3_camera_state != CAM_SAVING_A_PICTURE)
+			if(sapp3_camera_state != CAM_SAVING_A_PICTURE && Util_str_has_data(&sapp3_camera_saved_file_path))
 			{
 				Draw_c("Picture was saved as :", 0, 40, 0.45, 0.45, DEF_DRAW_BLUE);
 				Draw(&sapp3_camera_saved_file_path, 0, 50, 0.45, 0.45, DEF_DRAW_BLUE);
@@ -349,9 +352,9 @@ void Sapp3_main(void)
 				Draw_c("Press X to stop recording sound.", 0, 70, 0.5, 0.5, color);
 
 			//Draw sound recording path.
-			if(sapp3_mic_state == MIC_IDLE)
+			if(sapp3_mic_state == MIC_IDLE && Util_str_has_data(&sapp3_mic_saved_file))
 			{
-				Draw_c("Sound recording was saved as", 0, 80, 0.45, 0.45, DEF_DRAW_BLUE);
+				Draw_c("Sound recording was saved as : ", 0, 80, 0.45, 0.45, DEF_DRAW_BLUE);
 				Draw(&sapp3_mic_saved_file, 0, 90, 0.45, 0.45, DEF_DRAW_BLUE);
 			}
 
@@ -534,7 +537,7 @@ static void Sapp3_camera_thread(void* arg)
 	uint8_t dummy = 0;
 
 	//Create directory.
-	Util_file_save_to_file(".", DEF_MAIN_DIR_C "images/", &dummy, 1, true);
+	Util_file_save_to_file(".", DEF_MAIN_DIR "images/", &dummy, 1, true);
 
 	while (sapp3_thread_run)
 	{
@@ -623,7 +626,7 @@ static void Sapp3_camera_thread(void* arg)
 						if(result == DEF_SUCCESS)
 						{
 							char path[96];
-							snprintf(path, sizeof(path), "%simages/%04d_%02d_%02d_%02d_%02d_%02d.png", (DEF_MAIN_DIR).c_str(),
+							snprintf(path, sizeof(path), "%simages/%04d_%02d_%02d_%02d_%02d_%02d.png", DEF_MAIN_DIR,
 							var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
 
 							//6. Save the picture as png.
@@ -666,7 +669,7 @@ static void Sapp3_mic_thread(void* arg)
 	uint8_t dummy = 0;
 
 	//Create directory.
-	Util_file_save_to_file(".", DEF_MAIN_DIR_C "sound/", &dummy, 1, true);
+	Util_file_save_to_file(".", DEF_MAIN_DIR "sound/", &dummy, 1, true);
 
 	while (sapp3_thread_run)
 	{
@@ -687,7 +690,7 @@ static void Sapp3_mic_thread(void* arg)
 				case MIC_START_RECORDING_REQUEST:
 				{
 					char path[96];
-					snprintf(path, sizeof(path), "%ssound/%04d_%02d_%02d_%02d_%02d_%02d.mp3", (DEF_MAIN_DIR).c_str(),
+					snprintf(path, sizeof(path), "%ssound/%04d_%02d_%02d_%02d_%02d_%02d.mp3", DEF_MAIN_DIR,
 					var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
 
 					//1. Create an output file.

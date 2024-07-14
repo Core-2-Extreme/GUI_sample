@@ -1,6 +1,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+extern "C"
+{
+#include <3ds/types.h>
+#include <3ds/services/apt.h>
+}
+
 #include "system/menu.hpp"
 
 

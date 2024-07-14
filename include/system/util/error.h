@@ -62,6 +62,13 @@ void Util_err_clear_error_message(void);
 void Util_err_save_error(void);
 
 /**
+ * @brief Convert result code to error message.
+ * Always return empty string ("") if error api is not initialized.
+ * @note Thread safe
+*/
+const char* Util_err_get_error_msg(uint32_t result);
+
+/**
  * @brief Process user input for Util_err_draw().
  * @param key (in) key info returned by Util_hid_query_key_state().
  * @warning Thread dangerous (untested)

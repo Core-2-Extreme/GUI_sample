@@ -30,8 +30,8 @@ extern "C"
 {
 bool util_log_show_flag = false;
 bool util_log_init = false;
-int util_log_current_index = 0;
-int util_log_y = 0;
+uint32_t util_log_current_index = 0;
+uint32_t util_log_y = 0;
 double util_log_x = 0.0;
 double util_log_uptime_ms = 0.0;
 double util_log_spend_time[DEF_LOG_BUFFER_LINES] = { 0, };
@@ -297,7 +297,7 @@ void Util_log_main(Hid_info key)
 
 	if (key.h_c_up)
 	{
-		if (util_log_y - 1 >= 0)
+		if (util_log_y > 0)
 		{
 			var_need_reflesh = true;
 			util_log_y--;

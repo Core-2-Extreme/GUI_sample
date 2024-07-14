@@ -233,7 +233,7 @@ static Result_with_string Util_httpc_request(httpcContext* httpc_context, std::s
 		goto nintendo_api_failed;
 	}
 
-	result.code = httpcAddRequestHeaderField(httpc_context, "User-Agent", (DEF_HTTP_USER_AGENT).c_str());
+	result.code = httpcAddRequestHeaderField(httpc_context, "User-Agent", DEF_HTTP_USER_AGENT);
 	if (result.code != 0)
 	{
 		result.error_description = "[Error] httpcAddRequestHeaderField() failed. ";

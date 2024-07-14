@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include "system/util/str_types.h"
 
+#define DEF_STR_NEVER_NULL(str_ptr)			(const char*)(Util_str_is_valid(str_ptr) ? (str_ptr)->buffer : "")
+
 /**
  * @brief Initialize a string struct.
  * @param string Pointer for target struct.

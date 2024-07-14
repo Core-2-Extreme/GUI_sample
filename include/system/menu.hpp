@@ -2,7 +2,6 @@
 #define DEF_MENU_HPP
 #include <stdbool.h>
 #include <stdint.h>
-#include "types.hpp"
 
 bool Menu_query_must_exit_flag(void);
 
@@ -12,7 +11,7 @@ void Menu_resume(void);
 
 void Menu_suspend(void);
 
-Result_with_string Menu_load_msg(std::string lang);
+uint32_t Menu_load_msg(const char* lang);
 
 void Menu_init(void);
 

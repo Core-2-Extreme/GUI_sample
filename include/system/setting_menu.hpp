@@ -2,7 +2,6 @@
 #define DEF_SETTING_MENU_HPP
 #include <stdbool.h>
 #include <stdint.h>
-#include "types.hpp"
 #include "system/util/hid_types.h"
 
 bool Sem_query_init_flag(void);
@@ -13,7 +12,7 @@ void Sem_resume(void);
 
 void Sem_suspend(void);
 
-Result_with_string Sem_load_msg(std::string lang);
+uint32_t Sem_load_msg(const char* lang);
 
 void Sem_init(void);
 

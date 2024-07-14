@@ -2,6 +2,7 @@
 #define DEF_UTIL_HPP
 #include <stdbool.h>
 #include <stdint.h>
+#include "system/util/str_types.h"
 #include "system/types.hpp"
 
 extern "C" void* __real_malloc(size_t size);
@@ -14,11 +15,10 @@ extern "C" Result __real_APT_GetAppCpuTimeLimit(uint32_t* percent);
 
 /**
  * @brief Initialize util API.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_* or Nintendo API's error.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_init(void);
+uint32_t Util_init(void);
 
 /**
  * @brief Uninitialize util API.
@@ -50,11 +50,10 @@ uint32_t Util_get_watch_total_usage(void);
  * @param handle (in) Watch handle to link with.
  * @param variable (in) Pointer for variable to add to watch list.
  * @param length (in) Data length to watch.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_add_watch(Watch_handle handle, void* variable, uint32_t length);
+uint32_t Util_add_watch(Watch_handle handle, void* variable, uint32_t length);
 
 /**
  * @brief Remove a variable frin watch list.
@@ -79,11 +78,10 @@ bool Util_is_watch_changed(Watch_handle_bit handles);
  * @param source_data (in) Text data.
  * @param expected_items (in) Expected elements.
  * @param out_data (out) Array for parsed data.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_parse_file(std::string source_data, int expected_items, std::string out_data[]);
+uint32_t Util_parse_file(const char* source_data, uint32_t expected_items, Util_str* out_data);
 
 /**
  * @brief Convert seconds to time (hh:mm:ss.ms).
@@ -106,11 +104,10 @@ std::string Util_encode_to_escape(std::string in_data);
  * @param file_name (in) File name in romfs:/gfx/msg/.
  * @param out_msg (out) Array for parsed message.
  * @param num_of_msg (in) Number of message.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Util_load_msg(std::string file_name, std::string out_msg[], int num_of_msg);
+uint32_t Util_load_msg(const char* file_name, Util_str* out_msg, uint32_t num_of_msg);
 
 /**
  * @brief Encode to base64.
@@ -131,11 +128,10 @@ std::string Util_decode_from_base64(std::string source);
 
 /**
  * @brief Initialize a safe linear alloc API.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_* or Nintendo API's error.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_safe_linear_alloc_init(void);
+uint32_t Util_safe_linear_alloc_init(void);
 
 /**
  * @brief Uninitialize a safe linear alloc API.

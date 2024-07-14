@@ -28,8 +28,8 @@ bool sapp5_main_run = false;
 bool sapp5_thread_run = false;
 bool sapp5_already_init = false;
 bool sapp5_thread_suspend = true;
-std::string sapp5_msg[DEF_SAPP5_NUM_OF_MSG];
 Thread sapp5_init_thread = NULL, sapp5_exit_thread = NULL, sapp5_worker_thread = NULL;
+Util_str sapp5_msg[DEF_SAPP5_NUM_OF_MSG] = { 0, };
 Util_str sapp5_status = { 0, };
 
 
@@ -88,9 +88,12 @@ void Sapp5_suspend(void)
 	Menu_resume();
 }
 
-Result_with_string Sapp5_load_msg(std::string lang)
+uint32_t Sapp5_load_msg(const char* lang)
 {
-	return Util_load_msg("sapp5_" + lang + ".txt", sapp5_msg, DEF_SAPP5_NUM_OF_MSG);
+	char file_name[32] = { 0, };
+
+	snprintf(file_name, sizeof(file_name), "sapp5_%s.txt", (lang ? lang : ""));
+	return Util_load_msg(file_name, sapp5_msg, DEF_SAPP5_NUM_OF_MSG);
 }
 
 void Sapp5_init(bool draw)
@@ -177,7 +180,7 @@ void Sapp5_main(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
-			Draw_c(sapp5_msg[0].c_str(), 0, 20, 0.5, 0.5, color);
+			Draw(&sapp5_msg[0], 0, 20, 0.5, 0.5, color);
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
@@ -204,7 +207,7 @@ void Sapp5_main(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
-			Draw_c((DEF_SAPP5_VER).c_str(), 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+			Draw_c(DEF_SAPP5_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
 
 			if(Util_err_query_error_show_flag())
 				Util_err_draw();
