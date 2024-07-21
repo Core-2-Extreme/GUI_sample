@@ -68,7 +68,7 @@ typedef struct
  * @param _3d (in) When true, enable 3D mode.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
- * @warning Call it from only rendering thread.
+ * @warning Call it only from rendering thread.
 */
 uint32_t Draw_init(bool wide, bool _3d);
 
@@ -79,7 +79,7 @@ uint32_t Draw_init(bool wide, bool _3d);
  * @param _3d (in) When true, enable 3D mode.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
- * @warning Call it from only rendering thread.
+ * @warning Call it only from rendering thread.
 */
 uint32_t Draw_reinit(bool wide, bool _3d);
 
@@ -87,7 +87,7 @@ uint32_t Draw_reinit(bool wide, bool _3d);
  * @brief Uninitialize a draw api.
  * Do nothing if draw api is not initialized.
  * @warning Thread dangerous (untested)
- * @warning Call it from only rendering thread.
+ * @warning Call it only from rendering thread.
 */
 void Draw_exit(void);
 
@@ -184,7 +184,7 @@ void Draw_set_texture_filter(Draw_image_data* image, bool filter);
  * @param out_text_size_x (out) Text width (in px).
  * @param out_text_size_y (out) Text height (in px).
  * @warning Thread dangerous (untested)
- * @warning Call it from only rendering thread.
+ * @warning Call it only from rendering thread.
 */
 void Draw_get_text_size(const char* text, float text_size_x, float text_size_y, double* out_text_size_x, double* out_text_size_y);
 
@@ -198,7 +198,7 @@ void Draw_get_text_size(const char* text, float text_size_x, float text_size_y, 
  * @param text_size_y (in) Font size for Y direction.
  * @param abgr8888 (in) Font color.
  * @warning Thread dangerous (untested)
- * @warning Call it from only rendering thread.
+ * @warning Call it only from rendering thread.
 */
 void Draw_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888);
 void Draw(Util_str* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888);
@@ -217,7 +217,7 @@ void Draw(Util_str* text, float x, float y, float text_size_x, float text_size_y
  * @param x_size (in) If align is DRAW_X_ALIGN_LEFT, this is ignored otherwise virtual box width (in px).
  * @param y_size (in) If align is DRAW_Y_ALIGN_TOP, this is ignored otherwise virtual box height (in px).
  * @warning Thread dangerous (untested)
- * @warning Call it from only rendering thread.
+ * @warning Call it only from rendering thread.
 */
 void Draw_align_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888,
 Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y);
@@ -241,7 +241,7 @@ Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float bo
  * @param background_image (in&out) Image data.
  * @param texture_abgr8888 (in) Texture color.
  * @warning Thread dangerous (untested)
- * @warning Call it from only rendering thread.
+ * @warning Call it only from rendering thread.
 */
 void Draw_with_background_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
 Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888);
@@ -280,7 +280,7 @@ void Draw_free_texture(uint32_t sheet_map_num);
  * @brief Draw top UI.
  * Do nothing if draw api is not initialized.
  * @warning Thread dangerous (untested)
- * @warning Call it from only rendering thread.
+ * @warning Call it only from rendering thread.
 */
 void Draw_top_ui(void);
 
@@ -288,7 +288,7 @@ void Draw_top_ui(void);
  * @brief Draw bottom UI.
  * Do nothing if draw api is not initialized.
  * @warning Thread dangerous (untested)
- * @warning Call it from only rendering thread.
+ * @warning Call it only from rendering thread.
 */
 void Draw_bot_ui(void);
 
@@ -309,7 +309,7 @@ Draw_image_data* Draw_get_bot_ui_button(void);
  * @param x_size (in) Texture size for X direction.
  * @param y_size (in) Texture size for Y direction.
  * @warning Thread dangerous (untested)
- * @warning Call it from only rendering thread.
+ * @warning Call it only from rendering thread.
 */
 void Draw_texture(Draw_image_data* image, uint32_t abgr8888, float x, float y, float x_size, float y_size);
 
@@ -326,7 +326,7 @@ void Draw_texture(Draw_image_data* image, uint32_t abgr8888, float x, float y, f
  * @param center_x (in) Center of texture for X direction (used to rotate texture).
  * @param center_y (in) Center of texture for Y direction (used to rotate texture).
  * @warning Thread dangerous (untested)
- * @warning Call it from only rendering thread.
+ * @warning Call it only from rendering thread.
 */
 void Draw_texture_with_rotation(Draw_image_data* image, uint32_t abgr8888, float x, float y, float x_size, float y_size, float angle, float center_x, float center_y);
 
@@ -341,7 +341,7 @@ void Draw_texture_with_rotation(Draw_image_data* image, uint32_t abgr8888, float
  * @param abgr8888_1 (in) Final line color.
  * @param width (in) Line width.
  * @warning Thread dangerous (untested)
- * @warning Call it from only rendering thread.
+ * @warning Call it only from rendering thread.
 */
 void Draw_line(float x_0, float y_0, uint32_t abgr8888_0, float x_1, float y_1, uint32_t abgr8888_1, float width);
 
@@ -351,7 +351,7 @@ void Draw_line(float x_0, float y_0, uint32_t abgr8888_0, float x_1, float y_1, 
  * @brief Draw cpu usage.
  * Do nothing if draw api is not initialized.
  * @warning Thread dangerous (untested)
- * @warning Call it from only rendering thread.
+ * @warning Call it only from rendering thread.
 */
 void Draw_cpu_usage_info(void);
 
@@ -365,7 +365,7 @@ void Draw_cpu_usage_info(void);
  * @brief Ready frame for drawing.
  * Do nothing if draw api is not initialized.
  * @warning Thread dangerous (untested)
- * @warning Call it from only rendering thread.
+ * @warning Call it only from rendering thread.
 */
 void Draw_frame_ready(void);
 
@@ -375,7 +375,7 @@ void Draw_frame_ready(void);
  * @param screen_num (in) Target screen.
  * @param abgr8888 (in) Fill color.
  * @warning Thread dangerous (untested)
- * @warning Call it from only rendering thread.
+ * @warning Call it only from rendering thread.
 */
 void Draw_screen_ready(Draw_screen screen, uint32_t abgr8888);
 
@@ -383,7 +383,7 @@ void Draw_screen_ready(Draw_screen screen, uint32_t abgr8888);
  * @brief Apply drawing.
  * Do nothing if draw api is not initialized.
  * @warning Thread dangerous (untested)
- * @warning Call it from only rendering thread.
+ * @warning Call it only from rendering thread.
 */
 void Draw_apply_draw(void);
 }

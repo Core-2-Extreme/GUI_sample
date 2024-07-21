@@ -2,7 +2,6 @@
 #define DEF_CAMERA_HPP
 #include <stdbool.h>
 #include <stdint.h>
-
 #include "system/util/camera_types.h"
 #include "system/util/converter_types.h"
 

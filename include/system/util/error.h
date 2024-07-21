@@ -78,7 +78,7 @@ void Util_err_main(Hid_info key);
 /**
  * @brief Draw error message.
  * @warning Thread dangerous (untested)
- * @warning Call it from only drawing thread.
+ * @warning Call it only from rendering thread.
 */
 void Util_err_draw(void);
 

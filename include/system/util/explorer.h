@@ -116,7 +116,7 @@ void Util_expl_set_show_flag(bool flag);
 /**
  * @brief Draw explorer.
  * @warning Thread dangerous (untested)
- * @warning Call it from only drawing thread.
+ * @warning Call it only from rendering thread.
 */
 void Util_expl_draw(void);
 

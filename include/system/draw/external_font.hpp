@@ -115,7 +115,7 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
  * @param out_height (out) Total font height (in px).
  * @param out_height (out) Total font height (in px).
  * @warning Thread dangerous (untested)
- * @warning Call it from only drawing thread.
+ * @warning Call it only from rendering thread.
 */
 void Exfont_draw_external_fonts(Exfont_one_char* in_part_string, uint32_t num_of_characters, float texture_x, float texture_y,
 float texture_size_x, float texture_size_y, uint32_t abgr8888, float* out_width, float* out_height);
@@ -130,7 +130,7 @@ float texture_size_x, float texture_size_y, uint32_t abgr8888, float* out_width,
  * @param out_width (out) Text width (in px).
  * @param out_height (out) Text height (in px).
  * @warning Thread dangerous (untested)
- * @warning Call it from only drawing thread.
+ * @warning Call it only from rendering thread.
 */
 void Exfont_draw_get_text_size(Exfont_one_char* in_part_string, uint32_t num_of_characters, float texture_size_x,
 float texture_size_y, float* out_width, float* out_height);
