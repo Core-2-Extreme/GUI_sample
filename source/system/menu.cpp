@@ -1466,7 +1466,7 @@ void Menu_update_thread(void* arg)
 		if(pos[0] != std::string::npos && pos[1] != std::string::npos)
 		{
 			data = data.substr(pos[0] + 8, pos[1] - (pos[0] + 8));
-			if(DEF_CURRENT_APP_VER_INT < atoi(data.c_str()))
+			if(DEF_CURRENT_APP_VER_INT < (uint32_t)atoi(data.c_str()))
 				menu_update_available = true;
 		}
 	}

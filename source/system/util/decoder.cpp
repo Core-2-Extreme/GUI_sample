@@ -1857,15 +1857,22 @@ uint32_t Util_mvd_video_decoder_decode(uint8_t session)
 	offset = 0;
 	source_offset = 0;
 
-	while((int32_t)(source_offset + 4) < util_video_decoder_packet[session][0]->size)
+	while((source_offset + 4) < (uint32_t)util_video_decoder_packet[session][0]->size)
 	{
 		//Get nal size.
 		size = *((uint32_t*)(util_video_decoder_packet[session][0]->data + source_offset));
 		size = __builtin_bswap32(size);
 		source_offset += 4;
-		if((int32_t)(source_offset + size) > util_video_decoder_packet[session][0]->size || size == 0)
+		if((source_offset + size) > (uint32_t)util_video_decoder_packet[session][0]->size || size == 0)
 		{
-			// DEF_LOG_FORMAT("unexpected nal size : %" PRIu32, size);
+			if(size == 0)
+				DEF_LOG_FORMAT("unexpected nal size : %" PRIu32, size);
+			else
+			{
+				DEF_LOG_FORMAT("unexpected nal size : %" PRIu32 " (%" PRIu32 " > %" PRIu32 ")", size,
+				(source_offset + size), (uint32_t)util_video_decoder_packet[session][0]->size);
+			}
+
 			goto ffmpeg_api_failed;
 		}
 
@@ -2171,7 +2178,7 @@ uint32_t Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, uint8_t pack
 					if(!found)
 						break;
 
-					text = found;
+					text = (found + 1);
 
 					if(k == 7)
 					{

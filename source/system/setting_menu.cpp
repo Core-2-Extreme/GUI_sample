@@ -2239,7 +2239,7 @@ void Sem_update_thread(void* arg)
 
 					if(sem_update_progress != -1)
 					{
-						if (DEF_CURRENT_APP_VER_INT < atoi(sem_newest_ver_data[0].c_str()))
+						if (DEF_CURRENT_APP_VER_INT < (uint32_t)atoi(sem_newest_ver_data[0].c_str()))
 							sem_new_version_available = true;
 						else
 							sem_new_version_available = false;
