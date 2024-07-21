@@ -36,7 +36,7 @@
 #define DEF_LOG_COLOR						(uint32_t)(0xFF00BB60)
 #define DEF_MUXER_MAX_SESSIONS				(uint8_t)(2)
 #define DEF_SPEAKER_MAX_BUFFERS				(uint32_t)(192)
-#define DEF_SWKBD_MAX_DIC_WORDS				(uint8_t)(128)
+#define DEF_SWKBD_MAX_DIC_WORDS				(uint16_t)(128)
 
 #define DEF_DECODER_USE_DMA					/*(bool)(*/1/*)*/	//Enable DMA in video decoder module for faster processing.
 #define DEF_DRAW_USE_DMA					/*(bool)(*/1/*)*/	//Enable DMA in draw module for faster processing.

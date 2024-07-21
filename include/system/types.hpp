@@ -12,18 +12,6 @@
 #include "system/util/converter_types.h"
 #include "system/util/error_types.h"
 
-enum Keyboard_button
-{
-	KEYBOARD_BUTTON_INVALID = -1,
-
-	KEYBOARD_BUTTON_NONE,	//No button was pressed.
-	KEYBOARD_BUTTON_LEFT,	//Left button (usually cancel) was pressed.
-	KEYBOARD_BUTTON_MIDDLE,	//Middle button (usually I forgot) was pressed.
-	KEYBOARD_BUTTON_RIGHT,	//Right button (usually confirm) was pressed.
-
-	KEYBOARD_BUTTON_MAX,
-};
-
 enum Watch_handle
 {
 	WATCH_HANDLE_INVALID = -1,

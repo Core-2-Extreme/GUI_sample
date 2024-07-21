@@ -86,10 +86,11 @@ uint32_t Util_parse_file(const char* source_data, uint32_t expected_items, Util_
 /**
  * @brief Convert seconds to time (hh:mm:ss.ms).
  * @param input_sseconds (in) Seconds.
- * @return Converted time (hh:mm:ss.ms).
+ * @param time_string (out) Formatted string (hh:mm:ss.ms).
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-std::string Util_convert_seconds_to_time(double input_seconds);
+uint32_t Util_convert_seconds_to_time(double input_seconds, Util_str* time_string);
 
 /**
  * @brief Convert [\\n], ["] and [\\\\] to escape expression.

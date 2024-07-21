@@ -235,7 +235,8 @@ void Sapp4_main(void)
 
 		if(var_turn_on_top_lcd)
 		{
-			char msg[64];
+			char msg[64] = { 0, };
+			Util_str time = { 0, };
 
 			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
@@ -252,7 +253,10 @@ void Sapp4_main(void)
 			Draw_c(msg, 0, 70, 0.425, 0.425, color);
 
 			//Draw playback position.
-			Draw_c(("Current pos : " + Util_convert_seconds_to_time(current_pos)).c_str(), 0, 80, 0.425, 0.425, color);
+			Util_convert_seconds_to_time(current_pos, &time);
+
+			if(Util_str_has_data(&time))
+				Draw_c(((std::string)"Current pos : " + time.buffer).c_str(), 0, 80, 0.425, 0.425, color);
 
 			//Draw dsp warning.
 			Draw_c(((std::string)"If you can't hear any audio, then you need to dump dsp firmawre.\n"

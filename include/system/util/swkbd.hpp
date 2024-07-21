@@ -2,104 +2,46 @@
 #define DEF_SWKBD_HPP
 #include <stdbool.h>
 #include <stdint.h>
+#include "system/util/str_types.h"
+#include "system/util/swkbd_types.h"
 
 #if DEF_ENABLE_SWKBD_API
-#include "system/types.hpp"
 
 /**
  * @brief Initialize a software keyboard.
  * @param type (in) Software keyboard type.
  * @param valid_type (in) Accepted input type.
- * @param num_of_button (in) Number of button (1 ~ 3).
- * @param max_length (in) Max input length.
- * @param hint_text (in) Hint text.
- * @param init_text (in) Initial text.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
- * @warning Thread dangerous (untested)
-*/
-Result_with_string Util_swkbd_init(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string hint_text, std::string init_text);
-
-/**
- * @brief Initialize a software keyboard.
- * @param type (in) Software keyboard type.
- * @param valid_type (in) Accepted input type.
- * @param num_of_button (in) Number of button (1 ~ 3).
- * @param max_length (in) Max input length.
- * @param hint_text (in) Hint text.
- * @param init_text (in) Initial text.
- * @param feature (in) Software keyboard feature.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
- * @warning Thread dangerous (untested)
-*/
-Result_with_string Util_swkbd_init(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string hint_text, std::string init_text,
-uint32_t feature);
-
-/**
- * @brief Initialize a software keyboard.
- * @param type (in) Software keyboard type.
- * @param valid_type (in) Accepted input type.
- * @param num_of_button (in) Number of button (1 ~ 3).
- * @param max_length (in) Max input length.
- * @param hint_text (in) Hint text.
- * @param init_text (in) Initial text.
- * @param password_mode (in) Password mode.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
- * @warning Thread dangerous (untested)
-*/
-Result_with_string Util_swkbd_init(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string hint_text, std::string init_text,
-SwkbdPasswordMode password_mode);
-
-/**
- * @brief Initialize a software keyboard.
- * @param type (in) Software keyboard type.
- * @param valid_type (in) Accepted input type.
- * @param num_of_button (in) Number of button (1 ~ 3).
- * @param max_length (in) Max input length.
+ * @param button_type (in) Buttons to display.
+ * @param max_length (in) Max input length in number of characters, NOT in bytes.
  * @param hint_text (in) Hint text.
  * @param init_text (in) Initial text.
  * @param password_mode (in) Password mode.
  * @param feature (in) Software keyboard feature.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_swkbd_init(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string hint_text, std::string init_text,
-SwkbdPasswordMode password_mode, uint32_t feature);
+uint32_t Util_swkbd_init(Util_swkbd_type type, Util_swkbd_acceptable_input valid_type, Util_swkbd_display_button button_type,
+uint32_t max_length, Util_str* hint_text, Util_str* init_text, Util_swkbd_password_mode password_mode, Util_swkbd_features_bit features);
 
 /**
  * @brief Set dictionary word.
  * @param first_spell (in) Array for word's spell.
  * @param full_spell (in) Array for word's full spell.
  * @param num_of_word (in) Number of word.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_swkbd_set_dic_word(std::string first_spell[], std::string full_spell[], int num_of_word);
+uint32_t Util_swkbd_set_dic_word(Util_str* first_spell, Util_str* full_spell, uint16_t num_of_word);
 
 /**
  * @brief Launch software keyboard.
  * @param out_data (out) Pointer for user input text.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
- * @warning Call it from only drawing thread.
+ * @param pressed_button (out) Pressed button, can be NULL.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
+ * @warning Call it only from rendering thread.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_swkbd_launch(std::string* out_data);
-
-/**
- * @brief Launch software keyboard.
- * @param out_data (out) Pointer for user input text.
- * @param pressed_button (out) Pressed button.
- * @return On success DEF_SUCCESS,
- * on failure DEF_ERR_*.
- * @warning Call it from only drawing thread.
- * @warning Thread dangerous (untested)
-*/
-Result_with_string Util_swkbd_launch(std::string* out_data, Keyboard_button* pressed_button);
+uint32_t Util_swkbd_launch(Util_str* out_data, Util_swkbd_button* pressed_button);
 
 /**
  * @brief Uninitialize a software keyboard.

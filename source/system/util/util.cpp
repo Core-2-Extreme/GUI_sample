@@ -408,37 +408,45 @@ uint32_t Util_parse_file(const char* source_data, uint32_t expected_items, Util_
 	return result;
 }
 
-std::string Util_convert_seconds_to_time(double input_seconds)
+uint32_t Util_convert_seconds_to_time(double input_seconds, Util_str* time_string)
 {
-	int hours = 0;
-	int minutes = 0;
-	int seconds = 0;
-	std::string time = "";
+	uint32_t result = DEF_ERR_OTHER;
+	uint32_t hours = 0;
+	uint32_t minutes = 0;
+	double seconds = 0;
 
-	if(std::isnan(input_seconds) || std::isinf(input_seconds))
+	if(!time_string)
+		goto invalid_arg;
+
+	if(input_seconds == INFINITY || input_seconds == NAN)
 		input_seconds = 0;
 
-	hours = (int)input_seconds / 3600;
-	minutes = ((int)input_seconds % 3600) / 60;
-	seconds = ((int)input_seconds % 60);
+	result = Util_str_init(time_string);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_init, false, result);
+		goto api_failed;
+	}
 
-	if(hours < 10)
-		time += "0" + std::to_string(hours) + ":";
-	else
-		time += std::to_string(hours) + ":";
+	hours = ((uint32_t)input_seconds / 3600);
+	minutes = (((uint32_t)input_seconds % 3600) / 60);
+	seconds = ((uint32_t)input_seconds % 60);
+	seconds += (input_seconds - (uint32_t)input_seconds);//ms.
 
-	if(minutes < 10)
-		time += "0" + std::to_string(minutes) + ":";
-	else
-		time += std::to_string(minutes) + ":";
+	result = Util_str_format(time_string, "%02" PRIu32 ":%02" PRIu32 ":%04.1f", hours, minutes, seconds);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_format, false, result);
+		goto api_failed;
+	}
 
-	if(seconds < 10)
-		time += "0" + std::to_string(seconds);
-	else
-		time += std::to_string(seconds);
+	return DEF_SUCCESS;
 
-	time += std::to_string(input_seconds - (int)input_seconds).substr(1, 2);
-	return time;
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
+
+	api_failed:
+	return result;
 }
 
 std::string Util_encode_to_escape(std::string in_data)
