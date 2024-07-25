@@ -18,6 +18,7 @@
 extern "C"
 {
 	#include "system/util/error.h"
+	#include "system/util/explorer.h"
 	#include "system/util/hid.h"
 	#include "system/util/str.h"
 	#include "system/util/log.h"
@@ -61,6 +62,8 @@ void Sapp0_hid(Hid_info key)
 
 	if(Util_err_query_error_show_flag())
 		Util_err_main(key);
+	else if(Util_expl_query_show_flag())
+		Util_expl_main(key);
 	else
 	{
 		if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
@@ -220,6 +223,9 @@ void Sapp0_main(void)
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
 			Draw_c(DEF_SAPP0_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+
+			if(Util_expl_query_show_flag())
+				Util_expl_draw();
 
 			if(Util_err_query_error_show_flag())
 				Util_err_draw();

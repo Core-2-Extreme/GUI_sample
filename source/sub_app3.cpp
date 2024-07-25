@@ -19,6 +19,7 @@ extern "C"
 {
 	#include "system/util/camera.h"
 	#include "system/util/error.h"
+	#include "system/util/explorer.h"
 	#include "system/util/hid.h"
 	#include "system/util/log.h"
 	#include "system/util/mic.h"
@@ -107,6 +108,8 @@ void Sapp3_hid(Hid_info key)
 
 	if(Util_err_query_error_show_flag())
 		Util_err_main(key);
+	else if(Util_expl_query_show_flag())
+		Util_expl_main(key);
 	else
 	{
 		uint32_t result = DEF_ERR_OTHER;
@@ -357,6 +360,9 @@ void Sapp3_main(void)
 				Draw_c("Sound recording was saved as : ", 0, 80, 0.45, 0.45, DEF_DRAW_BLUE);
 				Draw(&sapp3_mic_saved_file, 0, 90, 0.45, 0.45, DEF_DRAW_BLUE);
 			}
+
+			if(Util_expl_query_show_flag())
+				Util_expl_draw();
 
 			if(Util_err_query_error_show_flag())
 				Util_err_draw();
