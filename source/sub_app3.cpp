@@ -215,7 +215,7 @@ void Sapp3_init(bool draw)
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
-	DEF_LOG_RESULT_SMART(result, threadJoin(sapp3_init_thread, DEF_THREAD_WAIT_TIME), result, result);
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp3_init_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(sapp3_init_thread);
 
 	Util_str_clear(&sapp3_status);
@@ -239,7 +239,7 @@ void Sapp3_exit(bool draw)
 			Util_sleep(20000);
 	}
 
-	DEF_LOG_RESULT_SMART(result, threadJoin(sapp3_exit_thread, DEF_THREAD_WAIT_TIME), result, result);
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp3_exit_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(sapp3_exit_thread);
 
 	Util_remove_watch(WATCH_HANDLE_SUB_APP3, &sapp3_status.sequencial_id);
@@ -502,8 +502,8 @@ static void Sapp3_exit_thread(void* arg)
 	sapp3_thread_run = false;
 
 	Util_str_set(&sapp3_status, "Exiting threads...");
-	DEF_LOG_RESULT_SMART(result, threadJoin(sapp3_camera_thread, DEF_THREAD_WAIT_TIME), result, result);
-	DEF_LOG_RESULT_SMART(result, threadJoin(sapp3_mic_thread, DEF_THREAD_WAIT_TIME), result, result);
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp3_camera_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp3_mic_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 
 	Util_str_add(&sapp3_status, "\nCleaning up...");
 	threadFree(sapp3_camera_thread);

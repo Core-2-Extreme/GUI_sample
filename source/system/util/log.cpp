@@ -209,18 +209,25 @@ uint32_t Util_log_save_result(const char* caller, const char* function_name, boo
 	}
 }
 
-uint32_t Util_log_save_result_start(const char* caller, const char* function_name, bool is_smart_macro)
+uint32_t Util_log_save_result_start(const char* caller, const char* function_name, bool is_smart_macro, bool omit_args)
 {
 	if(!function_name || strlen(function_name) == 0)
+		return Util_log_format(caller, "xxxx()...");
+	else if(omit_args)
 	{
-		if(is_smart_macro)
-			return Util_log_format(caller, "xxxx...");
+		char* arg_start = strstr(function_name, "(");
+
+		if(!arg_start)
+			return Util_log_format(caller, "%s()...", function_name);
 		else
-			return Util_log_format(caller, "xxxx()...");
+		{
+			uint32_t function_name_size = (arg_start - function_name);
+			return Util_log_format(caller, "%.*s()...", function_name_size, function_name);
+		}
 	}
 	else
 	{
-		if(is_smart_macro)//Smart macro already include "()", so we don't append it here.
+		if(is_smart_macro)//Smart macro already includes "()", so we don't append it here.
 			return Util_log_format(caller, "%s...", function_name);
 		else
 			return Util_log_format(caller, "%s()...", function_name);

@@ -127,7 +127,7 @@ void Sapp7_init(bool draw)
 	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
 		APT_SetAppCpuTimeLimit(10);
 
-	DEF_LOG_RESULT_SMART(result, threadJoin(sapp7_init_thread, DEF_THREAD_WAIT_TIME), result, result);
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp7_init_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(sapp7_init_thread);
 
 	Util_str_clear(&sapp7_status);
@@ -151,7 +151,7 @@ void Sapp7_exit(bool draw)
 			Util_sleep(20000);
 	}
 
-	DEF_LOG_RESULT_SMART(result, threadJoin(sapp7_exit_thread, DEF_THREAD_WAIT_TIME), result, result);
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp7_exit_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(sapp7_exit_thread);
 
 	Util_remove_watch(WATCH_HANDLE_SUB_APP7, &sapp7_status.sequencial_id);
@@ -308,7 +308,7 @@ static void Sapp7_exit_thread(void* arg)
 	sapp7_thread_run = false;
 
 	Util_str_set(&sapp7_status, "Exiting threads...");
-	DEF_LOG_RESULT_SMART(result, threadJoin(sapp7_worker_thread, DEF_THREAD_WAIT_TIME), result, result);
+	DEF_LOG_RESULT_SMART(result, threadJoin(sapp7_worker_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 
 	Util_str_add(&sapp7_status, "\nCleaning up...");
 	threadFree(sapp7_worker_thread);

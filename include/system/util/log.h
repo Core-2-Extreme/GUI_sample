@@ -92,10 +92,11 @@ uint32_t Util_log_save_result(const char* caller, const char* function_name, boo
  * @param caller (in) Caller name, can be NULL.
  * @param function_name (in) Human friendly function name, can be NULL.
  * @param is_smart_macro (in) Used by DEF_LOG_RESULT_SMART(), should be false.
+ * @param omit_args (in) Whether omit args from function_name.
  * @return Internal log index that can be used for Util_log_save_result_end().
  * @note Thread safe
 */
-uint32_t Util_log_save_result_start(const char* caller, const char* function_name, bool is_smart_macro);
+uint32_t Util_log_save_result_start(const char* caller, const char* function_name, bool is_smart_macro, bool omit_args);
 
 /**
  * @brief Save a end-of-function-call (with elapsed time).
@@ -182,16 +183,22 @@ uint32_t Util_log_save_double(const char* caller, const char* symbol_name, doubl
 uint32_t Util_log_save_string(const char* caller, const char* symbol_name, const char* text);
 
 //Useful log macros.
-#define DEF_LOG_FORMAT(format, ...) Util_log_format(__func__, format, ##__VA_ARGS__)
+#define DEF_LOG_FORMAT(...) Util_log_format(__func__, __VA_ARGS__)
 #define DEF_LOG_VFORMAT(format, va_arg_list) Util_log_vformat(__func__, format, va_arg_list)
-#define DEF_LOG_FORMAT_APPEND(log_index, append_time, format, ...) Util_log_format_append(log_index, append_time, format, ##__VA_ARGS__)
+#define DEF_LOG_FORMAT_APPEND(log_index, append_time, ...) Util_log_format_append(log_index, append_time, __VA_ARGS__)
 #define DEF_LOG_VFORMAT_APPEND(log_index, append_time, format, va_arg_list) Util_log_vformat_append(log_index, append_time, format, va_arg_list)
 #define DEF_LOG_RESULT(function_name, is_success, result) Util_log_save_result(__func__, #function_name, is_success, result)
-#define DEF_LOG_RESULT_START(function_name) Util_log_save_result_start(__func__, #function_name, false)
+#define DEF_LOG_RESULT_START(function_name) Util_log_save_result_start(__func__, #function_name, false, true)
 #define DEF_LOG_RESULT_END(log_index, is_success, result) Util_log_save_result_end(log_index, is_success, result)
 #define DEF_LOG_RESULT_SMART(result_out, function_call, is_success, log_api_result) \
 { \
-	uint32_t _macro_log_index_ = Util_log_save_result_start(__func__, #function_call, true); \
+	uint32_t _macro_log_index_ = Util_log_save_result_start(__func__, #function_call, true, true); \
+	result_out = function_call; \
+	Util_log_save_result_end(_macro_log_index_, is_success, log_api_result); \
+}
+#define DEF_LOG_RESULT_SMART_FULL(result_out, function_call, is_success, log_api_result) \
+{ \
+	uint32_t _macro_log_index_ = Util_log_save_result_start(__func__, #function_call, true, false); \
 	result_out = function_call; \
 	Util_log_save_result_end(_macro_log_index_, is_success, log_api_result); \
 }
