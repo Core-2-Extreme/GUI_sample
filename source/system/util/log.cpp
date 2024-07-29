@@ -393,16 +393,16 @@ static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, cons
 		if(append_time)
 		{
 			double time_diff_ms = (util_log_uptime_ms - util_log_spend_time[log_index]);
-			Util_str_format_append(&util_log_logs[log_index], "%s (%.2fms)", (Util_str_has_data(&temp_text) ? temp_text.buffer : error_msg), time_diff_ms);
+			Util_str_format_append(&util_log_logs[log_index], "%s (%.2fms)", (Util_str_is_valid(&temp_text) ? temp_text.buffer : error_msg), time_diff_ms);
 		}
 		else
-			Util_str_format_append(&util_log_logs[log_index], "%s", (Util_str_has_data(&temp_text) ? temp_text.buffer : error_msg));
+			Util_str_format_append(&util_log_logs[log_index], "%s", (Util_str_is_valid(&temp_text) ? temp_text.buffer : error_msg));
 	}
 	else
 	{
 		bool auto_scroll = false;
 
-		Util_str_format(&util_log_logs[log_index], "[%.5f][%s] %s", (util_log_uptime_ms / 1000), caller, (Util_str_has_data(&temp_text) ? temp_text.buffer : error_msg));
+		Util_str_format(&util_log_logs[log_index], "[%.5f][%s] %s", (util_log_uptime_ms / 1000), caller, (Util_str_is_valid(&temp_text) ? temp_text.buffer : error_msg));
 
 		//Save timestamp for later append call to this log index.
 		util_log_spend_time[log_index] = util_log_uptime_ms;
