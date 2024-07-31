@@ -812,17 +812,17 @@ static void Util_expl_read_dir_callback(void)
 			{
 				if(util_expl_files.type[util_expl_check_file_size_index] & EXPL_FILE_TYPE_FILE || util_expl_files.type[util_expl_check_file_size_index] & EXPL_FILE_TYPE_NONE)
 				{
-					uint64_t file_size;
-					Result_with_string result;
+					uint64_t file_size = 0;
+					uint32_t result = DEF_ERR_OTHER;
 
 					result = Util_file_check_file_size(util_expl_files.name[util_expl_check_file_size_index].buffer, util_expl_current_dir.buffer, &file_size);
-					if (result.code == DEF_SUCCESS)
+					if (result == DEF_SUCCESS)
 					{
 						util_expl_files.size[util_expl_check_file_size_index] = file_size;
 						var_need_reflesh = true;
 					}
 					else
-						DEF_LOG_RESULT(Util_file_check_file_size, (result.code == DEF_SUCCESS), result.code);
+						DEF_LOG_RESULT(Util_file_check_file_size, (result == DEF_SUCCESS), result);
 
 					util_expl_check_file_size_index++;
 					//Don't check all files once as it locks worker thread too long.

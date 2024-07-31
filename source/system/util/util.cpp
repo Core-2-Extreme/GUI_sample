@@ -475,17 +475,17 @@ uint32_t Util_load_msg(const char* file_name, Util_str* out_msg, uint32_t num_of
 {
 	uint8_t* fs_buffer = NULL;
 	uint32_t read_size = 0;
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
 
 	if(!file_name || !out_msg || num_of_msg == 0)
 		goto invalid_arg;
 
 	result = Util_file_load_from_rom(file_name, "romfs:/gfx/msg/", &fs_buffer, 0x2000, &read_size);
-	if (result.code != DEF_SUCCESS)
+	if (result != DEF_SUCCESS)
 		goto api_failed;
 
-	result.code = Util_parse_file((char*)fs_buffer, num_of_msg, out_msg);
-	if (result.code != DEF_SUCCESS)
+	result = Util_parse_file((char*)fs_buffer, num_of_msg, out_msg);
+	if (result != DEF_SUCCESS)
 		goto api_failed;
 
 	Util_safe_linear_free(fs_buffer);
@@ -498,7 +498,7 @@ uint32_t Util_load_msg(const char* file_name, Util_str* out_msg, uint32_t num_of
 	api_failed:
 	Util_safe_linear_free(fs_buffer);
 	fs_buffer = NULL;
-	return result.code;
+	return result;
 }
 
 std::string Util_encode_to_base64(char* source, int size)
@@ -639,7 +639,7 @@ uint32_t Util_get_core_1_max(void)
 	return util_max_core_1;
 }
 
-void Util_sleep(int64_t us)
+void Util_sleep(uint64_t us)
 {
 	svcSleepThread(us * 1000);
 }

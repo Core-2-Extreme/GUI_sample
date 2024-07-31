@@ -660,7 +660,7 @@ static Result_with_string Util_curl_save_data(CURL** curl_handle, Http_data* htt
 		goto curl_api_failed;
 	}
 
-	Util_file_delete_file(http_data->file_name, http_data->dir_path);
+	Util_file_delete_file(http_data->file_name.c_str(), http_data->dir_path.c_str());
 
 	result.code = curl_easy_perform(*curl_handle);
 	if (result.code != CURLE_OK)

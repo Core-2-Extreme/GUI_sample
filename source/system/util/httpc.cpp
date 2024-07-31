@@ -759,7 +759,7 @@ static Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int 
 		{
 			if(result.code == HTTPC_RESULTCODE_DOWNLOADPENDING)
 			{
-				fs_result.code = Util_file_save_to_file(file_name.c_str(), dir_path.c_str(), cache, (int)dl_size, first);
+				fs_result.code = Util_file_save_to_file(file_name.c_str(), dir_path.c_str(), cache, dl_size, first);
 				first = false;
 				if(fs_result.code != DEF_SUCCESS)
 				{
@@ -769,7 +769,7 @@ static Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int 
 			}
 			else
 			{
-				Util_file_delete_file(file_name, dir_path);
+				Util_file_delete_file(file_name.c_str(), dir_path.c_str());
 
 				result.error_description = "[Error] httpcDownloadData() failed. ";
 				goto nintendo_api_failed;
@@ -779,7 +779,7 @@ static Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int 
 		{
 			if(dl_size > 0)
 			{
-				fs_result.code = Util_file_save_to_file(file_name.c_str(), dir_path.c_str(), cache, (int)dl_size, first);
+				fs_result.code = Util_file_save_to_file(file_name.c_str(), dir_path.c_str(), cache, dl_size, first);
 				first = false;
 				if(fs_result.code != DEF_SUCCESS)
 				{

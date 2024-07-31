@@ -204,7 +204,7 @@ uint32_t Util_get_core_1_max(void);
  * @param ns (in) Time to sleep in us.
  * @note Thread safe
 */
-void Util_sleep(int64_t us);
+void Util_sleep(uint64_t us);
 
 /**
  * @brief Compare values and return minimum value.

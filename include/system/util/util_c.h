@@ -8,6 +8,6 @@
  * @param ns (in) Time to sleep in us.
  * @note Thread safe
 */
-void Util_sleep(int64_t us);
+void Util_sleep(uint64_t us);
 
 #endif //!defined(DEF_UTIL_H)

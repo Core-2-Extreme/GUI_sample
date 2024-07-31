@@ -197,7 +197,7 @@ void Sem_init(void)
 	if(var_fake_model)
 		sem_fake_model_num = var_model;
 
-	DEF_LOG_RESULT_SMART(result, Util_file_load_from_file("settings.txt", DEF_MAIN_DIR, &read_cache, 0x1000, &read_size), (result.code == DEF_SUCCESS), result.code)
+	DEF_LOG_RESULT_SMART(result.code, Util_file_load_from_file("settings.txt", DEF_MAIN_DIR, &read_cache, 0x1000, 0, &read_size), (result.code == DEF_SUCCESS), result.code)
 	if (result.code == DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT_SMART(result.code, Util_parse_file((char*)read_cache, 13, data), (result.code == DEF_SUCCESS), result.code);
@@ -2185,7 +2185,7 @@ void Sem_update_thread(void* arg)
 				else if(sem_selected_edition_num == DEF_SEM_EDTION_CIA)
 					file_name += ".cia";
 
-				Util_file_delete_file(file_name, dir_path);//delete old file if exist
+				Util_file_delete_file(file_name.c_str(), dir_path.c_str());//Delete old file if exist.
 			}
 
 			if(sem_dl_file_request)
@@ -2270,7 +2270,7 @@ void Sem_update_thread(void* arg)
 							Util_safe_linear_free(buffer);
 							buffer = NULL;
 
-							DEF_LOG_RESULT_SMART(result, Util_file_load_from_file_with_range(file_name, dir_path, &buffer, 0x20000, offset, &read_size), (result.code == DEF_SUCCESS), result.code);
+							DEF_LOG_RESULT_SMART(result.code, Util_file_load_from_file(file_name.c_str(), dir_path.c_str(), &buffer, 0x20000, offset, &read_size), (result.code == DEF_SUCCESS), result.code);
 							if(result.code != 0 || read_size <= 0)
 								break;
 

@@ -179,7 +179,7 @@ void Menu_init(void)
 	Util_file_save_to_file(".", DEF_MAIN_DIR "error/", &dummy, 1, true);
 	Util_file_save_to_file(".", DEF_MAIN_DIR "logs/", &dummy, 1, true);
 
-	if(Util_file_load_from_file("fake_model.txt", DEF_MAIN_DIR, &data, 1, &read_size).code == 0 && *data <= 5)
+	if(Util_file_load_from_file("fake_model.txt", DEF_MAIN_DIR, &data, 1, 0, &read_size) == DEF_SUCCESS && *data <= 5)
 	{
 		var_fake_model = true;
 		var_model = *data;

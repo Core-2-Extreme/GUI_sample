@@ -137,7 +137,7 @@ uint32_t Exfont_init(void)
 	if(util_exfont_init)
 		goto already_inited;
 
-	result = Util_file_load_from_rom("font_name.txt", "romfs:/gfx/msg/", &fs_buffer, 0x2000, &read_size).code;
+	result = Util_file_load_from_rom("font_name.txt", "romfs:/gfx/msg/", &fs_buffer, 0x2000, &read_size);
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Util_file_load_from_rom, false, result);
@@ -154,7 +154,7 @@ uint32_t Exfont_init(void)
 	Util_safe_linear_free(fs_buffer);
 	fs_buffer = NULL;
 
-	result = Util_file_load_from_rom("font_right_to_left_samples.txt", "romfs:/gfx/font/sample/", &fs_buffer, 0x8000, &read_size).code;
+	result = Util_file_load_from_rom("font_right_to_left_samples.txt", "romfs:/gfx/font/sample/", &fs_buffer, 0x8000, &read_size);
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Util_file_load_from_rom, false, result);
