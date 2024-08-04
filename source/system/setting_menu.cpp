@@ -107,15 +107,11 @@ int8_t sem_update_progress = -1;
 int8_t sem_selected_edition_num = DEF_SEM_EDTION_NONE;
 uint32_t sem_installed_size = 0;
 uint32_t sem_total_cia_size = 0;
+uint32_t sem_dled_size = 0;
 Thread sem_update_thread = NULL;
 Draw_image_data sem_check_update_button = { 0, }, sem_select_edtion_button = { 0, }, sem_close_updater_button = { 0, },
 sem_3dsx_button = { 0, }, sem_cia_button = { 0, }, sem_dl_install_button = { 0, }, sem_back_to_patch_note_button = { 0, },
 sem_close_app_button = { 0, };
-#if DEF_ENABLE_CURL_API
-int sem_dled_size = 0;
-#else
-uint32_t sem_dled_size = 0;
-#endif
 
 #endif
 
@@ -2138,6 +2134,7 @@ void Sem_update_thread(void* arg)
 	uint8_t* buffer = NULL;
 	uint32_t write_size = 0;
 	uint32_t read_size = 0;
+	uint32_t result = DEF_ERR_OTHER;
 	uint64_t offset = 0;
 	size_t parse_start_pos = std::string::npos;
 	size_t parse_end_pos = std::string::npos;
@@ -2149,7 +2146,6 @@ void Sem_update_thread(void* arg)
 	std::string parse_start[6] = {"<newest>", "<3dsx_available>", "<cia_available>", "<3dsx_url>", "<cia_url>", "<patch_note>", };
 	std::string parse_end[6] = { "</newest>", "</3dsx_available>", "</cia_available>", "</3dsx_url>", "</cia_url>", "</patch_note>", };
 	Handle am_handle = 0;
-	Result_with_string result;
 
 	while (sem_thread_run)
 	{
@@ -2191,23 +2187,23 @@ void Sem_update_thread(void* arg)
 			if(sem_dl_file_request)
 			{
 #if DEF_ENABLE_CURL_API
-				DEF_LOG_RESULT_SMART(result, Util_curl_save_data(url, 0x20000, &sem_dled_size, true, 5, dir_path, file_name), (result.code == DEF_SUCCESS), result.code);
+				DEF_LOG_RESULT_SMART(result, Util_curl_save_data(url.c_str(), 0x20000, &sem_dled_size, NULL, 5, NULL, dir_path.c_str(), file_name.c_str()), (result == DEF_SUCCESS), result);
 #else
-				DEF_LOG_RESULT_SMART(result, Util_httpc_save_data(url, 0x20000, &sem_dled_size, true, 5, dir_path, file_name), (result.code == DEF_SUCCESS), result.code);
+				DEF_LOG_RESULT_SMART(result, Util_httpc_save_data(url.c_str(), 0x20000, &sem_dled_size, NULL, 5, NULL, dir_path.c_str(), file_name.c_str()), (result == DEF_SUCCESS), result);
 #endif
 			}
 			else
 			{
 #if DEF_ENABLE_CURL_API
-				DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(url, &buffer, 0x20000, &sem_dled_size, true, 5), (result.code == DEF_SUCCESS), result.code);
+				DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(url.c_str(), &buffer, 0x20000, &sem_dled_size, NULL, 5, NULL), (result == DEF_SUCCESS), result);
 #else
-				DEF_LOG_RESULT_SMART(result, Util_httpc_dl_data(url, &buffer, 0x20000, &sem_dled_size, true, 5), (result.code == DEF_SUCCESS), result.code);
+				DEF_LOG_RESULT_SMART(result, Util_httpc_dl_data(url.c_str(), &buffer, 0x20000, &sem_dled_size, NULL, 5, NULL), (result == DEF_SUCCESS), result);
 #endif
 			}
 
-			if (result.code != 0)
+			if (result != DEF_SUCCESS)
 			{
-				Util_err_set_error_message(result.string.c_str(), result.error_description.c_str(), DEF_LOG_GET_FUNCTION_NAME(), result.code);
+				Util_err_set_error_message(Util_err_get_error_msg(result), "", DEF_LOG_GET_FUNCTION_NAME(), result);
 				Util_err_set_error_show_flag(true);
 				if (sem_check_update_request)
 					sem_update_progress = -1;
@@ -2263,27 +2259,27 @@ void Sem_update_thread(void* arg)
 					if (sem_selected_edition_num == DEF_SEM_EDTION_CIA)
 					{
 						sem_total_cia_size = sem_dled_size;
-						DEF_LOG_RESULT_SMART(result.code, AM_StartCiaInstall(MEDIATYPE_SD, &am_handle), (result.code == DEF_SUCCESS), result.code);
+						DEF_LOG_RESULT_SMART(result, AM_StartCiaInstall(MEDIATYPE_SD, &am_handle), (result == DEF_SUCCESS), result);
 
 						while (true)
 						{
 							Util_safe_linear_free(buffer);
 							buffer = NULL;
 
-							DEF_LOG_RESULT_SMART(result.code, Util_file_load_from_file(file_name.c_str(), dir_path.c_str(), &buffer, 0x20000, offset, &read_size), (result.code == DEF_SUCCESS), result.code);
-							if(result.code != 0 || read_size <= 0)
+							DEF_LOG_RESULT_SMART(result, Util_file_load_from_file(file_name.c_str(), dir_path.c_str(), &buffer, 0x20000, offset, &read_size), (result == DEF_SUCCESS), result);
+							if(result != DEF_SUCCESS || read_size <= 0)
 								break;
 
-							DEF_LOG_RESULT_SMART(result.code, FSFILE_Write(am_handle, &write_size, offset, buffer, read_size, FS_WRITE_FLUSH), (result.code == DEF_SUCCESS), result.code);
-							if(result.code != 0)
+							DEF_LOG_RESULT_SMART(result, FSFILE_Write(am_handle, &write_size, offset, buffer, read_size, FS_WRITE_FLUSH), (result == DEF_SUCCESS), result);
+							if(result != DEF_SUCCESS)
 								break;
 
 							offset += write_size;
 							sem_installed_size += write_size;
 						}
 
-						DEF_LOG_RESULT_SMART(result.code, AM_FinishCiaInstall(am_handle), (result.code == DEF_SUCCESS), result.code);
-						if (result.code == 0)
+						DEF_LOG_RESULT_SMART(result, AM_FinishCiaInstall(am_handle), (result == DEF_SUCCESS), result);
+						if (result == DEF_SUCCESS)
 							sem_update_progress = 4;
 						else
 							sem_update_progress = -2;

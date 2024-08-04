@@ -12,6 +12,12 @@
 
 extern "C"
 {
+#include "system/util/log.h"
+#include "system/util/str.h"
+}
+
+extern "C"
+{
 #include "curl/curl.h"
 }
 
@@ -21,47 +27,51 @@ extern "C"
 bool util_curl_init = false;
 uint32_t* util_curl_buffer = NULL;
 
-struct Http_data
+typedef struct
 {
-	int max_size = 0;
-	int current_size = 0;
-	int* used_size = NULL;
-	uint8_t* data = NULL;
-	std::string file_name = "";
-	std::string dir_path = "";
-};
+	uint8_t* data;
+	uint32_t max_size;
+	uint32_t current_size;
+	uint32_t* used_size;
+	const char* file_name;
+	const char* dir_path;
+} Http_data;
 
-struct Upload_data
+typedef struct
 {
-	int upload_size = 0;
-	int offset = 0;
-	int* uploaded_size = NULL;
-	uint8_t* data = NULL;
-	void* user_data = NULL;
-	int (*callback)(void* buffer, int max_size, void* user_data) = NULL;
-};
+	uint8_t* data;
+	uint32_t upload_size;
+	uint32_t offset;
+	uint32_t* uploaded_size;
+	void* user_data;
+	int32_t (*callback)(void* buffer, uint32_t max_size, void* user_data);
+} Upload_data;
 
 
 static size_t Util_curl_write_callback(char* input_data, size_t size, size_t nmemb, void* user_data);
 static size_t Util_curl_save_callback(char* input_data, size_t size, size_t nmemb, void* user_data);
 static size_t Util_curl_read_callback(char* output_buffer, size_t size, size_t nitems, void* user_data);
+//We can't get rid of this "int" because library uses "int" type as args.
 static int Util_curl_seek_callback(void* user_data, curl_off_t offset, int origin);
-static Result_with_string Util_curl_request(CURL** curl_handle, std::string&& url, CURLoption method, bool follow_redirect, int max_redirect, Upload_data* upload_data);
-static Result_with_string Util_curl_get_request(CURL** curl_handle, std::string&& url, bool follow_redirect, int max_redirect);
-static Result_with_string Util_curl_post_request(CURL** curl_handle, std::string&& url, Upload_data* upload_data, bool follow_redirect, int max_redirect);
-static void Util_curl_get_response(CURL** curl_handle, int* status_code, std::string* new_url);
-static Result_with_string Util_curl_download_data(CURL** curl_handle, Http_data* http_data);
-static Result_with_string Util_curl_save_data(CURL** curl_handle, Http_data* http_data);
+static uint32_t Util_curl_request(CURL** curl_handle, const char* url, CURLoption method, uint16_t max_redirect, Upload_data* upload_data);
+static uint32_t Util_curl_get_request(CURL** curl_handle, const char* url, uint16_t max_redirect);
+static uint32_t Util_curl_post_request(CURL** curl_handle, const char* url, Upload_data* upload_data, uint16_t max_redirect);
+static void Util_curl_get_response(CURL** curl_handle, uint16_t* status_code, Util_str* new_url);
+static uint32_t Util_curl_download_data(CURL** curl_handle, Http_data* http_data);
+static uint32_t Util_curl_save_data(CURL** curl_handle, Http_data* http_data);
 static void Util_curl_close(CURL** curl_handle);
-static Result_with_string Util_curl_dl_data_internal(std::string&& url, uint8_t** data, int max_size, int* downloaded_size, int* status_code, bool follow_redirect, int max_redirect, std::string* last_url);
-static Result_with_string Util_curl_save_data_internal(std::string&& url, int buffer_size, int* downloaded_size, int* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string&& dir_path, std::string&& file_name);
-static Result_with_string Util_curl_post_and_dl_data_internal(std::string&& url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size, int* downloaded_size, int* uploaded_size, int* status_code, bool follow_redirect, int max_redirect, std::string* last_url, int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data);
-static Result_with_string Util_curl_post_and_save_data_internal(std::string&& url, uint8_t* post_data, int post_size, int buffer_size, int* downloaded_size, int* uploaded_size, int* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string&& dir_path, std::string&& file_name, int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data);
+static uint32_t Util_curl_post_and_dl_data_internal(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data,
+uint32_t max_dl_size, uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url,
+int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data);
+static uint32_t Util_curl_post_and_save_data_internal(const char* url, uint8_t* post_data, uint32_t post_size, uint32_t buffer_size,
+uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url, const char* dir_path,
+const char* file_name, int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data);
 
 
-Result_with_string Util_curl_init(int buffer_size)
+uint32_t Util_curl_init(uint32_t buffer_size)
 {
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
+
 	if(util_curl_init)
 		goto already_inited;
 
@@ -72,10 +82,10 @@ Result_with_string Util_curl_init(int buffer_size)
 	if(!util_curl_buffer)
 		goto out_of_memory;
 
-	result.code = socInit(util_curl_buffer, buffer_size);
-	if(result.code != 0)
+	result = socInit(util_curl_buffer, buffer_size);
+	if(result != DEF_SUCCESS)
 	{
-		result.error_description = "[Error] socInit() failed. ";
+		DEF_LOG_RESULT(socInit, false, result);
 		goto nintendo_api_failed;
 	}
 
@@ -83,24 +93,17 @@ Result_with_string Util_curl_init(int buffer_size)
 	return result;
 
 	already_inited:
-	result.code = DEF_ERR_ALREADY_INITIALIZED;
-	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_ALREADY_INITIALIZED;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	out_of_memory:
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
+	return DEF_ERR_OUT_OF_MEMORY;
 
 	nintendo_api_failed:
 	free(util_curl_buffer);
 	util_curl_buffer = NULL;
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 
@@ -115,187 +118,197 @@ void Util_curl_exit(void)
 	util_curl_buffer = NULL;
 }
 
-Result_with_string Util_curl_dl_data(std::string url, uint8_t** data, int max_size, int* downloaded_size, bool follow_redirect,
-int max_redirect)
+uint32_t Util_curl_dl_data(const char* url, uint8_t** data, uint32_t max_size, uint32_t* downloaded_size,
+uint16_t* status_code, uint16_t max_redirect, Util_str* last_url)
 {
-	std::string last_url = "";
-	int status_code = 0;
-	return Util_curl_dl_data_internal(std::move(url), data, max_size, downloaded_size, &status_code, follow_redirect, max_redirect, &last_url);
+	uint32_t dummy = 0;
+	uint32_t result = DEF_ERR_OTHER;
+	Http_data http_data = { 0, };
+	CURL* curl_handle = NULL;
+
+	if(!util_curl_init)
+		goto not_inited;
+
+	//downloaded_size, status_code and last_url can be NULL.
+	if(!url || !data || max_size == 0)
+		goto invalid_arg;
+
+	if(downloaded_size)
+		*downloaded_size = 0;
+	if(status_code)
+		*status_code = 0;
+
+	if(last_url)
+	{
+		result = Util_str_init(last_url);
+		if(result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Util_str_init, false, result);
+			goto api_failed;
+		}
+
+		result = Util_str_set(last_url, url);
+		if(result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Util_str_set, false, result);
+			goto api_failed;
+		}
+	}
+
+	curl_handle = curl_easy_init();
+	if(!curl_handle)
+	{
+		DEF_LOG_RESULT(curl_easy_init, false, DEF_ERR_CURL_RETURNED_NOT_SUCCESS);
+		goto curl_api_failed;
+	}
+
+	http_data.max_size = max_size;
+	http_data.used_size = (downloaded_size ? downloaded_size : &dummy);
+	result = Util_curl_get_request(&curl_handle, url, max_redirect);
+	if(result != DEF_SUCCESS)
+		goto api_failed;
+
+	result = Util_curl_download_data(&curl_handle, &http_data);
+	if(result != DEF_SUCCESS)
+		goto api_failed;
+
+	*data = (uint8_t*)http_data.data;
+
+	Util_curl_get_response(&curl_handle, status_code, last_url);
+
+	Util_curl_close(&curl_handle);
+
+	return DEF_SUCCESS;
+
+	not_inited:
+	return DEF_ERR_NOT_INITIALIZED;
+
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
+
+	curl_api_failed:
+	return DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
+
+	api_failed:
+	if(last_url)
+		Util_str_free(last_url);
+
+	return result;
 }
 
-Result_with_string Util_curl_dl_data(std::string url, uint8_t** data, int max_size, int* downloaded_size, bool follow_redirect,
-int max_redirect, std::string* last_url)
+uint32_t Util_curl_save_data(const char* url, uint32_t buffer_size, uint32_t* downloaded_size, uint16_t* status_code,
+uint16_t max_redirect, Util_str* last_url, const char* dir_path, const char* file_name)
 {
-	int status_code = 0;
-	return Util_curl_dl_data_internal(std::move(url), data, max_size, downloaded_size, &status_code, follow_redirect, max_redirect, last_url);
+	uint32_t dummy = 0;
+	uint32_t result = DEF_ERR_OTHER;
+	Http_data http_data = { 0, };
+	CURL* curl_handle = NULL;
+
+	if(!util_curl_init)
+		goto not_inited;
+
+	//downloaded_size, status_code and last_url can be NULL.
+	if(!url || buffer_size == 0 || !dir_path || !file_name)
+		goto invalid_arg;
+
+	if(downloaded_size)
+		*downloaded_size = 0;
+	if(status_code)
+		*status_code = 0;
+
+	if(last_url)
+	{
+		result = Util_str_init(last_url);
+		if(result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Util_str_init, false, result);
+			goto api_failed;
+		}
+
+		result = Util_str_set(last_url, url);
+		if(result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Util_str_set, false, result);
+			goto api_failed;
+		}
+	}
+
+	curl_handle = curl_easy_init();
+	if(!curl_handle)
+	{
+		DEF_LOG_RESULT(curl_easy_init, false, DEF_ERR_CURL_RETURNED_NOT_SUCCESS);
+		goto curl_api_failed;
+	}
+
+	http_data.max_size = buffer_size;
+	http_data.used_size = (downloaded_size ? downloaded_size : &dummy);
+	http_data.dir_path = dir_path;
+	http_data.file_name = file_name;
+	result = Util_curl_get_request(&curl_handle, url, max_redirect);
+	if(result != 0)
+		goto api_failed;
+
+	result = Util_curl_save_data(&curl_handle, &http_data);
+	if(result != 0)
+		goto api_failed;
+
+	Util_curl_get_response(&curl_handle, status_code, last_url);
+
+	Util_curl_close(&curl_handle);
+
+	return DEF_SUCCESS;
+
+	not_inited:
+	return DEF_ERR_NOT_INITIALIZED;
+
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
+
+	curl_api_failed:
+	return DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
+
+	api_failed:
+	if(last_url)
+		Util_str_free(last_url);
+
+	return result;
 }
 
-Result_with_string Util_curl_dl_data(std::string url, uint8_t** data, int max_size, int* downloaded_size, int* status_code, bool follow_redirect,
-int max_redirect)
+uint32_t Util_curl_post_and_dl_data(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data, uint32_t max_dl_size,
+uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url)
 {
-	std::string last_url = "";
-	return Util_curl_dl_data_internal(std::move(url), data, max_size, downloaded_size, status_code, follow_redirect, max_redirect, &last_url);
+	return Util_curl_post_and_dl_data_internal(url, post_data, post_size, dl_data, max_dl_size, downloaded_size,
+	uploaded_size, status_code, max_redirect, last_url, NULL, NULL);
 }
 
-Result_with_string Util_curl_dl_data(std::string url, uint8_t** data, int max_size, int* downloaded_size, int* status_code, bool follow_redirect,
-int max_redirect, std::string* last_url)
+uint32_t Util_curl_post_and_dl_data_with_callback(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data, uint32_t max_dl_size,
+uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url,
+int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data)
 {
-	return Util_curl_dl_data_internal(std::move(url), data, max_size, downloaded_size, status_code, follow_redirect, max_redirect, last_url);
+	return Util_curl_post_and_dl_data_internal(url, NULL, 0, dl_data, max_dl_size, downloaded_size,
+	uploaded_size, status_code, max_redirect, last_url, read_callback, user_data);
 }
 
-Result_with_string Util_curl_save_data(std::string url, int buffer_size, int* downloaded_size, bool follow_redirect,
-int max_redirect, std::string dir_path, std::string file_name)
+uint32_t Util_curl_post_and_save_data(const char* url, uint8_t* post_data, uint32_t post_size, uint32_t buffer_size, uint32_t* downloaded_size,
+uint32_t* uploaded_size, uint16_t* status_code, Util_str* last_url, uint16_t max_redirect, const char* dir_path, const char* file_name)
 {
-	std::string last_url = "";
-	int status_code = 0;
-	return Util_curl_save_data_internal(std::move(url), buffer_size, downloaded_size, &status_code, follow_redirect, max_redirect,
-	&last_url, std::move(dir_path), std::move(file_name));
+	return Util_curl_post_and_save_data_internal(url, post_data, post_size, buffer_size, downloaded_size,
+	uploaded_size, status_code, max_redirect, last_url, dir_path, file_name, NULL, NULL);
 }
 
-Result_with_string Util_curl_save_data(std::string url, int buffer_size, int* downloaded_size, bool follow_redirect,
-int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
+uint32_t Util_curl_post_and_save_data_with_callback(const char* url, uint8_t* post_data, uint32_t post_size, uint32_t buffer_size,
+uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url, const char* dir_path,
+const char* file_name, int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data)
 {
-	int status_code = 0;
-	return Util_curl_save_data_internal(std::move(url), buffer_size, downloaded_size, &status_code, follow_redirect, max_redirect,
-	last_url, std::move(dir_path), std::move(file_name));
-}
-
-Result_with_string Util_curl_save_data(std::string url, int buffer_size, int* downloaded_size, int* status_code, bool follow_redirect,
-int max_redirect, std::string dir_path, std::string file_name)
-{
-	std::string last_url = "";
-	return Util_curl_save_data_internal(std::move(url), buffer_size, downloaded_size, status_code, follow_redirect, max_redirect,
-	&last_url, std::move(dir_path), std::move(file_name));
-}
-
-Result_with_string Util_curl_save_data(std::string url, int buffer_size, int* downloaded_size, int* status_code, bool follow_redirect,
-int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
-{
-	return Util_curl_save_data_internal(std::move(url), buffer_size, downloaded_size, status_code, follow_redirect, max_redirect,
-	last_url, std::move(dir_path), std::move(file_name));
-}
-
-Result_with_string Util_curl_post_and_dl_data(std::string url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
-int* downloaded_size, int* uploaded_size, bool follow_redirect, int max_redirect)
-{
-	std::string last_url = "";
-	int status_code = 0;
-	return Util_curl_post_and_dl_data_internal(std::move(url), post_data, post_size, dl_data, max_dl_size, downloaded_size,
-	uploaded_size, &status_code, follow_redirect, max_redirect, &last_url, NULL, NULL);
-}
-
-Result_with_string Util_curl_post_and_dl_data(std::string url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
-int* downloaded_size, int* uploaded_size, bool follow_redirect, int max_redirect, std::string* last_url)
-{
-	int status_code = 0;
-	return Util_curl_post_and_dl_data_internal(std::move(url), post_data, post_size, dl_data, max_dl_size, downloaded_size,
-	uploaded_size, &status_code, follow_redirect, max_redirect, last_url, NULL, NULL);
-}
-
-Result_with_string Util_curl_post_and_dl_data(std::string url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
-int* downloaded_size, int* uploaded_size, int* status_code, bool follow_redirect, int max_redirect)
-{
-	std::string last_url = "";
-	return Util_curl_post_and_dl_data_internal(std::move(url), post_data, post_size, dl_data, max_dl_size, downloaded_size,
-	uploaded_size, status_code, follow_redirect, max_redirect, &last_url, NULL, NULL);
-}
-
-Result_with_string Util_curl_post_and_dl_data(std::string url, int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data,
-uint8_t** dl_data, int max_dl_size, int* downloaded_size, int* uploaded_size, bool follow_redirect, int max_redirect)
-{
-	std::string last_url = "";
-	int status_code = 0;
-	return Util_curl_post_and_dl_data_internal(std::move(url), NULL, 0, dl_data, max_dl_size, downloaded_size,
-	uploaded_size, &status_code, follow_redirect, max_redirect, &last_url, read_callback, user_data);
-}
-
-Result_with_string Util_curl_post_and_dl_data(std::string url, int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data,
-uint8_t** dl_data, int max_dl_size, int* downloaded_size, int* uploaded_size, bool follow_redirect, int max_redirect, std::string* last_url)
-{
-	int status_code = 0;
-	return Util_curl_post_and_dl_data_internal(std::move(url), NULL, 0, dl_data, max_dl_size, downloaded_size,
-	uploaded_size, &status_code, follow_redirect, max_redirect, last_url, read_callback, user_data);
-}
-
-Result_with_string Util_curl_post_and_dl_data(std::string url, int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data,
-uint8_t** dl_data, int max_dl_size, int* downloaded_size, int* uploaded_size, int* status_code, bool follow_redirect, int max_redirect)
-{
-	std::string last_url = "";
-	return Util_curl_post_and_dl_data_internal(std::move(url), NULL, 0, dl_data, max_dl_size, downloaded_size,
-	uploaded_size, status_code, follow_redirect, max_redirect, &last_url, read_callback, user_data);
-}
-
-Result_with_string Util_curl_post_and_dl_data(std::string url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
-int* downloaded_size, int* uploaded_size, int* status_code, bool follow_redirect, int max_redirect, std::string* last_url,
-int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data)
-{
-	return Util_curl_post_and_dl_data_internal(std::move(url), NULL, 0, dl_data, max_dl_size, downloaded_size,
-	uploaded_size, status_code, follow_redirect, max_redirect, last_url, read_callback, user_data);
-}
-
-Result_with_string Util_curl_post_and_save_data(std::string url, uint8_t* post_data, int post_size, int buffer_size, int* downloaded_size,
-int* uploaded_size, bool follow_redirect, int max_redirect, std::string dir_path, std::string file_name)
-{
-	std::string last_url = "";
-	int status_code = 0;
-	return Util_curl_post_and_save_data_internal(std::move(url), post_data, post_size, buffer_size, downloaded_size,
-	uploaded_size, &status_code, follow_redirect, max_redirect, &last_url, std::move(dir_path), std::move(file_name), NULL, NULL);
-}
-
-Result_with_string Util_curl_post_and_save_data(std::string url, uint8_t* post_data, int post_size, int buffer_size, int* downloaded_size,
-int* uploaded_size, bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
-{
-	int status_code = 0;
-	return Util_curl_post_and_save_data_internal(std::move(url), post_data, post_size, buffer_size, downloaded_size,
-	uploaded_size, &status_code, follow_redirect, max_redirect, last_url, std::move(dir_path), std::move(file_name), NULL, NULL);
-}
-
-Result_with_string Util_curl_post_and_save_data(std::string url, uint8_t* post_data, int post_size, int buffer_size, int* downloaded_size,
-int* uploaded_size, int* status_code, bool follow_redirect, int max_redirect, std::string dir_path, std::string file_name)
-{
-	std::string last_url = "";
-	return Util_curl_post_and_save_data_internal(std::move(url), post_data, post_size, buffer_size, downloaded_size,
-	uploaded_size, status_code, follow_redirect, max_redirect, &last_url, std::move(dir_path), std::move(file_name), NULL, NULL);
-}
-
-Result_with_string Util_curl_post_and_save_data(std::string url, int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data,
-int buffer_size, int* downloaded_size, int* uploaded_size, bool follow_redirect, int max_redirect, std::string dir_path, std::string file_name)
-{
-	std::string last_url = "";
-	int status_code = 0;
-	return Util_curl_post_and_save_data_internal(std::move(url), NULL, 0, buffer_size, downloaded_size, uploaded_size,
-	&status_code, follow_redirect, max_redirect, &last_url, std::move(dir_path), std::move(file_name), read_callback, user_data);
-}
-
-Result_with_string Util_curl_post_and_save_data(std::string url, uint8_t* post_data, int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data,
-int buffer_size, int* downloaded_size, int* uploaded_size, bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
-{
-	int status_code = 0;
-	return Util_curl_post_and_save_data_internal(std::move(url), NULL, 0, buffer_size, downloaded_size, uploaded_size,
-	&status_code, follow_redirect, max_redirect, last_url, std::move(dir_path), std::move(file_name), read_callback, user_data);
-}
-
-Result_with_string Util_curl_post_and_save_data(std::string url, int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data,
-int buffer_size, int* downloaded_size, int* uploaded_size, int* status_code, bool follow_redirect, int max_redirect, std::string dir_path, std::string file_name)
-{
-	std::string last_url = "";
-	return Util_curl_post_and_save_data_internal(std::move(url), NULL, 0, buffer_size, downloaded_size, uploaded_size,
-	status_code, follow_redirect, max_redirect, &last_url, std::move(dir_path), std::move(file_name), read_callback, user_data);
-}
-
-Result_with_string Util_curl_post_and_save_data(std::string url, uint8_t* post_data, int post_size, int buffer_size, int* downloaded_size,
-int* uploaded_size, int* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_path, std::string file_name,
-int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data)
-{
-	return Util_curl_post_and_save_data_internal(std::move(url), NULL, 0, buffer_size, downloaded_size, uploaded_size,
-	status_code, follow_redirect, max_redirect, last_url, std::move(dir_path), std::move(file_name), read_callback, user_data);
+	return Util_curl_post_and_save_data_internal(url, NULL, 0, buffer_size, downloaded_size, uploaded_size,
+	status_code, max_redirect, last_url, dir_path, file_name, read_callback, user_data);
 }
 
 static size_t Util_curl_write_callback(char* input_data, size_t size, size_t nmemb, void* user_data)
 {
-	int buffer_size = 0;
-	int input_size = size * nmemb;
-	int allocated_size = 0;
+	uint32_t buffer_size = 0;
+	uint32_t input_size = (size * nmemb);
+	uint32_t allocated_size = 0;
 	Http_data* http_data = (Http_data*)user_data;
 
 	if(!user_data)
@@ -308,7 +321,7 @@ static size_t Util_curl_write_callback(char* input_data, size_t size, size_t nme
 	//Need to realloc memory
 	if((*http_data->used_size) + input_size > http_data->current_size)
 	{
-		buffer_size = http_data->max_size > http_data->current_size + 0x40000 ? http_data->current_size + 0x40000 : http_data->max_size;
+		buffer_size = ((http_data->max_size > (http_data->current_size + 0x40000)) ? (http_data->current_size + 0x40000) : http_data->max_size);
 
 		http_data->data = (uint8_t*)Util_safe_linear_realloc(http_data->data, buffer_size);
 		if (!http_data->data)
@@ -335,9 +348,9 @@ static size_t Util_curl_write_callback(char* input_data, size_t size, size_t nme
 
 static size_t Util_curl_save_callback(char* input_data, size_t size, size_t nmemb, void* user_data)
 {
-	int input_size = size * nmemb;
-	int input_data_offset = 0;
-	Result_with_string result;
+	uint32_t input_size = (size * nmemb);
+	uint32_t input_data_offset = 0;
+	uint32_t result = DEF_ERR_OTHER;
 	Http_data* http_data = (Http_data*)user_data;
 
 	if(!user_data)
@@ -348,10 +361,10 @@ static size_t Util_curl_save_callback(char* input_data, size_t size, size_t nmem
 	//If libcurl buffer size is bigger than our buffer size, save it directly without buffering
 	if(input_size > http_data->max_size)
 	{
-		result.code = Util_file_save_to_file(http_data->file_name.c_str(), http_data->dir_path.c_str(), (uint8_t*)input_data, input_size, false);
+		result = Util_file_save_to_file(http_data->file_name, http_data->dir_path, (uint8_t*)input_data, input_size, false);
 		http_data->current_size = 0;
-		if(result.code == DEF_SUCCESS)
-			return size * nmemb;
+		if(result == DEF_SUCCESS)
+			return (size * nmemb);
 		else
 			return -1;
 	}
@@ -364,26 +377,26 @@ static size_t Util_curl_save_callback(char* input_data, size_t size, size_t nmem
 		http_data->current_size += input_data_offset;
 		input_size = input_size - input_data_offset;
 
-		result.code = Util_file_save_to_file(http_data->file_name.c_str(), http_data->dir_path.c_str(), http_data->data, http_data->current_size, false);
+		result = Util_file_save_to_file(http_data->file_name, http_data->dir_path, http_data->data, http_data->current_size, false);
 		http_data->current_size = 0;
 	}
 	else
-		result.code = DEF_SUCCESS;
+		result = DEF_SUCCESS;
 
 	memcpy(http_data->data + http_data->current_size, input_data + input_data_offset, input_size);
 	http_data->current_size += input_size;
 
-	if(result.code == DEF_SUCCESS)
-		return size * nmemb;
+	if(result == DEF_SUCCESS)
+		return (size * nmemb);
 	else
 		return -1;
 }
 
 static size_t Util_curl_read_callback(char* output_buffer, size_t size, size_t nitems, void* user_data)
 {
-	int buffer_size = size * nitems;
-	int copy_size = 0;
-	int read_size = 0;
+	uint32_t buffer_size = (size * nitems);
+	int32_t copy_size = 0;
+	int32_t read_size = 0;
 	Upload_data* upload_data = (Upload_data*)user_data;
 
 	if(!user_data)
@@ -393,7 +406,9 @@ static size_t Util_curl_read_callback(char* output_buffer, size_t size, size_t n
 	if(upload_data->callback)
 	{
 		read_size = upload_data->callback(output_buffer, buffer_size, upload_data->user_data);
-		*upload_data->uploaded_size += read_size;
+		if(upload_data->uploaded_size)
+			*upload_data->uploaded_size += read_size;
+
 		return read_size;
 	}
 
@@ -408,12 +423,15 @@ static size_t Util_curl_read_callback(char* output_buffer, size_t size, size_t n
 		copy_size = upload_data->upload_size - upload_data->offset;
 
 	memcpy(output_buffer, upload_data->data + upload_data->offset, copy_size);
-	*upload_data->uploaded_size += copy_size;
+	if(upload_data->uploaded_size)
+		*upload_data->uploaded_size += copy_size;
+
 	upload_data->offset += copy_size;
 
 	return copy_size;
 }
 
+//We can't get rid of this "int" because library uses "int" type as args.
 static int Util_curl_seek_callback(void* user_data, curl_off_t offset, int origin)
 {
 	Upload_data* upload_data = (Upload_data*)user_data;
@@ -429,105 +447,108 @@ static int Util_curl_seek_callback(void* user_data, curl_off_t offset, int origi
 	return CURL_SEEKFUNC_OK;
 }
 
-static Result_with_string Util_curl_request(CURL** curl_handle, std::string&& url, CURLoption method, bool follow_redirect,
-int max_redirect, Upload_data* upload_data)
+static uint32_t Util_curl_request(CURL** curl_handle, const char* url, CURLoption method, uint16_t max_redirect, Upload_data* upload_data)
 {
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
 
-	result.code = curl_easy_setopt(*curl_handle, CURLOPT_URL, url.c_str());
-	if (result.code != CURLE_OK)
+	result = curl_easy_setopt(*curl_handle, CURLOPT_URL, url);
+	if (result != CURLE_OK)
 	{
-		result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+		DEF_LOG_RESULT(curl_easy_setopt_URL, false, result);
 		goto curl_api_failed;
 	}
 
 	if(method == CURLOPT_HTTPPOST)
-		result.code = curl_easy_setopt(*curl_handle, CURLOPT_POST, 1);
+		result = curl_easy_setopt(*curl_handle, CURLOPT_HTTPPOST, 1);
 	else
-		result.code = curl_easy_setopt(*curl_handle, CURLOPT_HTTPGET, 1);
+		result = curl_easy_setopt(*curl_handle, CURLOPT_HTTPGET, 1);
 
-	if (result.code != CURLE_OK)
+	if (result != CURLE_OK)
 	{
-		result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+		if(method == CURLOPT_HTTPPOST)
+			DEF_LOG_RESULT(curl_easy_setopt_HTTPPOST, false, result);
+		else
+			DEF_LOG_RESULT(curl_easy_setopt_HTTPGET, false, result);
+
 		goto curl_api_failed;
 	}
 
-	result.code = curl_easy_setopt(*curl_handle, CURLOPT_SSL_VERIFYPEER, 0);
-	if (result.code != CURLE_OK)
+	result = curl_easy_setopt(*curl_handle, CURLOPT_SSL_VERIFYPEER, 0);
+	if (result != CURLE_OK)
 	{
-		result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+		DEF_LOG_RESULT(curl_easy_setopt_SSL_VERIFYPEER, false, result);
 		goto curl_api_failed;
 	}
 
-	result.code = curl_easy_setopt(*curl_handle, CURLOPT_FOLLOWLOCATION, follow_redirect);
-	if (result.code != CURLE_OK)
+	result = curl_easy_setopt(*curl_handle, CURLOPT_FOLLOWLOCATION, (max_redirect > 0));
+	if (result != CURLE_OK)
 	{
-		result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+		DEF_LOG_RESULT(curl_easy_setopt_FOLLOWLOCATION, false, result);
 		goto curl_api_failed;
 	}
 
-	result.code = curl_easy_setopt(*curl_handle, CURLOPT_MAXREDIRS, max_redirect);
-	if (result.code != CURLE_OK)
+	result = curl_easy_setopt(*curl_handle, CURLOPT_MAXREDIRS, max_redirect);
+	if (result != CURLE_OK)
 	{
-		result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+		DEF_LOG_RESULT(curl_easy_setopt_MAXREDIRS, false, result);
 		goto curl_api_failed;
 	}
 
-	result.code = curl_easy_setopt(*curl_handle, CURLOPT_USERAGENT, DEF_HTTP_USER_AGENT);
-	if (result.code != CURLE_OK)
+	result = curl_easy_setopt(*curl_handle, CURLOPT_USERAGENT, DEF_HTTP_USER_AGENT);
+	if (result != CURLE_OK)
 	{
-		result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+		DEF_LOG_RESULT(curl_easy_setopt_USERAGENT, false, result);
 		goto curl_api_failed;
 	}
 
-	result.code = curl_easy_setopt(*curl_handle, CURLOPT_BUFFERSIZE, 1024 * 128);
-	if (result.code != CURLE_OK)
+	result = curl_easy_setopt(*curl_handle, CURLOPT_BUFFERSIZE, 1024 * 128);
+	if (result != CURLE_OK)
 	{
-		result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+		DEF_LOG_RESULT(curl_easy_setopt_BUFFERSIZE, false, result);
 		goto curl_api_failed;
 	}
 
 	if(method == CURLOPT_HTTPPOST)
 	{
-		result.code = curl_easy_setopt(*curl_handle, CURLOPT_POSTFIELDS, NULL);
-		if (result.code != CURLE_OK)
+		result = curl_easy_setopt(*curl_handle, CURLOPT_POSTFIELDS, NULL);
+		if (result != CURLE_OK)
 		{
-			result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+			DEF_LOG_RESULT(curl_easy_setopt_POSTFIELDS, false, result);
 			goto curl_api_failed;
 		}
 
-		/*result.code = curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, upload_data->upload_size);
-		if (result.code != CURLE_OK)
+		/*result = curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, upload_data->upload_size);
+		if (result != CURLE_OK)
 		{
-			result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+			DEF_LOG_RESULT(curl_easy_setopt_POSTFIELDSIZE, false, result);
 			goto curl_api_failed;
 		}*/
 
-		result.code = curl_easy_setopt(*curl_handle, CURLOPT_READFUNCTION, Util_curl_read_callback);
-		if (result.code != CURLE_OK)
+		result = curl_easy_setopt(*curl_handle, CURLOPT_READFUNCTION, Util_curl_read_callback);
+		if (result != CURLE_OK)
 		{
-			result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+			DEF_LOG_RESULT(curl_easy_setopt_READFUNCTION, false, result);
 			goto curl_api_failed;
 		}
 
-		result.code = curl_easy_setopt(*curl_handle, CURLOPT_READDATA, (void*)upload_data);
-		if (result.code != CURLE_OK)
+		result = curl_easy_setopt(*curl_handle, CURLOPT_READDATA, (void*)upload_data);
+		if (result != CURLE_OK)
 		{
-			result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+			DEF_LOG_RESULT(curl_easy_setopt_READDATA, false, result);
 			goto curl_api_failed;
 		}
 
-		result.code = curl_easy_setopt(*curl_handle, CURLOPT_SEEKFUNCTION, Util_curl_seek_callback);
-		if (result.code != CURLE_OK)
+		result = curl_easy_setopt(*curl_handle, CURLOPT_SEEKFUNCTION, Util_curl_seek_callback);
+		if (result != CURLE_OK)
 		{
-			result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+			DEF_LOG_RESULT(curl_easy_setopt_SEEKFUNCTION, false, result);
 			goto curl_api_failed;
 		}
 
-		result.code = curl_easy_setopt(*curl_handle, CURLOPT_SEEKDATA, (void*)upload_data);
-		if (result.code != CURLE_OK)
+		result = curl_easy_setopt(*curl_handle, CURLOPT_SEEKDATA, (void*)upload_data);
+		if (result != CURLE_OK)
 		{
-			result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+			DEF_LOG_RESULT(curl_easy_setopt_SEEKDATA, false, result);
 			goto curl_api_failed;
 		}
 	}
@@ -536,75 +557,78 @@ int max_redirect, Upload_data* upload_data)
 
 	curl_api_failed:
 	Util_curl_close(curl_handle);
-	result.code = DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_CURL_RETURNED_NOT_SUCCESS_STR;
-	return result;
+	return DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
 }
 
-static Result_with_string Util_curl_get_request(CURL** curl_handle, std::string&& url, bool follow_redirect, int max_redirect)
+static uint32_t Util_curl_get_request(CURL** curl_handle, const char* url, uint16_t max_redirect)
 {
-	return Util_curl_request(curl_handle, std::move(url), CURLOPT_HTTPGET, follow_redirect, max_redirect, NULL);
+	return Util_curl_request(curl_handle, url, CURLOPT_HTTPGET, max_redirect, NULL);
 }
 
-static Result_with_string Util_curl_post_request(CURL** curl_handle, std::string&& url, Upload_data* upload_data, bool follow_redirect, int max_redirect)
+static uint32_t Util_curl_post_request(CURL** curl_handle, const char* url, Upload_data* upload_data, uint16_t max_redirect)
 {
-	return Util_curl_request(curl_handle, std::move(url), CURLOPT_HTTPPOST, follow_redirect, max_redirect, upload_data);
+	return Util_curl_request(curl_handle, url, CURLOPT_HTTPPOST, max_redirect, upload_data);
 }
 
-static void Util_curl_get_response(CURL** curl_handle, int* status_code, std::string* new_url)
+static void Util_curl_get_response(CURL** curl_handle, uint16_t* status_code, Util_str* new_url)
 {
-	char moved_url[4096];
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
 
-	memset(moved_url, 0x0, 4096);
-	*new_url = "";
-	*status_code = 0;
-
-	result.code = curl_easy_getinfo(*curl_handle, CURLINFO_RESPONSE_CODE, status_code);
-	if(result.code != CURLE_OK)
-		*status_code = 0;
-
-	result.code = curl_easy_getinfo(*curl_handle, CURLINFO_EFFECTIVE_URL, moved_url);
-	if(result.code != CURLE_OK)
-		*new_url = "";
-	else
-		*new_url = moved_url;
-}
-
-static Result_with_string Util_curl_download_data(CURL** curl_handle, Http_data* http_data)
-{
-	Result_with_string result;
-	char error_data[4096];
-	memset(error_data, 0, 4096);
-
-	result.code = curl_easy_setopt(*curl_handle, CURLOPT_WRITEFUNCTION, Util_curl_write_callback);
-	if (result.code != CURLE_OK)
+	if(status_code)
 	{
-		result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+		uint32_t out = 0;
+
+		result = curl_easy_getinfo(*curl_handle, CURLINFO_RESPONSE_CODE, &out);
+		if(result == CURLE_OK)
+			*status_code = (uint16_t)out;
+		else
+			*status_code = 0;
+	}
+
+	if(new_url)
+	{
+		char moved_url[4096] = { 0, };
+
+		result = curl_easy_getinfo(*curl_handle, CURLINFO_EFFECTIVE_URL, moved_url);
+		if(result == CURLE_OK)
+			Util_str_set(new_url, moved_url);
+	}
+}
+
+static uint32_t Util_curl_download_data(CURL** curl_handle, Http_data* http_data)
+{
+	uint32_t result = DEF_ERR_OTHER;
+	char error_message[4096] = { 0, };
+
+	result = curl_easy_setopt(*curl_handle, CURLOPT_WRITEFUNCTION, Util_curl_write_callback);
+	if (result != CURLE_OK)
+	{
+		DEF_LOG_RESULT(curl_easy_setopt_WRITEFUNCTION, false, result);
 		goto curl_api_failed;
 	}
 
-	result.code = curl_easy_setopt(*curl_handle, CURLOPT_WRITEDATA, (void*)http_data);
-	if (result.code != CURLE_OK)
+	result = curl_easy_setopt(*curl_handle, CURLOPT_WRITEDATA, (void*)http_data);
+	if (result != CURLE_OK)
 	{
-		result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+		DEF_LOG_RESULT(curl_easy_setopt_WRITEDATA, false, result);
 		goto curl_api_failed;
 	}
 
-	result.code = curl_easy_setopt(*curl_handle, CURLOPT_ERRORBUFFER, error_data);
-	if (result.code != CURLE_OK)
+	result = curl_easy_setopt(*curl_handle, CURLOPT_ERRORBUFFER, error_message);
+	if (result != CURLE_OK)
 	{
-		result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+		DEF_LOG_RESULT(curl_easy_setopt_ERRORBUFFER, false, result);
 		goto curl_api_failed;
 	}
 
-	result.code = curl_easy_perform(*curl_handle);
-	if (result.code != CURLE_OK)
+	result = curl_easy_perform(*curl_handle);
+	if (result != CURLE_OK)
 	{
-		result.error_description = "[Error] curl_easy_perform() failed. " + std::to_string(result.code) + " " + error_data + " ";
+		DEF_LOG_RESULT(curl_easy_perform, false, result);
+		DEF_LOG_STRING(error_message);
 		goto curl_api_failed;
 	}
-	return result;
+	return DEF_SUCCESS;
 
 	curl_api_failed:
 	Util_curl_close(curl_handle);
@@ -613,9 +637,7 @@ static Result_with_string Util_curl_download_data(CURL** curl_handle, Http_data*
 	*http_data->used_size = 0;
 	http_data->current_size = 0;
 	http_data->max_size = 0;
-	result.code = DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_CURL_RETURNED_NOT_SUCCESS_STR;
-	return result;
+	return DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
 }
 
 static void Util_curl_close(CURL** curl_handle)
@@ -629,47 +651,47 @@ static void Util_curl_close(CURL** curl_handle)
 	*curl_handle = NULL;
 }
 
-static Result_with_string Util_curl_save_data(CURL** curl_handle, Http_data* http_data)
+static uint32_t Util_curl_save_data(CURL** curl_handle, Http_data* http_data)
 {
-	Result_with_string result;
-	char error_data[4096];
-	memset(error_data, 0, 4096);
+	uint32_t result = DEF_ERR_OTHER;
+	char error_message[4096] = { 0, };
 
 	http_data->data = (uint8_t*)Util_safe_linear_alloc(http_data->max_size);
 	if(!http_data->data)
 		goto out_of_memory;
 
-	result.code = curl_easy_setopt(*curl_handle, CURLOPT_WRITEFUNCTION, Util_curl_save_callback);
-	if (result.code != CURLE_OK)
+	result = curl_easy_setopt(*curl_handle, CURLOPT_WRITEFUNCTION, Util_curl_save_callback);
+	if (result != CURLE_OK)
 	{
-		result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+		DEF_LOG_RESULT(curl_easy_setopt_WRITEFUNCTION, false, result);
 		goto curl_api_failed;
 	}
 
-	result.code = curl_easy_setopt(*curl_handle, CURLOPT_WRITEDATA, (void*)http_data);
-	if (result.code != CURLE_OK)
+	result = curl_easy_setopt(*curl_handle, CURLOPT_WRITEDATA, (void*)http_data);
+	if (result != CURLE_OK)
 	{
-		result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+		DEF_LOG_RESULT(curl_easy_setopt_WRITEDATA, false, result);
 		goto curl_api_failed;
 	}
 
-	result.code = curl_easy_setopt(*curl_handle, CURLOPT_ERRORBUFFER, error_data);
-	if (result.code != CURLE_OK)
+	result = curl_easy_setopt(*curl_handle, CURLOPT_ERRORBUFFER, error_message);
+	if (result != CURLE_OK)
 	{
-		result.error_description = "[Error] curl_easy_setopt() failed. " + std::to_string(result.code) + " ";
+		DEF_LOG_RESULT(curl_easy_setopt_ERRORBUFFER, false, result);
 		goto curl_api_failed;
 	}
 
-	Util_file_delete_file(http_data->file_name.c_str(), http_data->dir_path.c_str());
+	Util_file_delete_file(http_data->file_name, http_data->dir_path);
 
-	result.code = curl_easy_perform(*curl_handle);
-	if (result.code != CURLE_OK)
+	result = curl_easy_perform(*curl_handle);
+	if (result != CURLE_OK)
 	{
-		result.error_description = "[Error] curl_easy_perform() failed. " + std::to_string(result.code) + " " + error_data + " ";
+		DEF_LOG_RESULT(curl_easy_perform, false, result);
+		DEF_LOG_STRING(error_message);
 		goto curl_api_failed;
 	}
 
-	Util_file_save_to_file(http_data->file_name.c_str(), http_data->dir_path.c_str(), http_data->data, http_data->current_size, false);
+	Util_file_save_to_file(http_data->file_name, http_data->dir_path, http_data->data, http_data->current_size, false);
 
 	Util_safe_linear_free(http_data->data);
 	http_data->data = NULL;
@@ -680,9 +702,7 @@ static Result_with_string Util_curl_save_data(CURL** curl_handle, Http_data* htt
 	*http_data->used_size = 0;
 	http_data->current_size = 0;
 	http_data->max_size = 0;
-	result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
-	result.string = DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
-	return result;
+	return DEF_ERR_OUT_OF_LINEAR_MEMORY;
 
 	curl_api_failed:
 	Util_curl_close(curl_handle);
@@ -691,216 +711,72 @@ static Result_with_string Util_curl_save_data(CURL** curl_handle, Http_data* htt
 	*http_data->used_size = 0;
 	http_data->current_size = 0;
 	http_data->max_size = 0;
-	result.code = DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_CURL_RETURNED_NOT_SUCCESS_STR;
-	return result;
+	return DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
 }
 
-static Result_with_string Util_curl_dl_data_internal(std::string&& url, uint8_t** data, int max_size, int* downloaded_size, int* status_code, bool follow_redirect,
-int max_redirect, std::string* last_url)
+static uint32_t Util_curl_post_and_dl_data_internal(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data,
+uint32_t max_dl_size, uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url,
+int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data)
 {
-	Result_with_string result;
-	Http_data http_data;
+	uint32_t dummy = 0;
+	uint32_t result = DEF_ERR_OTHER;
+	Http_data http_data = { 0, };
+	Upload_data upload_data = { 0, };
 	CURL* curl_handle = NULL;
 
 	if(!util_curl_init)
 		goto not_inited;
 
-	if(url == "" || !data || max_size <= 0 || !downloaded_size || !status_code || (follow_redirect && max_redirect < 0) || !last_url)
+	//downloaded_size, uploaded_size, status_code, last_url and user_data can be NULL.
+	if(!url || !dl_data || max_dl_size == 0)
 		goto invalid_arg;
 
-	*last_url = "";
-	*downloaded_size = 0;
-
-	for(int i = 0; i < 40; i++)
+	if(read_callback)
 	{
-		result.code = acWaitInternetConnection();
-		if(result.code != 0xE0A09D2E)
-			break;
-
-		Util_sleep(100000);
+		//If callback is provided, post_data and post_size must be NULL and 0.
+		if(post_data || post_size != 0)
+			goto invalid_arg;
+	}
+	else
+	{
+		//If callback is NOT provided, post_data and post_size must NOT be NULL and 0.
+		if(!post_data || post_size == 0)
+			goto invalid_arg;
 	}
 
-	if(result.code != 0)
+	if(downloaded_size)
+		*downloaded_size = 0;
+	if(uploaded_size)
+		*uploaded_size = 0;
+	if(status_code)
+		*status_code = 0;
+
+	if(last_url)
 	{
-		result.error_description = "[Error] acWaitInternetConnection() failed. ";
-		goto nintendo_api_failed;
+		result = Util_str_init(last_url);
+		if(result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Util_str_init, false, result);
+			goto api_failed;
+		}
+
+		result = Util_str_set(last_url, url);
+		if(result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Util_str_set, false, result);
+			goto api_failed;
+		}
 	}
 
 	curl_handle = curl_easy_init();
 	if(!curl_handle)
 	{
-		result.error_description = "[Error] curl_easy_init() failed. ";
-		goto curl_api_failed;
-	}
-
-	http_data.max_size = max_size;
-	http_data.used_size = downloaded_size;
-	result = Util_curl_get_request(&curl_handle, std::move(url), follow_redirect, max_redirect);
-	if(result.code != 0)
-		goto api_failed;
-
-	result = Util_curl_download_data(&curl_handle, &http_data);
-	if(result.code != 0)
-		goto api_failed;
-
-	*data = (uint8_t*)http_data.data;
-
-	Util_curl_get_response(&curl_handle, status_code, last_url);
-
-	Util_curl_close(&curl_handle);
-
-	return result;
-
-	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
-
-	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
-
-	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
-	return result;
-
-	curl_api_failed:
-	result.code = DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_CURL_RETURNED_NOT_SUCCESS_STR;
-	return result;
-
-	api_failed:
-	return result;
-}
-
-static Result_with_string Util_curl_save_data_internal(std::string&& url, int buffer_size, int* downloaded_size, int* status_code, bool follow_redirect,
-int max_redirect, std::string* last_url, std::string&& dir_path, std::string&& file_name)
-{
-	Result_with_string result;
-	Http_data http_data;
-	CURL* curl_handle = NULL;
-
-	if(!util_curl_init)
-		goto not_inited;
-
-	if(url == "" || buffer_size <= 0 || !downloaded_size || !status_code || (follow_redirect && max_redirect < 0) || !last_url)
-		goto invalid_arg;
-
-	*last_url = "";
-	*downloaded_size = 0;
-
-	for(int i = 0; i < 40; i++)
-	{
-		result.code = acWaitInternetConnection();
-		if(result.code != 0xE0A09D2E)
-			break;
-
-		Util_sleep(100000);
-	}
-
-	if(result.code != 0)
-	{
-		result.error_description = "[Error] acWaitInternetConnection() failed. ";
-		goto nintendo_api_failed;
-	}
-
-	curl_handle = curl_easy_init();
-	if(!curl_handle)
-	{
-		result.error_description = "[Error] curl_easy_init() failed. ";
-		goto curl_api_failed;
-	}
-
-	http_data.max_size = buffer_size;
-	http_data.used_size = downloaded_size;
-	http_data.dir_path = std::move(dir_path);
-	http_data.file_name = std::move(file_name);
-	result = Util_curl_get_request(&curl_handle, std::move(url), follow_redirect, max_redirect);
-	if(result.code != 0)
-		goto api_failed;
-
-	result = Util_curl_save_data(&curl_handle, &http_data);
-	if(result.code != 0)
-		goto api_failed;
-
-	Util_curl_get_response(&curl_handle, status_code, last_url);
-
-	Util_curl_close(&curl_handle);
-
-	return result;
-
-	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
-
-	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
-
-	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
-	return result;
-
-	curl_api_failed:
-	result.code = DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_CURL_RETURNED_NOT_SUCCESS_STR;
-	return result;
-
-	api_failed:
-	return result;
-}
-
-static Result_with_string Util_curl_post_and_dl_data_internal(std::string&& url, uint8_t* post_data, int post_size, uint8_t** dl_data, int max_dl_size,
-int* downloaded_size, int* uploaded_size, int* status_code, bool follow_redirect, int max_redirect, std::string* last_url,
-int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data)
-{
-	Result_with_string result;
-	Http_data http_data;
-	Upload_data upload_data;
-	CURL* curl_handle = NULL;
-
-	if(!util_curl_init)
-		goto not_inited;
-
-	if(url == "" || !dl_data || max_dl_size <= 0 || !downloaded_size || !uploaded_size
-	|| !status_code || (follow_redirect && max_redirect < 0) || !last_url)
-		goto invalid_arg;
-
-	if(!read_callback && (!post_data || post_size <= 0))
-		goto invalid_arg;
-
-	*last_url = "";
-	*downloaded_size = 0;
-	*uploaded_size = 0;
-
-	for(int i = 0; i < 40; i++)
-	{
-		result.code = acWaitInternetConnection();
-		if(result.code != 0xE0A09D2E)
-			break;
-
-		Util_sleep(100000);
-	}
-
-	if(result.code != 0)
-	{
-		result.error_description = "[Error] acWaitInternetConnection() failed. ";
-		goto nintendo_api_failed;
-	}
-
-	curl_handle = curl_easy_init();
-	if(!curl_handle)
-	{
-		result.error_description = "[Error] curl_easy_init() failed. ";
+		DEF_LOG_RESULT(curl_easy_init, false, DEF_ERR_CURL_RETURNED_NOT_SUCCESS);
 		goto curl_api_failed;
 	}
 
 	http_data.max_size = max_dl_size;
-	http_data.used_size = downloaded_size;
+	http_data.used_size = (downloaded_size ? downloaded_size : &dummy);
 	upload_data.uploaded_size = uploaded_size;
 	if(read_callback)
 	{
@@ -912,12 +788,12 @@ int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_da
 		upload_data.upload_size = post_size;
 		upload_data.data = post_data;
 	}
-	result = Util_curl_post_request(&curl_handle, std::move(url), &upload_data, follow_redirect, max_redirect);
-	if(result.code != 0)
+	result = Util_curl_post_request(&curl_handle, url, &upload_data, max_redirect);
+	if(result != DEF_SUCCESS)
 		goto api_failed;
 
 	result = Util_curl_download_data(&curl_handle, &http_data);
-	if(result.code != 0)
+	if(result != DEF_SUCCESS)
 		goto api_failed;
 
 	*dl_data = (uint8_t*)http_data.data;
@@ -926,80 +802,89 @@ int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_da
 
 	Util_curl_close(&curl_handle);
 
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_NOT_INITIALIZED;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
-
-	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	curl_api_failed:
-	result.code = DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_CURL_RETURNED_NOT_SUCCESS_STR;
-	return result;
+	return DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
 
 	api_failed:
+	if(last_url)
+		Util_str_free(last_url);
+
 	return result;
 }
 
-static Result_with_string Util_curl_post_and_save_data_internal(std::string&& url, uint8_t* post_data, int post_size, int buffer_size, int* downloaded_size,
-int* uploaded_size, int* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string&& dir_path, std::string&& file_name,
-int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_data)
+static uint32_t Util_curl_post_and_save_data_internal(const char* url, uint8_t* post_data, uint32_t post_size, uint32_t buffer_size,
+uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url, const char* dir_path,
+const char* file_name, int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data)
 {
-	Result_with_string result;
-	Http_data http_data;
-	Upload_data upload_data;
+	uint32_t dummy = 0;
+	uint32_t result = DEF_ERR_OTHER;
+	Http_data http_data = { 0, };
+	Upload_data upload_data = { 0, };
 	CURL* curl_handle = NULL;
 
 	if(!util_curl_init)
 		goto not_inited;
 
-	if(url == "" || buffer_size <= 0 || !downloaded_size || !status_code
-	|| (follow_redirect && max_redirect < 0) || !last_url)
+	//downloaded_size, uploaded_size, status_code, last_url and user_data can be NULL.
+	if(!url || buffer_size == 0 || !dir_path || !file_name)
 		goto invalid_arg;
 
-	if(!read_callback && (!post_data || post_size <= 0))
-		goto invalid_arg;
-
-	*last_url = "";
-	*downloaded_size = 0;
-	*uploaded_size = 0;
-
-	for(int i = 0; i < 40; i++)
+	if(read_callback)
 	{
-		result.code = acWaitInternetConnection();
-		if(result.code != 0xE0A09D2E)
-			break;
-
-		Util_sleep(100000);
+		//If callback is provided, post_data and post_size must be NULL and 0.
+		if(post_data || post_size != 0)
+			goto invalid_arg;
+	}
+	else
+	{
+		//If callback is NOT provided, post_data and post_size must NOT be NULL and 0.
+		if(!post_data || post_size == 0)
+			goto invalid_arg;
 	}
 
-	if(result.code != 0)
+	if(downloaded_size)
+		*downloaded_size = 0;
+	if(uploaded_size)
+		*uploaded_size = 0;
+	if(status_code)
+		*status_code = 0;
+
+	if(last_url)
 	{
-		result.error_description = "[Error] acWaitInternetConnection() failed. ";
-		goto nintendo_api_failed;
+		result = Util_str_init(last_url);
+		if(result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Util_str_init, false, result);
+			goto api_failed;
+		}
+
+		result = Util_str_set(last_url, url);
+		if(result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Util_str_set, false, result);
+			goto api_failed;
+		}
 	}
 
 	curl_handle = curl_easy_init();
 	if(!curl_handle)
 	{
-		result.error_description = "[Error] curl_easy_init() failed. ";
+		DEF_LOG_RESULT(curl_easy_init, false, DEF_ERR_CURL_RETURNED_NOT_SUCCESS);
 		goto curl_api_failed;
 	}
 
 	http_data.max_size = buffer_size;
-	http_data.used_size = downloaded_size;
-	http_data.dir_path = std::move(dir_path);
-	http_data.file_name = std::move(file_name);
+	http_data.used_size = (downloaded_size ? downloaded_size : &dummy);
+	http_data.dir_path = dir_path;
+	http_data.file_name = file_name;
 	upload_data.uploaded_size = uploaded_size;
 	if(read_callback)
 	{
@@ -1012,40 +897,33 @@ int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_da
 		upload_data.data = post_data;
 	}
 
-	result = Util_curl_post_request(&curl_handle, std::move(url), &upload_data, follow_redirect, max_redirect);
-	if(result.code != 0)
+	result = Util_curl_post_request(&curl_handle, url, &upload_data, max_redirect);
+	if(result != DEF_SUCCESS)
 		goto api_failed;
 
 	result = Util_curl_save_data(&curl_handle, &http_data);
-	if(result.code != 0)
+	if(result != DEF_SUCCESS)
 		goto api_failed;
 
 	Util_curl_get_response(&curl_handle, status_code, last_url);
 
 	Util_curl_close(&curl_handle);
 
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
+	return DEF_ERR_NOT_INITIALIZED;
 
 	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
-
-	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
-	return result;
+	return DEF_ERR_INVALID_ARG;
 
 	curl_api_failed:
-	result.code = DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_CURL_RETURNED_NOT_SUCCESS_STR;
-	return result;
+	return DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
 
 	api_failed:
+	if(last_url)
+		Util_str_free(last_url);
+
 	return result;
 }
 

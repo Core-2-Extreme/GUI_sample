@@ -244,8 +244,8 @@ void Menu_init(void)
 	Sem_draw_init();
 
 	//Init rest of our modules.
-	DEF_LOG_RESULT_SMART(result, Util_httpc_init(DEF_HTTP_POST_BUFFER_SIZE), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result, Util_curl_init(DEF_SOCKET_BUFFER_SIZE), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Util_httpc_init(DEF_HTTP_POST_BUFFER_SIZE), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result.code, Util_curl_init(DEF_SOCKET_BUFFER_SIZE), (result.code == DEF_SUCCESS), result.code);
 	DEF_LOG_RESULT_SMART(result.code, Util_hid_init(), (result.code == DEF_SUCCESS), result.code);
 	DEF_LOG_RESULT_SMART(result.code, Util_hid_add_callback(Menu_hid_callback), result.code, result.code);
 	DEF_LOG_RESULT_SMART(result.code, Util_expl_init(), (result.code == DEF_SUCCESS), result.code);
@@ -1256,18 +1256,11 @@ void Menu_get_system_info(void)
 void Menu_send_app_info_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
-	OS_VersionBin os_ver;
 	bool is_new3ds = false;
 	uint8_t* dl_data = NULL;
-
-#if DEF_ENABLE_CURL_API
-	int downloaded_size = 0;
-	int uploaded_size = 0;
-#else
-	uint32_t downloaded_size = 0;
-#endif
 	char system_ver_char[0x50] = " ";
-	std::string new3ds;
+	std::string new3ds = "";
+	OS_VersionBin os_ver = { 0, };
 
 	osGetSystemVersionDataString(&os_ver, &os_ver, system_ver_char, 0x50);
 	std::string system_ver = system_ver_char;
@@ -1278,9 +1271,9 @@ void Menu_send_app_info_thread(void* arg)
 	std::string send_data = (std::string)"{ \"app_ver\": \"" + DEF_CURRENT_APP_VER + "\",\"system_ver\" : \"" + system_ver + "\",\"start_num_of_app\" : \"" + std::to_string(var_num_of_app_start) + "\",\"language\" : \"" + var_lang + "\",\"new3ds\" : \"" + new3ds + "\",\"time_to_enter_sleep\" : \"" + std::to_string(var_time_to_turn_off_lcd) + "\",\"scroll_speed\" : \"" + std::to_string(var_scroll_speed) + "\" }";
 
 #if DEF_ENABLE_CURL_API
-	Util_curl_post_and_dl_data(DEF_SEND_APP_INFO_URL, (uint8_t*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, &downloaded_size, &uploaded_size, true, 5);
+	Util_curl_post_and_dl_data(DEF_SEND_APP_INFO_URL, (uint8_t*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, NULL, NULL, NULL, 5, NULL);
 #else
-	Util_httpc_post_and_dl_data(DEF_SEND_APP_INFO_URL, (uint8_t*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, &downloaded_size, true, 5);
+	Util_httpc_post_and_dl_data(DEF_SEND_APP_INFO_URL, (uint8_t*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, NULL, NULL, 5, NULL);
 #endif
 
 	Util_safe_linear_free(dl_data);
@@ -1296,14 +1289,8 @@ void Menu_check_connectivity_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
 	uint8_t* http_buffer = NULL;
-#if DEF_ENABLE_HTTPC_API
-	uint32_t status_code = 0;
-	uint32_t dl_size = 0;
-#else
-	int status_code = 0;
-	int dl_size = 0;
-#endif
-	int count = 100;
+	uint16_t status_code = 0;
+	uint16_t count = 100;
 
 	while (menu_thread_run)
 	{
@@ -1311,9 +1298,9 @@ void Menu_check_connectivity_thread(void* arg)
 		{
 			count = 0;
 #if DEF_ENABLE_HTTPC_API//Curl uses more CPU so prefer to use httpc module here.
-			Util_httpc_dl_data(DEF_CHECK_INTERNET_URL, &http_buffer, 0x1000, &dl_size, &status_code, false, 0);
+			Util_httpc_dl_data(DEF_CHECK_INTERNET_URL, &http_buffer, 0x1000, NULL, &status_code, 0, NULL);
 #else
-			Util_curl_dl_data(DEF_CHECK_INTERNET_URL, &http_buffer, 0x1000, &dl_size, &status_code, false, 0);
+			Util_curl_dl_data(DEF_CHECK_INTERNET_URL, &http_buffer, 0x1000, NULL, &status_code, 0, NULL);
 #endif
 			Util_safe_linear_free(http_buffer);
 			http_buffer = NULL;
@@ -1443,24 +1430,19 @@ void Menu_update_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
 	uint8_t* http_buffer = NULL;
-#if DEF_ENABLE_CURL_API
-	int dl_size = 0;
-#else
-	uint32_t dl_size = 0;
-#endif
-	size_t pos[2] = { 0, 0, };
-	std::string data = "";
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
 
 #if DEF_ENABLE_CURL_API
-	DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(DEF_CHECK_UPDATE_URL, &http_buffer, 0x1000, &dl_size, true, 3), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(DEF_CHECK_UPDATE_URL, &http_buffer, 0x1000, NULL, NULL, 3, NULL), (result == DEF_SUCCESS), result);
 #else
-	DEF_LOG_RESULT_SMART(result, Util_httpc_dl_data(DEF_CHECK_UPDATE_URL, &http_buffer, 0x1000, &dl_size, true, 3), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Util_httpc_dl_data(DEF_CHECK_UPDATE_URL, &http_buffer, 0x1000, NULL, NULL, 3, NULL), (result == DEF_SUCCESS), result);
 #endif
 
-	if(result.code == 0)
+	if(result == DEF_SUCCESS)
 	{
-		data = (char*)http_buffer;
+		size_t pos[2] = { 0, 0, };
+		std::string data = (char*)http_buffer;
+
 		pos[0] = data.find("<newest>");
 		pos[1] = data.find("</newest>");
 		if(pos[0] != std::string::npos && pos[1] != std::string::npos)
