@@ -2,7 +2,6 @@
 #define DEF_FILE_HPP
 #include <stdbool.h>
 #include <stdint.h>
-#include "system/types.hpp"
 #include "system/util/explorer_types.h"
 #include "system/util/str_types.h"
 

@@ -2,6 +2,7 @@
 #define DEF_MUXER_HPP
 #include <stdbool.h>
 #include <stdint.h>
+#include "system/util/muxer_types.h"
 
 #if DEF_ENABLE_MUXER_API
 

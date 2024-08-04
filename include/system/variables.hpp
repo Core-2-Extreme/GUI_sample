@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/types.hpp"
+#include "system/setting_menu.hpp"
 
 extern bool var_connect_test_succes;
 extern bool var_need_reflesh;
@@ -54,6 +55,5 @@ extern std::string var_model_name[6];
 extern std::string var_debug_string[8];
 extern C2D_Image var_square_image[1];
 extern C2D_Image var_null_image;
-extern Result_with_string var_disabled_result;
 
 #endif //!defined(DEF_VARIABLES_HPP)

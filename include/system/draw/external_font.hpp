@@ -1,12 +1,8 @@
 #if !defined(DEF_EXTERNAL_FONT_HPP)
 #define DEF_EXTERNAL_FONT_HPP
-
-#define DEF_EXFONT_MAX_CHAR_LENGTH		(uint8_t)(4)
-
-typedef struct
-{
-	char buffer[DEF_EXFONT_MAX_CHAR_LENGTH + 1];
-}Exfont_one_char;
+#include <stdbool.h>
+#include <stdint.h>
+#include "system/draw/external_font_types.h"
 
 /**
  * @brief Initialize a external font api.

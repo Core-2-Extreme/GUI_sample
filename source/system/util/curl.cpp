@@ -1,4 +1,4 @@
-#include "definitions.hpp"
+#include "system/util/curl.hpp"
 
 #if DEF_ENABLE_CURL_API
 #include <stdbool.h>
@@ -16,13 +16,13 @@ extern "C"
 #include "system/util/str.h"
 }
 
+#include "system/menu.hpp"
+
 extern "C"
 {
 #include "curl/curl.h"
 }
 
-//Include myself.
-#include "system/util/curl.hpp"
 
 bool util_curl_init = false;
 uint32_t* util_curl_buffer = NULL;

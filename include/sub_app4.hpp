@@ -4,6 +4,15 @@
 #include <stdint.h>
 #include "system/util/hid_types.h"
 
+#define DEF_ENABLE_SUB_APP4
+
+#define DEF_SAPP4_NUM_OF_MSG	(uint16_t)(1)
+//#define DEF_SAPP4_ENABLE_ICON
+#define DEF_SAPP4_ENABLE_NAME
+#define DEF_SAPP4_ICON_PATH		/*(const char*)(*/"romfs:/"/*)*/
+#define DEF_SAPP4_NAME			/*(const char*)(*/"Speaker\nsample"/*)*/
+#define DEF_SAPP4_VER			/*(const char*)(*/"v0.0.1"/*)*/
+
 bool Sapp4_query_init_flag(void);
 
 bool Sapp4_query_running_flag(void);

@@ -1,20 +1,24 @@
-#include "definitions.hpp"
+extern "C"
+{
+#include "system/util/hw_config.h"
+}
 
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "system/types.hpp"
+extern "C"
+{
+#include <3ds/types.h>
+#include <3ds/services/apt.h>
+#include <3ds/services/gsplcd.h>
+#include <3ds/services/nwmext.h>
+#include <3ds/services/ptmsysm.h>
+}
 
 #include "system/util/error_types.h"
 extern "C"
 {
 #include "system/util/log.h"
-}
-
-//Include myself.
-extern "C"
-{
-#include "system/util/hw_config.h"
 }
 
 

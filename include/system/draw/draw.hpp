@@ -2,65 +2,13 @@
 #define DEF_DRAW_HPP
 #include <stdbool.h>
 #include <stdint.h>
+#include "system/draw/draw_types.h"
+#include "system/util/cpu_usage_types.h"
+#include "system/util/raw_types.h"
 #include "system/util/str_types.h"
 
 extern "C"
 {
-typedef enum
-{
-	DRAW_SCREEN_INVALID	= -1,
-
-	DRAW_SCREEN_TOP_LEFT,	//Top screen for left eye.
-	DRAW_SCREEN_BOTTOM,		//Bottom screen.
-	DRAW_SCREEN_TOP_RIGHT,	//Top screen for right eye, this is used when 3D mode is enabled.
-
-	DRAW_SCREEN_MAX,
-} Draw_screen;
-
-typedef enum
-{
-	DRAW_X_ALIGN_INVALID = -1,
-
-	DRAW_X_ALIGN_LEFT,		//Align text left (default).
-	DRAW_X_ALIGN_CENTER,	//Align text center.
-	DRAW_X_ALIGN_RIGHT,		//Align text right.
-
-	DRAW_X_ALIGN_MAX,
-} Draw_text_align_x;
-
-typedef enum
-{
-	DRAW_Y_ALIGN_INVALID = -1,
-
-	DRAW_Y_ALIGN_TOP,		//Align text top (default).
-	DRAW_Y_ALIGN_CENTER,	//Align text center.
-	DRAW_Y_ALIGN_BOTTOM,	//Align text bottom.
-
-	DRAW_Y_ALIGN_MAX,
-} Draw_text_align_y;
-
-typedef enum
-{
-	DRAW_BACKGROUND_INVALID = -1,
-
-	DRAW_BACKGROUND_NONE,			//No background texture (default).
-	DRAW_BACKGROUND_ENTIRE_BOX,		//Draw background texture entire box.
-	DRAW_BACKGROUND_UNDER_TEXT,		//Only draw background texture under text.
-
-	DRAW_BACKGROUND_MAX,
-} Draw_background;
-
-typedef struct
-{
-	C2D_Image c2d;				//Texture data.
-	Tex3DS_SubTexture* subtex;	//Subtexture data.
-	bool selected;				//Whether this texture is selected.
-	double x;					//X (horizontal) position.
-	double y;					//Y (vertical) position.
-	double x_size;				//Texture drawn width.
-	double y_size;				//Texture drawn height.
-} Draw_image_data;
-
 /**
  * @brief Initialize a draw api.
  * It is NOT possible to enable 800px mode and 3D mode at the same time.

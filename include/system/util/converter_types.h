@@ -4,6 +4,12 @@
 #include <stdint.h>
 #include "raw_types.h"
 
+#define DEF_ENABLE_HW_CONVERTER_API					/*(bool)(*/1/*)*/	//Enable hardware color converter API.
+#define DEF_ENABLE_SW_ASM_CONVERTER_API				/*(bool)(*/1/*)*/	//Enable assembly optimized software color converter API.
+#define DEF_ENABLE_SW_CONVERTER_API					/*(bool)(*/1/*)*/	//Enable software color converter API.
+#define DEF_ENABLE_SW_FFMPEG_AUDIO_CONVERTER_API	/*(bool)(*/1/*)*/	//Enable software audio samples converter API. This will use ffmpeg functions.
+#define DEF_ENABLE_SW_FFMPEG_COLOR_CONVERTER_API	/*(bool)(*/1/*)*/	//Enable software color converter API. This will use ffmpeg functions.
+
 typedef struct
 {
 	uint8_t* source;				//(in)  Source raw image data, user must allocate the buffer.

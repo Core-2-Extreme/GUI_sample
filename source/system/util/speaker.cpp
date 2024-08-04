@@ -1,4 +1,7 @@
-#include "definitions.hpp"
+extern "C"
+{
+#include "system/util/speaker.h"
+}
 
 #if DEF_ENABLE_SPEAKER_API
 #include <stdbool.h>
@@ -9,12 +12,6 @@
 extern "C"
 {
 #include "system/util/log.h"
-}
-
-//Include myself.
-extern "C"
-{
-#include "system/util/speaker.h"
 }
 
 

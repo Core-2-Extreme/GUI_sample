@@ -3,7 +3,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define DEF_STR_INITIAL_CAPACITY 16
+#define DEF_STR_INITIAL_CAPACITY			(uint32_t)(16)
+#define DEF_STR_NEVER_NULL(str_ptr)			(const char*)(Util_str_is_valid(str_ptr) ? (str_ptr)->buffer : "")
 
 typedef struct
 {

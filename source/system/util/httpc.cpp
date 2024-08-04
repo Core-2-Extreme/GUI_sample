@@ -1,4 +1,4 @@
-#include "definitions.hpp"
+#include "system/util/httpc.hpp"
 
 #if DEF_ENABLE_HTTPC_API
 #include <stdbool.h>
@@ -14,8 +14,7 @@ extern "C"
 #include "system/util/str.h"
 }
 
-//Include myself.
-#include "system/util/httpc.hpp"
+#include "system/menu.hpp"
 
 
 bool util_httpc_init = false;

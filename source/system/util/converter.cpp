@@ -1,10 +1,8 @@
-#include "definitions.hpp"
+#include "system/util/converter.hpp"
 
 #if DEF_ENABLE_SW_FFMPEG_COLOR_CONVERTER_API
 #include <stdbool.h>
 #include <stdint.h>
-
-#include "system/types.hpp"
 
 #include "system/util/error_types.h"
 #include "system/util/util.hpp"
@@ -16,9 +14,6 @@ extern "C"
 #include "libswscale/swscale.h"
 #include "libavutil/imgutils.h"
 }
-
-//Include myself.
-#include "system/util/converter.hpp"
 
 
 //Translation table for Pixel_format -> AVPixelFormat.

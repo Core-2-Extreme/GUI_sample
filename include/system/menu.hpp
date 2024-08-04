@@ -3,6 +3,23 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define DEF_MAIN_DIR					/*(const char*)(*/"/GUI_sample/"/*)*/
+#define DEF_HTTP_USER_AGENT				/*(const char*)(*/"gui sample " DEF_CURRENT_APP_VER/*)*/
+#define DEF_CURRENT_APP_VER				/*(const char*)(*/"v0.0.1"/*)*/
+#define DEF_CHECK_INTERNET_URL			/*(const char*)(*/"http://connectivitycheck.gstatic.com/generate_204"/*)*/
+#define DEF_CURRENT_APP_VER_INT			(uint32_t)(1)
+
+#define DEF_MENU_NUM_OF_CALLBACKS		(uint16_t)(32)
+#define DEF_SOCKET_BUFFER_SIZE			(uint32_t)(0x40000)
+#define DEF_HTTP_POST_BUFFER_SIZE		(uint32_t)(0x80000)
+
+#define DEF_MENU_NUM_OF_MSG				(uint16_t)(5)
+#define DEF_MENU_EXIST_MSG				(uint16_t)(0)
+#define DEF_MENU_CONFIRM_MSG			(uint16_t)(1)
+#define DEF_MENU_CANCEL_MSG				(uint16_t)(2)
+#define DEF_MENU_NEW_VERSION_MSG		(uint16_t)(3)
+#define DEF_MENU_HOW_TO_UPDATE_MSG		(uint16_t)(4)
+
 bool Menu_query_must_exit_flag(void);
 
 void Menu_set_must_exit_flag(bool flag);

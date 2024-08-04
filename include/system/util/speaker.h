@@ -2,6 +2,7 @@
 #define DEF_SPEAKER_HPP
 #include <stdbool.h>
 #include <stdint.h>
+#include "system/util/speaker_types.h"
 
 #if DEF_ENABLE_SPEAKER_API
 

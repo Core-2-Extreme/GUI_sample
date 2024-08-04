@@ -1,4 +1,7 @@
-#include "definitions.hpp"
+extern "C"
+{
+#include "system/util/cpu_usage.h"
+}
 
 #if DEF_ENABLE_CPU_MONITOR_API
 #include <stdarg.h>
@@ -7,12 +10,10 @@
 
 #include "system/util/error_types.h"
 #include "system/util/util.hpp"
-
-//Include myself.
 extern "C"
 {
 #include "system/util/log.h"
-#include "system/util/cpu_usage.h"
+#include "system/util/thread_types.h"
 }
 
 extern "C"

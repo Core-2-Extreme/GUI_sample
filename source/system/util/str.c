@@ -1,4 +1,4 @@
-#include "definitions.hpp"
+#include "system/util/str.h"
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -6,12 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "system/system_definitions.hpp"
-
 #include "system/util/error_types.h"
-
-//Include myself.
-#include "system/util/str.h"
 
 
 static uint32_t Util_str_get_optimal_buffer_capacity(Util_str* string);

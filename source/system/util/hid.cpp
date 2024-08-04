@@ -1,9 +1,10 @@
-#include "definitions.hpp"
+extern "C"
+{
+#include "system/util/hid.h"
+}
 
 #include <stdbool.h>
 #include <stdint.h>
-
-#include "system/types.hpp"
 
 #include "system/variables.hpp"
 
@@ -13,12 +14,7 @@
 extern "C"
 {
 #include "system/util/log.h"
-}
-
-//Include myself.
-extern "C"
-{
-#include "system/util/hid.h"
+#include "system/util/thread_types.h"
 }
 
 

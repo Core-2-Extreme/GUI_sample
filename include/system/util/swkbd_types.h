@@ -3,6 +3,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define DEF_ENABLE_SWKBD_API					/*(bool)(*/1/*)*/	//Enable software keyboard API.
+
+#define DEF_SWKBD_MAX_DIC_WORDS					(uint16_t)(128)
+
 typedef uint8_t Util_swkbd_features_bit;
 #define KEYBOARD_FEATURES_BIT_NONE				(Util_swkbd_features_bit)(0 << 0)
 #define KEYBOARD_FEATURES_BIT_DARKEN_SCREEN		(Util_swkbd_features_bit)(1 << 0)	//Darken the top screen when swkbd is shown.

@@ -2,6 +2,8 @@
 #define DEF_HTTPC_HPP
 #include <stdbool.h>
 #include <stdint.h>
+#include "system/util/httpc_types.h"
+#include "system/util/str_types.h"
 
 #if DEF_ENABLE_HTTPC_API
 

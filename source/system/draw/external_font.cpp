@@ -1,9 +1,7 @@
-#include "definitions.hpp"
+#include "system/draw/external_font.hpp"
 
 #include <stdbool.h>
 #include <stdint.h>
-
-#include "system/types.hpp"
 
 #include "system/menu.hpp"
 #include "system/variables.hpp"
@@ -19,9 +17,6 @@ extern "C"
 	#include "system/util/log.h"
 	#include "system/util/str.h"
 }
-
-//Include myself.
-#include "system/draw/external_font.hpp"
 
 
 static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string, uint32_t num_of_characters, float texture_x, float texture_y, float texture_size_x, float texture_size_y, uint32_t abgr8888, float* out_width, float* out_height, bool size_only);

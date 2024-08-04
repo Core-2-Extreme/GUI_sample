@@ -1,4 +1,4 @@
-#include "definitions.hpp"
+#include "system/util/encoder.hpp"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -10,9 +10,6 @@ extern "C"
 #include "system/util/log.h"
 #include "system/util/media_types.h"
 }
-
-//Include myself.
-#include "system/util/encoder.hpp"
 
 #if DEF_ENABLE_VIDEO_AUDIO_ENCODER_API
 
@@ -29,6 +26,7 @@ extern "C"
 
 #if DEF_ENABLE_IMAGE_ENCODER_API
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image/stb_image_write.h"
 
 #endif //DEF_ENABLE_IMAGE_ENCODER_API

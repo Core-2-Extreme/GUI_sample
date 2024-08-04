@@ -1,11 +1,12 @@
-#include "definitions.hpp"
+extern "C"
+{
+	#include "system/util/log.h"
+}
 
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
-
-#include "system/types.hpp"
 
 #include "system/variables.hpp"
 
@@ -19,15 +20,11 @@ extern "C"
 	#include "system/util/str.h"
 }
 
-//Include myself.
-extern "C"
-{
-	#include "system/util/log.h"
-}
-
 
 extern "C"
 {
+#define DEF_LOG_DISPLAYED_LINES 23
+
 bool util_log_show_flag = false;
 bool util_log_init = false;
 uint32_t util_log_current_index = 0;

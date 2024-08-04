@@ -7,11 +7,6 @@
 #include <3ds.h>
 #include <citro2d.h>
 
-#include "system_definitions.hpp"
-
-#include "system/util/converter_types.h"
-#include "system/util/error_types.h"
-
 enum Watch_handle
 {
 	WATCH_HANDLE_INVALID = -1,
@@ -52,13 +47,6 @@ struct Watch_data
 	void* previous_data = NULL;					//Previous data.
 	uint32_t data_length = 0;					//Data length for this data.
 	Watch_handle handle = WATCH_HANDLE_INVALID;	//Watch handle.
-};
-
-struct Result_with_string
-{
-	std::string string = "[Success] ";
-	std::string error_description = "";
-	uint code = DEF_SUCCESS;
 };
 
 #endif //!defined(DEF_TYPES_HPP)

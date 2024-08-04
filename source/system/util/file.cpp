@@ -1,9 +1,7 @@
-#include "definitions.hpp"
+#include "system/util/file.hpp"
 
 #include <stdbool.h>
 #include <stdint.h>
-
-#include "system/types.hpp"
 
 #include "system/util/error_types.h"
 #include "system/util/util.hpp"
@@ -13,9 +11,6 @@ extern "C"
 #include "system/util/log.h"
 #include "system/util/str.h"
 }
-
-//Include myself.
-#include "system/util/file.hpp"
 
 
 static uint32_t Util_file_make_path(const char* file_name, const char* dir_path, uint16_t** utf16_path, uint16_t** utf16_dir_path);

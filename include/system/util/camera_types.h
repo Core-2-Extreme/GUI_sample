@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define DEF_ENABLE_CAM_API				/*(bool)(*/1/*)*/	//Enable camera API.
+
 typedef enum
 {
 	CAM_RES_INVALID = -1,

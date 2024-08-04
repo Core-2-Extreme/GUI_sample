@@ -1,5 +1,3 @@
-#include "definitions.hpp"
-
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -23,6 +21,7 @@ extern "C"
 	#include "system/util/queue.h"
 	#include "system/util/speaker.h"
 	#include "system/util/str.h"
+	#include "system/util/thread_types.h"
 }
 
 //Include myself.
@@ -55,8 +54,8 @@ double sapp4_last_decoded_pos_ms = 0;
 Thread sapp4_init_thread = NULL, sapp4_exit_thread = NULL, sapp4_worker_thread = NULL;
 Audio_info sapp4_audio_info = { 0, };
 Util_queue sapp4_command_queue = { 0, };
-Util_str sapp4_msg[DEF_SAPP4_NUM_OF_MSG] = { 0, };
 Util_str sapp4_status = { 0, };
+Util_str sapp4_msg[DEF_SAPP4_NUM_OF_MSG] = { 0, };
 Sapp4_speaker_state sapp4_speaker_state = SPEAKER_IDLE;
 
 

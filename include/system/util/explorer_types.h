@@ -3,6 +3,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define DEF_ENABLE_EXPL_API			/*(bool)(*/1/*)*/	//Enable file explorer API.
+
+#define DEF_EXPL_MAX_FILES			(uint32_t)(1024)
 #define DEF_EXPL_INVALID_INDEX		(uint32_t)(UINT32_MAX)
 
 #define EXPL_FILE_TYPE_NONE			(Expl_file_type)(0 << 0)	//File type is not set.

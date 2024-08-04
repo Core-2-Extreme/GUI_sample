@@ -1,5 +1,3 @@
-#include "definitions.hpp"
-
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -26,42 +24,20 @@ extern "C"
 #include "system/util/hw_config.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
+#include "system/util/thread_types.h"
 }
+
+#include "sub_app0.hpp"
+#include "sub_app1.hpp"
+#include "sub_app2.hpp"
+#include "sub_app3.hpp"
+#include "sub_app4.hpp"
+#include "sub_app5.hpp"
+#include "sub_app6.hpp"
+#include "sub_app7.hpp"
 
 //Include myself.
 #include "system/setting_menu.hpp"
-
-#ifdef DEF_ENABLE_SUB_APP0
-#include "sub_app0.hpp"
-#endif
-
-#ifdef DEF_ENABLE_SUB_APP1
-#include "sub_app1.hpp"
-#endif
-
-#ifdef DEF_ENABLE_SUB_APP2
-#include "sub_app2.hpp"
-#endif
-
-#ifdef DEF_ENABLE_SUB_APP3
-#include "sub_app3.hpp"
-#endif
-
-#ifdef DEF_ENABLE_SUB_APP4
-#include "sub_app4.hpp"
-#endif
-
-#ifdef DEF_ENABLE_SUB_APP5
-#include "sub_app5.hpp"
-#endif
-
-#ifdef DEF_ENABLE_SUB_APP6
-#include "sub_app6.hpp"
-#endif
-
-#ifdef DEF_ENABLE_SUB_APP7
-#include "sub_app7.hpp"
-#endif
 
 
 bool sem_main_run = false;
@@ -187,32 +163,32 @@ void Sem_init(void)
 	bool wifi_state = true;
 	uint8_t* read_cache = NULL;
 	uint32_t read_size = 0;
+	uint32_t result = DEF_ERR_OTHER;
 	Util_str data[13] = { 0, };
-	Result_with_string result;
 
 	if(var_fake_model)
 		sem_fake_model_num = var_model;
 
-	DEF_LOG_RESULT_SMART(result.code, Util_file_load_from_file("settings.txt", DEF_MAIN_DIR, &read_cache, 0x1000, 0, &read_size), (result.code == DEF_SUCCESS), result.code)
-	if (result.code == DEF_SUCCESS)
+	DEF_LOG_RESULT_SMART(result, Util_file_load_from_file("settings.txt", DEF_MAIN_DIR, &read_cache, 0x1000, 0, &read_size), (result == DEF_SUCCESS), result)
+	if (result == DEF_SUCCESS)
 	{
-		DEF_LOG_RESULT_SMART(result.code, Util_parse_file((char*)read_cache, 13, data), (result.code == DEF_SUCCESS), result.code);
+		DEF_LOG_RESULT_SMART(result, Util_parse_file((char*)read_cache, 13, data), (result == DEF_SUCCESS), result);
 
 		//If this fails, the settings file may come from older version.
 		//To keep backward compatibility, try to parse with less elements.
-		if(result.code != DEF_SUCCESS)
+		if(result != DEF_SUCCESS)
 		{
-			DEF_LOG_RESULT_SMART(result.code, Util_parse_file((char*)read_cache, 12, data), (result.code == DEF_SUCCESS), result.code);
+			DEF_LOG_RESULT_SMART(result, Util_parse_file((char*)read_cache, 12, data), (result == DEF_SUCCESS), result);
 			Util_str_set(&data[12], "175");//Time to turn off LCDs default value.
 		}
-		if(result.code != DEF_SUCCESS)
+		if(result != DEF_SUCCESS)
 		{
-			DEF_LOG_RESULT_SMART(result.code, Util_parse_file((char*)read_cache, 11, data), (result.code == DEF_SUCCESS), result.code);
+			DEF_LOG_RESULT_SMART(result, Util_parse_file((char*)read_cache, 11, data), (result == DEF_SUCCESS), result);
 			Util_str_set(&data[11], "175");//Screen mode default value.
 			Util_str_set(&data[12], "175");//Time to turn off LCDs default value.
 		}
 
-		if(result.code == DEF_SUCCESS)
+		if(result == DEF_SUCCESS)
 		{
 			var_lang = data[0].buffer;
 			var_lcd_brightness = atoi(data[1].buffer);
@@ -284,8 +260,8 @@ void Sem_init(void)
 
 	sem_reload_msg_request = true;
 
-	result.code = Util_hw_config_set_wifi_state(wifi_state);
-	if(result.code == 0 || result.code == 0xC8A06C0D)
+	result = Util_hw_config_set_wifi_state(wifi_state);
+	if(result == DEF_SUCCESS || result == 0xC8A06C0D)
 		var_wifi_enabled = wifi_state;
 
 	//Global.
@@ -403,7 +379,7 @@ void Sem_init(void)
 	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_record_top_lcd_button.selected, sizeof(sem_record_top_lcd_button.selected));
 	Util_add_watch(WATCH_HANDLE_SETTINGS_MENU, &sem_record_bottom_lcd_button.selected, sizeof(sem_record_bottom_lcd_button.selected));
 
-	DEF_LOG_RESULT_SMART(result.code, Menu_add_worker_thread_callback(Sem_worker_callback), result.code, result.code);
+	DEF_LOG_RESULT_SMART(result, Menu_add_worker_thread_callback(Sem_worker_callback), result, result);
 
 	Sem_resume();
 	sem_already_init = true;
@@ -480,8 +456,8 @@ void Sem_draw_init(void)
 void Sem_exit(void)
 {
 	DEF_LOG_STRING("Exiting...");
+	uint32_t result = DEF_ERR_OTHER;
 	std::string data = "";
-	Result_with_string result;
 
 	var_num_of_app_start++;
 	data = "<0>" + var_lang + "</0><1>" + std::to_string(var_lcd_brightness) + "</1><2>" + std::to_string(var_time_to_turn_off_lcd)
@@ -500,18 +476,18 @@ void Sem_exit(void)
 	Menu_remove_worker_thread_callback(Sem_worker_callback);
 
 	//Save settings.
-	DEF_LOG_RESULT_SMART(result.code, Util_file_save_to_file("settings.txt", DEF_MAIN_DIR, (uint8_t*)data.c_str(), data.length(), true), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, Util_file_save_to_file("fake_model.txt", DEF_MAIN_DIR, &sem_fake_model_num, 1, true), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Util_file_save_to_file("settings.txt", DEF_MAIN_DIR, (uint8_t*)data.c_str(), data.length(), true), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_file_save_to_file("fake_model.txt", DEF_MAIN_DIR, &sem_fake_model_num, 1, true), (result == DEF_SUCCESS), result);
 
 	//Exit threads.
 #if ((DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API) && DEF_SEM_ENABLE_UPDATER)
-	DEF_LOG_RESULT_SMART(result.code, threadJoin(sem_update_thread, DEF_THREAD_WAIT_TIME), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, threadJoin(sem_update_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(sem_update_thread);
 #endif
 
 #if (DEF_ENABLE_VIDEO_AUDIO_ENCODER_API && DEF_ENABLE_SW_CONVERTER_API && DEF_SEM_ENABLE_SCREEN_RECORDER)
-	DEF_LOG_RESULT_SMART(result.code, threadJoin(sem_encode_thread, DEF_THREAD_WAIT_TIME), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, threadJoin(sem_record_thread, DEF_THREAD_WAIT_TIME), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, threadJoin(sem_encode_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, threadJoin(sem_record_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(sem_encode_thread);
 	threadFree(sem_record_thread);
 #endif
@@ -1167,7 +1143,7 @@ void Sem_hid(Hid_info key)
 {
 	int menu_button_list[9] = { DEF_SEM_MENU_UPDATE, DEF_SEM_MENU_LANGAGES, DEF_SEM_MENU_LCD, DEF_SEM_MENU_CONTROL,
 	DEF_SEM_MENU_FONT, DEF_SEM_MENU_WIFI, DEF_SEM_MENU_ADVANCED, DEF_SEM_MENU_BATTERY, DEF_SEM_MENU_RECORDING };
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
 
 	if(aptShouldJumpToHome())
 		return;
@@ -1564,16 +1540,16 @@ void Sem_hid(Hid_info key)
 					sem_wifi_on_button.selected = true;
 				else if (Util_hid_is_released(key, sem_wifi_on_button) && sem_wifi_on_button.selected)
 				{
-					result.code = Util_hw_config_set_wifi_state(true);
-					if(result.code == 0 || result.code == 0xC8A06C0D)
+					result = Util_hw_config_set_wifi_state(true);
+					if(result == DEF_SUCCESS || result == 0xC8A06C0D)
 						var_wifi_enabled = true;
 				}
 				else if (Util_hid_is_pressed(key, sem_wifi_off_button))
 					sem_wifi_off_button.selected = true;
 				else if (Util_hid_is_released(key, sem_wifi_off_button) && sem_wifi_off_button.selected)
 				{
-					result.code = Util_hw_config_set_wifi_state(false);
-					if(result.code == 0 || result.code == 0xC8A06C0D)
+					result = Util_hw_config_set_wifi_state(false);
+					if(result == DEF_SUCCESS || result == 0xC8A06C0D)
 						var_wifi_enabled = false;
 				}
 			}

@@ -2,9 +2,10 @@
 #define DEF_CURL_HPP
 #include <stdbool.h>
 #include <stdint.h>
+#include "system/util/curl_types.h"
+#include "system/util/str_types.h"
 
 #if DEF_ENABLE_CURL_API
-#include "system/types.hpp"
 
 /**
  * @brief Initialize curl api.

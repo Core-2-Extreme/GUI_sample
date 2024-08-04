@@ -1,4 +1,4 @@
-#include "definitions.hpp"
+#include "system/draw/draw.hpp"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -17,9 +17,6 @@ extern "C"
 	#include "system/util/log.h"
 	#include "system/util/str.h"
 }
-
-//Include myself.
-#include "system/draw/draw.hpp"
 
 extern "C"
 {

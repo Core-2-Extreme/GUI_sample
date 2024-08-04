@@ -1,5 +1,3 @@
-#include "definitions.hpp"
-
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -19,6 +17,7 @@ extern "C"
 	#include "system/util/hid.h"
 	#include "system/util/log.h"
 	#include "system/util/str.h"
+	#include "system/util/thread_types.h"
 }
 
 //Include myself.
@@ -30,8 +29,8 @@ bool sapp5_thread_run = false;
 bool sapp5_already_init = false;
 bool sapp5_thread_suspend = true;
 Thread sapp5_init_thread = NULL, sapp5_exit_thread = NULL, sapp5_worker_thread = NULL;
-Util_str sapp5_msg[DEF_SAPP5_NUM_OF_MSG] = { 0, };
 Util_str sapp5_status = { 0, };
+Util_str sapp5_msg[DEF_SAPP5_NUM_OF_MSG] = { 0, };
 
 
 static void Sapp5_draw_init_exit_message(void);

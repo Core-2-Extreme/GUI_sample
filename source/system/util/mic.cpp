@@ -1,22 +1,17 @@
-#include "definitions.hpp"
+extern "C"
+{
+#include "system/util/mic.h"
+}
 
 #if DEF_ENABLE_MIC_API
 #include <stdbool.h>
 #include <stdint.h>
-
-#include "system/types.hpp"
 
 #include "system/util/error_types.h"
 #include "system/util/util.hpp"
 extern "C"
 {
 #include "system/util/log.h"
-}
-
-//Include myself.
-extern "C"
-{
-#include "system/util/mic.h"
 }
 
 

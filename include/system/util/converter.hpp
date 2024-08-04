@@ -8,7 +8,7 @@
 
 /**
  * @brief Convert color format and/or size.
- * @param paraeters (in) Pointer for parameters. (See types.hpp for explanation).
+ * @param paraeters (in) Pointer for parameters.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe.
 */
@@ -24,7 +24,7 @@ uint32_t Util_converter_convert_color(Color_converter_parameters* paraeters);
 
 /**
  * @brief Convert audio format and/or sample rate.
- * @param paraeters (in) Pointer for parameters. (See types.hpp for explanation).
+ * @param paraeters (in) Pointer for parameters.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe.
 */

@@ -1,5 +1,3 @@
-#include "definitions.hpp"
-
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -21,6 +19,7 @@ extern "C"
 	#include "system/util/log.h"
 	#include "system/util/queue.h"
 	#include "system/util/str.h"
+	#include "system/util/thread_types.h"
 }
 
 //Include myself.
@@ -52,8 +51,8 @@ bool sapp2_already_init = false;
 bool sapp2_thread_suspend = true;
 Thread sapp2_init_thread = NULL, sapp2_exit_thread = NULL, sapp2_worker_thread = NULL;
 Util_queue sapp2_command_queue = { 0, };
-Util_str sapp2_msg[DEF_SAPP2_NUM_OF_MSG] = { 0, };
 Util_str sapp2_status = { 0, };
+Util_str sapp2_msg[DEF_SAPP2_NUM_OF_MSG] = { 0, };
 
 
 static void Sapp2_draw_init_exit_message(void);

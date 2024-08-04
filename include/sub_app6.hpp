@@ -4,6 +4,15 @@
 #include <stdint.h>
 #include "system/util/hid_types.h"
 
+#define DEF_ENABLE_SUB_APP6
+
+#define DEF_SAPP6_NUM_OF_MSG	(uint16_t)(1)
+//#define DEF_SAPP6_ENABLE_ICON
+#define DEF_SAPP6_ENABLE_NAME
+#define DEF_SAPP6_ICON_PATH		/*(const char*)(*/"romfs:/"/*)*/
+#define DEF_SAPP6_NAME			/*(const char*)(*/"sample 6"/*)*/
+#define DEF_SAPP6_VER			/*(const char*)(*/"v0.0.1"/*)*/
+
 bool Sapp6_query_init_flag(void);
 
 bool Sapp6_query_running_flag(void);

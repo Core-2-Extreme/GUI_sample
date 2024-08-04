@@ -2,6 +2,7 @@
 #define DEF_DECODER_HPP
 #include <stdbool.h>
 #include <stdint.h>
+#include "system/util/decoder_types.h"
 #include "system/util/media_types.h"
 
 #if DEF_ENABLE_VIDEO_AUDIO_DECODER_API

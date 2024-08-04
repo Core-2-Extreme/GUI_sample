@@ -1,3 +1,5 @@
+#include "system/util/queue.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -7,9 +9,6 @@
 
 #include "system/util/error_types.h"
 #include "system/util/util_c.h"
-
-//Include myself.
-#include "system/util/queue.h"
 
 
 LightLock util_queue_mutex = 1;//Initially unlocked state.

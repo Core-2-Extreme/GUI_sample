@@ -1,4 +1,4 @@
-#include "definitions.hpp"
+#include "system/util/decoder.hpp"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -14,9 +14,6 @@ extern "C"
 #include "system/util/media_types.h"
 }
 
-//Include myself.
-#include "system/util/decoder.hpp"
-
 #if DEF_ENABLE_VIDEO_AUDIO_DECODER_API
 
 extern "C"
@@ -30,6 +27,7 @@ extern "C"
 
 #if DEF_ENABLE_IMAGE_DECODER_API
 
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
 
 #endif
@@ -816,7 +814,7 @@ uint32_t Util_mvd_video_decoder_init(uint8_t session)
 	//NEW3DS Internet browser uses MVD_DEFAULT_WORKBUF_SIZE(9438920 Bytes) and supports up to 854*480.(864*480)
 	//864*480*23 = (9538560 Bytes) > MVD_DEFAULT_WORKBUF_SIZE(9438920 Bytes).
 	result = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264, MVD_OUTPUT_BGR565, width * height * 23, NULL);
-	if(result != 0)
+	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(mvdstdInit, false, result);
 		goto nintendo_api_failed;

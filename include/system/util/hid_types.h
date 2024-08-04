@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define DEF_HID_NUM_OF_CALLBACKS	(uint16_t)(4)
+
 typedef struct
 {
 	//Is button pressed.

@@ -1,4 +1,4 @@
-#include "definitions.hpp"
+#include "system/util/muxer.hpp"
 
 #if DEF_ENABLE_MUXER_API
 #include <stdbool.h>
@@ -15,9 +15,6 @@ extern "C"
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 }
-
-//Include myself.
-#include "system/util/muxer.hpp"
 
 
 bool util_audio_muxer_init[DEF_MUXER_MAX_SESSIONS] = { 0, };

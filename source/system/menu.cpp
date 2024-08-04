@@ -1,5 +1,3 @@
-#include "definitions.hpp"
-
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -25,39 +23,17 @@ extern "C"
 #include "system/util/hw_config.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
+#include "system/util/thread_types.h"
 }
 
-#ifdef DEF_ENABLE_SUB_APP0
 #include "sub_app0.hpp"
-#endif
-
-#ifdef DEF_ENABLE_SUB_APP1
 #include "sub_app1.hpp"
-#endif
-
-#ifdef DEF_ENABLE_SUB_APP2
 #include "sub_app2.hpp"
-#endif
-
-#ifdef DEF_ENABLE_SUB_APP3
 #include "sub_app3.hpp"
-#endif
-
-#ifdef DEF_ENABLE_SUB_APP4
 #include "sub_app4.hpp"
-#endif
-
-#ifdef DEF_ENABLE_SUB_APP5
 #include "sub_app5.hpp"
-#endif
-
-#ifdef DEF_ENABLE_SUB_APP6
 #include "sub_app6.hpp"
-#endif
-
-#ifdef DEF_ENABLE_SUB_APP7
 #include "sub_app7.hpp"
-#endif
 
 //Include myself.
 #include "system/menu.hpp"
@@ -142,19 +118,15 @@ void Menu_init(void)
 	uint8_t region = 0;
 	uint8_t model = 0;
 	uint32_t read_size = 0;
-	Thread core_2, core_3;
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
+	Thread core_2 = NULL, core_3 = NULL;
 	C2D_Image cache[2] = { 0, };
-
-	var_disabled_result.string = "";
-	var_disabled_result.error_description = DEF_ERR_DISABLED_STR;
-	var_disabled_result.code = DEF_ERR_DISABLED;
 
 	for(int i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
 		menu_worker_thread_callbacks[i] = NULL;
 
-	result.code = Util_log_init();
-	DEF_LOG_RESULT(Util_log_init, (result.code == DEF_SUCCESS), result.code);
+	result = Util_log_init();
+	DEF_LOG_RESULT(Util_log_init, (result == DEF_SUCCESS), result);
 	DEF_LOG_FORMAT("Initializing...%s", DEF_CURRENT_APP_VER);
 
 	osSetSpeedupEnable(true);
@@ -162,16 +134,16 @@ void Menu_init(void)
 	svcSetThreadPriority(CUR_THREAD_HANDLE, DEF_THREAD_PRIORITY_HIGH - 1);
 
 	//Init system modules.
-	DEF_LOG_RESULT_SMART(result.code, fsInit(), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, acInit(), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, aptInit(), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, mcuHwcInit(), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, ptmuInit(), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, romfsInit(), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, cfguInit(), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, amInit(), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, APT_SetAppCpuTimeLimit(30), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, Util_safe_linear_alloc_init(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, fsInit(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, acInit(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, aptInit(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, mcuHwcInit(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, ptmuInit(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, romfsInit(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, cfguInit(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, amInit(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, APT_SetAppCpuTimeLimit(30), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_safe_linear_alloc_init(), (result == DEF_SUCCESS), result);
 
 	//Create directories.
 	Util_file_save_to_file(".", DEF_MAIN_DIR, &dummy, 1, true);
@@ -215,7 +187,7 @@ void Menu_init(void)
 		osSetSpeedupEnable(false);
 
 	//Init our modules.
-	DEF_LOG_RESULT_SMART(result.code, Util_init(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Util_init(), (result == DEF_SUCCESS), result);
 
 	Sem_init();
 	Sem_suspend();
@@ -232,7 +204,7 @@ void Menu_init(void)
 	else if(var_screen_mode == DEF_SEM_SCREEN_3D)
 		is_3d = true;
 
-	DEF_LOG_RESULT_SMART(result.code, Draw_init(is_800px, is_3d), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Draw_init(is_800px, is_3d), (result == DEF_SUCCESS), result);
 
 	//Init screen.
 	Draw_frame_ready();
@@ -244,13 +216,13 @@ void Menu_init(void)
 	Sem_draw_init();
 
 	//Init rest of our modules.
-	DEF_LOG_RESULT_SMART(result.code, Util_httpc_init(DEF_HTTP_POST_BUFFER_SIZE), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, Util_curl_init(DEF_SOCKET_BUFFER_SIZE), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, Util_hid_init(), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, Util_hid_add_callback(Menu_hid_callback), result.code, result.code);
-	DEF_LOG_RESULT_SMART(result.code, Util_expl_init(), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, Exfont_init(), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, Util_err_init(), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Util_httpc_init(DEF_HTTP_POST_BUFFER_SIZE), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_curl_init(DEF_SOCKET_BUFFER_SIZE), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_hid_init(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_hid_add_callback(Menu_hid_callback), result, result);
+	DEF_LOG_RESULT_SMART(result, Util_expl_init(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Exfont_init(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_err_init(), (result == DEF_SUCCESS), result);
 
 	for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		Exfont_set_external_font_request_state(i, true);
@@ -298,55 +270,55 @@ void Menu_init(void)
 	//Load sub application icons.
 #ifdef DEF_SAPP0_ENABLE_ICON
 	menu_icon_texture_num[0] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SAPP0_ICON_PATH, menu_icon_texture_num[0], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP0_ICON_PATH, menu_icon_texture_num[0], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[0].c2d = cache[0];
 #endif
 
 #ifdef DEF_SAPP1_ENABLE_ICON
 	menu_icon_texture_num[1] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SAPP1_ICON_PATH, menu_icon_texture_num[1], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP1_ICON_PATH, menu_icon_texture_num[1], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[1].c2d = cache[0];
 #endif
 
 #ifdef DEF_SAPP2_ENABLE_ICON
 	menu_icon_texture_num[2] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SAPP2_ICON_PATH, menu_icon_texture_num[2], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP2_ICON_PATH, menu_icon_texture_num[2], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[2].c2d = cache[0];
 #endif
 
 #ifdef DEF_SAPP3_ENABLE_ICON
 	menu_icon_texture_num[3] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SAPP3_ICON_PATH, menu_icon_texture_num[3], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP3_ICON_PATH, menu_icon_texture_num[3], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[3].c2d = cache[0];
 #endif
 
 #ifdef DEF_SAPP4_ENABLE_ICON
 	menu_icon_texture_num[4] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SAPP4_ICON_PATH, menu_icon_texture_num[4], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP4_ICON_PATH, menu_icon_texture_num[4], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[4].c2d = cache[0];
 #endif
 
 #ifdef DEF_SAPP5_ENABLE_ICON
 	menu_icon_texture_num[5] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SAPP5_ICON_PATH, menu_icon_texture_num[5], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP5_ICON_PATH, menu_icon_texture_num[5], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[5].c2d = cache[0];
 #endif
 
 #ifdef DEF_SAPP6_ENABLE_ICON
 	menu_icon_texture_num[6] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SAPP6_ICON_PATH, menu_icon_texture_num[6], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP6_ICON_PATH, menu_icon_texture_num[6], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[6].c2d = cache[0];
 #endif
 
 #ifdef DEF_SAPP7_ENABLE_ICON
 	menu_icon_texture_num[7] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SAPP7_ICON_PATH, menu_icon_texture_num[7], cache, 0, 1), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP7_ICON_PATH, menu_icon_texture_num[7], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[7].c2d = cache[0];
 #endif
 
 #ifdef DEF_SEM_ENABLE_ICON
 	menu_icon_texture_num[8] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result.code, Draw_load_texture(DEF_SEM_ICON_PATH, menu_icon_texture_num[8], cache, 0, 2), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SEM_ICON_PATH, menu_icon_texture_num[8], cache, 0, 2), (result == DEF_SUCCESS), result);
 	menu_icon_image[8].c2d = cache[0];
 	menu_icon_image[9].c2d = cache[1];
 #endif
@@ -382,7 +354,7 @@ void Menu_exit(void)
 {
 	DEF_LOG_STRING("Exiting...");
 	bool draw = !aptShouldClose();
-	Result_with_string result;
+	uint32_t result = DEF_ERR_OTHER;
 
 	menu_thread_run = false;
 
@@ -432,13 +404,13 @@ void Menu_exit(void)
 	Util_exit();
 	Util_cpu_usage_monitor_exit();
 
-	DEF_LOG_RESULT_SMART(result.code, threadJoin(menu_worker_thread, DEF_THREAD_WAIT_TIME), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, threadJoin(menu_worker_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(menu_worker_thread);
 
 #if (DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API)
-	DEF_LOG_RESULT_SMART(result.code, threadJoin(menu_check_connectivity_thread, DEF_THREAD_WAIT_TIME), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, threadJoin(menu_send_app_info_thread, DEF_THREAD_WAIT_TIME), (result.code == DEF_SUCCESS), result.code);
-	DEF_LOG_RESULT_SMART(result.code, threadJoin(menu_update_thread, DEF_THREAD_WAIT_TIME), (result.code == DEF_SUCCESS), result.code);
+	DEF_LOG_RESULT_SMART(result, threadJoin(menu_check_connectivity_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, threadJoin(menu_send_app_info_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, threadJoin(menu_update_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(menu_check_connectivity_thread);
 #endif
 
@@ -556,9 +528,9 @@ void Menu_main(void)
 	//Update screen mode here.
 	if(is_3d != Draw_is_3d_mode() || is_800px != Draw_is_800px_mode())
 	{
-		Result_with_string result;
+		uint32_t result = DEF_ERR_OTHER;
 
-		DEF_LOG_RESULT_SMART(result.code, Draw_reinit(is_800px, is_3d), (result.code == DEF_SUCCESS), result.code);
+		DEF_LOG_RESULT_SMART(result, Draw_reinit(is_800px, is_3d), (result == DEF_SUCCESS), result);
 		var_need_reflesh = true;
 	}
 
@@ -1176,12 +1148,12 @@ void Menu_get_system_info(void)
 	uint8_t battery_level = 0;
 	uint8_t battery_voltage = 0;
 	uint8_t battery_temp = 0;
+	uint32_t result = DEF_ERR_OTHER;
 	char* ssid = (char*)malloc(512);
-	Result_with_string result;
 
-	PTMU_GetBatteryChargeState(&var_battery_charge);//battery charge
-	result.code = MCUHWC_GetBatteryLevel(&battery_level);//battery level(%)
-	if(result.code == 0)
+	PTMU_GetBatteryChargeState(&var_battery_charge);//Battery charge.
+	result = MCUHWC_GetBatteryLevel(&battery_level);//Battery level(%).
+	if(result == DEF_SUCCESS)
 	{
 		MCUHWC_GetBatteryVoltage(&battery_voltage);
 		MCUHWC_ReadRegister(0x0A, &battery_temp, 1);
@@ -1206,9 +1178,9 @@ void Menu_get_system_info(void)
 			var_battery_level_raw = 100;
 	}
 
-	//ssid
-	result.code = ACU_GetSSID(ssid);
-	if(result.code == 0)
+	//Connected SSID.
+	result = ACU_GetSSID(ssid);
+	if(result == DEF_SUCCESS)
 		var_connected_ssid = ssid;
 	else
 		var_connected_ssid = "";
@@ -1217,7 +1189,7 @@ void Menu_get_system_info(void)
 	ssid = NULL;
 
 	var_wifi_signal = osGetWifiStrength();
-	//Get wifi state from shared memory #0x1FF81067
+	//Get wifi state from shared memory #0x1FF81067.
 	var_wifi_state = *(uint8_t*)0x1FF81067;
 	if(var_wifi_state == 2)
 	{
@@ -1232,7 +1204,7 @@ void Menu_get_system_info(void)
 		var_connect_test_succes = false;
 	}
 
-	//Get time
+	//Get time.
 	time_t unixTime = time(NULL);
 	struct tm* timeStruct = gmtime((const time_t*)&unixTime);
 	var_years = timeStruct->tm_year + 1900;
@@ -1244,7 +1216,7 @@ void Menu_get_system_info(void)
 
 	if (var_debug_mode)
 	{
-		//check free RAM
+		//Check for free RAM.
 		var_free_ram = Util_check_free_ram();
 		var_free_linear_ram = Util_check_free_linear_space();
 	}

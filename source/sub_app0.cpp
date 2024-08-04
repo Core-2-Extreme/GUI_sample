@@ -1,5 +1,3 @@
-#include "definitions.hpp"
-
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -20,8 +18,9 @@ extern "C"
 	#include "system/util/error.h"
 	#include "system/util/explorer.h"
 	#include "system/util/hid.h"
-	#include "system/util/str.h"
 	#include "system/util/log.h"
+	#include "system/util/str.h"
+	#include "system/util/thread_types.h"
 }
 
 //Include myself.

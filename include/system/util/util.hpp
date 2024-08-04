@@ -5,6 +5,8 @@
 #include "system/util/str_types.h"
 #include "system/types.hpp"
 
+#define DEF_MAX_WATCH_VARIABLES		(uint32_t)(512)
+
 extern "C" void* __real_malloc(size_t size);
 extern "C" void* __real_realloc(void* ptr, size_t size);
 extern "C" void __real_free(void* ptr);
@@ -223,26 +225,5 @@ long Util_min(long value_0, long value_1);
  * @note Thread safe
 */
 long Util_max(long value_0, long value_1);
-
-/**
- * @brief To prevent 'statement has no effect' warning in unused functions.
-*/
-bool Util_return_bool(bool value);
-/**
- * @brief To prevent 'statement has no effect' warning in unused functions.
-*/
-int Util_return_int(int value);
-/**
- * @brief To prevent 'statement has no effect' warning in unused functions.
-*/
-double Util_return_double(double value);
-/**
- * @brief To prevent 'statement has no effect' warning in unused functions.
-*/
-std::string Util_return_string(std::string string);
-/**
- * @brief To prevent 'statement has no effect' warning in unused functions.
-*/
-Result_with_string Util_return_result_with_string(Result_with_string value);
 
 #endif //!defined(DEF_UTIL_HPP)

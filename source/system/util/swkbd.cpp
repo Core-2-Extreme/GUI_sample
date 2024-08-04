@@ -1,10 +1,12 @@
-#include "definitions.hpp"
+#include "system/util/swkbd.hpp"
 
 #if DEF_ENABLE_SWKBD_API
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "system/types.hpp"
+#include "3ds.h"
 
 #include "system/util/error_types.h"
 
@@ -13,9 +15,6 @@ extern "C"
 #include "system/util/log.h"
 #include "system/util/str.h"
 }
-
-//Include myself.
-#include "system/util/swkbd.hpp"
 
 
 bool util_swkbd_init = false;

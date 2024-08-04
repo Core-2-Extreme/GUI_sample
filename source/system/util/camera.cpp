@@ -1,4 +1,7 @@
-#include "definitions.hpp"
+extern "C"
+{
+#include "system/util/camera.h"
+}
 
 #if DEF_ENABLE_CAM_API
 #include <stdbool.h>
@@ -12,13 +15,6 @@ extern "C"
 {
 #include "system/util/log.h"
 }
-
-//Include myself.
-extern "C"
-{
-#include "system/util/camera.h"
-}
-
 
 extern "C"
 {

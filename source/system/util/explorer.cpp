@@ -1,11 +1,14 @@
-#include "definitions.hpp"
+extern "C"
+{
+#include "system/util/explorer.h"
+}
 
 #if DEF_ENABLE_EXPL_API
 #include <algorithm>
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "system/types.hpp"
+#include <citro2d.h>
 
 #include "system/draw/draw.hpp"
 
@@ -21,13 +24,6 @@ extern "C"
 #include "system/util/log.h"
 #include "system/util/str.h"
 }
-
-//Include myself.
-extern "C"
-{
-#include "system/util/explorer.h"
-}
-
 
 extern "C"
 {
@@ -748,9 +744,9 @@ static void Util_expl_read_dir_callback(void)
 		{
 			bool is_root_dir = false;
 			uint32_t detected_files = 0;
+			uint32_t result = DEF_ERR_OTHER;
 			Util_expl_file files = { 0, };
 			Util_expl_file_compare sort_cache[DEF_EXPL_MAX_FILES] = { 0, };
-			Result_with_string result;
 
 			var_need_reflesh = true;
 			for (uint32_t i = 0; i < DEF_EXPL_MAX_FILES; i++)
@@ -770,9 +766,9 @@ static void Util_expl_read_dir_callback(void)
 			}
 
 			//Read files in directory.
-			DEF_LOG_RESULT_SMART(result.code, Util_file_read_dir(util_expl_current_dir.buffer, &detected_files, files.name, files.type, DEF_EXPL_MAX_FILES), (result.code == DEF_SUCCESS), result.code);
+			DEF_LOG_RESULT_SMART(result, Util_file_read_dir(util_expl_current_dir.buffer, &detected_files, files.name, files.type, DEF_EXPL_MAX_FILES), (result == DEF_SUCCESS), result);
 
-			if (result.code == DEF_SUCCESS)
+			if (result == DEF_SUCCESS)
 			{
 				//Non-root directory has a directory named "Go to parent directory".
 				uint8_t offset = (is_root_dir ? 0 : 1);

@@ -1,4 +1,4 @@
-#include "definitions.hpp"
+#include "system/util/util.hpp"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -16,9 +16,6 @@ extern "C"
 }
 
 #include "base64/base64.h"
-
-//Include myself.
-#include "system/util/util.hpp"
 
 
 bool util_safe_linear_alloc_init = false, util_init = false;
@@ -652,29 +649,4 @@ long Util_min(long value_0, long value_1)
 long Util_max(long value_0, long value_1)
 {
 	return (value_0 > value_1 ? value_0 : value_1);
-}
-
-bool Util_return_bool(bool value)
-{
-	return value;
-}
-
-int Util_return_int(int value)
-{
-	return value;
-}
-
-double Util_return_double(double value)
-{
-	return value;
-}
-
-std::string Util_return_string(std::string string)
-{
-	return string;
-}
-
-Result_with_string Util_return_result_with_string(Result_with_string value)
-{
-	return value;
 }

@@ -1,17 +1,14 @@
-#include "definitions.hpp"
+#include "system/util/fake_pthread.hpp"
 
 #include <malloc.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <unistd.h>
 
-#include "system/types.hpp"
-
 #include "system/variables.hpp"
 
-//Include myself.
-#include "system/util/fake_pthread.hpp"
-
+#include "system/util/error_types.h"
+#include "system/util/thread_types.h"
 
 extern "C"
 {
@@ -146,7 +143,7 @@ int	pthread_join(pthread_t __pthread, void** __value_ptr)
 	while(true)
 	{
 		result = threadJoin((Thread)__pthread, U64_MAX);
-		if(result == 0)
+		if(result == DEF_SUCCESS)
 			return 0;
 	}
 }
