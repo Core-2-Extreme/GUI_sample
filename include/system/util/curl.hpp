@@ -5,7 +5,7 @@
 #include "system/util/curl_types.h"
 #include "system/util/str_types.h"
 
-#if DEF_ENABLE_CURL_API
+#if DEF_CURL_API_ENABLE
 
 /**
  * @brief Initialize curl api.
@@ -36,7 +36,7 @@ void Util_curl_exit(void);
  * @note Thread safe
 */
 uint32_t Util_curl_dl_data(const char* url, uint8_t** data, uint32_t max_size, uint32_t* downloaded_size,
-uint16_t* status_code, uint16_t max_redirect, Util_str* last_url);
+uint16_t* status_code, uint16_t max_redirect, Str_data* last_url);
 
 /**
  * @brief Make a HTTP get request and save response to SD card.
@@ -52,7 +52,7 @@ uint16_t* status_code, uint16_t max_redirect, Util_str* last_url);
  * @note Thread safe
 */
 uint32_t Util_curl_save_data(const char* url, uint32_t buffer_size, uint32_t* downloaded_size, uint16_t* status_code,
-uint16_t max_redirect, Util_str* last_url, const char* dir_path, const char* file_name);
+uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* file_name);
 
 /**
  * @brief Make a HTTP post request.
@@ -71,7 +71,7 @@ uint16_t max_redirect, Util_str* last_url, const char* dir_path, const char* fil
  * @note Thread safe
 */
 uint32_t Util_curl_post_and_dl_data(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data, uint32_t max_dl_size,
-uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url);
+uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url);
 
 /**
  * @brief Make a HTTP post request.
@@ -92,7 +92,7 @@ uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint1
  * @note Thread safe
 */
 uint32_t Util_curl_post_and_dl_data_with_callback(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data, uint32_t max_dl_size,
-uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url,
+uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url,
 int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data);
 
 /**
@@ -112,7 +112,7 @@ int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void
  * @note Thread safe
 */
 uint32_t Util_curl_post_and_save_data(const char* url, uint8_t* post_data, uint32_t post_size, uint32_t buffer_size, uint32_t* downloaded_size,
-uint32_t* uploaded_size, uint16_t* status_code, Util_str* last_url, uint16_t max_redirect, const char* dir_path, const char* file_name);
+uint32_t* uploaded_size, uint16_t* status_code, Str_data* last_url, uint16_t max_redirect, const char* dir_path, const char* file_name);
 
 /**
  * @brief Make a HTTP post request and save response to SD card.
@@ -133,7 +133,7 @@ uint32_t* uploaded_size, uint16_t* status_code, Util_str* last_url, uint16_t max
  * @note Thread safe
 */
 uint32_t Util_curl_post_and_save_data_with_callback(const char* url, uint8_t* post_data, uint32_t post_size, uint32_t buffer_size,
-uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url, const char* dir_path,
+uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* dir_path,
 const char* file_name, int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data);
 
 #else
@@ -147,6 +147,6 @@ const char* file_name, int32_t (*read_callback)(void* buffer, uint32_t max_size,
 #define Util_curl_post_and_save_data(...) DEF_ERR_DISABLED
 #define Util_curl_post_and_save_data_with_callback(...) DEF_ERR_DISABLED
 
-#endif //DEF_ENABLE_CURL_API
+#endif //DEF_CURL_API_ENABLE
 
 #endif //!defined(DEF_CURL_HPP)

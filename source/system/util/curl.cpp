@@ -1,6 +1,6 @@
 #include "system/util/curl.hpp"
 
-#if DEF_ENABLE_CURL_API
+#if DEF_CURL_API_ENABLE
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -56,15 +56,15 @@ static int Util_curl_seek_callback(void* user_data, curl_off_t offset, int origi
 static uint32_t Util_curl_request(CURL** curl_handle, const char* url, CURLoption method, uint16_t max_redirect, Upload_data* upload_data);
 static uint32_t Util_curl_get_request(CURL** curl_handle, const char* url, uint16_t max_redirect);
 static uint32_t Util_curl_post_request(CURL** curl_handle, const char* url, Upload_data* upload_data, uint16_t max_redirect);
-static void Util_curl_get_response(CURL** curl_handle, uint16_t* status_code, Util_str* new_url);
+static void Util_curl_get_response(CURL** curl_handle, uint16_t* status_code, Str_data* new_url);
 static uint32_t Util_curl_download_data(CURL** curl_handle, Http_data* http_data);
 static uint32_t Util_curl_save_data(CURL** curl_handle, Http_data* http_data);
 static void Util_curl_close(CURL** curl_handle);
 static uint32_t Util_curl_post_and_dl_data_internal(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data,
-uint32_t max_dl_size, uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url,
+uint32_t max_dl_size, uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url,
 int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data);
 static uint32_t Util_curl_post_and_save_data_internal(const char* url, uint8_t* post_data, uint32_t post_size, uint32_t buffer_size,
-uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url, const char* dir_path,
+uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* dir_path,
 const char* file_name, int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data);
 
 
@@ -119,7 +119,7 @@ void Util_curl_exit(void)
 }
 
 uint32_t Util_curl_dl_data(const char* url, uint8_t** data, uint32_t max_size, uint32_t* downloaded_size,
-uint16_t* status_code, uint16_t max_redirect, Util_str* last_url)
+uint16_t* status_code, uint16_t max_redirect, Str_data* last_url)
 {
 	uint32_t dummy = 0;
 	uint32_t result = DEF_ERR_OTHER;
@@ -197,7 +197,7 @@ uint16_t* status_code, uint16_t max_redirect, Util_str* last_url)
 }
 
 uint32_t Util_curl_save_data(const char* url, uint32_t buffer_size, uint32_t* downloaded_size, uint16_t* status_code,
-uint16_t max_redirect, Util_str* last_url, const char* dir_path, const char* file_name)
+uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* file_name)
 {
 	uint32_t dummy = 0;
 	uint32_t result = DEF_ERR_OTHER;
@@ -275,14 +275,14 @@ uint16_t max_redirect, Util_str* last_url, const char* dir_path, const char* fil
 }
 
 uint32_t Util_curl_post_and_dl_data(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data, uint32_t max_dl_size,
-uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url)
+uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url)
 {
 	return Util_curl_post_and_dl_data_internal(url, post_data, post_size, dl_data, max_dl_size, downloaded_size,
 	uploaded_size, status_code, max_redirect, last_url, NULL, NULL);
 }
 
 uint32_t Util_curl_post_and_dl_data_with_callback(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data, uint32_t max_dl_size,
-uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url,
+uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url,
 int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data)
 {
 	return Util_curl_post_and_dl_data_internal(url, NULL, 0, dl_data, max_dl_size, downloaded_size,
@@ -290,14 +290,14 @@ int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void
 }
 
 uint32_t Util_curl_post_and_save_data(const char* url, uint8_t* post_data, uint32_t post_size, uint32_t buffer_size, uint32_t* downloaded_size,
-uint32_t* uploaded_size, uint16_t* status_code, Util_str* last_url, uint16_t max_redirect, const char* dir_path, const char* file_name)
+uint32_t* uploaded_size, uint16_t* status_code, Str_data* last_url, uint16_t max_redirect, const char* dir_path, const char* file_name)
 {
 	return Util_curl_post_and_save_data_internal(url, post_data, post_size, buffer_size, downloaded_size,
 	uploaded_size, status_code, max_redirect, last_url, dir_path, file_name, NULL, NULL);
 }
 
 uint32_t Util_curl_post_and_save_data_with_callback(const char* url, uint8_t* post_data, uint32_t post_size, uint32_t buffer_size,
-uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url, const char* dir_path,
+uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* dir_path,
 const char* file_name, int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data)
 {
 	return Util_curl_post_and_save_data_internal(url, NULL, 0, buffer_size, downloaded_size, uploaded_size,
@@ -494,7 +494,7 @@ static uint32_t Util_curl_request(CURL** curl_handle, const char* url, CURLoptio
 		goto curl_api_failed;
 	}
 
-	result = curl_easy_setopt(*curl_handle, CURLOPT_USERAGENT, DEF_HTTP_USER_AGENT);
+	result = curl_easy_setopt(*curl_handle, CURLOPT_USERAGENT, DEF_MENU_HTTP_USER_AGENT);
 	if (result != CURLE_OK)
 	{
 		DEF_LOG_RESULT(curl_easy_setopt_USERAGENT, false, result);
@@ -570,7 +570,7 @@ static uint32_t Util_curl_post_request(CURL** curl_handle, const char* url, Uplo
 	return Util_curl_request(curl_handle, url, CURLOPT_HTTPPOST, max_redirect, upload_data);
 }
 
-static void Util_curl_get_response(CURL** curl_handle, uint16_t* status_code, Util_str* new_url)
+static void Util_curl_get_response(CURL** curl_handle, uint16_t* status_code, Str_data* new_url)
 {
 	uint32_t result = DEF_ERR_OTHER;
 
@@ -715,7 +715,7 @@ static uint32_t Util_curl_save_data(CURL** curl_handle, Http_data* http_data)
 }
 
 static uint32_t Util_curl_post_and_dl_data_internal(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data,
-uint32_t max_dl_size, uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url,
+uint32_t max_dl_size, uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url,
 int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data)
 {
 	uint32_t dummy = 0;
@@ -821,7 +821,7 @@ int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void
 }
 
 static uint32_t Util_curl_post_and_save_data_internal(const char* url, uint8_t* post_data, uint32_t post_size, uint32_t buffer_size,
-uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url, const char* dir_path,
+uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* dir_path,
 const char* file_name, int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data)
 {
 	uint32_t dummy = 0;

@@ -1,5 +1,5 @@
-#if !defined(DEF_EXTERNAL_FONT_TYPES_H)
-#define DEF_EXTERNAL_FONT_TYPES_H
+#if !defined(DEF_EXFONT_TYPES_H)
+#define DEF_EXFONT_TYPES_H
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -70,4 +70,4 @@ typedef struct
 	char buffer[DEF_EXFONT_MAX_CHAR_LENGTH + 1];
 }Exfont_one_char;
 
-#endif //!defined(DEF_EXTERNAL_FONT_TYPES_H)
+#endif //!defined(DEF_EXFONT_TYPES_H)

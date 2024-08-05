@@ -5,7 +5,7 @@
 #include <math.h>
 #include "system/util/cpu_usage_types.h"
 
-#if DEF_ENABLE_CPU_MONITOR_API
+#if DEF_CPU_USAGE_API_ENABLE
 
 /**
  * @brief Initialize cpu usage monitor API.
@@ -36,6 +36,6 @@ float Util_cpu_usage_monitor_get_cpu_usage(int8_t core_id);
 #define Util_cpu_usage_monitor_exit()
 #define Util_cpu_usage_monitor_get_cpu_usage(...) NAN
 
-#endif //DEF_ENABLE_CPU_MONITOR_API
+#endif //DEF_CPU_USAGE_API_ENABLE
 
 #endif //!defined(DEF_CPU_USAGE_H)

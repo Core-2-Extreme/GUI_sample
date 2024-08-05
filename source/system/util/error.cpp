@@ -28,17 +28,17 @@ static void Util_err_save_callback(void);
 bool util_err_show_flag = false;
 bool util_err_save_request = false;
 bool util_err_init = false;
-Util_str util_err_summary = { 0, };
-Util_str util_err_description = { 0, };
-Util_str util_err_location = { 0, };
-Util_str util_err_code = { 0, };
+Str_data util_err_summary = { 0, };
+Str_data util_err_description = { 0, };
+Str_data util_err_location = { 0, };
+Str_data util_err_code = { 0, };
 Draw_image_data util_err_ok_button = { 0, }, util_err_save_button = { 0, };
 
 
 uint32_t Util_err_init(void)
 {
 	uint32_t result = DEF_ERR_OTHER;
-	Util_str* str_list[] = { &util_err_summary, &util_err_description, &util_err_location, &util_err_code, };
+	Str_data* str_list[] = { &util_err_summary, &util_err_description, &util_err_location, &util_err_code, };
 
 	if(util_err_init)
 		goto already_inited;
@@ -82,7 +82,7 @@ uint32_t Util_err_init(void)
 
 void Util_err_exit(void)
 {
-	Util_str* str_list[] = { &util_err_summary, &util_err_description, &util_err_location, &util_err_code, };
+	Str_data* str_list[] = { &util_err_summary, &util_err_description, &util_err_location, &util_err_code, };
 
 	if(!util_err_init)
 		return;
@@ -131,7 +131,7 @@ void Util_err_set_error_show_flag(bool flag)
 
 void Util_err_clear_error_message(void)
 {
-	Util_str* str_list[] = { &util_err_summary, &util_err_description, &util_err_location, &util_err_code, };
+	Str_data* str_list[] = { &util_err_summary, &util_err_description, &util_err_location, &util_err_code, };
 
 	if(!util_err_init)
 		return;
@@ -269,8 +269,8 @@ static void Util_err_save_callback(void)
 	if (util_err_init && util_err_save_request)
 	{
 		uint32_t result = DEF_ERR_OTHER;
-		Util_str file_name = { 0, };
-		Util_str save_data = { 0, };
+		Str_data file_name = { 0, };
+		Str_data save_data = { 0, };
 
 		result = Util_str_init(&file_name);
 		if(result != DEF_SUCCESS)
@@ -285,11 +285,11 @@ static void Util_err_save_callback(void)
 			Util_str_format(&file_name, "%04d_%02d_%02d_%02d_%02d_%02d.txt", var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
 			Util_str_format(&save_data, "\n\n##ERROR MESSAGE##\n%s\n%s\n%s\n%s\n", util_err_summary.buffer, util_err_description.buffer, util_err_location.buffer, util_err_code.buffer);
 
-			result = Util_log_dump(file_name.buffer, (DEF_MAIN_DIR "error/"));
+			result = Util_log_dump(file_name.buffer, (DEF_MENU_MAIN_DIR "error/"));
 			if(result != DEF_SUCCESS)
 				DEF_LOG_RESULT(Util_log_dump, false, result);
 
-			result = Util_file_save_to_file(file_name.buffer, (DEF_MAIN_DIR "error/"), (uint8_t*)save_data.buffer , save_data.length, false);
+			result = Util_file_save_to_file(file_name.buffer, (DEF_MENU_MAIN_DIR "error/"), (uint8_t*)save_data.buffer , save_data.length, false);
 			if(result != DEF_SUCCESS)
 				DEF_LOG_RESULT(Util_file_save_to_file, false, result);
 

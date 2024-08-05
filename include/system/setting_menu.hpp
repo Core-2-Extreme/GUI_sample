@@ -1,13 +1,12 @@
-#if !defined(DEF_SETTING_MENU_HPP)
-#define DEF_SETTING_MENU_HPP
+#if !defined(DEF_SEM_HPP)
+#define DEF_SEM_HPP
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/hid_types.h"
 
-#define DEF_UPDATE_DIR_PREFIX			/*(const char*)(*/"/3ds/GUI_sample_ver_"/*)*/
-#define DEF_UPDATE_FILE_PREFIX			/*(const char*)(*/"GUI"/*)*/
-#define DEF_SEND_APP_INFO_URL			/*(const char*)(*/"https://script.google.com/macros/s/AKfycbyn_blFyKWXCgJr6NIF8x6ETs7CHRN5FXKYEAAIrzV6jPYcCkI/exec"/*)*/
-#define DEF_CHECK_UPDATE_URL			/*(const char*)(*/"https://script.google.com/macros/s/AKfycbwvEedP97o8vgfpAG6EzcW6jxZZqFfZaMaqE1V7kCdp9BfuXySfRQ4own5CcFW1JxRBBQ/exec"/*)*/
+#define DEF_SEM_UPDATE_DIR_PREFIX		/*(const char*)(*/"/3ds/GUI_sample_ver_"/*)*/
+#define DEF_SEM_UPDATE_FILE_PREFIX		/*(const char*)(*/"GUI"/*)*/
+#define DEF_SEM_CHECK_UPDATE_URL		/*(const char*)(*/"https://script.google.com/macros/s/AKfycbwvEedP97o8vgfpAG6EzcW6jxZZqFfZaMaqE1V7kCdp9BfuXySfRQ4own5CcFW1JxRBBQ/exec"/*)*/
 
 #define DEF_SEM_NUM_OF_MSG				(uint16_t)(71)
 #define DEF_SEM_ENABLE_ICON
@@ -112,9 +111,9 @@
 #define DEF_SEM_AUTO_MSG					(uint16_t)(69)
 #define DEF_SEM_SLEEP_TIME_MSG				(uint16_t)(70)
 
-//You need to enable DEF_ENABLE_SW_CONVERTER_API **and** DEF_ENABLE_VIDEO_AUDIO_ENCODER_API as well to use screen recorder.
+//You need to enable DEF_CONVERTER_SW_API_ENABLE **and** DEF_ENCODER_VIDEO_AUDIO_API_ENABLE as well to use screen recorder.
 #define DEF_SEM_ENABLE_SCREEN_RECORDER		/*(bool)(*/true/*)*/
-//You need to enable DEF_ENABLE_HTTPC_API **or** DEF_ENABLE_CURL_API as well to use updater.
+//You need to enable DEF_HTTPC_API_ENABLE **or** DEF_CURL_API_ENABLE as well to use updater.
 #define DEF_SEM_ENABLE_UPDATER				/*(bool)(*/true/*)*/
 
 bool Sem_query_init_flag(void);
@@ -137,4 +136,4 @@ void Sem_main(void);
 
 void Sem_hid(Hid_info key);
 
-#endif //!defined(DEF_SETTING_MENU_HPP)
+#endif //!defined(DEF_SEM_HPP)

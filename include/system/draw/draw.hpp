@@ -76,11 +76,11 @@ double Draw_query_fps(void);
  * @param image (out) Pointer for texture.
  * @param tex_size_x (in) Texture width (must be power of 2).
  * @param tex_size_y (in) Texture height (must be power of 2).
- * @param color_format (in) Color format (PIXEL_FORMAT_ABGR8888, PIXEL_FORMAT_BGR888 or PIXEL_FORMAT_RGB565LE).
+ * @param color_format (in) Color format (RAW_PIXEL_ABGR8888, RAW_PIXEL_BGR888 or RAW_PIXEL_RGB565LE).
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Draw_texture_init(Draw_image_data* image, uint16_t tex_size_x, uint16_t tex_size_y, Pixel_format color_format);
+uint32_t Draw_texture_init(Draw_image_data* image, uint16_t tex_size_x, uint16_t tex_size_y, Raw_pixel color_format);
 
 /**
  * @brief Uninitialize a texture.
@@ -149,7 +149,7 @@ void Draw_get_text_size(const char* text, float text_size_x, float text_size_y, 
  * @warning Call it only from rendering thread.
 */
 void Draw_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888);
-void Draw(Util_str* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888);
+void Draw(Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888);
 
 /**
  * @brief Draw text with specified alignment.
@@ -169,7 +169,7 @@ void Draw(Util_str* text, float x, float y, float text_size_x, float text_size_y
 */
 void Draw_align_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888,
 Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y);
-void Draw_align(Util_str* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888,
+void Draw_align(Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888,
 Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y);
 
 /**
@@ -193,7 +193,7 @@ Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float bo
 */
 void Draw_with_background_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
 Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888);
-void Draw_with_background(Util_str* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
+void Draw_with_background(Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
 Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888);
 
 /**
@@ -293,7 +293,7 @@ void Draw_texture_with_rotation(Draw_image_data* image, uint32_t abgr8888, float
 */
 void Draw_line(float x_0, float y_0, uint32_t abgr8888_0, float x_1, float y_1, uint32_t abgr8888_1, float width);
 
-#if DEF_ENABLE_CPU_MONITOR_API
+#if DEF_CPU_USAGE_API_ENABLE
 
 /**
  * @brief Draw cpu usage.
@@ -307,7 +307,7 @@ void Draw_cpu_usage_info(void);
 
 #define Draw_cpu_usage_info()
 
-#endif //DEF_ENABLE_CPU_MONITOR_API
+#endif //DEF_CPU_USAGE_API_ENABLE
 
 /**
  * @brief Ready frame for drawing.

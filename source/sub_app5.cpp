@@ -29,8 +29,8 @@ bool sapp5_thread_run = false;
 bool sapp5_already_init = false;
 bool sapp5_thread_suspend = true;
 Thread sapp5_init_thread = NULL, sapp5_exit_thread = NULL, sapp5_worker_thread = NULL;
-Util_str sapp5_status = { 0, };
-Util_str sapp5_msg[DEF_SAPP5_NUM_OF_MSG] = { 0, };
+Str_data sapp5_status = { 0, };
+Str_data sapp5_msg[DEF_SAPP5_NUM_OF_MSG] = { 0, };
 
 
 static void Sapp5_draw_init_exit_message(void);
@@ -108,11 +108,11 @@ void Sapp5_init(bool draw)
 	Util_add_watch(WATCH_HANDLE_SUB_APP5, &sapp5_status.sequencial_id, sizeof(sapp5_status.sequencial_id));
 
 	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) && var_core_2_available)
-		sapp5_init_thread = threadCreate(Sapp5_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
+		sapp5_init_thread = threadCreate(Sapp5_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
 		APT_SetAppCpuTimeLimit(80);
-		sapp5_init_thread = threadCreate(Sapp5_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+		sapp5_init_thread = threadCreate(Sapp5_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 	}
 
 	while(!sapp5_already_init)
@@ -140,7 +140,7 @@ void Sapp5_exit(bool draw)
 	DEF_LOG_STRING("Exiting...");
 	uint32_t result = DEF_ERR_OTHER;
 
-	sapp5_exit_thread = threadCreate(Sapp5_exit_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	sapp5_exit_thread = threadCreate(Sapp5_exit_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	while(sapp5_already_init)
 	{
@@ -290,7 +290,7 @@ static void Sapp5_init_thread(void* arg)
 
 	Util_str_add(&sapp5_status, "\nStarting threads...");
 	sapp5_thread_run = true;
-	sapp5_worker_thread = threadCreate(Sapp5_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	sapp5_worker_thread = threadCreate(Sapp5_worker_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	sapp5_already_init = true;
 
@@ -329,10 +329,10 @@ static void Sapp5_worker_thread(void* arg)
 
 		}
 		else
-			Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
+			Util_sleep(DEF_THREAD_ACTIVE_SLEEP_TIME);
 
 		while (sapp5_thread_suspend)
-			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
+			Util_sleep(DEF_THREAD_INACTIVE_SLEEP_TIME);
 	}
 
 	DEF_LOG_STRING("Thread exit.");

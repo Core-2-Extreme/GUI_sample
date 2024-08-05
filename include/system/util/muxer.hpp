@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "system/util/muxer_types.h"
 
-#if DEF_ENABLE_MUXER_API
+#if DEF_MUXER_API_ENABLE
 
 /**
  * @brief Open the audio file.
@@ -48,6 +48,6 @@ void Util_muxer_close(uint8_t session);
 #define Util_muxer_mux(...) DEF_ERR_DISABLED
 #define Util_muxer_close(...)
 
-#endif //DEF_ENABLE_MUXER_API
+#endif //DEF_MUXER_API_ENABLE
 
 #endif //!defined(DEF_MUXER_HPP)

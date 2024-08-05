@@ -29,17 +29,17 @@ bool sapp1_thread_run = false;
 bool sapp1_already_init = false;
 bool sapp1_thread_suspend = true;
 Thread sapp1_init_thread = NULL, sapp1_exit_thread = NULL, sapp1_worker_thread = NULL;
-Util_str sapp1_status = { 0, };
-Util_str sapp1_msg[DEF_SAPP1_NUM_OF_MSG] = { 0, };
-Util_str sapp1_selected_path = { 0, };
-Util_str sapp1_file_info = { 0, };
+Str_data sapp1_status = { 0, };
+Str_data sapp1_msg[DEF_SAPP1_NUM_OF_MSG] = { 0, };
+Str_data sapp1_selected_path = { 0, };
+Str_data sapp1_file_info = { 0, };
 
 
 static void Sapp1_draw_init_exit_message(void);
 static void Sapp1_init_thread(void* arg);
 static void Sapp1_exit_thread(void* arg);
 static void Sapp1_worker_thread(void* arg);
-static void Sapp1_expl_callback(Util_str* file_name, Util_str* dir_path);
+static void Sapp1_expl_callback(Str_data* file_name, Str_data* dir_path);
 static void Sapp1_expl_cancel_callback(void);
 
 
@@ -119,11 +119,11 @@ void Sapp1_init(bool draw)
 	Util_add_watch(WATCH_HANDLE_SUB_APP1, &sapp1_status.sequencial_id, sizeof(sapp1_status.sequencial_id));
 
 	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) && var_core_2_available)
-		sapp1_init_thread = threadCreate(Sapp1_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
+		sapp1_init_thread = threadCreate(Sapp1_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
 		APT_SetAppCpuTimeLimit(80);
-		sapp1_init_thread = threadCreate(Sapp1_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+		sapp1_init_thread = threadCreate(Sapp1_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 	}
 
 	while(!sapp1_already_init)
@@ -151,7 +151,7 @@ void Sapp1_exit(bool draw)
 	DEF_LOG_STRING("Exiting...");
 	uint32_t result = DEF_ERR_OTHER;
 
-	sapp1_exit_thread = threadCreate(Sapp1_exit_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	sapp1_exit_thread = threadCreate(Sapp1_exit_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	while(sapp1_already_init)
 	{
@@ -313,7 +313,7 @@ static void Sapp1_init_thread(void* arg)
 
 	Util_str_add(&sapp1_status, "\nStarting threads...");
 	sapp1_thread_run = true;
-	sapp1_worker_thread = threadCreate(Sapp1_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	sapp1_worker_thread = threadCreate(Sapp1_worker_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	sapp1_already_init = true;
 
@@ -360,21 +360,21 @@ static void Sapp1_worker_thread(void* arg)
 
 		}
 		else
-			Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
+			Util_sleep(DEF_THREAD_ACTIVE_SLEEP_TIME);
 
 		while (sapp1_thread_suspend)
-			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
+			Util_sleep(DEF_THREAD_INACTIVE_SLEEP_TIME);
 	}
 
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
 
-static void Sapp1_expl_callback(Util_str* file_name, Util_str* dir_path)
+static void Sapp1_expl_callback(Str_data* file_name, Str_data* dir_path)
 {
 	uint32_t file_size = Util_expl_query_size(Util_expl_query_current_file_index());
 	Expl_file_type file_type = Util_expl_query_type(Util_expl_query_current_file_index());
-	Util_str temp_string = { 0, };
+	Str_data temp_string = { 0, };
 
 	if(Util_str_init(&temp_string) == DEF_SUCCESS)
 	{

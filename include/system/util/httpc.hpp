@@ -5,7 +5,7 @@
 #include "system/util/httpc_types.h"
 #include "system/util/str_types.h"
 
-#if DEF_ENABLE_HTTPC_API
+#if DEF_HTTPC_API_ENABLE
 
 /**
  * @brief Initialize a httpc api.
@@ -36,7 +36,7 @@ void Util_httpc_exit(void);
  * @note Thread safe
 */
 uint32_t Util_httpc_dl_data(const char* url, uint8_t** data, uint32_t max_size, uint32_t* downloaded_size,
-uint16_t* status_code, uint16_t max_redirect, Util_str* last_url);
+uint16_t* status_code, uint16_t max_redirect, Str_data* last_url);
 
 /**
  * @brief Make a HTTP get request and save response to SD card.
@@ -52,7 +52,7 @@ uint16_t* status_code, uint16_t max_redirect, Util_str* last_url);
  * @note Thread safe
 */
 uint32_t Util_httpc_save_data(const char* url, uint32_t buffer_size, uint32_t* downloaded_size, uint16_t* status_code,
-uint16_t max_redirect, Util_str* last_url, const char* dir_path, const char* file_name);
+uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* file_name);
 
 /**
  * @brief Make a HTTP post request.
@@ -70,7 +70,7 @@ uint16_t max_redirect, Util_str* last_url, const char* dir_path, const char* fil
  * @note Thread safe
 */
 uint32_t Util_httpc_post_and_dl_data(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data, uint32_t max_dl_size,
-uint32_t* downloaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url);
+uint32_t* downloaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url);
 
 /**
  * @brief Make a HTTP post request and save response to SD card.
@@ -88,7 +88,7 @@ uint32_t* downloaded_size, uint16_t* status_code, uint16_t max_redirect, Util_st
  * @note Thread safe
 */
 uint32_t Util_httpc_post_and_save_data(const char* url, uint8_t* post_data, uint32_t post_size, uint32_t buffer_size, uint32_t* downloaded_size,
-uint16_t* status_code, uint16_t max_redirect, Util_str* last_url, const char* dir_path, const char* file_name);
+uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* file_name);
 
 #else
 
@@ -99,6 +99,6 @@ uint16_t* status_code, uint16_t max_redirect, Util_str* last_url, const char* di
 #define Util_httpc_post_and_dl_data(...) DEF_ERR_DISABLED
 #define Util_httpc_post_and_save_data(...) DEF_ERR_DISABLED
 
-#endif //DEF_ENABLE_HTTPC_API
+#endif //DEF_HTTPC_API_ENABLE
 
 #endif //!defined(DEF_HTTPC_HPP)

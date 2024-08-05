@@ -5,7 +5,7 @@
 #include <citro2d.h>
 #include <citro3d.h>
 
-#define DEF_DRAW_USE_DMA					/*(bool)(*/1/*)*/	//Enable DMA in draw module for faster processing.
+#define DEF_DRAW_DMA_ENABLE					/*(bool)(*/true/*)*/	//Enable DMA in draw module for faster processing.
 #define DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS	(uint32_t)(128)
 
 #define DEF_DRAW_RED						(uint32_t)(0xFF0000FF)

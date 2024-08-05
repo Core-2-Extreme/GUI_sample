@@ -14,7 +14,7 @@
 LightLock util_queue_mutex = 1;//Initially unlocked state.
 
 
-uint32_t Util_queue_create(Util_queue* queue, uint32_t max_items)
+uint32_t Util_queue_create(Queue_data* queue, uint32_t max_items)
 {
 	if(!queue || max_items == 0 || max_items == UINT32_MAX)
 		goto invalid_arg;
@@ -24,7 +24,7 @@ uint32_t Util_queue_create(Util_queue* queue, uint32_t max_items)
 	if(queue->data || queue->event_id)
 		goto already_inited;
 
-	memset(queue, 0x0, sizeof(Util_queue));
+	memset(queue, 0x0, sizeof(Queue_data));
 
 	queue->data = (void**)malloc(max_items * sizeof(void*));
 	queue->event_id = (uint32_t*)malloc(max_items * sizeof(uint32_t));
@@ -60,7 +60,7 @@ uint32_t Util_queue_create(Util_queue* queue, uint32_t max_items)
 	return DEF_ERR_OUT_OF_MEMORY;
 }
 
-uint32_t Util_queue_add(Util_queue* queue, uint32_t event_id, void* data, int64_t wait_us, Util_queue_option option)
+uint32_t Util_queue_add(Queue_data* queue, uint32_t event_id, void* data, int64_t wait_us, Queue_option option)
 {
 	if(!queue)
 		goto invalid_arg;
@@ -154,7 +154,7 @@ uint32_t Util_queue_add(Util_queue* queue, uint32_t event_id, void* data, int64_
 	return DEF_SUCCESS;
 }
 
-uint32_t Util_queue_get(Util_queue* queue, uint32_t* event_id, void** data, int64_t wait_us)
+uint32_t Util_queue_get(Queue_data* queue, uint32_t* event_id, void** data, int64_t wait_us)
 {
 	if(!queue || !event_id)
 		goto invalid_arg;
@@ -239,7 +239,7 @@ uint32_t Util_queue_get(Util_queue* queue, uint32_t* event_id, void** data, int6
 	return DEF_ERR_TRY_AGAIN;
 }
 
-bool Util_queue_check_event_exist(Util_queue* queue, uint32_t event_id)
+bool Util_queue_check_event_exist(Queue_data* queue, uint32_t event_id)
 {
 	bool exist = false;
 
@@ -268,7 +268,7 @@ bool Util_queue_check_event_exist(Util_queue* queue, uint32_t event_id)
 	return exist;
 }
 
-uint32_t Util_queue_get_free_space(Util_queue* queue)
+uint32_t Util_queue_get_free_space(Queue_data* queue)
 {
 	uint32_t free = 0;
 
@@ -290,7 +290,7 @@ uint32_t Util_queue_get_free_space(Util_queue* queue)
 	return free;
 }
 
-void Util_queue_delete(Util_queue* queue)
+void Util_queue_delete(Queue_data* queue)
 {
 	if(!queue || !queue->data || !queue->event_id || queue->deleting)
 		return;
@@ -319,7 +319,7 @@ void Util_queue_delete(Util_queue* queue)
 	free(queue->event_id);
 	queue->data = NULL;
 	queue->event_id = NULL;
-	memset(queue, 0x0, sizeof(Util_queue));
+	memset(queue, 0x0, sizeof(Queue_data));
 
 	LightLock_Unlock(&util_queue_mutex);
 }

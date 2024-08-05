@@ -11,7 +11,7 @@ extern "C"
 #include "system/util/media_types.h"
 }
 
-#if DEF_ENABLE_VIDEO_AUDIO_ENCODER_API
+#if DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
 
 extern "C"
 {
@@ -22,16 +22,16 @@ extern "C"
 #include "libavutil/opt.h"
 }
 
-#endif //DEF_ENABLE_VIDEO_AUDIO_ENCODER_API
+#endif //DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
 
-#if DEF_ENABLE_IMAGE_ENCODER_API
+#if DEF_ENCODER_IMAGE_API_ENABLE
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image/stb_image_write.h"
 
-#endif //DEF_ENABLE_IMAGE_ENCODER_API
+#endif //DEF_ENCODER_IMAGE_API_ENABLE
 
-#if DEF_ENABLE_VIDEO_AUDIO_ENCODER_API
+#if DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
 
 bool util_audio_encoder_init[DEF_ENCODER_MAX_SESSIONS] = { 0, };
 uint8_t util_audio_stream_index[DEF_ENCODER_MAX_SESSIONS] = { 0, };
@@ -63,8 +63,8 @@ uint8_t util_encoder_next_stream_index[DEF_ENCODER_MAX_SESSIONS] = { 0, };
 AVFormatContext* util_encoder_format_context[DEF_ENCODER_MAX_SESSIONS] = { 0, };
 
 
-static void Util_audio_encoder_exit(uint8_t session);
-static void Util_video_encoder_exit(uint8_t session);
+static void Util_encoder_audio_exit(uint8_t session);
+static void Util_encoder_video_exit(uint8_t session);
 
 
 uint32_t Util_encoder_create_output_file(const char* path, uint8_t session)
@@ -116,13 +116,13 @@ uint32_t Util_encoder_create_output_file(const char* path, uint8_t session)
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-uint32_t Util_audio_encoder_init(Audio_codec codec, uint32_t original_sample_rate, uint32_t encode_sample_rate, uint32_t bitrate, uint8_t session)
+uint32_t Util_encoder_audio_init(Media_a_codec codec, uint32_t original_sample_rate, uint32_t encode_sample_rate, uint32_t bitrate, uint8_t session)
 {
 	int32_t ffmpeg_result = 0;
 	enum AVCodecID codec_id = AV_CODEC_ID_NONE;
 
 	if(session >= DEF_ENCODER_MAX_SESSIONS || original_sample_rate == 0 || encode_sample_rate == 0
-	|| bitrate == 0 || codec <= AUDIO_CODEC_INVALID || codec >= AUDIO_CODEC_MAX)
+	|| bitrate == 0 || codec <= MEDIA_A_CODEC_INVALID || codec >= MEDIA_A_CODEC_MAX)
 		goto invalid_arg;
 
 	if(!util_encoder_created_file[session])
@@ -131,13 +131,13 @@ uint32_t Util_audio_encoder_init(Audio_codec codec, uint32_t original_sample_rat
 	if(util_audio_encoder_init[session] || util_encoder_wrote_header[session])
 		goto already_inited;
 
-	if(codec == AUDIO_CODEC_AAC)
+	if(codec == MEDIA_A_CODEC_AAC)
 		codec_id = AV_CODEC_ID_AAC;
-	else if(codec == AUDIO_CODEC_AC3)
+	else if(codec == MEDIA_A_CODEC_AC3)
 		codec_id = AV_CODEC_ID_AC3;
-	else if(codec == AUDIO_CODEC_MP2)
+	else if(codec == MEDIA_A_CODEC_MP2)
 		codec_id = AV_CODEC_ID_MP2;
-	else if(codec == AUDIO_CODEC_MP3)
+	else if(codec == MEDIA_A_CODEC_MP3)
 		codec_id = AV_CODEC_ID_MP3;
 
 	util_audio_pos[session] = 0;
@@ -262,17 +262,17 @@ uint32_t Util_audio_encoder_init(Audio_codec codec, uint32_t original_sample_rat
 	return DEF_ERR_ALREADY_INITIALIZED;
 
 	ffmpeg_api_failed:
-	Util_audio_encoder_exit(session);
+	Util_encoder_audio_exit(session);
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-uint32_t Util_video_encoder_init(Video_codec codec, uint32_t width, uint32_t height, uint32_t bitrate, uint32_t fps, uint8_t session)
+uint32_t Util_encoder_video_init(Media_v_codec codec, uint32_t width, uint32_t height, uint32_t bitrate, uint32_t fps, uint8_t session)
 {
 	int32_t ffmpeg_result = 0;
 	enum AVCodecID video_codec = AV_CODEC_ID_NONE;
 
 	if(session >= DEF_ENCODER_MAX_SESSIONS || width == 0 || height == 0
-	|| codec <= VIDEO_CODEC_INVALID || codec >= VIDEO_CODEC_MAX)
+	|| codec <= MEDIA_V_CODEC_INVALID || codec >= MEDIA_V_CODEC_MAX)
 		goto invalid_arg;
 
 	if(!util_encoder_created_file[session])
@@ -281,13 +281,13 @@ uint32_t Util_video_encoder_init(Video_codec codec, uint32_t width, uint32_t hei
 	if(util_video_encoder_init[session] || util_encoder_wrote_header[session])
 		goto already_inited;
 
-	if(codec == VIDEO_CODEC_MJPEG)
+	if(codec == MEDIA_V_CODEC_MJPEG)
 		video_codec = AV_CODEC_ID_MJPEG;
-	else if(codec == VIDEO_CODEC_H264)
+	else if(codec == MEDIA_V_CODEC_H264)
 		video_codec = AV_CODEC_ID_H264;
-	else if(codec == VIDEO_CODEC_MPEG4)
+	else if(codec == MEDIA_V_CODEC_MPEG4)
 		video_codec = AV_CODEC_ID_MPEG4;
-	else if(codec == VIDEO_CODEC_MPEG2VIDEO)
+	else if(codec == MEDIA_V_CODEC_MPEG2VIDEO)
 		video_codec = AV_CODEC_ID_MPEG2VIDEO;
 
 	util_video_pos[session] = 0;
@@ -419,7 +419,7 @@ uint32_t Util_video_encoder_init(Video_codec codec, uint32_t width, uint32_t hei
 	return DEF_ERR_ALREADY_INITIALIZED;
 
 	ffmpeg_api_failed:
-	Util_video_encoder_exit(session);
+	Util_encoder_video_exit(session);
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
@@ -462,7 +462,7 @@ uint32_t Util_encoder_write_header(uint8_t session)
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-uint32_t Util_audio_encoder_encode(uint32_t size, uint8_t* raw_data, uint8_t session)
+uint32_t Util_encoder_audio_encode(uint32_t size, uint8_t* raw_data, uint8_t session)
 {
 	uint8_t bytes_per_sample = 0;
 	uint8_t* swr_in_cache[1] = { NULL, };
@@ -583,7 +583,7 @@ uint32_t Util_audio_encoder_encode(uint32_t size, uint8_t* raw_data, uint8_t ses
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-uint32_t Util_video_encoder_encode(uint8_t* raw_image, uint8_t session)
+uint32_t Util_encoder_video_encode(uint8_t* raw_image, uint8_t session)
 {
 	int32_t ffmpeg_result = 0;
 	uint32_t width = 0;
@@ -653,8 +653,8 @@ void Util_encoder_close_output_file(uint8_t session)
 
 	if(util_encoder_created_file[session])
 	{
-		Util_audio_encoder_exit(session);
-		Util_video_encoder_exit(session);
+		Util_encoder_audio_exit(session);
+		Util_encoder_video_exit(session);
 
 		if(util_encoder_wrote_header[session])
 			av_write_trailer(util_encoder_format_context[session]);
@@ -667,7 +667,7 @@ void Util_encoder_close_output_file(uint8_t session)
 	}
 }
 
-static void Util_audio_encoder_exit(uint8_t session)
+static void Util_encoder_audio_exit(uint8_t session)
 {
 	if(util_audio_encoder_init[session])
 	{
@@ -681,7 +681,7 @@ static void Util_audio_encoder_exit(uint8_t session)
 	util_audio_encoder_init[session] = false;
 }
 
-static void Util_video_encoder_exit(uint8_t session)
+static void Util_encoder_video_exit(uint8_t session)
 {
 	if(util_video_encoder_init[session])
 	{
@@ -694,34 +694,34 @@ static void Util_video_encoder_exit(uint8_t session)
 
 #endif
 
-#if DEF_ENABLE_IMAGE_ENCODER_API
+#if DEF_ENCODER_IMAGE_API_ENABLE
 
-uint32_t Util_image_encoder_encode(const char* path, uint8_t* raw_data, uint32_t width, uint32_t height, Image_codec codec, uint8_t quality)
+uint32_t Util_encoder_image_encode(const char* path, uint8_t* raw_data, uint32_t width, uint32_t height, Media_i_codec codec, uint8_t quality)
 {
 	int32_t stbi_result = 0;
 
-	if(!path || !raw_data || width == 0 || height == 0 || codec <= IMAGE_CODEC_INVALID
-	|| codec >= IMAGE_CODEC_MAX || (codec == IMAGE_CODEC_JPG && quality > 100))
+	if(!path || !raw_data || width == 0 || height == 0 || codec <= MEDIA_I_CODEC_INVALID
+	|| codec >= MEDIA_I_CODEC_MAX || (codec == MEDIA_I_CODEC_JPG && quality > 100))
 		goto invalid_arg;
 
-	if(codec == IMAGE_CODEC_PNG)
+	if(codec == MEDIA_I_CODEC_PNG)
 		stbi_result = stbi_write_png(path, width, height, 3, raw_data, 0);
-	else if(codec == IMAGE_CODEC_JPG)
+	else if(codec == MEDIA_I_CODEC_JPG)
 		stbi_result = stbi_write_jpg(path, width, height, 3, raw_data, quality);
-	else if(codec == IMAGE_CODEC_BMP)
+	else if(codec == MEDIA_I_CODEC_BMP)
 		stbi_result = stbi_write_bmp(path, width, height, 3, raw_data);
-	else if(codec == IMAGE_CODEC_TGA)
+	else if(codec == MEDIA_I_CODEC_TGA)
 		stbi_result = stbi_write_tga(path, width, height, 3, raw_data);
 
 	if(stbi_result == 0)
 	{
-		if(codec == IMAGE_CODEC_PNG)
+		if(codec == MEDIA_I_CODEC_PNG)
 			DEF_LOG_RESULT(stbi_write_png, false, stbi_result);
-		else if(codec == IMAGE_CODEC_JPG)
+		else if(codec == MEDIA_I_CODEC_JPG)
 			DEF_LOG_RESULT(stbi_write_jpg, false, stbi_result);
-		else if(codec == IMAGE_CODEC_BMP)
+		else if(codec == MEDIA_I_CODEC_BMP)
 			DEF_LOG_RESULT(stbi_write_bmp, false, stbi_result);
-		else if(codec == IMAGE_CODEC_TGA)
+		else if(codec == MEDIA_I_CODEC_TGA)
 			DEF_LOG_RESULT(stbi_write_tga, false, stbi_result);
 
 		goto stbi_api_failed;
@@ -736,4 +736,4 @@ uint32_t Util_image_encoder_encode(const char* path, uint8_t* raw_data, uint32_t
 	return DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS;
 }
 
-#endif //DEF_ENABLE_VIDEO_AUDIO_ENCODER_API
+#endif //DEF_ENCODER_VIDEO_AUDIO_API_ENABLE

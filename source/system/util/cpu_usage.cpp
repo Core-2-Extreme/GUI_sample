@@ -3,7 +3,7 @@ extern "C"
 #include "system/util/cpu_usage.h"
 }
 
-#if DEF_ENABLE_CPU_MONITOR_API
+#if DEF_CPU_USAGE_API_ENABLE
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -40,10 +40,10 @@ uint32_t Util_cpu_usage_monitor_init(void)
 	for(int i = 0; i < 4; i++)
 	{
 		//This may fail depending on core availability.
-		util_cpu_usage_thread_handle[i] = threadCreate(Util_cpu_usage_counter_thread, &util_cpu_usage_core_id[i], 2048, DEF_SYSTEM_THREAD_PRIORITY_IDLE, i, false);
+		util_cpu_usage_thread_handle[i] = threadCreate(Util_cpu_usage_counter_thread, &util_cpu_usage_core_id[i], 2048, DEF_THREAD_SYSTEM_PRIORITY_IDLE, i, false);
 	}
 
-	util_cpu_usage_thread_handle[4] = threadCreate(Util_cpu_usage_calculate_thread, NULL, 2048, DEF_SYSTEM_THREAD_PRIORITY_REALTIME, 0, false);
+	util_cpu_usage_thread_handle[4] = threadCreate(Util_cpu_usage_calculate_thread, NULL, 2048, DEF_THREAD_SYSTEM_PRIORITY_REALTIME, 0, false);
 	if(!util_cpu_usage_thread_handle[4])
 	{
 		DEF_LOG_RESULT(threadCreate, false, DEF_ERR_OTHER);
@@ -184,4 +184,4 @@ void Util_cpu_usage_calculate_thread(void* arg)
 	threadExit(0);
 }
 }
-#endif //DEF_ENABLE_CPU_MONITOR_API
+#endif //DEF_CPU_USAGE_API_ENABLE

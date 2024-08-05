@@ -11,7 +11,7 @@
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_queue_create(Util_queue* queue, uint32_t max_items);
+uint32_t Util_queue_create(Queue_data* queue, uint32_t max_items);
 
 /**
  * @brief Add an event to the queue. Data is passed by reference not by copy.
@@ -24,7 +24,7 @@ uint32_t Util_queue_create(Util_queue* queue, uint32_t max_items);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_queue_add(Util_queue* queue, uint32_t event_id, void* data, int64_t wait_us, Util_queue_option option);
+uint32_t Util_queue_add(Queue_data* queue, uint32_t event_id, void* data, int64_t wait_us, Queue_option option);
 
 /**
  * @brief Get an event from the queue. Data is passed by reference not by copy.
@@ -35,7 +35,7 @@ uint32_t Util_queue_add(Util_queue* queue, uint32_t event_id, void* data, int64_
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_queue_get(Util_queue* queue, uint32_t* event_id, void** data, int64_t wait_us);
+uint32_t Util_queue_get(Queue_data* queue, uint32_t* event_id, void** data, int64_t wait_us);
 
 /**
  * @brief Check if the specified event exist in the queue.
@@ -44,7 +44,7 @@ uint32_t Util_queue_get(Util_queue* queue, uint32_t* event_id, void** data, int6
  * @param event_id (in) Event id to check.
  * @note Thread safe
 */
-bool Util_queue_check_event_exist(Util_queue* queue, uint32_t event_id);
+bool Util_queue_check_event_exist(Queue_data* queue, uint32_t event_id);
 
 /**
  * @brief Check how many spaces left in the queue.
@@ -52,7 +52,7 @@ bool Util_queue_check_event_exist(Util_queue* queue, uint32_t event_id);
  * @param queue (in) Pointer for the queue.
  * @note Thread safe
 */
-uint32_t Util_queue_get_free_space(Util_queue* queue);
+uint32_t Util_queue_get_free_space(Queue_data* queue);
 
 /**
  * @brief Delete the queue and if any, free all data in the queue.
@@ -60,6 +60,6 @@ uint32_t Util_queue_get_free_space(Util_queue* queue);
  * @param queue (in) Pointer for the queue.
  * @note Thread safe
 */
-void Util_queue_delete(Util_queue* queue);
+void Util_queue_delete(Queue_data* queue);
 
 #endif //!defined(DEF_QUEUE_H)

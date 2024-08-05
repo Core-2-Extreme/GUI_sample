@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "system/util/mic_types.h"
 
-#if defined(DEF_ENABLE_MIC_API)
+#if defined(DEF_MIC_API_ENABLE)
 
 /**
  * @brief Initialize a mic.
@@ -73,6 +73,6 @@ void Util_mic_exit(void);
 #define Util_mic_get_audio_data(...) DEF_ERR_DISABLED
 #define Util_mic_exit()
 
-#endif //defined(DEF_ENABLE_MIC_API)
+#endif //defined(DEF_MIC_API_ENABLE)
 
 #endif //!defined(DEF_MIC_H)

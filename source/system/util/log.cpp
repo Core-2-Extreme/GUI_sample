@@ -32,7 +32,7 @@ uint32_t util_log_y = 0;
 double util_log_x = 0.0;
 double util_log_uptime_ms = 0.0;
 double util_log_spend_time[DEF_LOG_BUFFER_LINES] = { 0, };
-Util_str util_log_logs[DEF_LOG_BUFFER_LINES] = { 0, };
+Str_data util_log_logs[DEF_LOG_BUFFER_LINES] = { 0, };
 TickCounter util_log_uptime_stopwatch = { 0, };
 LightLock util_log_mutex = 1;//Initially unlocked state.
 
@@ -93,7 +93,7 @@ void Util_log_exit(void)
 uint32_t Util_log_dump(const char* file_name, const char* dir_path)
 {
 	uint32_t result = DEF_ERR_OTHER;
-	Util_str log = { 0, };
+	Str_data log = { 0, };
 
 	if(!util_log_init)
 		goto not_inited;
@@ -352,7 +352,7 @@ static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, cons
 	bool is_append = true;
 	char empty_char = '\u0000';
 	char error_msg[] = "(Couldn't format string, this is usually due to out of memory.)";
-	Util_str temp_text = { 0, };
+	Str_data temp_text = { 0, };
 
 	if(!util_log_init)
 		return DEF_LOG_INDEX_AUTO;

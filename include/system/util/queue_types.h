@@ -4,12 +4,10 @@
 #include <stdint.h>
 #include "3ds/synchronization.h"
 
-typedef enum
-{
-	QUEUE_OPTION_NONE					= 0,		//Default.
-	QUEUE_OPTION_DO_NOT_ADD_IF_EXIST	= (1 << 1), //Do not add the event if the same event id exist.
-	QUEUE_OPTION_SEND_TO_FRONT			= (1 << 2), //Send an event to the front of the queue, use it for high priority event.
-} Util_queue_option;
+typedef uint8_t Queue_option;
+#define QUEUE_OPTION_NONE					(Queue_option)(0 << 0)	//Default.
+#define QUEUE_OPTION_DO_NOT_ADD_IF_EXIST	(Queue_option)(1 << 0)	//Do not add the event if the same event id exist.
+#define QUEUE_OPTION_SEND_TO_FRONT			(Queue_option)(1 << 1)	//Send an event to the front of the queue, use it for high priority event.
 
 typedef struct
 {
@@ -21,6 +19,6 @@ typedef struct
 	uint32_t reference_count;		//Reference count for this queue.
 	LightEvent receive_wait_event;	//If timeout is not 0, this is used to wait for new message from this queue.
 	LightEvent send_wait_event;		//If timeout is not 0, this is used to wait for available space to send data to this queue.
-} Util_queue;
+} Queue_data;
 
 #endif //!defined(DEF_QUEUE_TYPES_H)

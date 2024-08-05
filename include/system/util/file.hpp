@@ -83,6 +83,6 @@ uint32_t Util_file_check_file_exist(const char* file_name, const char* dir_path)
  * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
-uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Util_str* file_name, Expl_file_type* type, uint32_t array_length);
+uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Str_data* file_name, Expl_file_type* type, uint32_t array_length);
 
 #endif //!defined(DEF_FILE_HPP)

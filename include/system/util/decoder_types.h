@@ -3,9 +3,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define DEF_DECODER_USE_DMA						/*(bool)(*/1/*)*/	//Enable DMA in video decoder module for faster processing.
-#define DEF_ENABLE_IMAGE_DECODER_API			/*(bool)(*/1/*)*/	//Enable image decoder API. This will use stb_image functions.
-#define DEF_ENABLE_VIDEO_AUDIO_DECODER_API		/*(bool)(*/1/*)*/	//Enable video/audio decoder API. This will use ffmpeg functions.
+#define DEF_DECODER_DMA_ENABLE					/*(bool)(*/true/*)*/	//Enable DMA in video decoder module for faster processing.
+#define DEF_DECODER_IMAGE_API_ENABLE			/*(bool)(*/true/*)*/	//Enable image decoder API. This will use stb_image functions.
+#define DEF_DECODER_VIDEO_AUDIO_API_ENABLE		/*(bool)(*/true/*)*/	//Enable video/audio decoder API. This will use ffmpeg functions.
 
 #define DEF_DECODER_MAX_AUDIO_TRACKS			(uint8_t)(8)
 #define DEF_DECODER_MAX_VIDEO_TRACKS			(uint8_t)(2)

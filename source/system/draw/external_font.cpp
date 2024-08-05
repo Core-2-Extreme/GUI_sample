@@ -50,7 +50,7 @@ static const uint16_t util_exfont_font_hangul_syllables_characters[11] =
 };
 static uint32_t util_exfont_num_of_right_left_charcters = 0;
 static uint32_t util_exfont_font_start_num[DEF_EXFONT_NUM_OF_FONT_NAME] = { 0, };
-static Util_str util_exfont_font_name[DEF_EXFONT_NUM_OF_FONT_NAME] = { 0, };
+static Str_data util_exfont_font_name[DEF_EXFONT_NUM_OF_FONT_NAME] = { 0, };
 static Exfont_one_char util_exfont_font_right_to_left_samples[257] = { 0, };
 static const Exfont_one_char util_exfont_ignore_chars[] =
 {
@@ -1399,7 +1399,7 @@ static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string,
 static uint32_t Exfont_load_exfont(uint16_t exfont_id)
 {
 	uint32_t result = DEF_ERR_OTHER;
-	Util_str path = { 0, };
+	Str_data path = { 0, };
 
 	if (exfont_id >= DEF_EXFONT_NUM_OF_FONT_NAME)
 		goto invalid_arg;

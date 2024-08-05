@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "system/util/speaker_types.h"
 
-#if DEF_ENABLE_SPEAKER_API
+#if DEF_SPEAKER_API_ENABLE
 
 /**
  * @brief Initialize a speaker.
@@ -115,6 +115,6 @@ void Util_speaker_exit(void);
 #define Util_speaker_is_playing(...) false
 #define Util_speaker_exit()
 
-#endif //DEF_ENABLE_SPEAKER_API
+#endif //DEF_SPEAKER_API_ENABLE
 
 #endif //!defined(DEF_SPEAKER_HPP)

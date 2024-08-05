@@ -50,9 +50,9 @@ bool sapp2_thread_run = false;
 bool sapp2_already_init = false;
 bool sapp2_thread_suspend = true;
 Thread sapp2_init_thread = NULL, sapp2_exit_thread = NULL, sapp2_worker_thread = NULL;
-Util_queue sapp2_command_queue = { 0, };
-Util_str sapp2_status = { 0, };
-Util_str sapp2_msg[DEF_SAPP2_NUM_OF_MSG] = { 0, };
+Queue_data sapp2_command_queue = { 0, };
+Str_data sapp2_status = { 0, };
+Str_data sapp2_msg[DEF_SAPP2_NUM_OF_MSG] = { 0, };
 
 
 static void Sapp2_draw_init_exit_message(void);
@@ -161,11 +161,11 @@ void Sapp2_init(bool draw)
 	Util_add_watch(WATCH_HANDLE_SUB_APP2, &sapp2_status.sequencial_id, sizeof(sapp2_status.sequencial_id));
 
 	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) && var_core_2_available)
-		sapp2_init_thread = threadCreate(Sapp2_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
+		sapp2_init_thread = threadCreate(Sapp2_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
 		APT_SetAppCpuTimeLimit(80);
-		sapp2_init_thread = threadCreate(Sapp2_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+		sapp2_init_thread = threadCreate(Sapp2_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 	}
 
 	while(!sapp2_already_init)
@@ -193,7 +193,7 @@ void Sapp2_exit(bool draw)
 	DEF_LOG_STRING("Exiting...");
 	uint32_t result = DEF_ERR_OTHER;
 
-	sapp2_exit_thread = threadCreate(Sapp2_exit_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	sapp2_exit_thread = threadCreate(Sapp2_exit_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	while(sapp2_already_init)
 	{
@@ -369,7 +369,7 @@ static void Sapp2_init_thread(void* arg)
 
 	Util_str_add(&sapp2_status, "\nStarting threads...");
 	sapp2_thread_run = true;
-	sapp2_worker_thread = threadCreate(Sapp2_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	sapp2_worker_thread = threadCreate(Sapp2_worker_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	sapp2_already_init = true;
 
@@ -410,9 +410,9 @@ static void Sapp2_worker_thread(void* arg)
 		uint32_t event_id = 0;
 
 		while (sapp2_thread_suspend)
-			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
+			Util_sleep(DEF_THREAD_INACTIVE_SLEEP_TIME);
 
-		result = Util_queue_get(&sapp2_command_queue, &event_id, NULL, DEF_ACTIVE_THREAD_SLEEP_TIME);
+		result = Util_queue_get(&sapp2_command_queue, &event_id, NULL, DEF_THREAD_ACTIVE_SLEEP_TIME);
 		if(result != DEF_SUCCESS)
 		{
 			//No commands have arrived.

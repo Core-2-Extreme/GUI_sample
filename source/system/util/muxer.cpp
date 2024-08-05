@@ -1,6 +1,6 @@
 #include "system/util/muxer.hpp"
 
-#if DEF_ENABLE_MUXER_API
+#if DEF_MUXER_API_ENABLE
 #include <stdbool.h>
 #include <stdint.h>
 

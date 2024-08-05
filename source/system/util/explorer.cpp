@@ -3,7 +3,7 @@ extern "C"
 #include "system/util/explorer.h"
 }
 
-#if DEF_ENABLE_EXPL_API
+#if DEF_EXPL_API_ENABLE
 #include <algorithm>
 #include <stdbool.h>
 #include <stdint.h>
@@ -36,24 +36,24 @@ extern "C"
 typedef struct
 {
 	uint32_t size[DEF_EXPL_MAX_FILES];
-	Util_str name[DEF_EXPL_MAX_FILES];
+	Str_data name[DEF_EXPL_MAX_FILES];
 	Expl_file_type type[DEF_EXPL_MAX_FILES];
 } Util_expl_file;
 
 typedef struct
 {
 	uint32_t size;
-	Util_str name;
+	Str_data name;
 	Expl_file_type type;
 } Util_expl_file_compare;
 
 
-static void Util_expl_generate_file_type_string(Expl_file_type type, Util_str* type_string);
+static void Util_expl_generate_file_type_string(Expl_file_type type, Str_data* type_string);
 static int Util_expl_compare_name(const void* a, const void* b);
 static void Util_expl_read_dir_callback(void);
 
 
-void (*util_expl_callback)(Util_str*, Util_str*) = NULL;
+void (*util_expl_callback)(Str_data*, Str_data*) = NULL;
 void (*util_expl_cancel_callback)(void) = NULL;
 bool util_expl_read_dir_request = false;
 bool util_expl_show_flag = false;
@@ -63,7 +63,7 @@ uint32_t util_expl_num_of_file = 0;
 uint32_t util_expl_check_file_size_index = 0;
 double util_expl_y_offset = 0.0;
 double util_expl_selected_file_num = 0.0;
-Util_str util_expl_current_dir = { 0, };
+Str_data util_expl_current_dir = { 0, };
 Draw_image_data util_expl_file_button[16] = { 0, };
 Util_expl_file util_expl_files = { 0, };
 
@@ -146,7 +146,7 @@ void Util_expl_exit(void)
 		Util_str_free(&util_expl_files.name[i]);
 }
 
-uint32_t Util_expl_query_current_dir(Util_str* dir_name)
+uint32_t Util_expl_query_current_dir(Str_data* dir_name)
 {
 	uint32_t result = DEF_ERR_OTHER;
 
@@ -199,7 +199,7 @@ uint32_t Util_expl_query_current_file_index(void)
 	return (uint32_t)util_expl_selected_file_num + (uint32_t)util_expl_y_offset;
 }
 
-uint32_t Util_expl_query_file_name(uint32_t index, Util_str* file_name)
+uint32_t Util_expl_query_file_name(uint32_t index, Str_data* file_name)
 {
 	uint32_t result = DEF_ERR_OTHER;
 
@@ -264,7 +264,7 @@ bool Util_expl_query_show_flag(void)
 	return util_expl_show_flag;
 }
 
-void Util_expl_set_callback(void (*callback)(Util_str*, Util_str*))
+void Util_expl_set_callback(void (*callback)(Str_data*, Str_data*))
 {
 	if(!util_expl_init)
 		return;
@@ -280,7 +280,7 @@ void Util_expl_set_cancel_callback(void (*callback)(void))
 	util_expl_cancel_callback = callback;
 }
 
-void Util_expl_set_current_dir(Util_str* dir_name)
+void Util_expl_set_current_dir(Str_data* dir_name)
 {
 	if(!util_expl_init)
 		return;
@@ -322,8 +322,8 @@ void Util_expl_draw(void)
 
 	for (uint8_t i = 0; i < 16; i++)
 	{
-		Util_str message = { 0, };
-		Util_str type = { 0, };
+		Str_data message = { 0, };
+		Str_data type = { 0, };
 		uint32_t index = (i + (uint32_t)util_expl_y_offset);
 
 		if(Util_str_init(&message) != DEF_SUCCESS
@@ -424,7 +424,7 @@ void Util_expl_main(Hid_info key)
 					{
 						bool is_root_dir = false;
 						uint32_t selected_index = (util_expl_y_offset + util_expl_selected_file_num);
-						Util_str dir = { 0, };
+						Str_data dir = { 0, };
 
 						Util_expl_query_current_dir(&dir);
 						if(Util_str_has_data(&dir) && strcmp(dir.buffer, "/") == 0)
@@ -471,7 +471,7 @@ void Util_expl_main(Hid_info key)
 						else
 						{
 							//Notify file selection.
-							Util_str file = { 0, };
+							Str_data file = { 0, };
 
 							Util_expl_query_file_name(selected_index, &file);
 
@@ -506,7 +506,7 @@ void Util_expl_main(Hid_info key)
 		if (key.p_b)
 		{
 			bool is_root_dir = false;
-			Util_str dir = { 0, };
+			Str_data dir = { 0, };
 
 			Util_expl_query_current_dir(&dir);
 			if(Util_str_has_data(&dir) && strcmp(dir.buffer, "/") == 0)
@@ -611,7 +611,7 @@ void Util_expl_main(Hid_info key)
 	}
 }
 
-static void Util_expl_generate_file_type_string(Expl_file_type type, Util_str* type_string)
+static void Util_expl_generate_file_type_string(Expl_file_type type, Str_data* type_string)
 {
 	if(type == EXPL_FILE_TYPE_NONE)
 	{
@@ -831,4 +831,4 @@ static void Util_expl_read_dir_callback(void)
 	}
 }
 }
-#endif //DEF_ENABLE_EXPL_API
+#endif //DEF_EXPL_API_ENABLE

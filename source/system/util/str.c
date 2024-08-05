@@ -9,11 +9,11 @@
 #include "system/util/error_types.h"
 
 
-static uint32_t Util_str_get_optimal_buffer_capacity(Util_str* string);
-static uint32_t Util_str_vformat_internal(Util_str* string, bool is_append, const char* format_string, va_list args);
+static uint32_t Util_str_get_optimal_buffer_capacity(Str_data* string);
+static uint32_t Util_str_vformat_internal(Str_data* string, bool is_append, const char* format_string, va_list args);
 
 
-uint32_t Util_str_init(Util_str* string)
+uint32_t Util_str_init(Str_data* string)
 {
 	if(!string)
 		goto invalid_arg;
@@ -38,7 +38,7 @@ uint32_t Util_str_init(Util_str* string)
 	return DEF_ERR_OUT_OF_MEMORY;
 }
 
-void Util_str_free(Util_str* string)
+void Util_str_free(Str_data* string)
 {
 	if(!string)
 		return;
@@ -50,7 +50,7 @@ void Util_str_free(Util_str* string)
 	string->buffer = NULL;
 }
 
-uint32_t Util_str_clear(Util_str* string)
+uint32_t Util_str_clear(Str_data* string)
 {
 	if(!Util_str_is_valid(string))
 		goto invalid_arg;
@@ -68,7 +68,7 @@ uint32_t Util_str_clear(Util_str* string)
 	return DEF_ERR_INVALID_ARG;
 }
 
-uint32_t Util_str_set(Util_str* string, const char* source_string)
+uint32_t Util_str_set(Str_data* string, const char* source_string)
 {
 	uint32_t source_string_length = 0;
 	uint32_t result = DEF_ERR_OTHER;
@@ -107,7 +107,7 @@ uint32_t Util_str_set(Util_str* string, const char* source_string)
 	return result;
 }
 
-uint32_t Util_str_add(Util_str* string, const char* source_string)
+uint32_t Util_str_add(Str_data* string, const char* source_string)
 {
 	uint32_t new_length = 0;
 	uint32_t source_string_length = 0;
@@ -147,7 +147,7 @@ uint32_t Util_str_add(Util_str* string, const char* source_string)
 	return result;
 }
 
-uint32_t Util_str_format(Util_str* string, const char* format_string, ...)
+uint32_t Util_str_format(Str_data* string, const char* format_string, ...)
 {
 	uint32_t result = DEF_ERR_OTHER;
 	va_list args;
@@ -159,12 +159,12 @@ uint32_t Util_str_format(Util_str* string, const char* format_string, ...)
 	return result;
 }
 
-uint32_t Util_str_vformat(Util_str* string, const char* format_string, va_list args)
+uint32_t Util_str_vformat(Str_data* string, const char* format_string, va_list args)
 {
 	return Util_str_vformat_internal(string, false, format_string, args);
 }
 
-uint32_t Util_str_format_append(Util_str* string, const char* format_string, ...)
+uint32_t Util_str_format_append(Str_data* string, const char* format_string, ...)
 {
 	uint32_t result = DEF_ERR_OTHER;
 	va_list args;
@@ -176,12 +176,12 @@ uint32_t Util_str_format_append(Util_str* string, const char* format_string, ...
 	return result;
 }
 
-uint32_t Util_str_vformat_append(Util_str* string, const char* format_string, va_list args)
+uint32_t Util_str_vformat_append(Str_data* string, const char* format_string, va_list args)
 {
 	return Util_str_vformat_internal(string, true, format_string, args);
 }
 
-uint32_t Util_str_resize(Util_str* string, uint32_t new_capacity)
+uint32_t Util_str_resize(Str_data* string, uint32_t new_capacity)
 {
 	char* temp_buffer = NULL;
 
@@ -211,7 +211,7 @@ uint32_t Util_str_resize(Util_str* string, uint32_t new_capacity)
 	return DEF_ERR_OUT_OF_MEMORY;
 }
 
-bool Util_str_is_valid(Util_str* string)
+bool Util_str_is_valid(Str_data* string)
 {
 	if(!string || !string->buffer || string->capacity == 0 || string->capacity == UINT32_MAX)
 		return false;
@@ -219,7 +219,7 @@ bool Util_str_is_valid(Util_str* string)
 		return true;
 }
 
-bool Util_str_has_data(Util_str* string)
+bool Util_str_has_data(Str_data* string)
 {
 	if(!Util_str_is_valid(string))
 		return false;
@@ -229,7 +229,7 @@ bool Util_str_has_data(Util_str* string)
 		return true;
 }
 
-static uint32_t Util_str_get_optimal_buffer_capacity(Util_str* string)
+static uint32_t Util_str_get_optimal_buffer_capacity(Str_data* string)
 {
 	uint32_t optimal_capacity = 0;
 
@@ -247,7 +247,7 @@ static uint32_t Util_str_get_optimal_buffer_capacity(Util_str* string)
 	return optimal_capacity;
 }
 
-static uint32_t Util_str_vformat_internal(Util_str* string, bool is_append, const char* format_string, va_list args)
+static uint32_t Util_str_vformat_internal(Str_data* string, bool is_append, const char* format_string, va_list args)
 {
 	char* buffer = NULL;
 	uint32_t remaining_capacity = 0;

@@ -1,11 +1,11 @@
-#if !defined(DEF_SWKBD_HPP)
-#define DEF_SWKBD_HPP
+#if !defined(DEF_KEYBOARD_HPP)
+#define DEF_KEYBOARD_HPP
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/str_types.h"
 #include "system/util/swkbd_types.h"
 
-#if DEF_ENABLE_SWKBD_API
+#if DEF_KEYBOARD_API_ENABLE
 
 /**
  * @brief Initialize a software keyboard.
@@ -20,8 +20,8 @@
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-uint32_t Util_swkbd_init(Util_swkbd_type type, Util_swkbd_acceptable_input valid_type, Util_swkbd_display_button button_type,
-uint32_t max_length, Util_str* hint_text, Util_str* init_text, Util_swkbd_password_mode password_mode, Util_swkbd_features_bit features);
+uint32_t Util_keyboard_init(Keyboard_type type, Keyboard_acceptable_input valid_type, Keyboard_display_button button_type,
+uint32_t max_length, Str_data* hint_text, Str_data* init_text, Keyboard_password_mode password_mode, Keyboard_features_bit features);
 
 /**
  * @brief Set dictionary word.
@@ -31,7 +31,7 @@ uint32_t max_length, Util_str* hint_text, Util_str* init_text, Util_swkbd_passwo
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-uint32_t Util_swkbd_set_dic_word(Util_str* first_spell, Util_str* full_spell, uint16_t num_of_word);
+uint32_t Util_keyboard_set_dic_word(Str_data* first_spell, Str_data* full_spell, uint16_t num_of_word);
 
 /**
  * @brief Launch software keyboard.
@@ -41,22 +41,22 @@ uint32_t Util_swkbd_set_dic_word(Util_str* first_spell, Util_str* full_spell, ui
  * @warning Call it only from rendering thread.
  * @warning Thread dangerous (untested)
 */
-uint32_t Util_swkbd_launch(Util_str* out_data, Util_swkbd_button* pressed_button);
+uint32_t Util_keyboard_launch(Str_data* out_data, Keyboard_button* pressed_button);
 
 /**
  * @brief Uninitialize a software keyboard.
- * Do nothing if swkbd api is not initialized.
+ * Do nothing if keyboard api is not initialized.
  * @warning Thread dangerous (untested)
 */
-void Util_swkbd_exit(void);
+void Util_keyboard_exit(void);
 
 #else
 
-#define Util_swkbd_init(...) DEF_ERR_DISABLED
-#define Util_swkbd_set_dic_word(...) DEF_ERR_DISABLED
-#define Util_swkbd_launch(...) DEF_ERR_DISABLED
-#define Util_swkbd_exit()
+#define Util_keyboard_init(...) DEF_ERR_DISABLED
+#define Util_keyboard_set_dic_word(...) DEF_ERR_DISABLED
+#define Util_keyboard_launch(...) DEF_ERR_DISABLED
+#define Util_keyboard_exit()
 
-#endif //DEF_ENABLE_SWKBD_API
+#endif //DEF_KEYBOARD_API_ENABLE
 
-#endif //!defined(DEF_SWKBD_HPP)
+#endif //!defined(DEF_KEYBOARD_HPP)

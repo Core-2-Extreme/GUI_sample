@@ -1,6 +1,6 @@
 #include "system/util/httpc.hpp"
 
-#if DEF_ENABLE_HTTPC_API
+#if DEF_HTTPC_API_ENABLE
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -23,7 +23,7 @@ bool util_httpc_init = false;
 static uint32_t Util_httpc_request(httpcContext* httpc_context, const char* url, HTTPC_RequestMethod method, uint8_t* post_data, uint32_t post_data_size);
 static uint32_t Util_httpc_get_request(httpcContext* httpc_context, const char* url);
 static uint32_t Util_httpc_post_request(httpcContext* httpc_context, const char* url, uint8_t* post_data, uint32_t post_data_size);
-static void Util_httpc_get_response(httpcContext* httpc_context, uint16_t* status_code, Util_str* new_url, bool* redirected);
+static void Util_httpc_get_response(httpcContext* httpc_context, uint16_t* status_code, Str_data* new_url, bool* redirected);
 static uint32_t Util_httpc_download_data(httpcContext* httpc_context, uint8_t** data, uint32_t max_size, uint32_t* downloaded_size);
 static void Util_httpc_close(httpcContext* httpc_context);
 static uint32_t Util_httpc_save_data(httpcContext* httpc_context, uint32_t buffer_size, uint32_t* downloaded_size, const char* dir_path, const char* file_name);
@@ -69,12 +69,12 @@ void Util_httpc_exit(void)
 }
 
 uint32_t Util_httpc_dl_data(const char* url, uint8_t** data, uint32_t max_size, uint32_t* downloaded_size,
-uint16_t* status_code, uint16_t max_redirect, Util_str* last_url)
+uint16_t* status_code, uint16_t max_redirect, Str_data* last_url)
 {
 	uint16_t redirected = 0;
 	uint32_t result = DEF_ERR_OTHER;
 	httpcContext httpc_context = { 0, };
-	Util_str current_url = { 0, };
+	Str_data current_url = { 0, };
 
 	if(!util_httpc_init)
 		goto not_inited;
@@ -175,12 +175,12 @@ uint16_t* status_code, uint16_t max_redirect, Util_str* last_url)
 }
 
 uint32_t Util_httpc_save_data(const char* url, uint32_t buffer_size, uint32_t* downloaded_size, uint16_t* status_code,
-uint16_t max_redirect, Util_str* last_url, const char* dir_path, const char* file_name)
+uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* file_name)
 {
 	uint16_t redirected = 0;
 	uint32_t result = DEF_ERR_OTHER;
 	httpcContext httpc_context = { 0, };
-	Util_str current_url = { 0, };
+	Str_data current_url = { 0, };
 
 	if(!util_httpc_init)
 		goto not_inited;
@@ -281,13 +281,13 @@ uint16_t max_redirect, Util_str* last_url, const char* dir_path, const char* fil
 }
 
 uint32_t Util_httpc_post_and_dl_data(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data, uint32_t max_dl_size,
-uint32_t* downloaded_size, uint16_t* status_code, uint16_t max_redirect, Util_str* last_url)
+uint32_t* downloaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url)
 {
 	bool post = true;
 	uint16_t redirected = 0;
 	uint32_t result = DEF_ERR_OTHER;
 	httpcContext httpc_context = { 0, };
-	Util_str current_url = { 0, };
+	Str_data current_url = { 0, };
 
 	if(!util_httpc_init)
 		goto not_inited;
@@ -395,13 +395,13 @@ uint32_t* downloaded_size, uint16_t* status_code, uint16_t max_redirect, Util_st
 }
 
 uint32_t Util_httpc_post_and_save_data(const char* url, uint8_t* post_data, uint32_t post_size, uint32_t buffer_size, uint32_t* downloaded_size,
-uint16_t* status_code, uint16_t max_redirect, Util_str* last_url, const char* dir_path, const char* file_name)
+uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* file_name)
 {
 	bool post = true;
 	uint16_t redirected = 0;
 	uint32_t result = DEF_ERR_OTHER;
 	httpcContext httpc_context = { 0, };
-	Util_str current_url = { 0, };
+	Str_data current_url = { 0, };
 
 	if(!util_httpc_init)
 		goto not_inited;
@@ -545,7 +545,7 @@ static uint32_t Util_httpc_request(httpcContext* httpc_context, const char* url,
 		goto nintendo_api_failed;
 	}
 
-	result = httpcAddRequestHeaderField(httpc_context, "User-Agent", DEF_HTTP_USER_AGENT);
+	result = httpcAddRequestHeaderField(httpc_context, "User-Agent", DEF_MENU_HTTP_USER_AGENT);
 	if (result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(httpcAddRequestHeaderField, false, result);
@@ -586,7 +586,7 @@ static uint32_t Util_httpc_post_request(httpcContext* httpc_context, const char*
 	return Util_httpc_request(httpc_context, url, HTTPC_METHOD_POST, post_data, post_data_size);
 }
 
-static void Util_httpc_get_response(httpcContext* httpc_context, uint16_t* status_code, Util_str* new_url, bool* redirected)
+static void Util_httpc_get_response(httpcContext* httpc_context, uint16_t* status_code, Str_data* new_url, bool* redirected)
 {
 	uint32_t result = DEF_ERR_OTHER;
 	char moved_url[4096] = { 0, };

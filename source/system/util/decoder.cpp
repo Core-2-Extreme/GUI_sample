@@ -14,7 +14,7 @@ extern "C"
 #include "system/util/media_types.h"
 }
 
-#if DEF_ENABLE_VIDEO_AUDIO_DECODER_API
+#if DEF_DECODER_VIDEO_AUDIO_API_ENABLE
 
 extern "C"
 {
@@ -25,19 +25,19 @@ extern "C"
 
 #endif
 
-#if DEF_ENABLE_IMAGE_DECODER_API
+#if DEF_DECODER_IMAGE_API_ENABLE
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
 
 #endif
 
-#if DEF_ENABLE_VIDEO_AUDIO_DECODER_API
+#if DEF_DECODER_VIDEO_AUDIO_API_ENABLE
 
 
-static void Util_audio_decoder_exit(uint8_t session);
-static void Util_video_decoder_exit(uint8_t session);
-static void Util_mvd_video_decoder_exit(uint8_t session);
+static void Util_decoder_audio_exit(uint8_t session);
+static void Util_decoder_video_exit(uint8_t session);
+static void Util_decoder_mvd_exit(uint8_t session);
 static void Util_subtitle_decoder_exit(uint8_t session);
 extern "C" void memcpy_asm(uint8_t*, uint8_t*, uint32_t);
 
@@ -105,248 +105,248 @@ MVDSTD_Config util_decoder_mvd_config = { .input_type = MVD_INPUT_H264, .output_
 AVPacket* util_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_CACHE_PACKETS] = { 0, };
 AVFormatContext* util_decoder_format_context[DEF_DECODER_MAX_SESSIONS] = { 0, };
 
-//Translation table for AVPixelFormat -> Pixel_format.
-Pixel_format util_video_decoder_pixel_format_table[AV_PIX_FMT_NB] =
+//Translation table for AVPixelFormat -> Raw_pixel.
+Raw_pixel util_video_decoder_pixel_format_table[AV_PIX_FMT_NB] =
 {
-	PIXEL_FORMAT_YUV420P,
-	PIXEL_FORMAT_YUYV422,
-	PIXEL_FORMAT_RGB888,
-	PIXEL_FORMAT_BGR888,
-	PIXEL_FORMAT_YUV422P,
-	PIXEL_FORMAT_YUV444P,
-	PIXEL_FORMAT_YUV410P,
-	PIXEL_FORMAT_YUV411P,
-	PIXEL_FORMAT_GRAY8,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_YUVJ420P,
-	PIXEL_FORMAT_YUVJ422P,
-	PIXEL_FORMAT_YUVJ444P,
-	PIXEL_FORMAT_UYVY422,
-	PIXEL_FORMAT_UYYVYY411,
-	PIXEL_FORMAT_BGR332,
-	PIXEL_FORMAT_BGR121,
-	PIXEL_FORMAT_BGR121_BYTE,
-	PIXEL_FORMAT_RGB332,
-	PIXEL_FORMAT_RGB121,
-	PIXEL_FORMAT_RGB121_BYTE,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_ARGB8888,
-	PIXEL_FORMAT_RGBA8888,
-	PIXEL_FORMAT_ABGR8888,
-	PIXEL_FORMAT_BGRA8888,
-	PIXEL_FORMAT_GRAY16BE,
-	PIXEL_FORMAT_GRAY16LE,
-	PIXEL_FORMAT_YUV440P,
-	PIXEL_FORMAT_YUVJ440P,
-	PIXEL_FORMAT_YUVA420P,
-	PIXEL_FORMAT_RGB161616BE,
-	PIXEL_FORMAT_RGB161616LE,
-	PIXEL_FORMAT_RGB565BE,
-	PIXEL_FORMAT_RGB565LE,
-	PIXEL_FORMAT_RGB555BE,
-	PIXEL_FORMAT_RGB555LE,
-	PIXEL_FORMAT_BGR565BE,
-	PIXEL_FORMAT_BGR565LE,
-	PIXEL_FORMAT_BGR555BE,
-	PIXEL_FORMAT_BGR555LE,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_YUV420P16LE,
-	PIXEL_FORMAT_YUV420P16BE,
-	PIXEL_FORMAT_YUV422P16LE,
-	PIXEL_FORMAT_YUV422P16BE,
-	PIXEL_FORMAT_YUV444P16LE,
-	PIXEL_FORMAT_YUV444P16BE,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_RGB444LE,
-	PIXEL_FORMAT_RGB444BE,
-	PIXEL_FORMAT_BGR444LE,
-	PIXEL_FORMAT_BGR444BE,
-	PIXEL_FORMAT_GRAYALPHA88,
-	PIXEL_FORMAT_BGR161616BE,
-	PIXEL_FORMAT_BGR161616LE,
-	PIXEL_FORMAT_YUV420P9BE,
-	PIXEL_FORMAT_YUV420P9LE,
-	PIXEL_FORMAT_YUV420P10BE,
-	PIXEL_FORMAT_YUV420P10LE,
-	PIXEL_FORMAT_YUV422P10BE,
-	PIXEL_FORMAT_YUV422P10LE,
-	PIXEL_FORMAT_YUV444P9BE,
-	PIXEL_FORMAT_YUV444P9LE,
-	PIXEL_FORMAT_YUV444P10BE,
-	PIXEL_FORMAT_YUV444P10LE,
-	PIXEL_FORMAT_YUV422P9BE,
-	PIXEL_FORMAT_YUV422P9LE,
-	PIXEL_FORMAT_GBR888P,
-	PIXEL_FORMAT_GBR999PBE,
-	PIXEL_FORMAT_GBR999PLE,
-	PIXEL_FORMAT_GBR101010PBE,
-	PIXEL_FORMAT_GBR101010PLE,
-	PIXEL_FORMAT_GBR161616PBE,
-	PIXEL_FORMAT_GBR161616PLE,
-	PIXEL_FORMAT_YUVA422P,
-	PIXEL_FORMAT_YUVA444P,
-	PIXEL_FORMAT_YUVA420P9BE,
-	PIXEL_FORMAT_YUVA420P9LE,
-	PIXEL_FORMAT_YUVA422P9BE,
-	PIXEL_FORMAT_YUVA422P9LE,
-	PIXEL_FORMAT_YUVA444P9BE,
-	PIXEL_FORMAT_YUVA444P9LE,
-	PIXEL_FORMAT_YUVA420P10BE,
-	PIXEL_FORMAT_YUVA420P10LE,
-	PIXEL_FORMAT_YUVA422P10BE,
-	PIXEL_FORMAT_YUVA422P10LE,
-	PIXEL_FORMAT_YUVA444P10BE,
-	PIXEL_FORMAT_YUVA444P10LE,
-	PIXEL_FORMAT_YUVA420P16BE,
-	PIXEL_FORMAT_YUVA420P16LE,
-	PIXEL_FORMAT_YUVA422P16BE,
-	PIXEL_FORMAT_YUVA422P16LE,
-	PIXEL_FORMAT_YUVA444P16BE,
-	PIXEL_FORMAT_YUVA444P16LE,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_RGBA16161616BE,
-	PIXEL_FORMAT_RGBA16161616LE,
-	PIXEL_FORMAT_BGRA16161616BE,
-	PIXEL_FORMAT_BGRA16161616LE,
-	PIXEL_FORMAT_YVYU422,
-	PIXEL_FORMAT_GRAYALPHA1616BE,
-	PIXEL_FORMAT_GRAYALPHA1616LE,
-	PIXEL_FORMAT_GBRA8888P,
-	PIXEL_FORMAT_GBRA16161616PBE,
-	PIXEL_FORMAT_GBRA16161616PLE,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_YUV420P12BE,
-	PIXEL_FORMAT_YUV420P12LE,
-	PIXEL_FORMAT_YUV420P14BE,
-	PIXEL_FORMAT_YUV420P14LE,
-	PIXEL_FORMAT_YUV422P12BE,
-	PIXEL_FORMAT_YUV422P12LE,
-	PIXEL_FORMAT_YUV422P14BE,
-	PIXEL_FORMAT_YUV422P14LE,
-	PIXEL_FORMAT_YUV444P12BE,
-	PIXEL_FORMAT_YUV444P12LE,
-	PIXEL_FORMAT_YUV444P14BE,
-	PIXEL_FORMAT_YUV444P14LE,
-	PIXEL_FORMAT_GBR121212PBE,
-	PIXEL_FORMAT_GBR121212PLE,
-	PIXEL_FORMAT_GBR141414PBE,
-	PIXEL_FORMAT_GBR141414PLE,
-	PIXEL_FORMAT_YUVJ411P,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_YUV440P10LE,
-	PIXEL_FORMAT_YUV440P10BE,
-	PIXEL_FORMAT_YUV440P12LE,
-	PIXEL_FORMAT_YUV440P12BE,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_GBRA12121212PBE,
-	PIXEL_FORMAT_GBRA12121212PLE,
-	PIXEL_FORMAT_GBRA10101010PBE,
-	PIXEL_FORMAT_GBRA10101010PLE,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_GRAY12BE,
-	PIXEL_FORMAT_GRAY12LE,
-	PIXEL_FORMAT_GRAY10BE,
-	PIXEL_FORMAT_GRAY10LE,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
-	PIXEL_FORMAT_INVALID,
+	RAW_PIXEL_YUV420P,
+	RAW_PIXEL_YUYV422,
+	RAW_PIXEL_RGB888,
+	RAW_PIXEL_BGR888,
+	RAW_PIXEL_YUV422P,
+	RAW_PIXEL_YUV444P,
+	RAW_PIXEL_YUV410P,
+	RAW_PIXEL_YUV411P,
+	RAW_PIXEL_GRAY8,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_YUVJ420P,
+	RAW_PIXEL_YUVJ422P,
+	RAW_PIXEL_YUVJ444P,
+	RAW_PIXEL_UYVY422,
+	RAW_PIXEL_UYYVYY411,
+	RAW_PIXEL_BGR332,
+	RAW_PIXEL_BGR121,
+	RAW_PIXEL_BGR121_BYTE,
+	RAW_PIXEL_RGB332,
+	RAW_PIXEL_RGB121,
+	RAW_PIXEL_RGB121_BYTE,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_ARGB8888,
+	RAW_PIXEL_RGBA8888,
+	RAW_PIXEL_ABGR8888,
+	RAW_PIXEL_BGRA8888,
+	RAW_PIXEL_GRAY16BE,
+	RAW_PIXEL_GRAY16LE,
+	RAW_PIXEL_YUV440P,
+	RAW_PIXEL_YUVJ440P,
+	RAW_PIXEL_YUVA420P,
+	RAW_PIXEL_RGB161616BE,
+	RAW_PIXEL_RGB161616LE,
+	RAW_PIXEL_RGB565BE,
+	RAW_PIXEL_RGB565LE,
+	RAW_PIXEL_RGB555BE,
+	RAW_PIXEL_RGB555LE,
+	RAW_PIXEL_BGR565BE,
+	RAW_PIXEL_BGR565LE,
+	RAW_PIXEL_BGR555BE,
+	RAW_PIXEL_BGR555LE,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_YUV420P16LE,
+	RAW_PIXEL_YUV420P16BE,
+	RAW_PIXEL_YUV422P16LE,
+	RAW_PIXEL_YUV422P16BE,
+	RAW_PIXEL_YUV444P16LE,
+	RAW_PIXEL_YUV444P16BE,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_RGB444LE,
+	RAW_PIXEL_RGB444BE,
+	RAW_PIXEL_BGR444LE,
+	RAW_PIXEL_BGR444BE,
+	RAW_PIXEL_GRAYALPHA88,
+	RAW_PIXEL_BGR161616BE,
+	RAW_PIXEL_BGR161616LE,
+	RAW_PIXEL_YUV420P9BE,
+	RAW_PIXEL_YUV420P9LE,
+	RAW_PIXEL_YUV420P10BE,
+	RAW_PIXEL_YUV420P10LE,
+	RAW_PIXEL_YUV422P10BE,
+	RAW_PIXEL_YUV422P10LE,
+	RAW_PIXEL_YUV444P9BE,
+	RAW_PIXEL_YUV444P9LE,
+	RAW_PIXEL_YUV444P10BE,
+	RAW_PIXEL_YUV444P10LE,
+	RAW_PIXEL_YUV422P9BE,
+	RAW_PIXEL_YUV422P9LE,
+	RAW_PIXEL_GBR888P,
+	RAW_PIXEL_GBR999PBE,
+	RAW_PIXEL_GBR999PLE,
+	RAW_PIXEL_GBR101010PBE,
+	RAW_PIXEL_GBR101010PLE,
+	RAW_PIXEL_GBR161616PBE,
+	RAW_PIXEL_GBR161616PLE,
+	RAW_PIXEL_YUVA422P,
+	RAW_PIXEL_YUVA444P,
+	RAW_PIXEL_YUVA420P9BE,
+	RAW_PIXEL_YUVA420P9LE,
+	RAW_PIXEL_YUVA422P9BE,
+	RAW_PIXEL_YUVA422P9LE,
+	RAW_PIXEL_YUVA444P9BE,
+	RAW_PIXEL_YUVA444P9LE,
+	RAW_PIXEL_YUVA420P10BE,
+	RAW_PIXEL_YUVA420P10LE,
+	RAW_PIXEL_YUVA422P10BE,
+	RAW_PIXEL_YUVA422P10LE,
+	RAW_PIXEL_YUVA444P10BE,
+	RAW_PIXEL_YUVA444P10LE,
+	RAW_PIXEL_YUVA420P16BE,
+	RAW_PIXEL_YUVA420P16LE,
+	RAW_PIXEL_YUVA422P16BE,
+	RAW_PIXEL_YUVA422P16LE,
+	RAW_PIXEL_YUVA444P16BE,
+	RAW_PIXEL_YUVA444P16LE,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_RGBA16161616BE,
+	RAW_PIXEL_RGBA16161616LE,
+	RAW_PIXEL_BGRA16161616BE,
+	RAW_PIXEL_BGRA16161616LE,
+	RAW_PIXEL_YVYU422,
+	RAW_PIXEL_GRAYALPHA1616BE,
+	RAW_PIXEL_GRAYALPHA1616LE,
+	RAW_PIXEL_GBRA8888P,
+	RAW_PIXEL_GBRA16161616PBE,
+	RAW_PIXEL_GBRA16161616PLE,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_YUV420P12BE,
+	RAW_PIXEL_YUV420P12LE,
+	RAW_PIXEL_YUV420P14BE,
+	RAW_PIXEL_YUV420P14LE,
+	RAW_PIXEL_YUV422P12BE,
+	RAW_PIXEL_YUV422P12LE,
+	RAW_PIXEL_YUV422P14BE,
+	RAW_PIXEL_YUV422P14LE,
+	RAW_PIXEL_YUV444P12BE,
+	RAW_PIXEL_YUV444P12LE,
+	RAW_PIXEL_YUV444P14BE,
+	RAW_PIXEL_YUV444P14LE,
+	RAW_PIXEL_GBR121212PBE,
+	RAW_PIXEL_GBR121212PLE,
+	RAW_PIXEL_GBR141414PBE,
+	RAW_PIXEL_GBR141414PLE,
+	RAW_PIXEL_YUVJ411P,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_YUV440P10LE,
+	RAW_PIXEL_YUV440P10BE,
+	RAW_PIXEL_YUV440P12LE,
+	RAW_PIXEL_YUV440P12BE,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_GBRA12121212PBE,
+	RAW_PIXEL_GBRA12121212PLE,
+	RAW_PIXEL_GBRA10101010PBE,
+	RAW_PIXEL_GBRA10101010PLE,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_GRAY12BE,
+	RAW_PIXEL_GRAY12LE,
+	RAW_PIXEL_GRAY10BE,
+	RAW_PIXEL_GRAY10LE,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
+	RAW_PIXEL_INVALID,
 };
 
-//Translation table for AVSampleFormat -> Sample_format.
-Sample_format util_audio_decoder_sample_format_table[AV_SAMPLE_FMT_NB] =
+//Translation table for AVSampleFormat -> Raw_sample.
+Raw_sample util_audio_decoder_sample_format_table[AV_SAMPLE_FMT_NB] =
 {
-	SAMPLE_FORMAT_U8,
-	SAMPLE_FORMAT_S16,
-	SAMPLE_FORMAT_S32,
-	SAMPLE_FORMAT_FLOAT32,
-	SAMPLE_FORMAT_DOUBLE64,
-	SAMPLE_FORMAT_U8P,
-	SAMPLE_FORMAT_S16P,
-	SAMPLE_FORMAT_S32P,
-	SAMPLE_FORMAT_FLOAT32P,
-	SAMPLE_FORMAT_DOUBLE64P,
-	SAMPLE_FORMAT_S64,
-	SAMPLE_FORMAT_S64P,
+	RAW_SAMPLE_U8,
+	RAW_SAMPLE_S16,
+	RAW_SAMPLE_S32,
+	RAW_SAMPLE_FLOAT32,
+	RAW_SAMPLE_DOUBLE64,
+	RAW_SAMPLE_U8P,
+	RAW_SAMPLE_S16P,
+	RAW_SAMPLE_S32P,
+	RAW_SAMPLE_FLOAT32P,
+	RAW_SAMPLE_DOUBLE64P,
+	RAW_SAMPLE_S64,
+	RAW_SAMPLE_S64P,
 };
 
 uint8_t util_audio_decoder_sample_format_size_table[] =
@@ -366,7 +366,7 @@ uint8_t util_audio_decoder_sample_format_size_table[] =
 };
 
 //We can't get rid of this "int" because library uses "int" type as args.
-// void Util_video_decoder_log_callback(void *avcl, int level, const char *fmt, va_list list)
+// void Util_decoder_video_log_callback(void *avcl, int level, const char *fmt, va_list list)
 // {
 // 	if(level > AV_LOG_TRACE)
 // 		return;
@@ -374,13 +374,13 @@ uint8_t util_audio_decoder_sample_format_size_table[] =
 // 	DEF_LOG_VFORMAT(fmt, list);
 // }
 
-void Util_video_decoder_free(void *opaque, uint8_t *data)
+void Util_decoder_video_free(void *opaque, uint8_t *data)
 {
 	Util_safe_linear_free(data);
 }
 
 //We can't get rid of this "int" because library uses "int" type as args.
-int Util_video_decoder_allocate_buffer(AVCodecContext *avctx, AVFrame *frame, int flags)
+int Util_decoder_video_allocate_buffer(AVCodecContext *avctx, AVFrame *frame, int flags)
 {
 	uint32_t width = 0;
 	uint32_t height = 0;
@@ -432,7 +432,7 @@ int Util_video_decoder_allocate_buffer(AVCodecContext *avctx, AVFrame *frame, in
 		{
 			if(frame->data[i])
 			{
-				frame->buf[i] = av_buffer_create(frame->data[i], 0, Util_video_decoder_free, NULL, 0);
+				frame->buf[i] = av_buffer_create(frame->data[i], 0, Util_decoder_video_free, NULL, 0);
 				if(!frame->buf[i])
 				{
 					for(uint8_t k = 0; k < AV_NUM_DATA_POINTERS; k++)
@@ -549,7 +549,7 @@ uint32_t Util_decoder_open_file(const char* path, uint8_t* num_of_audio_tracks, 
 	return DEF_ERR_OTHER;
 }
 
-uint32_t Util_audio_decoder_init(uint8_t num_of_audio_tracks, uint8_t session)
+uint32_t Util_decoder_audio_init(uint8_t num_of_audio_tracks, uint8_t session)
 {
 	int32_t ffmpeg_result = 0;
 
@@ -625,7 +625,7 @@ uint32_t Util_audio_decoder_init(uint8_t num_of_audio_tracks, uint8_t session)
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-void Util_video_decoder_set_enabled_cores(bool frame_threading_cores[4], bool slice_threading_cores[4])
+void Util_decoder_video_set_enabled_cores(bool frame_threading_cores[4], bool slice_threading_cores[4])
 {
 	if(!frame_threading_cores[0] && !frame_threading_cores[1] && !frame_threading_cores[2] && !frame_threading_cores[3]
 	&& !slice_threading_cores[0] && !slice_threading_cores[1] && !slice_threading_cores[2] && !slice_threading_cores[3])
@@ -638,11 +638,11 @@ void Util_video_decoder_set_enabled_cores(bool frame_threading_cores[4], bool sl
 	}
 }
 
-uint32_t Util_video_decoder_init(uint8_t low_resolution, uint8_t num_of_video_tracks, uint8_t num_of_threads, Multi_thread_type thread_type, uint8_t session)
+uint32_t Util_decoder_video_init(uint8_t low_resolution, uint8_t num_of_video_tracks, uint8_t num_of_threads, Media_thread_type thread_type, uint8_t session)
 {
 	int32_t ffmpeg_result = 0;
 
-	if(num_of_video_tracks == 0 || thread_type <= THREAD_TYPE_INVALID || thread_type >= THREAD_TYPE_MAX
+	if(num_of_video_tracks == 0 || thread_type <= MEDIA_THREAD_TYPE_INVALID || thread_type >= MEDIA_THREAD_TYPE_MAX
 	|| num_of_video_tracks > DEF_DECODER_MAX_VIDEO_TRACKS || session >= DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
 
@@ -705,7 +705,7 @@ uint32_t Util_video_decoder_init(uint8_t low_resolution, uint8_t num_of_video_tr
 		else
 			util_video_decoder_context[session][i]->thread_count = num_of_threads;
 
-		if(thread_type == THREAD_TYPE_AUTO)
+		if(thread_type == MEDIA_THREAD_TYPE_AUTO)
 		{
 			if(util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_FRAME_THREADS)
 				util_video_decoder_context[session][i]->thread_type = FF_THREAD_FRAME;
@@ -714,9 +714,9 @@ uint32_t Util_video_decoder_init(uint8_t low_resolution, uint8_t num_of_video_tr
 			else
 				util_video_decoder_context[session][i]->thread_type = FF_THREAD_FRAME;
 		}
-		else if(thread_type == THREAD_TYPE_SLICE && util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_SLICE_THREADS)
+		else if(thread_type == MEDIA_THREAD_TYPE_SLICE && util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_SLICE_THREADS)
 			util_video_decoder_context[session][i]->thread_type = FF_THREAD_SLICE;
-		else if(thread_type == THREAD_TYPE_FRAME && util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_FRAME_THREADS)
+		else if(thread_type == MEDIA_THREAD_TYPE_FRAME && util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_FRAME_THREADS)
 			util_video_decoder_context[session][i]->thread_type = FF_THREAD_FRAME;
 		else
 		{
@@ -735,7 +735,7 @@ uint32_t Util_video_decoder_init(uint8_t low_resolution, uint8_t num_of_video_tr
 		util_video_decoder_context[session][i]->thread_safe_callbacks = 1;
 #pragma GCC diagnostic pop
 
-		util_video_decoder_context[session][i]->get_buffer2 = Util_video_decoder_allocate_buffer;
+		util_video_decoder_context[session][i]->get_buffer2 = Util_decoder_video_allocate_buffer;
 
 		ffmpeg_result = avcodec_open2(util_video_decoder_context[session][i], util_video_decoder_codec[session][i], NULL);
 		if(ffmpeg_result != 0)
@@ -772,7 +772,7 @@ uint32_t Util_video_decoder_init(uint8_t low_resolution, uint8_t num_of_video_tr
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-uint32_t Util_mvd_video_decoder_init(uint8_t session)
+uint32_t Util_decoder_mvd_init(uint8_t session)
 {
 	uint32_t width = 0;
 	uint32_t height = 0;
@@ -845,7 +845,7 @@ uint32_t Util_mvd_video_decoder_init(uint8_t session)
 	return result;
 }
 
-uint32_t Util_subtitle_decoder_init(uint8_t num_of_subtitle_tracks, uint8_t session)
+uint32_t Util_decoder_subtitle_init(uint8_t num_of_subtitle_tracks, uint8_t session)
 {
 	int32_t ffmpeg_result = 0;
 
@@ -920,7 +920,7 @@ uint32_t Util_subtitle_decoder_init(uint8_t num_of_subtitle_tracks, uint8_t sess
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-void Util_audio_decoder_get_info(Audio_info* audio_info, uint8_t audio_index, uint8_t session)
+void Util_decoder_audio_get_info(Media_a_info* audio_info, uint8_t audio_index, uint8_t session)
 {
 	uint32_t size = 0;
 	const char lamg_und[] = "und";
@@ -937,7 +937,7 @@ void Util_audio_decoder_get_info(Audio_info* audio_info, uint8_t audio_index, ui
 	audio_info->ch = util_audio_decoder_context[session][audio_index]->ch_layout.nb_channels;
 	audio_info->duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;
 	if(util_audio_decoder_context[session][audio_index]->sample_fmt < 0 || util_audio_decoder_context[session][audio_index]->sample_fmt >= AV_SAMPLE_FMT_NB)
-		audio_info->sample_format = SAMPLE_FORMAT_INVALID;
+		audio_info->sample_format = RAW_SAMPLE_INVALID;
 	else
 		audio_info->sample_format = util_audio_decoder_sample_format_table[util_audio_decoder_context[session][audio_index]->sample_fmt];
 
@@ -970,7 +970,7 @@ void Util_audio_decoder_get_info(Audio_info* audio_info, uint8_t audio_index, ui
 	audio_info->short_format_name[size] = 0x00;
 }
 
-void Util_video_decoder_get_info(Video_info* video_info, uint8_t video_index, uint8_t session)
+void Util_decoder_video_get_info(Media_v_info* video_info, uint8_t video_index, uint8_t session)
 {
 	uint16_t multiple_of = 0;
 	uint32_t size = 0;
@@ -1019,14 +1019,14 @@ void Util_video_decoder_get_info(Video_info* video_info, uint8_t video_index, ui
 
 	video_info->duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;
 	if(util_video_decoder_context[session][video_index]->thread_type == FF_THREAD_FRAME)
-		video_info->thread_type = THREAD_TYPE_FRAME;
+		video_info->thread_type = MEDIA_THREAD_TYPE_FRAME;
 	else if(util_video_decoder_context[session][video_index]->thread_type == FF_THREAD_SLICE)
-		video_info->thread_type = THREAD_TYPE_SLICE;
+		video_info->thread_type = MEDIA_THREAD_TYPE_SLICE;
 	else
-		video_info->thread_type = THREAD_TYPE_NONE;
+		video_info->thread_type = MEDIA_THREAD_TYPE_NONE;
 
 	if(util_video_decoder_context[session][video_index]->pix_fmt < 0 || util_video_decoder_context[session][video_index]->pix_fmt >= AV_PIX_FMT_NB)
-		video_info->pixel_format = PIXEL_FORMAT_INVALID;
+		video_info->pixel_format = RAW_PIXEL_INVALID;
 	else
 		video_info->pixel_format = util_video_decoder_pixel_format_table[util_video_decoder_context[session][video_index]->pix_fmt];
 
@@ -1047,7 +1047,7 @@ void Util_video_decoder_get_info(Video_info* video_info, uint8_t video_index, ui
 	video_info->short_format_name[size] = 0x00;
 }
 
-void Util_subtitle_decoder_get_info(Subtitle_info* subtitle_info, uint8_t subtitle_index, uint8_t session)
+void Util_decoder_subtitle_get_info(Media_s_info* subtitle_info, uint8_t subtitle_index, uint8_t session)
 {
 	uint32_t size = 0;
 	const char lamg_und[] = "und";
@@ -1173,7 +1173,7 @@ uint32_t Util_decoder_read_packet(uint8_t session)
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-uint32_t Util_decoder_parse_packet(Packet_type* type, uint8_t* packet_index, bool* key_frame, uint8_t session)
+uint32_t Util_decoder_parse_packet(Media_packet_type* type, uint8_t* packet_index, bool* key_frame, uint8_t session)
 {
 	int32_t ffmpeg_result = 0;
 
@@ -1185,7 +1185,7 @@ uint32_t Util_decoder_parse_packet(Packet_type* type, uint8_t* packet_index, boo
 
 	*key_frame = false;
 	*packet_index = UINT8_MAX;
-	*type = PACKET_TYPE_UNKNOWN;
+	*type = MEDIA_PACKET_TYPE_UNKNOWN;
 
 	LightLock_Lock(&util_decoder_cache_packet_mutex[session]);
 	if(util_decoder_available_cache_packet[session] == 0)
@@ -1218,13 +1218,13 @@ uint32_t Util_decoder_parse_packet(Packet_type* type, uint8_t* packet_index, boo
 				goto ffmpeg_api_failed;
 			}
 			*packet_index = i;
-			*type = PACKET_TYPE_AUDIO;
+			*type = MEDIA_PACKET_TYPE_AUDIO;
 			util_audio_decoder_cache_packet_ready[session][i] = true;
 			break;
 		}
 	}
 
-	if(*type == PACKET_TYPE_UNKNOWN)
+	if(*type == MEDIA_PACKET_TYPE_UNKNOWN)
 	{
 		for(uint8_t i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
 		{
@@ -1249,7 +1249,7 @@ uint32_t Util_decoder_parse_packet(Packet_type* type, uint8_t* packet_index, boo
 					goto ffmpeg_api_failed;
 				}
 				*packet_index = i;
-				*type = PACKET_TYPE_VIDEO;
+				*type = MEDIA_PACKET_TYPE_VIDEO;
 				*key_frame = util_video_decoder_cache_packet[session][i]->flags & AV_PKT_FLAG_KEY;
 				util_video_decoder_cache_packet_ready[session][i] = true;
 				break;
@@ -1257,7 +1257,7 @@ uint32_t Util_decoder_parse_packet(Packet_type* type, uint8_t* packet_index, boo
 		}
 	}
 
-	if(*type == PACKET_TYPE_UNKNOWN)
+	if(*type == MEDIA_PACKET_TYPE_UNKNOWN)
 	{
 		for(uint8_t i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
 		{
@@ -1282,7 +1282,7 @@ uint32_t Util_decoder_parse_packet(Packet_type* type, uint8_t* packet_index, boo
 					goto ffmpeg_api_failed;
 				}
 				*packet_index = i;
-				*type = PACKET_TYPE_SUBTITLE;
+				*type = MEDIA_PACKET_TYPE_SUBTITLE;
 				util_subtitle_decoder_cache_packet_ready[session][i] = true;
 				break;
 			}
@@ -1530,7 +1530,7 @@ void Util_decoder_skip_subtitle_packet(uint8_t packet_index, uint8_t session)
 	util_subtitle_decoder_cache_packet_ready[session][packet_index] = false;
 }
 
-void Util_video_decoder_set_raw_image_buffer_size(uint32_t max_num_of_buffer, uint8_t packet_index, uint8_t session)
+void Util_decoder_video_set_raw_image_buffer_size(uint32_t max_num_of_buffer, uint8_t packet_index, uint8_t session)
 {
 	if(session >= DEF_DECODER_MAX_SESSIONS || packet_index >= DEF_DECODER_MAX_VIDEO_TRACKS
 	|| max_num_of_buffer < 3 || max_num_of_buffer > DEF_DECODER_MAX_RAW_IMAGE)
@@ -1543,7 +1543,7 @@ void Util_video_decoder_set_raw_image_buffer_size(uint32_t max_num_of_buffer, ui
 	util_video_decoder_max_raw_image[session][packet_index] = max_num_of_buffer;
 }
 
-void Util_mvd_video_decoder_set_raw_image_buffer_size(uint32_t max_num_of_buffer, uint8_t session)
+void Util_decoder_mvd_set_raw_image_buffer_size(uint32_t max_num_of_buffer, uint8_t session)
 {
 	if(session >= DEF_DECODER_MAX_SESSIONS || max_num_of_buffer < 3 || max_num_of_buffer > DEF_DECODER_MAX_RAW_IMAGE)
 		return;
@@ -1555,7 +1555,7 @@ void Util_mvd_video_decoder_set_raw_image_buffer_size(uint32_t max_num_of_buffer
 	util_mvd_video_decoder_max_raw_image[session] = max_num_of_buffer;
 }
 
-uint32_t Util_video_decoder_get_raw_image_buffer_size(uint8_t packet_index, uint8_t session)
+uint32_t Util_decoder_video_get_raw_image_buffer_size(uint8_t packet_index, uint8_t session)
 {
 	if(session >= DEF_DECODER_MAX_SESSIONS || packet_index >= DEF_DECODER_MAX_VIDEO_TRACKS)
 		return 0;
@@ -1566,7 +1566,7 @@ uint32_t Util_video_decoder_get_raw_image_buffer_size(uint8_t packet_index, uint
 	return util_video_decoder_max_raw_image[session][packet_index];
 }
 
-uint32_t Util_mvd_video_decoder_get_raw_image_buffer_size(uint8_t session)
+uint32_t Util_decoder_mvd_get_raw_image_buffer_size(uint8_t session)
 {
 	if(session >= DEF_DECODER_MAX_SESSIONS)
 		return 0;
@@ -1577,7 +1577,7 @@ uint32_t Util_mvd_video_decoder_get_raw_image_buffer_size(uint8_t session)
 	return util_mvd_video_decoder_max_raw_image[session];
 }
 
-uint32_t Util_audio_decoder_decode(uint32_t* samples, uint8_t** raw_data, double* current_pos, uint8_t packet_index, uint8_t session)
+uint32_t Util_decoder_audio_decode(uint32_t* samples, uint8_t** raw_data, double* current_pos, uint8_t packet_index, uint8_t session)
 {
 	int32_t ffmpeg_result = 0;
 	uint32_t copy_size_per_ch = 0;
@@ -1669,7 +1669,7 @@ uint32_t Util_audio_decoder_decode(uint32_t* samples, uint8_t** raw_data, double
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-uint32_t Util_video_decoder_decode(uint8_t packet_index, uint8_t session)
+uint32_t Util_decoder_video_decode(uint8_t packet_index, uint8_t session)
 {
 	int32_t send_ffmpeg_result = 0;
 	int32_t receive_ffmpeg_result = 0;
@@ -1762,7 +1762,7 @@ uint32_t Util_video_decoder_decode(uint8_t packet_index, uint8_t session)
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-uint32_t Util_mvd_video_decoder_decode(uint8_t session)
+uint32_t Util_decoder_mvd_decode(uint8_t session)
 {
 	bool got_a_frame = false;
 	bool got_a_frame_after_processing_nal_unit = false;
@@ -2066,7 +2066,7 @@ uint32_t Util_mvd_video_decoder_decode(uint8_t session)
 	return result;
 }
 
-uint32_t Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, uint8_t packet_index, uint8_t session)
+uint32_t Util_decoder_subtitle_decode(Media_s_data* subtitle_data, uint8_t packet_index, uint8_t session)
 {
 	int32_t ffmpeg_result = 0;
 	//We can't get rid of this "int" because library uses "int" type as args.
@@ -2274,7 +2274,7 @@ uint32_t Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, uint8_t pack
 	return DEF_ERR_OTHER;
 }
 
-void Util_video_decoder_clear_raw_image(uint8_t packet_index, uint8_t session)
+void Util_decoder_video_clear_raw_image(uint8_t packet_index, uint8_t session)
 {
 	if(session >= DEF_DECODER_MAX_SESSIONS || packet_index >= DEF_DECODER_MAX_VIDEO_TRACKS)
 		return;
@@ -2290,7 +2290,7 @@ void Util_video_decoder_clear_raw_image(uint8_t packet_index, uint8_t session)
 	util_video_decoder_raw_image_current_index[session][packet_index] = 0;
 }
 
-void Util_mvd_video_decoder_clear_raw_image(uint8_t session)
+void Util_decoder_mvd_clear_raw_image(uint8_t session)
 {
 	if(session >= DEF_DECODER_MAX_SESSIONS)
 		return;
@@ -2314,7 +2314,7 @@ void Util_mvd_video_decoder_clear_raw_image(uint8_t session)
 	util_mvd_video_decoder_raw_image_current_index[session] = 0;
 }
 
-uint16_t Util_video_decoder_get_available_raw_image_num(uint8_t packet_index, uint8_t session)
+uint16_t Util_decoder_video_get_available_raw_image_num(uint8_t packet_index, uint8_t session)
 {
 	if(session >= DEF_DECODER_MAX_SESSIONS || packet_index >= DEF_DECODER_MAX_VIDEO_TRACKS)
 		return 0;
@@ -2325,7 +2325,7 @@ uint16_t Util_video_decoder_get_available_raw_image_num(uint8_t packet_index, ui
 		return util_video_decoder_available_raw_image[session][packet_index];
 }
 
-uint16_t Util_mvd_video_decoder_get_available_raw_image_num(uint8_t session)
+uint16_t Util_decoder_mvd_get_available_raw_image_num(uint8_t session)
 {
 	if(session >= DEF_DECODER_MAX_SESSIONS)
 		return 0;
@@ -2336,7 +2336,7 @@ uint16_t Util_mvd_video_decoder_get_available_raw_image_num(uint8_t session)
 		return util_mvd_video_decoder_available_raw_image[session];
 }
 
-uint32_t Util_video_decoder_get_image(uint8_t** raw_data, double* current_pos, uint32_t width, uint32_t height, uint8_t packet_index, uint8_t session)
+uint32_t Util_decoder_video_get_image(uint8_t** raw_data, double* current_pos, uint32_t width, uint32_t height, uint8_t packet_index, uint8_t session)
 {
 	bool is_linear = true;
 	uint32_t cpy_size = 0;
@@ -2350,7 +2350,7 @@ uint32_t Util_video_decoder_get_image(uint8_t** raw_data, double* current_pos, u
 	double current_frame = 0;
 	double timebase = 0;
 
-#if DEF_DECODER_USE_DMA
+#if DEF_DECODER_DMA_ENABLE
 	uint32_t dma_result[3] = { 0, 0, 0, };
 	Handle dma_handle[3] = { 0, 0, 0, };
 	DmaConfig dma_config;
@@ -2403,7 +2403,7 @@ uint32_t Util_video_decoder_get_image(uint8_t** raw_data, double* current_pos, u
 	&& (y_offset + y_size != u_offset || u_offset + uv_size != v_offset))
 		is_linear = false;
 
-#if DEF_DECODER_USE_DMA
+#if DEF_DECODER_DMA_ENABLE
 	if(is_linear)
 	{
 		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, y_offset, cpy_size);
@@ -2475,7 +2475,7 @@ uint32_t Util_video_decoder_get_image(uint8_t** raw_data, double* current_pos, u
 	return DEF_ERR_OUT_OF_MEMORY;
 }
 
-uint32_t Util_mvd_video_decoder_get_image(uint8_t** raw_data, double* current_pos, uint32_t width, uint32_t height, uint8_t session)
+uint32_t Util_decoder_mvd_get_image(uint8_t** raw_data, double* current_pos, uint32_t width, uint32_t height, uint8_t session)
 {
 	uint32_t cpy_size = 0;
 	uint16_t buffer_num = 0;
@@ -2483,7 +2483,7 @@ uint32_t Util_mvd_video_decoder_get_image(uint8_t** raw_data, double* current_po
 	double current_frame = 0;
 	double timebase = 0;
 
-#if DEF_DECODER_USE_DMA
+#if DEF_DECODER_DMA_ENABLE
 	uint32_t dma_result = 0;
 	Handle dma_handle = 0;
 	DmaConfig dma_config;
@@ -2521,7 +2521,7 @@ uint32_t Util_mvd_video_decoder_get_image(uint8_t** raw_data, double* current_po
 
 	cpy_size = (width * height * 2);
 
-#if DEF_DECODER_USE_DMA
+#if DEF_DECODER_DMA_ENABLE
 	svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (uint32_t)util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size);
 
 	dmaConfigInitDefault(&dma_config);
@@ -2569,7 +2569,7 @@ uint32_t Util_mvd_video_decoder_get_image(uint8_t** raw_data, double* current_po
 	return DEF_ERR_OUT_OF_MEMORY;
 }
 
-void Util_video_decoder_skip_image(double* current_pos, uint8_t packet_index, uint8_t session)
+void Util_decoder_video_skip_image(double* current_pos, uint8_t packet_index, uint8_t session)
 {
 	uint16_t buffer_num = 0;
 	double framerate = 0;
@@ -2614,7 +2614,7 @@ void Util_video_decoder_skip_image(double* current_pos, uint8_t packet_index, ui
 	LightLock_Unlock(&util_video_decoder_raw_image_mutex[session][packet_index]);
 }
 
-void Util_mvd_video_decoder_skip_image(double* current_pos, uint8_t session)
+void Util_decoder_mvd_skip_image(double* current_pos, uint8_t session)
 {
 	uint16_t buffer_num = 0;
 	double framerate = 0;
@@ -2660,7 +2660,7 @@ void Util_mvd_video_decoder_skip_image(double* current_pos, uint8_t session)
 	LightLock_Unlock(&util_mvd_video_decoder_raw_image_mutex[session]);
 }
 
-uint32_t Util_decoder_seek(uint64_t seek_pos, Seek_flag flag, uint8_t session)
+uint32_t Util_decoder_seek(uint64_t seek_pos, Media_seek_flag flag, uint8_t session)
 {
 	int32_t ffmpeg_result = 0;
 	int32_t ffmpeg_seek_flag = 0;
@@ -2671,13 +2671,13 @@ uint32_t Util_decoder_seek(uint64_t seek_pos, Seek_flag flag, uint8_t session)
 	if(!util_decoder_opened_file[session])
 		goto not_inited;
 
-	if(flag & SEEK_FLAG_BACKWARD)
+	if(flag & MEDIA_SEEK_FLAG_BACKWARD)
 		ffmpeg_seek_flag |= AVSEEK_FLAG_BACKWARD;
-	if(flag & SEEK_FLAG_BYTE)
+	if(flag & MEDIA_SEEK_FLAG_BYTE)
 		ffmpeg_seek_flag |= AVSEEK_FLAG_BYTE;
-	if(flag & SEEK_FLAG_ANY)
+	if(flag & MEDIA_SEEK_FLAG_ANY)
 		ffmpeg_seek_flag |= AVSEEK_FLAG_ANY;
-	if(flag & SEEK_FLAG_FRAME)
+	if(flag & MEDIA_SEEK_FLAG_FRAME)
 		ffmpeg_seek_flag |= AVSEEK_FLAG_FRAME;
 
 	ffmpeg_result = avformat_seek_file(util_decoder_format_context[session], -1, INT64_MIN, seek_pos * 1000, INT64_MAX, ffmpeg_seek_flag);
@@ -2708,9 +2708,9 @@ void Util_decoder_close_file(uint8_t session)
 		return;
 
 	util_decoder_opened_file[session] = false;
-	Util_audio_decoder_exit(session);
-	Util_video_decoder_exit(session);
-	Util_mvd_video_decoder_exit(session);
+	Util_decoder_audio_exit(session);
+	Util_decoder_video_exit(session);
+	Util_decoder_mvd_exit(session);
 	Util_subtitle_decoder_exit(session);
 	for(uint16_t i = 0; i < DEF_DECODER_MAX_CACHE_PACKETS; i++)
 		av_packet_free(&util_decoder_cache_packet[session][i]);
@@ -2721,7 +2721,7 @@ void Util_decoder_close_file(uint8_t session)
 	avformat_close_input(&util_decoder_format_context[session]);
 }
 
-static void Util_audio_decoder_exit(uint8_t session)
+static void Util_decoder_audio_exit(uint8_t session)
 {
 	for(uint8_t i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 	{
@@ -2738,7 +2738,7 @@ static void Util_audio_decoder_exit(uint8_t session)
 	}
 }
 
-static void Util_video_decoder_exit(uint8_t session)
+static void Util_decoder_video_exit(uint8_t session)
 {
 	for(uint8_t i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
 	{
@@ -2759,7 +2759,7 @@ static void Util_video_decoder_exit(uint8_t session)
 	}
 }
 
-static void Util_mvd_video_decoder_exit(uint8_t session)
+static void Util_decoder_mvd_exit(uint8_t session)
 {
 	if(!util_mvd_video_decoder_init)
 		return;
@@ -2807,9 +2807,9 @@ static void Util_subtitle_decoder_exit(uint8_t session)
 
 #endif
 
-#if DEF_ENABLE_IMAGE_DECODER_API
+#if DEF_DECODER_IMAGE_API_ENABLE
 
-uint32_t Util_image_decoder_decode(const char* path, uint8_t** raw_data, uint32_t* width, uint32_t* height, Pixel_format* format)
+uint32_t Util_decoder_image_decode(const char* path, uint8_t** raw_data, uint32_t* width, uint32_t* height, Raw_pixel* format)
 {
 	//We can't get rid of this "int" because library uses "int" type as args.
 	int ch = 0, w = 0, h = 0;
@@ -2828,13 +2828,13 @@ uint32_t Util_image_decoder_decode(const char* path, uint8_t** raw_data, uint32_
 	*height = h;
 
 	if(ch == 4)
-		*format = PIXEL_FORMAT_RGBA8888;
+		*format = RAW_PIXEL_RGBA8888;
 	else if(ch == 3)
-		*format = PIXEL_FORMAT_RGB888;
+		*format = RAW_PIXEL_RGB888;
 	else if(ch == 2)
-		*format = PIXEL_FORMAT_GRAYALPHA88;
+		*format = RAW_PIXEL_GRAYALPHA88;
 	else
-		*format = PIXEL_FORMAT_GRAY8;
+		*format = RAW_PIXEL_GRAY8;
 
 	return DEF_SUCCESS;
 
@@ -2845,7 +2845,7 @@ uint32_t Util_image_decoder_decode(const char* path, uint8_t** raw_data, uint32_
 	return DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS;
 }
 
-uint32_t Util_image_decoder_decode_data(uint8_t* compressed_data, uint32_t compressed_buffer_size, uint8_t** raw_data, uint32_t* width, uint32_t* height, Pixel_format* format)
+uint32_t Util_decoder_image_decode_data(uint8_t* compressed_data, uint32_t compressed_buffer_size, uint8_t** raw_data, uint32_t* width, uint32_t* height, Raw_pixel* format)
 {
 	//We can't get rid of this "int" because library uses "int" type as args.
 	int ch = 0, w = 0, h = 0;
@@ -2864,13 +2864,13 @@ uint32_t Util_image_decoder_decode_data(uint8_t* compressed_data, uint32_t compr
 	*height = h;
 
 	if(ch == 4)
-		*format = PIXEL_FORMAT_RGBA8888;
+		*format = RAW_PIXEL_RGBA8888;
 	else if(ch == 3)
-		*format = PIXEL_FORMAT_RGB888;
+		*format = RAW_PIXEL_RGB888;
 	else if(ch == 2)
-		*format = PIXEL_FORMAT_GRAYALPHA88;
+		*format = RAW_PIXEL_GRAYALPHA88;
 	else
-		*format = PIXEL_FORMAT_GRAY8;
+		*format = RAW_PIXEL_GRAY8;
 
 	return DEF_SUCCESS;
 

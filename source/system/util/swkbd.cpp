@@ -1,6 +1,6 @@
 #include "system/util/swkbd.hpp"
 
-#if DEF_ENABLE_SWKBD_API
+#if DEF_KEYBOARD_API_ENABLE
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -17,44 +17,44 @@ extern "C"
 }
 
 
-bool util_swkbd_init = false;
-uint32_t util_swkbd_max_length = 0;
-uint32_t util_swkbd_features = 0;
-int32_t util_swkbd_num_of_buttons = 0;
-const char util_swkbd_empty_str[] = "";
-Util_str util_swkbd_hint_text = { 0, };
-Util_str util_swkbd_init_text = { 0, };
-SwkbdValidInput util_swkbd_valid_type = SWKBD_ANYTHING;
-SwkbdPasswordMode util_swkbd_password_mode = SWKBD_PASSWORD_NONE;
-SwkbdType util_swkbd_type = SWKBD_TYPE_NORMAL;
-SwkbdStatusData util_swkbd_state = { 0, };
-SwkbdLearningData util_swkbd_learn_data = { 0, };
-SwkbdDictWord util_swkbd_user_words[DEF_SWKBD_MAX_DIC_WORDS] = { 0, };
-SwkbdState util_swkbd = { 0, };
+bool util_keyboard_init = false;
+uint32_t util_keyboard_max_length = 0;
+uint32_t util_keyboard_features = 0;
+int32_t util_keyboard_num_of_buttons = 0;
+const char util_keyboard_empty_str[] = "";
+Str_data util_keyboard_hint_text = { 0, };
+Str_data util_keyboard_init_text = { 0, };
+SwkbdValidInput util_keyboard_valid_type = SWKBD_ANYTHING;
+SwkbdPasswordMode util_keyboard_password_mode = SWKBD_PASSWORD_NONE;
+SwkbdType util_keyboard_type = SWKBD_TYPE_NORMAL;
+SwkbdStatusData util_keyboard_state = { 0, };
+SwkbdLearningData util_keyboard_learn_data = { 0, };
+SwkbdDictWord util_keyboard_user_words[DEF_KEYBOARD_MAX_DIC_WORDS] = { 0, };
+SwkbdState util_keyboard = { 0, };
 
 
-static uint32_t Util_swkbd_init_internal(Util_swkbd_type type, Util_swkbd_acceptable_input valid_type, Util_swkbd_display_button button_type,
-uint32_t max_length, const char* hint_text, const char* init_text, Util_swkbd_password_mode password_mode, Util_swkbd_features_bit features);
+static uint32_t Util_keyboard_init_internal(Keyboard_type type, Keyboard_acceptable_input valid_type, Keyboard_display_button button_type,
+uint32_t max_length, const char* hint_text, const char* init_text, Keyboard_password_mode password_mode, Keyboard_features_bit features);
 
 
-uint32_t Util_swkbd_init(Util_swkbd_type type, Util_swkbd_acceptable_input valid_type, Util_swkbd_display_button button_type,
-uint32_t max_length, Util_str* hint_text, Util_str* init_text, Util_swkbd_password_mode password_mode, Util_swkbd_features_bit features)
+uint32_t Util_keyboard_init(Keyboard_type type, Keyboard_acceptable_input valid_type, Keyboard_display_button button_type,
+uint32_t max_length, Str_data* hint_text, Str_data* init_text, Keyboard_password_mode password_mode, Keyboard_features_bit features)
 {
 	if(!Util_str_is_valid(hint_text) || !Util_str_is_valid(init_text))
 		goto invalid_arg;
 
-	return Util_swkbd_init_internal(type, valid_type, button_type, max_length, hint_text->buffer, init_text->buffer, password_mode, features);
+	return Util_keyboard_init_internal(type, valid_type, button_type, max_length, hint_text->buffer, init_text->buffer, password_mode, features);
 
 	invalid_arg:
 	return DEF_ERR_INVALID_ARG;
 }
 
-uint32_t Util_swkbd_set_dic_word(Util_str* first_spell, Util_str* full_spell, uint16_t num_of_word)
+uint32_t Util_keyboard_set_dic_word(Str_data* first_spell, Str_data* full_spell, uint16_t num_of_word)
 {
-	if(!util_swkbd_init)
+	if(!util_keyboard_init)
 		goto not_inited;
 
-	if(!first_spell || !full_spell || num_of_word == 0 || num_of_word > DEF_SWKBD_MAX_DIC_WORDS)
+	if(!first_spell || !full_spell || num_of_word == 0 || num_of_word > DEF_KEYBOARD_MAX_DIC_WORDS)
 		goto invalid_arg;
 
 	for(uint8_t i = 0; i < num_of_word; i++)
@@ -64,9 +64,9 @@ uint32_t Util_swkbd_set_dic_word(Util_str* first_spell, Util_str* full_spell, ui
 	}
 
 	for(uint8_t i = 0; i < num_of_word; i++)
-		swkbdSetDictWord(&util_swkbd_user_words[i], first_spell[i].buffer, full_spell[i].buffer);
+		swkbdSetDictWord(&util_keyboard_user_words[i], first_spell[i].buffer, full_spell[i].buffer);
 
-	swkbdSetDictionary(&util_swkbd, util_swkbd_user_words, num_of_word);
+	swkbdSetDictionary(&util_keyboard, util_keyboard_user_words, num_of_word);
 
 	return DEF_SUCCESS;
 
@@ -77,20 +77,20 @@ uint32_t Util_swkbd_set_dic_word(Util_str* first_spell, Util_str* full_spell, ui
 	return DEF_ERR_INVALID_ARG;
 }
 
-uint32_t Util_swkbd_launch(Util_str* out_data, Util_swkbd_button* pressed_button)
+uint32_t Util_keyboard_launch(Str_data* out_data, Keyboard_button* pressed_button)
 {
 	char* input_text = NULL;
 	uint32_t result = DEF_ERR_OTHER;
 	uint32_t input_buffer_size = 0;
 	SwkbdButton button = SWKBD_BUTTON_NONE;
 
-	if(!util_swkbd_init)
+	if(!util_keyboard_init)
 		goto not_inited;
 
 	if(!out_data)//pressed_button can be NULL.
 		goto invalid_arg;
 
-	input_buffer_size = (util_swkbd_max_length * 4);//1 character may have up to 4 bytes.
+	input_buffer_size = (util_keyboard_max_length * 4);//1 character may have up to 4 bytes.
 	input_buffer_size++;//+1 for NULL terminator.
 	input_text = (char*)malloc(input_buffer_size);
 	if(!input_text)
@@ -104,16 +104,16 @@ uint32_t Util_swkbd_launch(Util_str* out_data, Util_swkbd_button* pressed_button
 	}
 
 	memset(input_text, 0x0, input_buffer_size);
-	swkbdInit(&util_swkbd, util_swkbd_type, util_swkbd_num_of_buttons, util_swkbd_max_length);//Number of characters.
-	swkbdSetHintText(&util_swkbd, util_swkbd_hint_text.buffer);
-	swkbdSetValidation(&util_swkbd, util_swkbd_valid_type, 0, 0);
-	swkbdSetInitialText(&util_swkbd, util_swkbd_init_text.buffer);
-	swkbdSetStatusData(&util_swkbd, &util_swkbd_state, true, true);
-	swkbdSetLearningData(&util_swkbd, &util_swkbd_learn_data, true, true);
-	swkbdSetPasswordMode(&util_swkbd, util_swkbd_password_mode);
-	swkbdSetFeatures(&util_swkbd, util_swkbd_features);
+	swkbdInit(&util_keyboard, util_keyboard_type, util_keyboard_num_of_buttons, util_keyboard_max_length);//Number of characters.
+	swkbdSetHintText(&util_keyboard, util_keyboard_hint_text.buffer);
+	swkbdSetValidation(&util_keyboard, util_keyboard_valid_type, 0, 0);
+	swkbdSetInitialText(&util_keyboard, util_keyboard_init_text.buffer);
+	swkbdSetStatusData(&util_keyboard, &util_keyboard_state, true, true);
+	swkbdSetLearningData(&util_keyboard, &util_keyboard_learn_data, true, true);
+	swkbdSetPasswordMode(&util_keyboard, util_keyboard_password_mode);
+	swkbdSetFeatures(&util_keyboard, util_keyboard_features);
 
-	button = swkbdInputText(&util_swkbd, input_text, input_buffer_size);//Number of bytes.
+	button = swkbdInputText(&util_keyboard, input_text, input_buffer_size);//Number of bytes.
 
 	result = Util_str_set(out_data, input_text);
 	if(result != DEF_SUCCESS)
@@ -155,27 +155,27 @@ uint32_t Util_swkbd_launch(Util_str* out_data, Util_swkbd_button* pressed_button
 	return result;
 }
 
-void Util_swkbd_exit(void)
+void Util_keyboard_exit(void)
 {
-	if(!util_swkbd_init)
+	if(!util_keyboard_init)
 		return;
 
-	util_swkbd_init = false;
-	util_swkbd_max_length = 0;
-	util_swkbd_features = 0;
-	util_swkbd_num_of_buttons = 0;
-	util_swkbd_valid_type = SWKBD_ANYTHING;
-	util_swkbd_password_mode = SWKBD_PASSWORD_NONE;
-	util_swkbd_type = SWKBD_TYPE_NORMAL;
-	swkbdSetDictionary(&util_swkbd, util_swkbd_user_words, 0);
+	util_keyboard_init = false;
+	util_keyboard_max_length = 0;
+	util_keyboard_features = 0;
+	util_keyboard_num_of_buttons = 0;
+	util_keyboard_valid_type = SWKBD_ANYTHING;
+	util_keyboard_password_mode = SWKBD_PASSWORD_NONE;
+	util_keyboard_type = SWKBD_TYPE_NORMAL;
+	swkbdSetDictionary(&util_keyboard, util_keyboard_user_words, 0);
 }
 
-static uint32_t Util_swkbd_init_internal(Util_swkbd_type type, Util_swkbd_acceptable_input valid_type, Util_swkbd_display_button button_type,
-uint32_t max_length, const char* hint_text, const char* init_text, Util_swkbd_password_mode password_mode, Util_swkbd_features_bit features)
+static uint32_t Util_keyboard_init_internal(Keyboard_type type, Keyboard_acceptable_input valid_type, Keyboard_display_button button_type,
+uint32_t max_length, const char* hint_text, const char* init_text, Keyboard_password_mode password_mode, Keyboard_features_bit features)
 {
 	uint32_t result = DEF_ERR_OTHER;
 
-	if(util_swkbd_init)
+	if(util_keyboard_init)
 		goto already_init;
 
 	if(type <= KEYBOARD_TYPE_INVALID || type >= KEYBOARD_TYPE_MAX || valid_type <= KEYBOARD_ACCEPTABLE_INPUT_INVALID
@@ -184,28 +184,28 @@ uint32_t max_length, const char* hint_text, const char* init_text, Util_swkbd_pa
 	|| ((features & KEYBOARD_FEATURES_BIT_ALL) != features))
 		goto invalid_arg;
 
-	result = Util_str_init(&util_swkbd_hint_text);
+	result = Util_str_init(&util_keyboard_hint_text);
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Util_str_init, false, result);
 		goto api_error;
 	}
 
-	result = Util_str_init(&util_swkbd_init_text);
+	result = Util_str_init(&util_keyboard_init_text);
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Util_str_init, false, result);
 		goto api_error;
 	}
 
-	result = Util_str_set(&util_swkbd_hint_text, hint_text);
+	result = Util_str_set(&util_keyboard_hint_text, hint_text);
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Util_str_set, false, result);
 		goto api_error;
 	}
 
-	result = Util_str_set(&util_swkbd_init_text, init_text);
+	result = Util_str_set(&util_keyboard_init_text, init_text);
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Util_str_set, false, result);
@@ -213,44 +213,44 @@ uint32_t max_length, const char* hint_text, const char* init_text, Util_swkbd_pa
 	}
 
 	if(type == KEYBOARD_TYPE_NORMAL)
-		util_swkbd_type = SWKBD_TYPE_NORMAL;
+		util_keyboard_type = SWKBD_TYPE_NORMAL;
 	else if(type == KEYBOARD_TYPE_QWERTY)
-		util_swkbd_type = SWKBD_TYPE_QWERTY;
+		util_keyboard_type = SWKBD_TYPE_QWERTY;
 	else if(type == KEYBOARD_TYPE_NUMPAD)
-		util_swkbd_type = SWKBD_TYPE_NUMPAD;
+		util_keyboard_type = SWKBD_TYPE_NUMPAD;
 	else if(type == KEYBOARD_TYPE_WESTERN)
-		util_swkbd_type = SWKBD_TYPE_WESTERN;
+		util_keyboard_type = SWKBD_TYPE_WESTERN;
 
 	if(valid_type == KEYBOARD_ACCEPTABLE_INPUT_ANY)
-		util_swkbd_valid_type = SWKBD_ANYTHING;
+		util_keyboard_valid_type = SWKBD_ANYTHING;
 	else if(valid_type == KEYBOARD_ACCEPTABLE_INPUT_NO_EMPTY)
-		util_swkbd_valid_type = SWKBD_NOTEMPTY_NOTBLANK;
+		util_keyboard_valid_type = SWKBD_NOTEMPTY_NOTBLANK;
 
 	if(button_type == KEYBOARD_DISPLAY_BUTTON_MIDDLE)
-		util_swkbd_num_of_buttons = 1;
+		util_keyboard_num_of_buttons = 1;
 	else if(button_type == KEYBOARD_DISPLAY_BUTTON_LEFT_MIDDLE)
-		util_swkbd_num_of_buttons = 2;
+		util_keyboard_num_of_buttons = 2;
 	else if(button_type == KEYBOARD_DISPLAY_BUTTON_LEFT_MIDDLE_RIGHT)
-		util_swkbd_num_of_buttons = 3;
+		util_keyboard_num_of_buttons = 3;
 
 	if(password_mode == KEYBOARD_PASSWORD_MODE_OFF)
-		util_swkbd_password_mode = SWKBD_PASSWORD_NONE;
+		util_keyboard_password_mode = SWKBD_PASSWORD_NONE;
 	else if(password_mode == KEYBOARD_PASSWORD_MODE_ON_DELAY)
-		util_swkbd_password_mode = SWKBD_PASSWORD_HIDE_DELAY;
+		util_keyboard_password_mode = SWKBD_PASSWORD_HIDE_DELAY;
 	else if(password_mode == KEYBOARD_PASSWORD_MODE_ON)
-		util_swkbd_password_mode = SWKBD_PASSWORD_HIDE;
+		util_keyboard_password_mode = SWKBD_PASSWORD_HIDE;
 
 	if(features & KEYBOARD_FEATURES_BIT_DARKEN_SCREEN)
-		util_swkbd_features |= SWKBD_DARKEN_TOP_SCREEN;
+		util_keyboard_features |= SWKBD_DARKEN_TOP_SCREEN;
 	if(features & KEYBOARD_FEATURES_BIT_PREDICTIVE_INPUT)
-		util_swkbd_features |= SWKBD_PREDICTIVE_INPUT;
+		util_keyboard_features |= SWKBD_PREDICTIVE_INPUT;
 	if(features & KEYBOARD_FEATURES_BIT_MULTILINE)
-		util_swkbd_features |= SWKBD_MULTILINE;
+		util_keyboard_features |= SWKBD_MULTILINE;
 	if(features & KEYBOARD_FEATURES_BIT_ALLOW_HOME)
-		util_swkbd_features |= SWKBD_ALLOW_HOME;
+		util_keyboard_features |= SWKBD_ALLOW_HOME;
 
-	util_swkbd_max_length = max_length;
-	util_swkbd_init = true;
+	util_keyboard_max_length = max_length;
+	util_keyboard_init = true;
 	return DEF_SUCCESS;
 
 	already_init:
@@ -260,8 +260,8 @@ uint32_t max_length, const char* hint_text, const char* init_text, Util_swkbd_pa
 	return DEF_ERR_INVALID_ARG;
 
 	api_error:
-	Util_str_free(&util_swkbd_init_text);
-	Util_str_free(&util_swkbd_hint_text);
+	Util_str_free(&util_keyboard_init_text);
+	Util_str_free(&util_keyboard_hint_text);
 	return result;
 }
 

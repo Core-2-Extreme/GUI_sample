@@ -3,7 +3,7 @@ extern "C"
 #include "system/util/speaker.h"
 }
 
-#if DEF_ENABLE_SPEAKER_API
+#if DEF_SPEAKER_API_ENABLE
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -261,4 +261,4 @@ void Util_speaker_exit(void)
 		util_speaker_music_ch[i] = UINT32_MAX;
 }
 }
-#endif //DEF_ENABLE_SPEAKER_API
+#endif //DEF_SPEAKER_API_ENABLE

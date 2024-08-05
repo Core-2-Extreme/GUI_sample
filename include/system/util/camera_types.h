@@ -1,9 +1,9 @@
-#if !defined(DEF_CAMERA_TYPES_H)
-#define DEF_CAMERA_TYPES_H
+#if !defined(DEF_CAM_TYPES_H)
+#define DEF_CAM_TYPES_H
 #include <stdbool.h>
 #include <stdint.h>
 
-#define DEF_ENABLE_CAM_API				/*(bool)(*/1/*)*/	//Enable camera API.
+#define DEF_CAM_API_ENABLE				/*(bool)(*/true/*)*/	//Enable camera API.
 
 typedef enum
 {
@@ -19,7 +19,7 @@ typedef enum
 	CAM_RES_160x120,
 
 	CAM_RES_MAX,
-} Camera_resolution;
+} Cam_resolution;
 
 typedef enum
 {
@@ -40,7 +40,7 @@ typedef enum
 	CAM_FPS_30_TO_10,
 
 	CAM_FPS_MAX,
-} Camera_framerate;
+} Cam_framerate;
 
 typedef enum
 {
@@ -51,7 +51,7 @@ typedef enum
 	CAM_LENS_CORRECTION_90,
 
 	CAM_LENS_CORRECTION_MAX,
-} Camera_lens_correction;
+} Cam_lens_correction;
 
 typedef enum
 {
@@ -62,7 +62,7 @@ typedef enum
 	CAM_PORT_IN,
 
 	CAM_PORT_MAX,
-} Camera_port;
+} Cam_port;
 
 typedef enum
 {
@@ -81,7 +81,7 @@ typedef enum
 	CAM_CONTRAST_11,
 
 	CAM_CONTRAST_MAX,
-} Camera_contrast;
+} Cam_contrast;
 
 typedef enum
 {
@@ -95,7 +95,7 @@ typedef enum
 	CAM_WHITE_BALANCE_7000K,
 
 	CAM_WHITE_BALANCE_MAX,
-} Camera_white_balance;
+} Cam_white_balance;
 
 typedef enum
 {
@@ -109,6 +109,6 @@ typedef enum
 	CAM_EXPOSURE_5,
 
 	CAM_EXPOSURE_MAX,
-} Camera_exposure;
+} Cam_exposure;
 
-#endif //!defined(DEF_CAMERA_TYPES_H)
+#endif //!defined(DEF_CAM_TYPES_H)

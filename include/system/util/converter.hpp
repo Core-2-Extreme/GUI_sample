@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "system/util/converter_types.h"
 
-#if DEF_ENABLE_SW_FFMPEG_COLOR_CONVERTER_API
+#if DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE
 
 /**
  * @brief Convert color format and/or size.
@@ -12,15 +12,15 @@
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe.
 */
-uint32_t Util_converter_convert_color(Color_converter_parameters* paraeters);
+uint32_t Util_converter_convert_color(Converter_color_parameters* paraeters);
 
 #else
 
 #define Util_converter_convert_color(...) DEF_ERR_DISABLED
 
-#endif //DEF_ENABLE_SW_FFMPEG_COLOR_CONVERTER_API
+#endif //DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE
 
-#if DEF_ENABLE_SW_FFMPEG_AUDIO_CONVERTER_API
+#if DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE
 
 /**
  * @brief Convert audio format and/or sample rate.
@@ -28,15 +28,15 @@ uint32_t Util_converter_convert_color(Color_converter_parameters* paraeters);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe.
 */
-uint32_t Util_converter_convert_audio(Audio_converter_parameters* parameters);
+uint32_t Util_converter_convert_audio(Converter_audio_parameters* parameters);
 
 #else
 
 #define Util_converter_convert_audio(...) DEF_ERR_DISABLED
 
-#endif //DEF_ENABLE_SW_FFMPEG_AUDIO_CONVERTER_API
+#endif //DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE
 
-#if DEF_ENABLE_SW_CONVERTER_API
+#if DEF_CONVERTER_SW_API_ENABLE
 
 /**
  * @brief Convert YUV420P to RGB565LE.
@@ -105,9 +105,9 @@ uint32_t Util_converter_rgb888_rotate_90_degree(uint8_t* rgb888, uint8_t** rotat
 #define Util_converter_rgb888le_to_yuv420p(...) DEF_ERR_DISABLED
 #define Util_converter_rgb565le_to_rgb888le(...) DEF_ERR_DISABLED
 
-#endif //DEF_ENABLE_SW_CONVERTER_API
+#endif //DEF_CONVERTER_SW_API_ENABLE
 
-#if DEF_ENABLE_SW_ASM_CONVERTER_API
+#if DEF_CONVERTER_SW_ASM_API_ENABLE
 
 /**
  * @brief Convert YUV420P to RGB888LE (assembly optimized).
@@ -136,9 +136,9 @@ uint32_t Util_converter_yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t** rgb5
 #define Util_converter_yuv420p_to_rgb888le_asm(...) DEF_ERR_DISABLED
 #define Util_converter_yuv420p_to_rgb565le_asm(...) DEF_ERR_DISABLED
 
-#endif //DEF_ENABLE_SW_ASM_CONVERTER_API
+#endif //DEF_CONVERTER_SW_ASM_API_ENABLE
 
-#if DEF_ENABLE_HW_CONVERTER_API
+#if DEF_CONVERTER_HW_API_ENABLE
 
 /**
  * @brief Initialize a y2r(hardware color converter).
@@ -173,6 +173,6 @@ void Util_converter_y2r_exit(void);
 #define Util_converter_y2r_yuv420p_to_rgb565le(...) DEF_ERR_DISABLED
 #define Util_converter_y2r_exit()
 
-#endif //DEF_ENABLE_HW_CONVERTER_API
+#endif //DEF_CONVERTER_HW_API_ENABLE
 
 #endif //!defined(DEF_CONVERTER_HPP)

@@ -1,9 +1,11 @@
-#if !defined(DEF_ERROR_TYPES_H)
-#define DEF_ERROR_TYPES_H
+#if !defined(DEF_ERR_TYPES_H)
+#define DEF_ERR_TYPES_H
 #include <stdbool.h>
 #include <stdint.h>
 
+//Special naming as DEF_ERR_SUCCESS looks confusing.
 #define DEF_SUCCESS									(uint32_t)(0x00000000)	//Success.
+
 #define DEF_ERR_OTHER								(uint32_t)(0xFFFFFFFF)	//Something went wrong.
 #define DEF_ERR_OUT_OF_MEMORY						(uint32_t)(0xFFFFFFFE)	//Out of memory.
 #define DEF_ERR_OUT_OF_LINEAR_MEMORY				(uint32_t)(0xFFFFFFFD)	//Out of memory.
@@ -42,4 +44,4 @@
 #define DEF_ERR_DECODER_TRY_AGAIN_STR				(const char*)"Try again."
 #define DEF_ERR_DISABLED_STR						(const char*)"This function is disabled."
 
-#endif //!defined(DEF_ERROR_TYPES_H)
+#endif //!defined(DEF_ERR_TYPES_H)

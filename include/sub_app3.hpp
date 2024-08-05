@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "system/util/hid_types.h"
 
-#define DEF_ENABLE_SUB_APP3
+#define DEF_SAPP3_ENABLE
 
 #define DEF_SAPP3_NUM_OF_MSG	(uint16_t)(1)
 //#define DEF_SAPP3_ENABLE_ICON

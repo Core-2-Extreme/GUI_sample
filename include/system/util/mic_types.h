@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define DEF_ENABLE_MIC_API				/*(bool)(*/1/*)*/	//Enable mic API.
+#define DEF_MIC_API_ENABLE				/*(bool)(*/true/*)*/	//Enable mic API.
 
 enum Mic_sample_rate
 {

@@ -3,7 +3,7 @@ extern "C"
 #include "system/util/mic.h"
 }
 
-#if DEF_ENABLE_MIC_API
+#if DEF_MIC_API_ENABLE
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -248,4 +248,4 @@ void Util_mic_exit(void)
 	util_mic_init = false;
 }
 }
-#endif //DEF_ENABLE_MIC_API
+#endif //DEF_MIC_API_ENABLE

@@ -3,12 +3,12 @@ extern "C"
 #include "system/util/camera.h"
 }
 
-#if DEF_ENABLE_CAM_API
+#if DEF_CAM_API_ENABLE
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "system/util/converter_types.h"
 #include "system/util/error_types.h"
+#include "system/util/raw_types.h"
 #include "system/util/util.hpp"
 
 extern "C"
@@ -22,10 +22,10 @@ bool util_cam_init = false;
 uint16_t util_cam_width = 640;
 uint16_t util_cam_height = 480;
 uint32_t util_cam_buffer_size = 0;
-Camera_resolution util_cam_resolution = CAM_RES_640x480;
-Camera_port util_cam_port = CAM_PORT_OUT_RIGHT;
+Cam_resolution util_cam_resolution = CAM_RES_640x480;
+Cam_port util_cam_port = CAM_PORT_OUT_RIGHT;
 
-uint32_t Util_cam_init(Pixel_format color_format)
+uint32_t Util_cam_init(Raw_pixel color_format)
 {
 	uint16_t width = 0;
 	uint16_t height = 0;
@@ -35,9 +35,9 @@ uint32_t Util_cam_init(Pixel_format color_format)
 	if(util_cam_init)
 		goto already_inited;
 
-	if(color_format == PIXEL_FORMAT_RGB565LE)
+	if(color_format == RAW_PIXEL_RGB565LE)
 		color = OUTPUT_RGB_565;
-	else if(color_format == PIXEL_FORMAT_YUV422P)
+	else if(color_format == RAW_PIXEL_YUV422P)
 		color = OUTPUT_YUV_422;
 	else
 		goto invalid_arg;
@@ -230,7 +230,7 @@ uint32_t Util_cam_take_a_picture(uint8_t** raw_data, uint16_t* width, uint16_t* 
 	return result;
 }
 
-uint32_t Util_cam_set_resolution(Camera_resolution resolution_mode)
+uint32_t Util_cam_set_resolution(Cam_resolution resolution_mode)
 {
 	int16_t width = 0;
 	int16_t height = 0;
@@ -329,7 +329,7 @@ uint32_t Util_cam_set_resolution(Camera_resolution resolution_mode)
 	return result;
 }
 
-uint32_t Util_cam_set_fps(Camera_framerate fps_mode)
+uint32_t Util_cam_set_fps(Cam_framerate fps_mode)
 {
 	uint32_t result = DEF_ERR_OTHER;
 	CAMU_FrameRate framerate = FRAME_RATE_15;
@@ -384,7 +384,7 @@ uint32_t Util_cam_set_fps(Camera_framerate fps_mode)
 	return result;
 }
 
-uint32_t Util_cam_set_contrast(Camera_contrast contrast_mode)
+uint32_t Util_cam_set_contrast(Cam_contrast contrast_mode)
 {
 	uint32_t result = DEF_ERR_OTHER;
 	CAMU_Contrast contrast = CONTRAST_PATTERN_01;
@@ -437,7 +437,7 @@ uint32_t Util_cam_set_contrast(Camera_contrast contrast_mode)
 	return result;
 }
 
-uint32_t Util_cam_set_white_balance(Camera_white_balance white_balance_mode)
+uint32_t Util_cam_set_white_balance(Cam_white_balance white_balance_mode)
 {
 	uint32_t result = DEF_ERR_OTHER;
 	CAMU_WhiteBalance white_balance = WHITE_BALANCE_AUTO;
@@ -480,7 +480,7 @@ uint32_t Util_cam_set_white_balance(Camera_white_balance white_balance_mode)
 	return result;
 }
 
-uint32_t Util_cam_set_lens_correction(Camera_lens_correction lens_correction_mode)
+uint32_t Util_cam_set_lens_correction(Cam_lens_correction lens_correction_mode)
 {
 	uint32_t result = DEF_ERR_OTHER;
 	CAMU_LensCorrection lens_correction = LENS_CORRECTION_OFF;
@@ -517,7 +517,7 @@ uint32_t Util_cam_set_lens_correction(Camera_lens_correction lens_correction_mod
 	return result;
 }
 
-uint32_t Util_cam_set_camera(Camera_port camera_port)
+uint32_t Util_cam_set_camera(Cam_port camera_port)
 {
 	uint32_t result = DEF_ERR_OTHER;
 	uint32_t camera = SELECT_OUT2;
@@ -563,7 +563,7 @@ uint32_t Util_cam_set_camera(Camera_port camera_port)
 	return result;
 }
 
-uint32_t Util_cam_set_exposure(Camera_exposure exposure_mode)
+uint32_t Util_cam_set_exposure(Cam_exposure exposure_mode)
 {
 	uint32_t result = DEF_ERR_OTHER;
 
@@ -624,4 +624,4 @@ void Util_cam_exit(void)
 	util_cam_init = false;
 }
 }
-#endif //DEF_ENABLE_CAM_API
+#endif //DEF_CAM_API_ENABLE

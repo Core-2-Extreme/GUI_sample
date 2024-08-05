@@ -5,7 +5,7 @@
 #include "system/util/str_types.h"
 #include "system/types.hpp"
 
-#define DEF_MAX_WATCH_VARIABLES		(uint32_t)(512)
+#define DEF_WATCH_MAX_VARIABLES		(uint32_t)(512)
 
 extern "C" void* __real_malloc(size_t size);
 extern "C" void* __real_realloc(void* ptr, size_t size);
@@ -83,7 +83,7 @@ bool Util_is_watch_changed(Watch_handle_bit handles);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_parse_file(const char* source_data, uint32_t expected_items, Util_str* out_data);
+uint32_t Util_parse_file(const char* source_data, uint32_t expected_items, Str_data* out_data);
 
 /**
  * @brief Convert seconds to time (hh:mm:ss.ms).
@@ -92,7 +92,7 @@ uint32_t Util_parse_file(const char* source_data, uint32_t expected_items, Util_
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_convert_seconds_to_time(double input_seconds, Util_str* time_string);
+uint32_t Util_convert_seconds_to_time(double input_seconds, Str_data* time_string);
 
 /**
  * @brief Convert [\\n], ["] and [\\\\] to escape expression.
@@ -110,7 +110,7 @@ std::string Util_encode_to_escape(std::string in_data);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_load_msg(const char* file_name, Util_str* out_msg, uint32_t num_of_msg);
+uint32_t Util_load_msg(const char* file_name, Str_data* out_msg, uint32_t num_of_msg);
 
 /**
  * @brief Encode to base64.

@@ -1,12 +1,12 @@
-#if !defined(DEF_EXPLORER_HPP)
-#define DEF_EXPLORER_HPP
+#if !defined(DEF_EXPL_HPP)
+#define DEF_EXPL_HPP
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/explorer_types.h"
 #include "system/util/hid_types.h"
 #include "system/util/str_types.h"
 
-#if DEF_ENABLE_EXPL_API
+#if DEF_EXPL_API_ENABLE
 
 /**
  * @brief Initialize a explorer api.
@@ -28,7 +28,7 @@ void Util_expl_exit(void);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
-uint32_t Util_expl_query_current_dir(Util_str* dir_name);
+uint32_t Util_expl_query_current_dir(Str_data* dir_name);
 
 /**
  * @brief Query num of file in current directory.
@@ -53,7 +53,7 @@ uint32_t Util_expl_query_current_file_index(void);
  * @return File name.
  * @warning Thread dangerous (untested)
 */
-uint32_t Util_expl_query_file_name(uint32_t index, Util_str* file_name);
+uint32_t Util_expl_query_file_name(uint32_t index, Str_data* file_name);
 
 /**
  * @brief Query file size.
@@ -87,7 +87,7 @@ bool Util_expl_query_show_flag(void);
  * @param callback (in) Call back for file selection.
  * @warning Thread dangerous (untested)
 */
-void Util_expl_set_callback(void (*callback)(Util_str* file, Util_str* dir));
+void Util_expl_set_callback(void (*callback)(Str_data* file, Str_data* dir));
 
 /**
  * @brief Set call back for cancellation.
@@ -103,7 +103,7 @@ void Util_expl_set_cancel_callback(void (*callback)(void));
  * @param dir_name (in) Directory name.
  * @warning Thread dangerous (untested)
 */
-void Util_expl_set_current_dir(Util_str* dir_name);
+void Util_expl_set_current_dir(Str_data* dir_name);
 
 /**
  * @brief Set explorer show flag.
@@ -145,6 +145,6 @@ void Util_expl_main(Hid_info key);
 #define Util_expl_draw()
 #define Util_expl_main(...)
 
-#endif //DEF_ENABLE_EXPL_API
+#endif //DEF_EXPL_API_ENABLE
 
-#endif //!defined(DEF_EXPLORER_HPP)
+#endif //!defined(DEF_EXPL_HPP)

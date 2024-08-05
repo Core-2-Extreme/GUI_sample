@@ -4,74 +4,72 @@
 #include <stdint.h>
 #include "raw_types.h"
 
-typedef enum
-{
-	VIDEO_CODEC_INVALID = -1,
-
-	VIDEO_CODEC_MJPEG,		//Motion jpeg.
-	VIDEO_CODEC_H264,		//Advanced video coding.
-	VIDEO_CODEC_MPEG4,		//Mpeg4 part 2.
-	VIDEO_CODEC_MPEG2VIDEO,	//Mpeg2 video.
-
-	VIDEO_CODEC_MAX,
-} Video_codec;
+typedef uint8_t Media_seek_flag;
+#define MEDIA_SEEK_FLAG_NONE		(Media_seek_flag)(0 << 0)	//No seek flag.
+#define MEDIA_SEEK_FLAG_BACKWARD	(Media_seek_flag)(1 << 0)	//Seek backward.
+#define MEDIA_SEEK_FLAG_BYTE		(Media_seek_flag)(1 << 1)	//Seek to given byte offset instead of time.
+#define MEDIA_SEEK_FLAG_ANY			(Media_seek_flag)(1 << 2)	//Seek to any location including non key frame.
+#define MEDIA_SEEK_FLAG_FRAME		(Media_seek_flag)(1 << 3)	//Seek to given frame number instead of time.
 
 typedef enum
 {
-	AUDIO_CODEC_INVALID = -1,
+	MEDIA_V_CODEC_INVALID = -1,
 
-	AUDIO_CODEC_AAC,	//Advanced audio coding.
-	AUDIO_CODEC_AC3,	//Audio codec 3.
-	AUDIO_CODEC_MP2,	//Mpeg audio layer 2.
-	AUDIO_CODEC_MP3,	//Mpeg audio layer 3.
+	MEDIA_V_CODEC_MJPEG,		//Motion jpeg.
+	MEDIA_V_CODEC_H264,			//Advanced video coding.
+	MEDIA_V_CODEC_MPEG4,		//Mpeg4 part 2.
+	MEDIA_V_CODEC_MPEG2VIDEO,	//Mpeg2 video.
 
-	AUDIO_CODEC_MAX,
-} Audio_codec;
-
-typedef enum
-{
-	IMAGE_CODEC_INVALID = -1,
-
-	IMAGE_CODEC_PNG,	//Portable network graphic.
-	IMAGE_CODEC_JPG,	//Joint photographic experts group.
-	IMAGE_CODEC_BMP,	//Bitmap.
-	IMAGE_CODEC_TGA,	//Truevision TGA.
-
-	IMAGE_CODEC_MAX,
-} Image_codec;
+	MEDIA_V_CODEC_MAX,
+} Media_v_codec;
 
 typedef enum
 {
-	PACKET_TYPE_INVALID = -1,
+	MEDIA_A_CODEC_INVALID = -1,
 
-	PACKET_TYPE_UNKNOWN,	//This packet contains unknown data.
-	PACKET_TYPE_AUDIO,		//This packet contains audio data.
-	PACKET_TYPE_VIDEO,		//This packet contains video data.
-	PACKET_TYPE_SUBTITLE,	//This packet contains subtitle data.
+	MEDIA_A_CODEC_AAC,	//Advanced audio coding.
+	MEDIA_A_CODEC_AC3,	//Audio codec 3.
+	MEDIA_A_CODEC_MP2,	//Mpeg audio layer 2.
+	MEDIA_A_CODEC_MP3,	//Mpeg audio layer 3.
 
-	PACKET_TYPE_MAX,
-} Packet_type;
-
-typedef enum
-{
-	SEEK_FLAG_NONE		= 0,		//No seek flag.
-	SEEK_FLAG_BACKWARD	= (1 << 1),	//Seek backward.
-	SEEK_FLAG_BYTE		= (1 << 2),	//Seek to given byte offset instead of time.
-	SEEK_FLAG_ANY		= (1 << 3),	//Seek to any location including non key frame.
-	SEEK_FLAG_FRAME		= (1 << 4),	//Seek to given frame number instead of time.
-} Seek_flag;
+	MEDIA_A_CODEC_MAX,
+} Media_a_codec;
 
 typedef enum
 {
-	THREAD_TYPE_INVALID = -1,
+	MEDIA_I_CODEC_INVALID = -1,
 
-	THREAD_TYPE_NONE,	//No multi-threading, using single thread.
-	THREAD_TYPE_FRAME,	//Frame level multi-threading.
-	THREAD_TYPE_SLICE,	//Slice level multi-threading.
-	THREAD_TYPE_AUTO,	//Auto (only used when request multi-threading mode).
+	MEDIA_I_CODEC_PNG,	//Portable network graphic.
+	MEDIA_I_CODEC_JPG,	//Joint photographic experts group.
+	MEDIA_I_CODEC_BMP,	//Bitmap.
+	MEDIA_I_CODEC_TGA,	//Truevision TGA.
 
-	THREAD_TYPE_MAX,
-} Multi_thread_type;
+	MEDIA_I_CODEC_MAX,
+} Media_i_codec;
+
+typedef enum
+{
+	MEDIA_PACKET_TYPE_INVALID = -1,
+
+	MEDIA_PACKET_TYPE_UNKNOWN,		//This packet contains unknown data.
+	MEDIA_PACKET_TYPE_AUDIO,		//This packet contains audio data.
+	MEDIA_PACKET_TYPE_VIDEO,		//This packet contains video data.
+	MEDIA_PACKET_TYPE_SUBTITLE,		//This packet contains subtitle data.
+
+	MEDIA_PACKET_TYPE_MAX,
+} Media_packet_type;
+
+typedef enum
+{
+	MEDIA_THREAD_TYPE_INVALID = -1,
+
+	MEDIA_THREAD_TYPE_NONE,		//No multi-threading, using single thread.
+	MEDIA_THREAD_TYPE_FRAME,	//Frame level multi-threading.
+	MEDIA_THREAD_TYPE_SLICE,	//Slice level multi-threading.
+	MEDIA_THREAD_TYPE_AUTO,		//Auto (only used when request multi-threading mode).
+
+	MEDIA_THREAD_TYPE_MAX,
+} Media_thread_type;
 
 typedef struct
 {
@@ -82,8 +80,8 @@ typedef struct
 	char format_name[96];			//(out) Audio codec name.
 	char short_format_name[16];		//(out) Audio short codec name.
 	char track_lang[16];			//(out) Audio track language.
-	Sample_format sample_format;	//(out) Audio sample format.
-} Audio_info;
+	Raw_sample sample_format;		//(out) Audio sample format.
+} Media_a_info;
 
 typedef struct
 {
@@ -93,20 +91,20 @@ typedef struct
 	uint32_t codec_height;			//(out) Video codec height (actual image height).
 	double framerate;				//(out) Video framerate.
 	double duration;				//(out) Video track duration in seconds.
-	double sar_width;//1			//(out) Sample aspect ratio for width.
-	double sar_height;//1			//(out) Sample aspect ratio for height.
+	double sar_width;				//(out) Sample aspect ratio for width.
+	double sar_height;				//(out) Sample aspect ratio for height.
 	char format_name[96];			//(out) Video codec name.
 	char short_format_name[16];		//(out) Video short codec name.
-	Multi_thread_type thread_type;	//(out) Threading mode.
-	Pixel_format pixel_format;		//(out) Video pixel format.
-} Video_info;
+	Media_thread_type thread_type;	//(out) Threading mode.
+	Raw_pixel pixel_format;			//(out) Video pixel format.
+} Media_v_info;
 
 typedef struct
 {
 	char format_name[96];			//(out) Subtitle codec name.
 	char short_format_name[16];		//(out) Subtitle short codec name.
 	char track_lang[16];			//(out) Subtitle track language.
-} Subtitle_info;
+} Media_s_info;
 
 typedef struct
 {
@@ -118,6 +116,6 @@ typedef struct
 	double start_time;			//(out) Start time in ms for this subtitle data. subtitle should be displayed if (start_time <= current_time <= end_time).
 	double end_time;			//(out) End time in ms for this subtitle data. subtitle should be displayed if (start_time <= current_time <= end_time).
 	char* text;					//(out) Subtitle text.
-} Subtitle_data;
+} Media_s_data;
 
 #endif //!defined(DEF_MEDIA_TYPES_H)

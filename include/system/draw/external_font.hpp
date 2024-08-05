@@ -1,5 +1,5 @@
-#if !defined(DEF_EXTERNAL_FONT_HPP)
-#define DEF_EXTERNAL_FONT_HPP
+#if !defined(DEF_EXFONT_HPP)
+#define DEF_EXFONT_HPP
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/draw/external_font_types.h"
@@ -131,4 +131,4 @@ float texture_size_x, float texture_size_y, uint32_t abgr8888, float* out_width,
 void Exfont_draw_get_text_size(Exfont_one_char* in_part_string, uint32_t num_of_characters, float texture_size_x,
 float texture_size_y, float* out_width, float* out_height);
 
-#endif //!defined(DEF_EXTERNAL_FONT_HPP)
+#endif //!defined(DEF_EXFONT_HPP)

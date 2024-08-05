@@ -3,15 +3,16 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define DEF_MAIN_DIR					/*(const char*)(*/"/GUI_sample/"/*)*/
-#define DEF_HTTP_USER_AGENT				/*(const char*)(*/"gui sample " DEF_CURRENT_APP_VER/*)*/
-#define DEF_CURRENT_APP_VER				/*(const char*)(*/"v0.0.1"/*)*/
-#define DEF_CHECK_INTERNET_URL			/*(const char*)(*/"http://connectivitycheck.gstatic.com/generate_204"/*)*/
-#define DEF_CURRENT_APP_VER_INT			(uint32_t)(1)
+#define DEF_MENU_MAIN_DIR				/*(const char*)(*/"/GUI_sample/"/*)*/
+#define DEF_MENU_HTTP_USER_AGENT		/*(const char*)(*/"gui sample " DEF_MENU_CURRENT_APP_VER/*)*/
+#define DEF_MENU_CURRENT_APP_VER		/*(const char*)(*/"v0.0.1"/*)*/
+#define DEF_MENU_CHECK_INTERNET_URL		/*(const char*)(*/"http://connectivitycheck.gstatic.com/generate_204"/*)*/
+#define DEF_MENU_SEND_APP_INFO_URL		/*(const char*)(*/"https://script.google.com/macros/s/AKfycbyn_blFyKWXCgJr6NIF8x6ETs7CHRN5FXKYEAAIrzV6jPYcCkI/exec"/*)*/
+#define DEF_MENU_CURRENT_APP_VER_INT	(uint32_t)(1)
 
 #define DEF_MENU_NUM_OF_CALLBACKS		(uint16_t)(32)
-#define DEF_SOCKET_BUFFER_SIZE			(uint32_t)(0x40000)
-#define DEF_HTTP_POST_BUFFER_SIZE		(uint32_t)(0x80000)
+#define DEF_MENU_SOCKET_BUFFER_SIZE		(uint32_t)(0x40000)
+#define DEF_MENU_HTTP_POST_BUFFER_SIZE	(uint32_t)(0x80000)
 
 #define DEF_MENU_NUM_OF_MSG				(uint16_t)(5)
 #define DEF_MENU_EXIST_MSG				(uint16_t)(0)

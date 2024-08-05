@@ -32,8 +32,8 @@ bool sapp0_thread_run = false;
 bool sapp0_already_init = false;
 bool sapp0_thread_suspend = true;
 Thread sapp0_init_thread = NULL, sapp0_exit_thread = NULL, sapp0_worker_thread = NULL;
-Util_str sapp0_status = { 0, };
-Util_str sapp0_msg[DEF_SAPP0_NUM_OF_MSG] = { 0, };
+Str_data sapp0_status = { 0, };
+Str_data sapp0_msg[DEF_SAPP0_NUM_OF_MSG] = { 0, };
 Draw_image_data sapp0_image[3] = { 0, };
 
 
@@ -112,11 +112,11 @@ void Sapp0_init(bool draw)
 	Util_add_watch(WATCH_HANDLE_SUB_APP0, &sapp0_status.sequencial_id, sizeof(sapp0_status.sequencial_id));
 
 	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) && var_core_2_available)
-		sapp0_init_thread = threadCreate(Sapp0_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
+		sapp0_init_thread = threadCreate(Sapp0_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
 		APT_SetAppCpuTimeLimit(80);
-		sapp0_init_thread = threadCreate(Sapp0_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+		sapp0_init_thread = threadCreate(Sapp0_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 	}
 
 	while(!sapp0_already_init)
@@ -144,7 +144,7 @@ void Sapp0_exit(bool draw)
 	DEF_LOG_STRING("Exiting...");
 	uint32_t result = DEF_ERR_OTHER;
 
-	sapp0_exit_thread = threadCreate(Sapp0_exit_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	sapp0_exit_thread = threadCreate(Sapp0_exit_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	while(sapp0_already_init)
 	{
@@ -301,7 +301,7 @@ static void Sapp0_init_thread(void* arg)
 	char url[] = "https://user-images.githubusercontent.com/45873899/167138864-b6a9e25e-2dce-49d0-9b5a-d5986e768ad6.png";
 	//If you want to load picture from SD (not from romfs).
 	//char file_path[] = "/test.png";
-	Pixel_format color_format = PIXEL_FORMAT_INVALID;
+	Raw_pixel color_format = RAW_PIXEL_INVALID;
 
 	Util_str_set(&sapp0_status, "Initializing variables...");
 	//Empty.
@@ -313,11 +313,11 @@ static void Sapp0_init_thread(void* arg)
 	//Load picture from romfs (or SD card).
 
 	//1. Decode a picture.
-	DEF_LOG_RESULT_SMART(result, Util_image_decoder_decode(file_path, &buffer, &width, &height, &color_format), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_decoder_image_decode(file_path, &buffer, &width, &height, &color_format), (result == DEF_SUCCESS), result);
 	DEF_LOG_FORMAT("Picture size : %" PRId32 "x%" PRId32, width, height);
 	if(result == DEF_SUCCESS)
 	{
-		Color_converter_parameters parameters = { 0, };
+		Converter_color_parameters parameters = { 0, };
 
 		//2. Convert color format.
 		parameters.source = buffer;
@@ -328,10 +328,10 @@ static void Sapp0_init_thread(void* arg)
 		parameters.out_height = height;
 		parameters.in_color_format = color_format;
 		//If input image has transparency, use FORMAT_ABGR8888 to keep transparency otherwise use FORMAT_RGB565LE.
-		if(color_format == PIXEL_FORMAT_RGBA8888 || color_format == PIXEL_FORMAT_GRAYALPHA88)
-			parameters.out_color_format = PIXEL_FORMAT_ABGR8888;
+		if(color_format == RAW_PIXEL_RGBA8888 || color_format == RAW_PIXEL_GRAYALPHA88)
+			parameters.out_color_format = RAW_PIXEL_ABGR8888;
 		else
-			parameters.out_color_format = PIXEL_FORMAT_RGB565LE;
+			parameters.out_color_format = RAW_PIXEL_RGB565LE;
 
 		DEF_LOG_RESULT_SMART(result, Util_converter_convert_color(&parameters), (result == DEF_SUCCESS), result);
 
@@ -351,7 +351,7 @@ static void Sapp0_init_thread(void* arg)
 
 
 	Util_str_add(&sapp0_status, "\nLoading picture from the Internet...");
-	color_format = PIXEL_FORMAT_INVALID;
+	color_format = RAW_PIXEL_INVALID;
 
 	//Load picture from the Internet.
 
@@ -360,11 +360,11 @@ static void Sapp0_init_thread(void* arg)
 	if(result == DEF_SUCCESS)
 	{
 		//2. Decode a picture.
-		DEF_LOG_RESULT_SMART(result, Util_image_decoder_decode_data(png_data, dled_size, &buffer, &width, &height, &color_format), (result == DEF_SUCCESS), result);
+		DEF_LOG_RESULT_SMART(result, Util_decoder_image_decode_data(png_data, dled_size, &buffer, &width, &height, &color_format), (result == DEF_SUCCESS), result);
 		DEF_LOG_FORMAT("Picture size : %" PRId32 "x%" PRId32, width, height);
 		if(result == DEF_SUCCESS)
 		{
-			Color_converter_parameters parameters = { 0, };
+			Converter_color_parameters parameters = { 0, };
 
 			//3. Convert color format.
 			parameters.source = buffer;
@@ -375,10 +375,10 @@ static void Sapp0_init_thread(void* arg)
 			parameters.out_height = height;
 			parameters.in_color_format = color_format;
 			//If input image has transparency, use FORMAT_ABGR8888 to keep transparency otherwise use FORMAT_RGB565LE.
-			if(color_format == PIXEL_FORMAT_RGBA8888 || color_format == PIXEL_FORMAT_GRAYALPHA88)
-				parameters.out_color_format = PIXEL_FORMAT_ABGR8888;
+			if(color_format == RAW_PIXEL_RGBA8888 || color_format == RAW_PIXEL_GRAYALPHA88)
+				parameters.out_color_format = RAW_PIXEL_ABGR8888;
 			else
-				parameters.out_color_format = PIXEL_FORMAT_RGB565LE;
+				parameters.out_color_format = RAW_PIXEL_RGB565LE;
 
 			DEF_LOG_RESULT_SMART(result, Util_converter_convert_color(&parameters), (result == DEF_SUCCESS), result);
 
@@ -401,7 +401,7 @@ static void Sapp0_init_thread(void* arg)
 
 	Util_str_add(&sapp0_status, "\nStarting threads...");
 	sapp0_thread_run = true;
-	sapp0_worker_thread = threadCreate(Sapp0_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	sapp0_worker_thread = threadCreate(Sapp0_worker_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	sapp0_already_init = true;
 
@@ -444,10 +444,10 @@ static void Sapp0_worker_thread(void* arg)
 
 		}
 		else
-			Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
+			Util_sleep(DEF_THREAD_ACTIVE_SLEEP_TIME);
 
 		while (sapp0_thread_suspend)
-			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
+			Util_sleep(DEF_THREAD_INACTIVE_SLEEP_TIME);
 	}
 
 	DEF_LOG_STRING("Thread exit.");

@@ -278,22 +278,22 @@ uint32_t Draw_convert_to_pos(uint32_t height, uint32_t width, uint32_t img_heigh
 	return pos * pixel_size;
 }
 
-uint32_t Draw_texture_init(Draw_image_data* image, uint16_t tex_size_x, uint16_t tex_size_y, Pixel_format color_format)
+uint32_t Draw_texture_init(Draw_image_data* image, uint16_t tex_size_x, uint16_t tex_size_y, Raw_pixel color_format)
 {
 	GPU_TEXCOLOR color = GPU_RGBA8;
 
 	if(!util_draw_init)
 		goto not_inited;
 
-	if(!image || tex_size_x == 0 || tex_size_y == 0 || (color_format != PIXEL_FORMAT_ABGR8888
-	&& color_format != PIXEL_FORMAT_BGR888 && color_format != PIXEL_FORMAT_RGB565LE))
+	if(!image || tex_size_x == 0 || tex_size_y == 0 || (color_format != RAW_PIXEL_ABGR8888
+	&& color_format != RAW_PIXEL_BGR888 && color_format != RAW_PIXEL_RGB565LE))
 		goto invalid_arg;
 
-	if(color_format == PIXEL_FORMAT_ABGR8888)
+	if(color_format == RAW_PIXEL_ABGR8888)
 		color = GPU_RGBA8;
-	else if(color_format == PIXEL_FORMAT_BGR888)
+	else if(color_format == RAW_PIXEL_BGR888)
 		color = GPU_RGB8;
-	else if(color_format == PIXEL_FORMAT_RGB565LE)
+	else if(color_format == RAW_PIXEL_RGB565LE)
 		color = GPU_RGB565;
 
 	image->subtex = (Tex3DS_SubTexture*)Util_safe_linear_alloc(sizeof(Tex3DS_SubTexture));
@@ -353,14 +353,14 @@ uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* buf, uint
 {
 	uint8_t pixel_size = 0;
 	int16_t copy_size = 0;
-#if DEF_DRAW_USE_DMA
+#if DEF_DRAW_DMA_ENABLE
 	uint32_t dma_result = 0;
 	Handle dma_handle = 0;
 	DmaConfig dma_config;
 #else
 	uint32_t tex_offset = 0;
 	uint32_t buffer_offset = 0;
-#endif //DEF_DRAW_USE_DMA
+#endif //DEF_DRAW_DMA_ENABLE
 
 	if(!util_draw_init)
 		goto not_inited;
@@ -387,7 +387,7 @@ uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* buf, uint
 
 	copy_size = pic_width * 8 * pixel_size;
 
-#if DEF_DRAW_USE_DMA
+#if DEF_DRAW_DMA_ENABLE
 	dmaConfigInitDefault(&dma_config);
 
 	//It should be DMACFG_USE_DST_CONFIG and dma_config.dstCfg instead of dma_config.srcCfg
@@ -414,7 +414,7 @@ uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* buf, uint
 		tex_offset += image->c2d.tex->width * pixel_size * 8;
 		buffer_offset += copy_size;
 	}
-#endif //DEF_DRAW_USE_DMA
+#endif //DEF_DRAW_DMA_ENABLE
 
 	C3D_TexFlush(image->c2d.tex);
 
@@ -826,7 +826,7 @@ void Draw_c(const char* text, float x, float y, float text_size_x, float text_si
 	Draw_internal(text, x, y, text_size_x, text_size_y, abgr8888, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_TOP, 0, 0, DRAW_BACKGROUND_NONE, &dummy, DEF_DRAW_NO_COLOR);
 }
 
-void Draw(Util_str* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888)
+void Draw(Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888)
 {
 	Draw_image_data dummy = { 0, };
 
@@ -845,7 +845,7 @@ Draw_text_align_y y_align, float box_size_x, float box_size_y)
 	Draw_internal(text, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, DRAW_BACKGROUND_NONE, &dummy, DEF_DRAW_NO_COLOR);
 }
 
-void Draw_align(Util_str* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
+void Draw_align(Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
 Draw_text_align_y y_align, float box_size_x, float box_size_y)
 {
 	Draw_image_data dummy = { 0, };
@@ -863,7 +863,7 @@ Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background t
 	Draw_internal(text, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, texture_position, background_image, texture_abgr8888);
 }
 
-void Draw_with_background(Util_str* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
+void Draw_with_background(Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
 Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888)
 {
 	if(!Util_str_has_data(text))
@@ -940,7 +940,7 @@ void Draw_free_texture(uint32_t sheet_map_num)
 void Draw_top_ui(void)
 {
 	Draw_image_data background = { 0, };
-	Util_str temp = { 0, };
+	Str_data temp = { 0, };
 
 	if(!util_draw_init)
 		return;
@@ -1046,7 +1046,7 @@ void Draw_line(float x_0, float y_0, uint32_t abgr8888_0, float x_1, float y_1, 
 	C2D_DrawLine(x_0, y_0, abgr8888_0, x_1, y_1, abgr8888_1, width, 0);
 }
 
-#if DEF_ENABLE_CPU_MONITOR_API
+#if DEF_CPU_USAGE_API_ENABLE
 void Draw_cpu_usage_info(void)
 {
 	uint32_t char_length = 0;
@@ -1067,14 +1067,14 @@ void Draw_cpu_usage_info(void)
 	Draw_with_background_c(msg_cache, 300, 25, 0.4, 0.4, DEF_DRAW_BLACK, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER,
 	100, 60, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
 }
-#endif //DEF_ENABLE_CPU_MONITOR_API
+#endif //DEF_CPU_USAGE_API_ENABLE
 
 static void Draw_debug_info(void)
 {
 	uint32_t color = DEF_DRAW_BLACK;
 	Hid_info key = { 0, };
 	Draw_image_data background = { 0, };
-	Util_str temp = { 0, };
+	Str_data temp = { 0, };
 	char empty_p_h[4] = { ' ', 'p', 'h', 'h' };
 
 	if(!util_draw_init)
@@ -1136,7 +1136,7 @@ static void Draw_debug_info(void)
 	Util_str_format(&temp, "Linear RAM:%.3fMB", (var_free_linear_ram / 1000.0 / 1000.0));
 	Draw_with_background(&temp, 0, 190, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "Watch:%" PRIu32 "/%" PRIu32 "(%.1f%%)", Util_get_watch_total_usage(), DEF_MAX_WATCH_VARIABLES, ((double)Util_get_watch_total_usage() / DEF_MAX_WATCH_VARIABLES * 100));
+	Util_str_format(&temp, "Watch:%" PRIu32 "/%" PRIu32 "(%.1f%%)", Util_get_watch_total_usage(), DEF_WATCH_MAX_VARIABLES, ((double)Util_get_watch_total_usage() / DEF_WATCH_MAX_VARIABLES * 100));
 	Draw_with_background(&temp, 0, 200, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_free(&temp);

@@ -200,7 +200,7 @@ uint32_t Util_file_load_from_rom(const char* file_name, const char* dir_path, ui
 	uint64_t file_size = 0;
 	size_t max_read_size = 0;
 	FILE* handle = 0;
-	Util_str path = { 0, };
+	Str_data path = { 0, };
 
 	if(!file_name || !dir_path || !read_data || max_size == 0 || !read_size)
 		goto invalid_arg;
@@ -436,7 +436,7 @@ uint32_t Util_file_check_file_exist(const char* file_name, const char* dir_path)
 	return result;
 }
 
-uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Util_str* file_name, Expl_file_type* type, uint32_t array_length)
+uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Str_data* file_name, Expl_file_type* type, uint32_t array_length)
 {
 	uint16_t* utf16_dir_path = NULL;
 	uint32_t count = 0;
@@ -560,7 +560,7 @@ static uint32_t Util_file_make_path(const char* file_name, const char* dir_path,
 {
 	uint32_t result = DEF_ERR_OTHER;
 	ssize_t utf_out_size = 0;
-	Util_str path = { 0, };
+	Str_data path = { 0, };
 
 	result = Util_str_init(&path);
 	if(result != DEF_SUCCESS)

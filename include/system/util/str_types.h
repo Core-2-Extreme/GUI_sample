@@ -12,6 +12,6 @@ typedef struct
 	uint32_t capacity;		//Current buffer capacity (without NULL terminator, so (capacity + 1) bytes are allocated).
 	uint32_t length;		//Current string length (without NULL terminator).
 	char* buffer;		    //String buffer.
-} Util_str;
+} Str_data;
 
 #endif //!defined(DEF_STR_TYPES_H)

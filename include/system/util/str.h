@@ -11,7 +11,7 @@
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_str_init(Util_str* string);
+uint32_t Util_str_init(Str_data* string);
 
 /**
  * @brief Free a string struct.
@@ -19,7 +19,7 @@ uint32_t Util_str_init(Util_str* string);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-void Util_str_free(Util_str* string);
+void Util_str_free(Str_data* string);
 
 /**
  * @brief Clear string data.
@@ -27,7 +27,7 @@ void Util_str_free(Util_str* string);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_str_clear(Util_str* string);
+uint32_t Util_str_clear(Str_data* string);
 
 /**
  * @brief Set string data.
@@ -36,7 +36,7 @@ uint32_t Util_str_clear(Util_str* string);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_str_set(Util_str* string, const char* source_string);
+uint32_t Util_str_set(Str_data* string, const char* source_string);
 
 /**
  * @brief Add (append) string data.
@@ -45,7 +45,7 @@ uint32_t Util_str_set(Util_str* string, const char* source_string);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_str_add(Util_str* string, const char* source_string);
+uint32_t Util_str_add(Str_data* string, const char* source_string);
 
 /**
  * @brief Set string data with format.
@@ -55,7 +55,7 @@ uint32_t Util_str_add(Util_str* string, const char* source_string);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_str_format(Util_str* string, const char* format_string, ...);
+uint32_t Util_str_format(Str_data* string, const char* format_string, ...);
 
 /**
  * @brief va_list version of Util_str_format().
@@ -65,7 +65,7 @@ uint32_t Util_str_format(Util_str* string, const char* format_string, ...);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_str_vformat(Util_str* string, const char* format_string, va_list args);
+uint32_t Util_str_vformat(Str_data* string, const char* format_string, va_list args);
 
 /**
  * @brief Same as Util_str_format() except this will append text instead of overwrite old one.
@@ -75,7 +75,7 @@ uint32_t Util_str_vformat(Util_str* string, const char* format_string, va_list a
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_str_format_append(Util_str* string, const char* format_string, ...);
+uint32_t Util_str_format_append(Str_data* string, const char* format_string, ...);
 
 /**
  * @brief va_list version of Util_str_format_append().
@@ -85,7 +85,7 @@ uint32_t Util_str_format_append(Util_str* string, const char* format_string, ...
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_str_vformat_append(Util_str* string, const char* format_string, va_list args);
+uint32_t Util_str_vformat_append(Str_data* string, const char* format_string, va_list args);
 
 /**
  * @brief Resize string buffer size.
@@ -96,7 +96,7 @@ uint32_t Util_str_vformat_append(Util_str* string, const char* format_string, va
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_str_resize(Util_str* string, uint32_t new_capacity);
+uint32_t Util_str_resize(Str_data* string, uint32_t new_capacity);
 
 /**
  * @brief Check if struct is valid (so that safe to access the buffer).
@@ -106,7 +106,7 @@ uint32_t Util_str_resize(Util_str* string, uint32_t new_capacity);
  * @return True if struct is valid, otherwise false.
  * @note Thread safe
 */
-bool Util_str_is_valid(Util_str* string);
+bool Util_str_is_valid(Str_data* string);
 
 /**
  * @brief Check if struct is valid and contains at least 1 character.
@@ -116,6 +116,6 @@ bool Util_str_is_valid(Util_str* string);
  * @return True if struct is valid AND contains at least 1 character, otherwise false.
  * @note Thread safe
 */
-bool Util_str_has_data(Util_str* string);
+bool Util_str_has_data(Str_data* string);
 
 #endif //!defined(DEF_STR_H)

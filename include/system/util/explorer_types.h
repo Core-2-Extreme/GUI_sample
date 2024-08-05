@@ -1,9 +1,9 @@
-#if !defined(DEF_EXPLORER_TYPES_H)
-#define DEF_EXPLORER_TYPES_H
+#if !defined(DEF_EXPL_TYPES_H)
+#define DEF_EXPL_TYPES_H
 #include <stdbool.h>
 #include <stdint.h>
 
-#define DEF_ENABLE_EXPL_API			/*(bool)(*/1/*)*/	//Enable file explorer API.
+#define DEF_EXPL_API_ENABLE			/*(bool)(*/true/*)*/	//Enable file explorer API.
 
 #define DEF_EXPL_MAX_FILES			(uint32_t)(1024)
 #define DEF_EXPL_INVALID_INDEX		(uint32_t)(UINT32_MAX)
@@ -15,4 +15,4 @@
 #define EXPL_FILE_TYPE_HIDDEN		(Expl_file_type)(1 << 3)	//This entry is hidden.
 typedef uint8_t Expl_file_type;
 
-#endif //!defined(DEF_EXPLORER_TYPES_H)
+#endif //!defined(DEF_EXPL_TYPES_H)

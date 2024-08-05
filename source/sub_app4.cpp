@@ -52,10 +52,10 @@ bool sapp4_thread_suspend = true;
 double sapp4_buffer_health = 0;
 double sapp4_last_decoded_pos_ms = 0;
 Thread sapp4_init_thread = NULL, sapp4_exit_thread = NULL, sapp4_worker_thread = NULL;
-Audio_info sapp4_audio_info = { 0, };
-Util_queue sapp4_command_queue = { 0, };
-Util_str sapp4_status = { 0, };
-Util_str sapp4_msg[DEF_SAPP4_NUM_OF_MSG] = { 0, };
+Media_a_info sapp4_audio_info = { 0, };
+Queue_data sapp4_command_queue = { 0, };
+Str_data sapp4_status = { 0, };
+Str_data sapp4_msg[DEF_SAPP4_NUM_OF_MSG] = { 0, };
 Sapp4_speaker_state sapp4_speaker_state = SPEAKER_IDLE;
 
 
@@ -153,11 +153,11 @@ void Sapp4_init(bool draw)
 	Util_add_watch(WATCH_HANDLE_SUB_APP4, &sapp4_status.sequencial_id, sizeof(sapp4_status.sequencial_id));
 
 	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) && var_core_2_available)
-		sapp4_init_thread = threadCreate(Sapp4_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
+		sapp4_init_thread = threadCreate(Sapp4_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
 		APT_SetAppCpuTimeLimit(80);
-		sapp4_init_thread = threadCreate(Sapp4_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+		sapp4_init_thread = threadCreate(Sapp4_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 	}
 
 	while(!sapp4_already_init)
@@ -185,7 +185,7 @@ void Sapp4_exit(bool draw)
 	DEF_LOG_STRING("Exiting...");
 	uint32_t result = DEF_ERR_OTHER;
 
-	sapp4_exit_thread = threadCreate(Sapp4_exit_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	sapp4_exit_thread = threadCreate(Sapp4_exit_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	while(sapp4_already_init)
 	{
@@ -238,7 +238,7 @@ void Sapp4_main(void)
 		if(var_turn_on_top_lcd)
 		{
 			char msg[64] = { 0, };
-			Util_str time = { 0, };
+			Str_data time = { 0, };
 
 			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
@@ -382,7 +382,7 @@ static void Sapp4_init_thread(void* arg)
 
 	Util_str_add(&sapp4_status, "\nStarting threads...");
 	sapp4_thread_run = true;
-	sapp4_worker_thread = threadCreate(Sapp4_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
+	sapp4_worker_thread = threadCreate(Sapp4_worker_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
 
 	sapp4_already_init = true;
 
@@ -430,9 +430,9 @@ static void Sapp4_worker_thread(void* arg)
 		uint32_t result = DEF_ERR_OTHER;
 
 		while (sapp4_thread_suspend)
-			Util_sleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
+			Util_sleep(DEF_THREAD_INACTIVE_SLEEP_TIME);
 
-		result = Util_queue_get(&sapp4_command_queue, &event_id, NULL, DEF_ACTIVE_THREAD_SLEEP_TIME * 20);
+		result = Util_queue_get(&sapp4_command_queue, &event_id, NULL, DEF_THREAD_ACTIVE_SLEEP_TIME * 20);
 		if(result == DEF_SUCCESS)
 		{
 			//Got a command.
@@ -454,12 +454,12 @@ static void Sapp4_worker_thread(void* arg)
 
 					//2. Initialize audio decoder.
 					//Since we only interested in audio here, so we only initialize audio decoder.
-					DEF_LOG_RESULT_SMART(result, Util_audio_decoder_init(num_of_audio, 0), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_decoder_audio_init(num_of_audio, 0), (result == DEF_SUCCESS), result);
 
 					if(result == DEF_SUCCESS)
 					{
 						//3. Get audio info.
-						Util_audio_decoder_get_info(&sapp4_audio_info, 0, 0);
+						Util_decoder_audio_get_info(&sapp4_audio_info, 0, 0);
 
 						//4. Set speaker parameters.
 						DEF_LOG_RESULT_SMART(result, Util_speaker_set_audio_info(0, sapp4_audio_info.ch, sapp4_audio_info.sample_rate),
@@ -519,18 +519,18 @@ static void Sapp4_worker_thread(void* arg)
 				bool is_buffer_full = false;
 				bool key_frame = false;
 				uint8_t packet_index = 0;
-				Packet_type type = PACKET_TYPE_UNKNOWN;
+				Media_packet_type type = MEDIA_PACKET_TYPE_UNKNOWN;
 
 				//2. Parse packet to check what type of packet it is.
 				result = Util_decoder_parse_packet(&type, &packet_index, &key_frame, 0);
 				if(result == DEF_SUCCESS)
 				{
-					if(type == PACKET_TYPE_AUDIO)
+					if(type == MEDIA_PACKET_TYPE_AUDIO)
 					{
 						uint8_t* audio = NULL;
 						uint32_t samples = 0;
 						double pos = 0;
-						Audio_converter_parameters parameters = { 0, };
+						Converter_audio_parameters parameters = { 0, };
 
 						//3. Prepare packet.
 						//Since we are interested in audio, so tell API to we want to use this packet.
@@ -538,7 +538,7 @@ static void Sapp4_worker_thread(void* arg)
 						if(result == DEF_SUCCESS)
 						{
 							//4. Decode audio.
-							result = Util_audio_decoder_decode(&samples, &audio, &pos, packet_index, 0);
+							result = Util_decoder_audio_decode(&samples, &audio, &pos, packet_index, 0);
 							if(result == DEF_SUCCESS)
 							{
 								//Set last decoded frame timestamp.
@@ -556,7 +556,7 @@ static void Sapp4_worker_thread(void* arg)
 								parameters.in_sample_rate = sapp4_audio_info.sample_rate;
 								parameters.in_samples = samples;
 								parameters.out_ch = sapp4_audio_info.ch;
-								parameters.out_sample_format = SAMPLE_FORMAT_S16;
+								parameters.out_sample_format = RAW_SAMPLE_S16;
 								parameters.out_sample_rate = sapp4_audio_info.sample_rate;
 
 								result = Util_converter_convert_audio(&parameters);
@@ -586,7 +586,7 @@ static void Sapp4_worker_thread(void* arg)
 									DEF_LOG_RESULT(Util_converter_convert_audio, false, result);
 							}
 							else
-								DEF_LOG_RESULT(Util_audio_decoder_decode, false, result);
+								DEF_LOG_RESULT(Util_decoder_audio_decode, false, result);
 						}
 						else
 							DEF_LOG_RESULT(Util_decoder_ready_audio_packet, false, result);
@@ -596,9 +596,9 @@ static void Sapp4_worker_thread(void* arg)
 						audio = NULL;
 						parameters.converted = NULL;
 					}
-					else if(type == PACKET_TYPE_VIDEO)//We are not interested in video and subtitle here, so just skip them.
+					else if(type == MEDIA_PACKET_TYPE_VIDEO)//We are not interested in video and subtitle here, so just skip them.
 						Util_decoder_skip_video_packet(packet_index, 0);
-					else if(type == PACKET_TYPE_SUBTITLE)
+					else if(type == MEDIA_PACKET_TYPE_SUBTITLE)
 						Util_decoder_skip_subtitle_packet(packet_index, 0);
 
 					//If speaker buffer is full, break and check for new command, then come back here later.

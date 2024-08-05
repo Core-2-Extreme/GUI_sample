@@ -4,11 +4,11 @@
 #include <stdint.h>
 #include "raw_types.h"
 
-#define DEF_ENABLE_HW_CONVERTER_API					/*(bool)(*/1/*)*/	//Enable hardware color converter API.
-#define DEF_ENABLE_SW_ASM_CONVERTER_API				/*(bool)(*/1/*)*/	//Enable assembly optimized software color converter API.
-#define DEF_ENABLE_SW_CONVERTER_API					/*(bool)(*/1/*)*/	//Enable software color converter API.
-#define DEF_ENABLE_SW_FFMPEG_AUDIO_CONVERTER_API	/*(bool)(*/1/*)*/	//Enable software audio samples converter API. This will use ffmpeg functions.
-#define DEF_ENABLE_SW_FFMPEG_COLOR_CONVERTER_API	/*(bool)(*/1/*)*/	//Enable software color converter API. This will use ffmpeg functions.
+#define DEF_CONVERTER_HW_API_ENABLE					/*(bool)(*/true/*)*/	//Enable hardware color converter API.
+#define DEF_CONVERTER_SW_ASM_API_ENABLE				/*(bool)(*/true/*)*/	//Enable assembly optimized software color converter API.
+#define DEF_CONVERTER_SW_API_ENABLE					/*(bool)(*/true/*)*/	//Enable software color converter API.
+#define DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE	/*(bool)(*/true/*)*/	//Enable software audio samples converter API. This will use ffmpeg functions.
+#define DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE	/*(bool)(*/true/*)*/	//Enable software color converter API. This will use ffmpeg functions.
 
 typedef struct
 {
@@ -18,9 +18,9 @@ typedef struct
 	uint32_t in_height;				//(in)  Source image height.
 	uint32_t out_width;				//(in)  Converted image width.
 	uint32_t out_height;			//(in)  Converted image height.
-	Pixel_format in_color_format;	//(in) Source image pixel format.
-	Pixel_format out_color_format;	//(in) Converted image pixel format.
-} Color_converter_parameters;
+	Raw_pixel in_color_format;		//(in) Source image pixel format.
+	Raw_pixel out_color_format;		//(in) Converted image pixel format.
+} Converter_color_parameters;
 
 typedef struct
 {
@@ -32,8 +32,8 @@ typedef struct
 	uint8_t out_ch;						//(in)  Converted audio ch.
 	uint32_t out_samples;				//(out) Number of converted audio samples per channel.
 	uint32_t out_sample_rate;			//(in)  Converted audio saple rate in Hz.
-	Sample_format in_sample_format;		//(in) Source audio sample format.
-	Sample_format out_sample_format;	//(in) Converted audio sample format.
-} Audio_converter_parameters;
+	Raw_sample in_sample_format;		//(in) Source audio sample format.
+	Raw_sample out_sample_format;		//(in) Converted audio sample format.
+} Converter_audio_parameters;
 
 #endif //!defined(DEF_CONVERTER_TYPES_H)

@@ -1,6 +1,6 @@
 #include "system/util/converter.hpp"
 
-#if DEF_ENABLE_SW_FFMPEG_COLOR_CONVERTER_API
+#if DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -16,8 +16,8 @@ extern "C"
 }
 
 
-//Translation table for Pixel_format -> AVPixelFormat.
-AVPixelFormat util_converter_pixel_format_table[PIXEL_FORMAT_MAX] =
+//Translation table for Raw_pixel -> AVPixelFormat.
+AVPixelFormat util_converter_pixel_format_table[RAW_PIXEL_MAX] =
 {
 	//YUV*
 	AV_PIX_FMT_YUV410P,
@@ -170,15 +170,15 @@ AVPixelFormat util_converter_pixel_format_table[PIXEL_FORMAT_MAX] =
 
 #endif
 
-#if DEF_ENABLE_SW_FFMPEG_AUDIO_CONVERTER_API
+#if DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE
 
 extern "C"
 {
 #include "libswresample/swresample.h"
 }
 
-//Translation table for Sample_format -> AVSampleFormat.
-AVSampleFormat util_converter_sample_format_table[SAMPLE_FORMAT_MAX] =
+//Translation table for Raw_sample -> AVSampleFormat.
+AVSampleFormat util_converter_sample_format_table[RAW_SAMPLE_MAX] =
 {
 	AV_SAMPLE_FMT_U8,
 	AV_SAMPLE_FMT_U8P,
@@ -212,7 +212,7 @@ uint8_t util_converter_sample_format_size_table[] =
 
 #endif
 
-#if DEF_ENABLE_SW_CONVERTER_API
+#if DEF_CONVERTER_SW_API_ENABLE
 
 #define CLIP(x) ((x) > 255 ? 255 : (x) < 0 ? 0 : x)
 // YUV -> RGB
@@ -226,22 +226,22 @@ uint8_t util_converter_sample_format_size_table[] =
 
 #endif
 
-#if DEF_ENABLE_SW_ASM_CONVERTER_API
+#if DEF_CONVERTER_SW_ASM_API_ENABLE
 
 extern "C" void yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t* rgb565, uint32_t width, uint32_t height);
 extern "C" void yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t* rgb888, uint32_t width, uint32_t height);
 
 #endif
 
-#if DEF_ENABLE_HW_CONVERTER_API
+#if DEF_CONVERTER_HW_API_ENABLE
 
 bool util_y2r_init = false;
 
 #endif
 
-#if DEF_ENABLE_SW_FFMPEG_COLOR_CONVERTER_API
+#if DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE
 
-uint32_t Util_converter_convert_color(Color_converter_parameters* parameters)
+uint32_t Util_converter_convert_color(Converter_color_parameters* parameters)
 {
 	//We can't get rid of this "int" because library uses "int" type as args.
 	int src_line_size[4] = { 0, 0, 0, 0, };
@@ -253,7 +253,7 @@ uint32_t Util_converter_convert_color(Color_converter_parameters* parameters)
 	SwsContext* sws_context = NULL;
 
 	if(!parameters || !parameters->source || parameters->in_width == 0 || parameters->in_height == 0 || parameters->out_width == 0 || parameters->out_height == 0
-	|| parameters->in_color_format <= PIXEL_FORMAT_INVALID || parameters->in_color_format >= PIXEL_FORMAT_MAX || parameters->out_color_format <= PIXEL_FORMAT_INVALID || parameters->out_color_format >= PIXEL_FORMAT_MAX)
+	|| parameters->in_color_format <= RAW_PIXEL_INVALID || parameters->in_color_format >= RAW_PIXEL_MAX || parameters->out_color_format <= RAW_PIXEL_INVALID || parameters->out_color_format >= RAW_PIXEL_MAX)
 		goto invalid_arg;
 
 	//Get required buffer size for output data.
@@ -318,9 +318,9 @@ uint32_t Util_converter_convert_color(Color_converter_parameters* parameters)
 
 #endif
 
-#if DEF_ENABLE_SW_FFMPEG_AUDIO_CONVERTER_API
+#if DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE
 
-uint32_t Util_converter_convert_audio(Audio_converter_parameters* parameters)
+uint32_t Util_converter_convert_audio(Converter_audio_parameters* parameters)
 {
 	uint8_t* src_data[AV_NUM_DATA_POINTERS] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
 	uint8_t* dst_data[AV_NUM_DATA_POINTERS] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
@@ -330,8 +330,8 @@ uint32_t Util_converter_convert_audio(Audio_converter_parameters* parameters)
 	SwrContext* swr_context = NULL;
 
 	if(!parameters || !parameters->source || parameters->in_ch == 0 || parameters->in_ch > 8 || parameters->in_sample_rate == 0 || parameters->in_samples == 0
-	|| parameters->in_sample_format <= SAMPLE_FORMAT_INVALID || parameters->in_sample_format >= SAMPLE_FORMAT_MAX || parameters->out_ch == 0 || parameters->out_ch > 8
-	|| parameters->out_sample_rate == 0 || parameters->out_sample_format <= SAMPLE_FORMAT_INVALID || parameters->out_sample_format >= SAMPLE_FORMAT_MAX)
+	|| parameters->in_sample_format <= RAW_SAMPLE_INVALID || parameters->in_sample_format >= RAW_SAMPLE_MAX || parameters->out_ch == 0 || parameters->out_ch > 8
+	|| parameters->out_sample_rate == 0 || parameters->out_sample_format <= RAW_SAMPLE_INVALID || parameters->out_sample_format >= RAW_SAMPLE_MAX)
 		goto invalid_arg;
 
 	parameters->out_samples = 0;
@@ -365,16 +365,16 @@ uint32_t Util_converter_convert_audio(Audio_converter_parameters* parameters)
 	src_data[0] = parameters->source;
 	dst_data[0] = parameters->converted;
 
-	if(parameters->in_sample_format == SAMPLE_FORMAT_U8P || parameters->in_sample_format == SAMPLE_FORMAT_S16P
-	|| parameters->in_sample_format == SAMPLE_FORMAT_S32P || parameters->in_sample_format == SAMPLE_FORMAT_S64P
-	|| parameters->in_sample_format == SAMPLE_FORMAT_FLOAT32P || parameters->in_sample_format == SAMPLE_FORMAT_DOUBLE64P)
+	if(parameters->in_sample_format == RAW_SAMPLE_U8P || parameters->in_sample_format == RAW_SAMPLE_S16P
+	|| parameters->in_sample_format == RAW_SAMPLE_S32P || parameters->in_sample_format == RAW_SAMPLE_S64P
+	|| parameters->in_sample_format == RAW_SAMPLE_FLOAT32P || parameters->in_sample_format == RAW_SAMPLE_DOUBLE64P)
 	{
 		for(uint8_t i = 1; i < parameters->in_ch; i++)
 			src_data[i] = parameters->source + (parameters->in_samples * util_converter_sample_format_size_table[parameters->in_sample_format] * i);
 	}
-	if(parameters->out_sample_format == SAMPLE_FORMAT_U8P || parameters->out_sample_format == SAMPLE_FORMAT_S16P
-	|| parameters->out_sample_format == SAMPLE_FORMAT_S32P || parameters->out_sample_format == SAMPLE_FORMAT_S64P
-	|| parameters->out_sample_format == SAMPLE_FORMAT_FLOAT32P || parameters->out_sample_format == SAMPLE_FORMAT_DOUBLE64P)
+	if(parameters->out_sample_format == RAW_SAMPLE_U8P || parameters->out_sample_format == RAW_SAMPLE_S16P
+	|| parameters->out_sample_format == RAW_SAMPLE_S32P || parameters->out_sample_format == RAW_SAMPLE_S64P
+	|| parameters->out_sample_format == RAW_SAMPLE_FLOAT32P || parameters->out_sample_format == RAW_SAMPLE_DOUBLE64P)
 	{
 		for(uint8_t i = 1; i < parameters->out_ch; i++)
 			dst_data[i] = parameters->converted + (parameters->out_samples * util_converter_sample_format_size_table[parameters->out_sample_format] * i);
@@ -411,7 +411,7 @@ uint32_t Util_converter_convert_audio(Audio_converter_parameters* parameters)
 
 #endif
 
-#if DEF_ENABLE_SW_CONVERTER_API
+#if DEF_CONVERTER_SW_API_ENABLE
 
 uint32_t Util_converter_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t** rgb565, uint32_t width, uint32_t height)
 {
@@ -593,7 +593,7 @@ uint32_t Util_converter_rgb888_rotate_90_degree(uint8_t* rgb888, uint8_t** rotat
 
 #endif
 
-#if DEF_ENABLE_SW_ASM_CONVERTER_API
+#if DEF_CONVERTER_SW_ASM_API_ENABLE
 
 uint32_t Util_converter_yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t** rgb565, uint32_t width, uint32_t height)
 {
@@ -637,7 +637,7 @@ uint32_t Util_converter_yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t** rgb8
 
 #endif
 
-#if DEF_ENABLE_HW_CONVERTER_API
+#if DEF_CONVERTER_HW_API_ENABLE
 
 uint32_t Util_converter_y2r_init(void)
 {

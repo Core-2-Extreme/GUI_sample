@@ -23,7 +23,7 @@ uint32_t util_max_core_1 = 0;
 LightLock util_safe_linear_alloc_mutex = 1, util_watch_variables_mutex = 1;//Initially unlocked state.
 
 uint32_t util_num_of_watch[WATCH_HANDLE_MAX] = { 0, };
-Watch_data util_watch_data[DEF_MAX_WATCH_VARIABLES];
+Watch_data util_watch_data[DEF_WATCH_MAX_VARIABLES];
 
 
 extern "C" void memcpy_asm(uint8_t*, uint8_t*, int);
@@ -147,7 +147,7 @@ uint32_t Util_init(void)
 	for(uint16_t i = 0; i < (uint16_t)WATCH_HANDLE_MAX; i++)
 		util_num_of_watch[i] = 0;
 
-	for(uint32_t i = 0; i < DEF_MAX_WATCH_VARIABLES; i++)
+	for(uint32_t i = 0; i < DEF_WATCH_MAX_VARIABLES; i++)
 	{
 		util_watch_data[i].original_address = NULL;
 		util_watch_data[i].previous_data = NULL;
@@ -218,11 +218,11 @@ uint32_t Util_add_watch(Watch_handle handle, void* variable, uint32_t length)
 	for(uint16_t i = 0; i < (uint16_t)WATCH_HANDLE_MAX; i++)
 		used += util_num_of_watch[i];
 
-	if(used >= DEF_MAX_WATCH_VARIABLES)
+	if(used >= DEF_WATCH_MAX_VARIABLES)
 		goto out_of_memory;
 
 	//Search for free space and register it.
-	for(uint32_t i = 0; i < DEF_MAX_WATCH_VARIABLES; i++)
+	for(uint32_t i = 0; i < DEF_WATCH_MAX_VARIABLES; i++)
 	{
 		if(!util_watch_data[i].original_address)
 		{
@@ -265,7 +265,7 @@ void Util_remove_watch(Watch_handle handle, void* variable)
 	LightLock_Lock(&util_watch_variables_mutex);
 
 	//Search for specified address and remove it if exists.
-	for(uint32_t i = 0; i < DEF_MAX_WATCH_VARIABLES; i++)
+	for(uint32_t i = 0; i < DEF_WATCH_MAX_VARIABLES; i++)
 	{
 		if(util_watch_data[i].original_address == variable && util_watch_data[i].handle == handle)
 		{
@@ -296,7 +296,7 @@ bool Util_is_watch_changed(Watch_handle_bit handles)
 	LightLock_Lock(&util_watch_variables_mutex);
 
 	//Check if any data that is linked with specified handle were changed.
-	for(uint32_t i = 0; i < DEF_MAX_WATCH_VARIABLES; i++)
+	for(uint32_t i = 0; i < DEF_WATCH_MAX_VARIABLES; i++)
 	{
 		if(util_watch_data[i].original_address && util_watch_data[i].handle != WATCH_HANDLE_INVALID
 		&& (handles & (Watch_handle_bit)(1 << util_watch_data[i].handle)))
@@ -316,11 +316,11 @@ bool Util_is_watch_changed(Watch_handle_bit handles)
 	return is_changed;
 }
 
-uint32_t Util_parse_file(const char* source_data, uint32_t expected_items, Util_str* out_data)
+uint32_t Util_parse_file(const char* source_data, uint32_t expected_items, Str_data* out_data)
 {
 	uint32_t result = DEF_ERR_OTHER;
-	Util_str start_text = { 0, };
-	Util_str end_text = { 0, };
+	Str_data start_text = { 0, };
+	Str_data end_text = { 0, };
 
 	if(!out_data || expected_items == 0)
 		goto invalid_arg;
@@ -405,7 +405,7 @@ uint32_t Util_parse_file(const char* source_data, uint32_t expected_items, Util_
 	return result;
 }
 
-uint32_t Util_convert_seconds_to_time(double input_seconds, Util_str* time_string)
+uint32_t Util_convert_seconds_to_time(double input_seconds, Str_data* time_string)
 {
 	uint32_t result = DEF_ERR_OTHER;
 	uint32_t hours = 0;
@@ -468,7 +468,7 @@ std::string Util_encode_to_escape(std::string in_data)
 	return return_data;
 }
 
-uint32_t Util_load_msg(const char* file_name, Util_str* out_msg, uint32_t num_of_msg)
+uint32_t Util_load_msg(const char* file_name, Str_data* out_msg, uint32_t num_of_msg)
 {
 	uint8_t* fs_buffer = NULL;
 	uint32_t read_size = 0;
