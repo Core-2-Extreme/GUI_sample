@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "system/util/error_types.h"
+#include "system/util/err_types.h"
 
 
 static uint32_t Util_str_get_optimal_buffer_capacity(Str_data* string);

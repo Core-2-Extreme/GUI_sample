@@ -6,14 +6,13 @@
 #include "system/menu.hpp"
 #include "system/variables.hpp"
 
-#include "system/draw/draw.hpp"
-
 #include "system/util/util.hpp"
 
 extern "C"
 {
-	#include "system/util/error.h"
-	#include "system/util/explorer.h"
+	#include "system/draw/draw.h"
+	#include "system/util/err.h"
+	#include "system/util/expl.h"
 	#include "system/util/hid.h"
 	#include "system/util/log.h"
 	#include "system/util/str.h"
@@ -21,7 +20,7 @@ extern "C"
 }
 
 //Include myself.
-#include "sub_app1.hpp"
+#include "sapp1.hpp"
 
 
 bool sapp1_main_run = false;

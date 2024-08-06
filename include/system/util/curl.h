@@ -1,5 +1,5 @@
-#if !defined(DEF_CURL_HPP)
-#define DEF_CURL_HPP
+#if !defined(DEF_CURL_H)
+#define DEF_CURL_H
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/curl_types.h"
@@ -149,4 +149,4 @@ const char* file_name, int32_t (*read_callback)(void* buffer, uint32_t max_size,
 
 #endif //DEF_CURL_API_ENABLE
 
-#endif //!defined(DEF_CURL_HPP)
+#endif //!defined(DEF_CURL_H)

@@ -1,5 +1,5 @@
-#if !defined(DEF_LOG_HPP)
-#define DEF_LOG_HPP
+#if !defined(DEF_LOG_H)
+#define DEF_LOG_H
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -224,4 +224,4 @@ void Util_log_main(Hid_info key);
 */
 void Util_log_draw(void);
 
-#endif //!defined(DEF_LOG_HPP)
+#endif //!defined(DEF_LOG_H)

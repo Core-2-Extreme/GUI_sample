@@ -1,18 +1,18 @@
 extern "C"
 {
-#include "system/util/camera.h"
+#include "system/util/cam.h"
 }
 
 #if DEF_CAM_API_ENABLE
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "system/util/error_types.h"
-#include "system/util/raw_types.h"
 #include "system/util/util.hpp"
 
 extern "C"
 {
+#include "system/util/err_types.h"
+#include "system/util/raw_types.h"
 #include "system/util/log.h"
 }
 

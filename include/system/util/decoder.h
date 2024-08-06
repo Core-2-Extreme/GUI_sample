@@ -1,5 +1,5 @@
-#if !defined(DEF_DECODER_HPP)
-#define DEF_DECODER_HPP
+#if !defined(DEF_DECODER_H)
+#define DEF_DECODER_H
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/decoder_types.h"
@@ -452,4 +452,4 @@ uint32_t Util_decoder_image_decode_data(uint8_t* compressed_data, uint32_t compr
 
 #endif //DEF_DECODER_IMAGE_API_ENABLE
 
-#endif //!defined(DEF_DECODER_HPP)
+#endif //!defined(DEF_DECODER_H)

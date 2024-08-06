@@ -1,5 +1,5 @@
-#if !defined(DEF_FAKE_PTHREAD_HPP)
-#define DEF_FAKE_PTHREAD_HPP
+#if !defined(DEF_FAKE_PTHREAD_H)
+#define DEF_FAKE_PTHREAD_H
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -9,6 +9,6 @@
  * @param enabled_core (in) Enabled cores.
  * @warning Thread dangerous (untested)
 */
-extern "C" void Util_fake_pthread_set_enabled_core(bool enabled_core[4]);
+void Util_fake_pthread_set_enabled_core(bool enabled_core[4]);
 
-#endif //!defined(DEF_FAKE_PTHREAD_HPP)
+#endif //!defined(DEF_FAKE_PTHREAD_H)

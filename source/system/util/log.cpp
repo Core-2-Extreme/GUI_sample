@@ -10,13 +10,11 @@ extern "C"
 
 #include "system/variables.hpp"
 
-#include "system/draw/draw.hpp"
-
-#include "system/util/error_types.h"
-#include "system/util/file.hpp"
-
 extern "C"
 {
+	#include "system/draw/draw.h"
+	#include "system/util/err_types.h"
+	#include "system/util/file.h"
 	#include "system/util/str.h"
 }
 

@@ -1,4 +1,4 @@
-#include "system/util/swkbd.hpp"
+#include "system/util/keyboard.h"
 
 #if DEF_KEYBOARD_API_ENABLE
 #include <stdbool.h>
@@ -6,12 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "3ds.h"
-
-#include "system/util/error_types.h"
-
 extern "C"
 {
+#include "3ds.h"
+
+#include "system/util/err_types.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
 }

@@ -8,16 +8,9 @@ extern "C"
 
 extern "C"
 {
-#include <3ds/types.h>
-#include <3ds/services/apt.h>
-#include <3ds/services/gsplcd.h>
-#include <3ds/services/nwmext.h>
-#include <3ds/services/ptmsysm.h>
-}
+#include "3ds.h"
 
-#include "system/util/error_types.h"
-extern "C"
-{
+#include "system/util/err_types.h"
 #include "system/util/log.h"
 }
 

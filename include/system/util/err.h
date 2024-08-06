@@ -1,8 +1,8 @@
-#if !defined(DEF_ERROR_HPP)
-#define DEF_ERROR_HPP
+#if !defined(DEF_ERR_H)
+#define DEF_ERR_H
 #include <stdbool.h>
 #include <stdint.h>
-#include "system/util/error_types.h"
+#include "system/util/err_types.h"
 #include "system/util/hid_types.h"
 
 /**
@@ -82,4 +82,4 @@ void Util_err_main(Hid_info key);
 */
 void Util_err_draw(void);
 
-#endif //!defined(DEF_ERROR_HPP)
+#endif //!defined(DEF_ERR_H)

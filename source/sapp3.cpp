@@ -6,18 +6,17 @@
 #include "system/menu.hpp"
 #include "system/variables.hpp"
 
-#include "system/draw/draw.hpp"
-
-#include "system/util/converter.hpp"
-#include "system/util/encoder.hpp"
-#include "system/util/file.hpp"
 #include "system/util/util.hpp"
 
 extern "C"
 {
-	#include "system/util/camera.h"
-	#include "system/util/error.h"
-	#include "system/util/explorer.h"
+	#include "system/draw/draw.h"
+	#include "system/util/cam.h"
+	#include "system/util/converter.h"
+	#include "system/util/encoder.h"
+	#include "system/util/err.h"
+	#include "system/util/expl.h"
+	#include "system/util/file.h"
 	#include "system/util/hid.h"
 	#include "system/util/log.h"
 	#include "system/util/mic.h"
@@ -27,7 +26,7 @@ extern "C"
 }
 
 //Include myself.
-#include "sub_app3.hpp"
+#include "sapp3.hpp"
 
 
 typedef enum

@@ -1,15 +1,18 @@
-#include "system/util/decoder.hpp"
+extern "C"
+{
+#include "system/util/decoder.h"
+}
 
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "system/util/converter_types.h"
-#include "system/util/error_types.h"
-#include "system/util/fake_pthread.hpp"
 #include "system/util/util.hpp"
 
 extern "C"
 {
+#include "system/util/converter_types.h"
+#include "system/util/err_types.h"
+#include "system/util/fake_pthread.h"
 #include "system/util/log.h"
 #include "system/util/media_types.h"
 }

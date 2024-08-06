@@ -1,4 +1,7 @@
-#include "system/util/fake_pthread.hpp"
+extern "C"
+{
+#include "system/util/fake_pthread.h"
+}
 
 #include <malloc.h>
 #include <stdbool.h>
@@ -7,11 +10,12 @@
 
 #include "system/variables.hpp"
 
-#include "system/util/error_types.h"
-#include "system/util/thread_types.h"
-
 extern "C"
 {
+#include "system/util/err_types.h"
+#include "system/util/thread_types.h"
+
+
 int util_fake_pthread_core_offset = 0;
 int util_fake_pthread_enabled_core_list[4] = { 0, 1, -3, -3, };
 int util_fake_pthread_enabled_cores = 2;

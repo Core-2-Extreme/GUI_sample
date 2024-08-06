@@ -1,8 +1,8 @@
-#if !defined(DEF_FILE_HPP)
-#define DEF_FILE_HPP
+#if !defined(DEF_FILE_H)
+#define DEF_FILE_H
 #include <stdbool.h>
 #include <stdint.h>
-#include "system/util/explorer_types.h"
+#include "system/util/expl_types.h"
 #include "system/util/str_types.h"
 
 /**
@@ -85,4 +85,4 @@ uint32_t Util_file_check_file_exist(const char* file_name, const char* dir_path)
 */
 uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Str_data* file_name, Expl_file_type* type, uint32_t array_length);
 
-#endif //!defined(DEF_FILE_HPP)
+#endif //!defined(DEF_FILE_H)

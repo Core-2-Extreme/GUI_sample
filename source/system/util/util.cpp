@@ -6,11 +6,10 @@
 
 #include "system/types.hpp"
 
-#include "system/util/error_types.h"
-#include "system/util/file.hpp"
-
 extern "C"
 {
+#include "system/util/err_types.h"
+#include "system/util/file.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
 }

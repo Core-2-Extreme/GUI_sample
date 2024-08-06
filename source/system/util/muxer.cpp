@@ -1,12 +1,12 @@
-#include "system/util/muxer.hpp"
+#include "system/util/muxer.h"
 
 #if DEF_MUXER_API_ENABLE
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "system/util/error_types.h"
 extern "C"
 {
+#include "system/util/err_types.h"
 #include "system/util/log.h"
 }
 

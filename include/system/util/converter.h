@@ -1,5 +1,5 @@
-#if !defined(DEF_CONVERTER_HPP)
-#define DEF_CONVERTER_HPP
+#if !defined(DEF_CONVERTER_H)
+#define DEF_CONVERTER_H
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/converter_types.h"
@@ -175,4 +175,4 @@ void Util_converter_y2r_exit(void);
 
 #endif //DEF_CONVERTER_HW_API_ENABLE
 
-#endif //!defined(DEF_CONVERTER_HPP)
+#endif //!defined(DEF_CONVERTER_H)

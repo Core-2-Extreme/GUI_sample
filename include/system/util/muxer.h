@@ -1,5 +1,5 @@
-#if !defined(DEF_MUXER_HPP)
-#define DEF_MUXER_HPP
+#if !defined(DEF_MUXER_H)
+#define DEF_MUXER_H
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/muxer_types.h"
@@ -50,4 +50,4 @@ void Util_muxer_close(uint8_t session);
 
 #endif //DEF_MUXER_API_ENABLE
 
-#endif //!defined(DEF_MUXER_HPP)
+#endif //!defined(DEF_MUXER_H)

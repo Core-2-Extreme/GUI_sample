@@ -1,15 +1,18 @@
-#include "system/util/httpc.hpp"
+extern "C"
+{
+#include "system/util/httpc.h"
+}
 
 #if DEF_HTTPC_API_ENABLE
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "system/util/error_types.h"
-#include "system/util/file.hpp"
 #include "system/util/util.hpp"
 
 extern "C"
 {
+#include "system/util/err_types.h"
+#include "system/util/file.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
 }

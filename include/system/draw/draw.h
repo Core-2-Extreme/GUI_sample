@@ -1,5 +1,5 @@
-#if !defined(DEF_DRAW_HPP)
-#define DEF_DRAW_HPP
+#if !defined(DEF_DRAW_H)
+#define DEF_DRAW_H
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/draw/draw_types.h"
@@ -7,8 +7,6 @@
 #include "system/util/raw_types.h"
 #include "system/util/str_types.h"
 
-extern "C"
-{
 /**
  * @brief Initialize a draw api.
  * It is NOT possible to enable 800px mode and 3D mode at the same time.
@@ -334,6 +332,5 @@ void Draw_screen_ready(Draw_screen screen, uint32_t abgr8888);
  * @warning Call it only from rendering thread.
 */
 void Draw_apply_draw(void);
-}
 
-#endif //!defined(DEF_DRAW_HPP)
+#endif //!defined(DEF_DRAW_H)

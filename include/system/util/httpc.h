@@ -1,5 +1,5 @@
-#if !defined(DEF_HTTPC_HPP)
-#define DEF_HTTPC_HPP
+#if !defined(DEF_HTTPC_H)
+#define DEF_HTTPC_H
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/httpc_types.h"
@@ -101,4 +101,4 @@ uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* di
 
 #endif //DEF_HTTPC_API_ENABLE
 
-#endif //!defined(DEF_HTTPC_HPP)
+#endif //!defined(DEF_HTTPC_H)

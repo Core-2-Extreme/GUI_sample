@@ -3,8 +3,7 @@
 
 extern "C"
 {
-#include <3ds/types.h>
-#include <3ds/services/apt.h>
+#include "3ds.h"
 }
 
 #include "system/menu.hpp"

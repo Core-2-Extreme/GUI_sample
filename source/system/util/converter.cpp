@@ -1,14 +1,17 @@
-#include "system/util/converter.hpp"
+extern "C"
+{
+#include "system/util/converter.h"
+}
 
 #if DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "system/util/error_types.h"
 #include "system/util/util.hpp"
 
 extern "C"
 {
+#include "system/util/err_types.h"
 #include "system/util/log.h"
 
 #include "libswscale/swscale.h"

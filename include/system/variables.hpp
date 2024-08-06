@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/types.hpp"
-#include "system/setting_menu.hpp"
+#include "system/sem.hpp"
 
 extern bool var_connect_test_succes;
 extern bool var_need_reflesh;

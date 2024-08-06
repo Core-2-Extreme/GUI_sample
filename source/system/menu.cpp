@@ -3,37 +3,36 @@
 
 #include "system/types.hpp"
 
-#include "system/setting_menu.hpp"
+#include "system/sem.hpp"
 #include "system/variables.hpp"
 
-#include "system/draw/draw.hpp"
-#include "system/draw/external_font.hpp"
-
-#include "system/util/curl.hpp"
-#include "system/util/file.hpp"
-#include "system/util/httpc.hpp"
 #include "system/util/util.hpp"
 
 extern "C"
 {
+#include "system/draw/draw.h"
+#include "system/draw/exfont.h"
 #include "system/util/cpu_usage.h"
-#include "system/util/error.h"
-#include "system/util/explorer.h"
+#include "system/util/curl.h"
+#include "system/util/err.h"
+#include "system/util/expl.h"
+#include "system/util/file.h"
 #include "system/util/hid.h"
+#include "system/util/httpc.h"
 #include "system/util/hw_config.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
 #include "system/util/thread_types.h"
 }
 
-#include "sub_app0.hpp"
-#include "sub_app1.hpp"
-#include "sub_app2.hpp"
-#include "sub_app3.hpp"
-#include "sub_app4.hpp"
-#include "sub_app5.hpp"
-#include "sub_app6.hpp"
-#include "sub_app7.hpp"
+#include "sapp0.hpp"
+#include "sapp1.hpp"
+#include "sapp2.hpp"
+#include "sapp3.hpp"
+#include "sapp4.hpp"
+#include "sapp5.hpp"
+#include "sapp6.hpp"
+#include "sapp7.hpp"
 
 //Include myself.
 #include "system/menu.hpp"

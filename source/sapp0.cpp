@@ -6,17 +6,16 @@
 #include "system/menu.hpp"
 #include "system/variables.hpp"
 
-#include "system/draw/draw.hpp"
-
-#include "system/util/converter.hpp"
-#include "system/util/curl.hpp"
-#include "system/util/decoder.hpp"
 #include "system/util/util.hpp"
 
 extern "C"
 {
-	#include "system/util/error.h"
-	#include "system/util/explorer.h"
+	#include "system/draw/draw.h"
+	#include "system/util/converter.h"
+	#include "system/util/curl.h"
+	#include "system/util/decoder.h"
+	#include "system/util/err.h"
+	#include "system/util/expl.h"
 	#include "system/util/hid.h"
 	#include "system/util/log.h"
 	#include "system/util/str.h"
@@ -24,7 +23,7 @@ extern "C"
 }
 
 //Include myself.
-#include "sub_app0.hpp"
+#include "sapp0.hpp"
 
 
 bool sapp0_main_run = false;

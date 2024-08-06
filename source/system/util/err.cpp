@@ -1,6 +1,6 @@
 extern "C"
 {
-#include "system/util/error.h"
+#include "system/util/err.h"
 }
 
 #include <stdbool.h>
@@ -9,11 +9,10 @@ extern "C"
 #include "system/menu.hpp"
 #include "system/variables.hpp"
 
-#include "system/draw/draw.hpp"
-
-#include "system/util/file.hpp"
 extern "C"
 {
+	#include "system/draw/draw.h"
+	#include "system/util/file.h"
 	#include "system/util/hid.h"
 	#include "system/util/log.h"
 	#include "system/util/str.h"

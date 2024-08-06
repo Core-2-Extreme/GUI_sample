@@ -1,18 +1,21 @@
-#include "system/draw/draw.hpp"
+extern "C"
+{
+#include "system/draw/draw.h"
+}
 
 #include <stdbool.h>
 #include <stdint.h>
 
 #include "system/variables.hpp"
 
-#include "system/draw/external_font.hpp"
-
-#include "system/util/converter_types.h"
-#include "system/util/error_types.h"
 #include "system/util/util.hpp"
+
 extern "C"
 {
+	#include "system/draw/exfont.h"
+	#include "system/util/converter_types.h"
 	#include "system/util/cpu_usage.h"
+	#include "system/util/err_types.h"
 	#include "system/util/hid.h"
 	#include "system/util/log.h"
 	#include "system/util/str.h"

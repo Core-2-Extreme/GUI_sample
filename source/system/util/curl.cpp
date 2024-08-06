@@ -1,4 +1,7 @@
-#include "system/util/curl.hpp"
+extern "C"
+{
+#include "system/util/curl.h"
+}
 
 #if DEF_CURL_API_ENABLE
 #include <stdbool.h>
@@ -6,12 +9,12 @@
 
 #include "system/types.hpp"
 
-#include "system/util/error_types.h"
-#include "system/util/file.hpp"
 #include "system/util/util.hpp"
 
 extern "C"
 {
+#include "system/util/err_types.h"
+#include "system/util/file.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
 }
@@ -58,7 +61,7 @@ static uint32_t Util_curl_get_request(CURL** curl_handle, const char* url, uint1
 static uint32_t Util_curl_post_request(CURL** curl_handle, const char* url, Upload_data* upload_data, uint16_t max_redirect);
 static void Util_curl_get_response(CURL** curl_handle, uint16_t* status_code, Str_data* new_url);
 static uint32_t Util_curl_download_data(CURL** curl_handle, Http_data* http_data);
-static uint32_t Util_curl_save_data(CURL** curl_handle, Http_data* http_data);
+static uint32_t Util_curl_save_data_internal(CURL** curl_handle, Http_data* http_data);
 static void Util_curl_close(CURL** curl_handle);
 static uint32_t Util_curl_post_and_dl_data_internal(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data,
 uint32_t max_dl_size, uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url,
@@ -248,7 +251,7 @@ uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* fil
 	if(result != 0)
 		goto api_failed;
 
-	result = Util_curl_save_data(&curl_handle, &http_data);
+	result = Util_curl_save_data_internal(&curl_handle, &http_data);
 	if(result != 0)
 		goto api_failed;
 
@@ -651,7 +654,7 @@ static void Util_curl_close(CURL** curl_handle)
 	*curl_handle = NULL;
 }
 
-static uint32_t Util_curl_save_data(CURL** curl_handle, Http_data* http_data)
+static uint32_t Util_curl_save_data_internal(CURL** curl_handle, Http_data* http_data)
 {
 	uint32_t result = DEF_ERR_OTHER;
 	char error_message[4096] = { 0, };
@@ -901,7 +904,7 @@ const char* file_name, int32_t (*read_callback)(void* buffer, uint32_t max_size,
 	if(result != DEF_SUCCESS)
 		goto api_failed;
 
-	result = Util_curl_save_data(&curl_handle, &http_data);
+	result = Util_curl_save_data_internal(&curl_handle, &http_data);
 	if(result != DEF_SUCCESS)
 		goto api_failed;
 

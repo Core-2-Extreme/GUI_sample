@@ -1,8 +1,8 @@
-#if !defined(DEF_EXPL_HPP)
-#define DEF_EXPL_HPP
+#if !defined(DEF_EXPL_H)
+#define DEF_EXPL_H
 #include <stdbool.h>
 #include <stdint.h>
-#include "system/util/explorer_types.h"
+#include "system/util/expl_types.h"
 #include "system/util/hid_types.h"
 #include "system/util/str_types.h"
 
@@ -147,4 +147,4 @@ void Util_expl_main(Hid_info key);
 
 #endif //DEF_EXPL_API_ENABLE
 
-#endif //!defined(DEF_EXPL_HPP)
+#endif //!defined(DEF_EXPL_H)

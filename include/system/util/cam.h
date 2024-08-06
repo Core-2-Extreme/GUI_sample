@@ -2,7 +2,7 @@
 #define DEF_CAM_HPP
 #include <stdbool.h>
 #include <stdint.h>
-#include "system/util/camera_types.h"
+#include "system/util/cam_types.h"
 #include "system/util/raw_types.h"
 
 #if defined(DEF_CAM_API_ENABLE)

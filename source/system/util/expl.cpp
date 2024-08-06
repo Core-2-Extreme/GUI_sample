@@ -1,6 +1,6 @@
 extern "C"
 {
-#include "system/util/explorer.h"
+#include "system/util/expl.h"
 }
 
 #if DEF_EXPL_API_ENABLE
@@ -10,16 +10,16 @@ extern "C"
 
 #include <citro2d.h>
 
-#include "system/draw/draw.hpp"
-
 #include "system/menu.hpp"
 #include "system/variables.hpp"
 
-#include "system/util/error_types.h"
-#include "system/util/file.hpp"
 #include "system/util/util.hpp"
+
 extern "C"
 {
+#include "system/draw/draw.h"
+#include "system/util/err_types.h"
+#include "system/util/file.h"
 #include "system/util/hid.h"
 #include "system/util/log.h"
 #include "system/util/str.h"

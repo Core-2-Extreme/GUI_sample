@@ -1,5 +1,5 @@
-#if !defined(DEF_ENCODER_HPP)
-#define DEF_ENCODER_HPP
+#if !defined(DEF_ENCODER_H)
+#define DEF_ENCODER_H
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/encoder_types.h"
@@ -111,4 +111,4 @@ uint32_t Util_encoder_image_encode(const char* path, uint8_t* raw_data, uint32_t
 
 #endif //DEF_ENCODER_IMAGE_API_ENABLE
 
-#endif //!defined(DEF_ENCODER_HPP)
+#endif //!defined(DEF_ENCODER_H)

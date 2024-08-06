@@ -1,8 +1,8 @@
-#if !defined(DEF_HID_HPP)
-#define DEF_HID_HPP
+#if !defined(DEF_HID_H)
+#define DEF_HID_H
 #include <stdbool.h>
 #include <stdint.h>
-#include "system/draw/draw.hpp"
+#include "system/draw/draw.h"
 #include "system/util/hid_types.h"
 
 /**
@@ -75,4 +75,4 @@ bool Util_hid_add_callback(void (*callback)(void));
 */
 void Util_hid_remove_callback(void (*callback)(void));
 
-#endif //!defined(DEF_HID_HPP)
+#endif //!defined(DEF_HID_H)

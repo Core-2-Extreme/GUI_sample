@@ -6,14 +6,13 @@
 #include "system/menu.hpp"
 #include "system/variables.hpp"
 
-#include "system/draw/draw.hpp"
-
 #include "system/util/util.hpp"
 
 extern "C"
 {
-	#include "system/util/error.h"
-	#include "system/util/explorer.h"
+	#include "system/draw/draw.h"
+	#include "system/util/err.h"
+	#include "system/util/expl.h"
 	#include "system/util/hid.h"
 	#include "system/util/hw_config.h"
 	#include "system/util/log.h"
@@ -23,7 +22,7 @@ extern "C"
 }
 
 //Include myself.
-#include "sub_app2.hpp"
+#include "sapp2.hpp"
 
 
 typedef enum

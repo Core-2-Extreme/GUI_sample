@@ -1,5 +1,5 @@
-#if !defined(DEF_SPEAKER_HPP)
-#define DEF_SPEAKER_HPP
+#if !defined(DEF_SPEAKER_H)
+#define DEF_SPEAKER_H
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/speaker_types.h"
@@ -117,4 +117,4 @@ void Util_speaker_exit(void);
 
 #endif //DEF_SPEAKER_API_ENABLE
 
-#endif //!defined(DEF_SPEAKER_HPP)
+#endif //!defined(DEF_SPEAKER_H)

@@ -1,9 +1,9 @@
-#if !defined(DEF_KEYBOARD_HPP)
-#define DEF_KEYBOARD_HPP
+#if !defined(DEF_KEYBOARD_H)
+#define DEF_KEYBOARD_H
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/str_types.h"
-#include "system/util/swkbd_types.h"
+#include "system/util/keyboard_types.h"
 
 #if DEF_KEYBOARD_API_ENABLE
 
@@ -59,4 +59,4 @@ void Util_keyboard_exit(void);
 
 #endif //DEF_KEYBOARD_API_ENABLE
 
-#endif //!defined(DEF_KEYBOARD_HPP)
+#endif //!defined(DEF_KEYBOARD_H)
