@@ -166,8 +166,8 @@ void Sapp0_exit(bool draw)
 
 void Sapp0_main(void)
 {
-	int color = DEF_DRAW_BLACK;
-	int back_color = DEF_DRAW_WHITE;
+	uint32_t color = DEF_DRAW_BLACK;
+	uint32_t back_color = DEF_DRAW_WHITE;
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP0);
 
 	if (var_night_mode)
@@ -240,8 +240,8 @@ void Sapp0_main(void)
 
 static void Sapp0_draw_init_exit_message(void)
 {
-	int color = DEF_DRAW_BLACK;
-	int back_color = DEF_DRAW_WHITE;
+	uint32_t color = DEF_DRAW_BLACK;
+	uint32_t back_color = DEF_DRAW_WHITE;
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP0);
 
 	if (var_night_mode)

@@ -26,7 +26,7 @@ extern "C"
 #include "sub_app2.hpp"
 
 
-enum Sapp2_command
+typedef enum
 {
 	NONE,
 
@@ -42,7 +42,24 @@ enum Sapp2_command
 	TURN_BOTTOM_SCREEN_OFF_REQUEST,
 
 	MAX = 0xFFFFFFFF,
-};
+} Sapp2_command;
+
+DEF_LOG_ENUM_DEBUG
+(
+	Sapp2_command,
+	NONE,
+	SLEEP_WAKE_UP_WITH_SHELL_REQUEST,
+	SLEEP_WAKE_UP_WITH_BUTTON_REQUEST,
+	SLEEP_WAKE_UP_WITH_SHELL_OR_BUTTON_REQUEST,
+	CHANGE_WIFI_STATE_REQUEST,
+	INCREASE_TOP_SCREEN_BRIGHTNESS_REQUEST,
+	DECREASE_TOP_SCREEN_BRIGHTNESS_REQUEST,
+	INCREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST,
+	DECREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST,
+	TURN_TOP_SCREEN_OFF_REQUEST,
+	TURN_BOTTOM_SCREEN_OFF_REQUEST,
+	MAX
+);
 
 
 bool sapp2_main_run = false;
@@ -215,8 +232,8 @@ void Sapp2_exit(bool draw)
 
 void Sapp2_main(void)
 {
-	int color = DEF_DRAW_BLACK;
-	int back_color = DEF_DRAW_WHITE;
+	uint32_t color = DEF_DRAW_BLACK;
+	uint32_t back_color = DEF_DRAW_WHITE;
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP2);
 
 	if (var_night_mode)
@@ -306,8 +323,8 @@ void Sapp2_main(void)
 
 static void Sapp2_draw_init_exit_message(void)
 {
-	int color = DEF_DRAW_BLACK;
-	int back_color = DEF_DRAW_WHITE;
+	uint32_t color = DEF_DRAW_BLACK;
+	uint32_t back_color = DEF_DRAW_WHITE;
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP2);
 
 	if (var_night_mode)
@@ -420,7 +437,7 @@ static void Sapp2_worker_thread(void* arg)
 		}
 
 		//Got a command.
-		DEF_LOG_FORMAT("Received event : %" PRIu32, event_id);
+		DEF_LOG_FORMAT("Received event : %s (%" PRIu32 ")", Sapp2_command_get_name((Sapp2_command)event_id), event_id);
 
 		switch ((Sapp2_command)event_id)
 		{
@@ -462,7 +479,7 @@ static void Sapp2_worker_thread(void* arg)
 				//This isn't necessary because screen brightness will be changed automatically
 				//in Menu_worker_thread() if you change the value of var_top_lcd_brightness.
 				/*
-				int brightness = var_top_lcd_brightness;
+				uint8_t brightness = var_top_lcd_brightness;
 				if(brightness + 1 <= 180)
 					brightness++;
 
@@ -485,7 +502,7 @@ static void Sapp2_worker_thread(void* arg)
 				//This isn't necessary because screen brightness will be changed automatically
 				//in Menu_worker_thread() if you change the value of var_top_lcd_brightness.
 				/*
-				int brightness = var_top_lcd_brightness;
+				uint8_t brightness = var_top_lcd_brightness;
 				if(brightness - 1 >= 0)
 					brightness--;
 
@@ -508,7 +525,7 @@ static void Sapp2_worker_thread(void* arg)
 				//This isn't necessary because screen brightness will be changed automatically
 				//in Menu_worker_thread() if you change the value of var_bottom_lcd_brightness.
 				/*
-				int brightness = var_bottom_lcd_brightness;
+				uint8_t brightness = var_bottom_lcd_brightness;
 				if(brightness + 1 <= 180)
 					brightness++;
 
@@ -531,7 +548,7 @@ static void Sapp2_worker_thread(void* arg)
 				//This isn't necessary because screen brightness will be changed automatically
 				//in Menu_worker_thread() if you change the value of var_bottom_lcd_brightness.
 				/*
-				int brightness = var_bottom_lcd_brightness;
+				uint8_t brightness = var_bottom_lcd_brightness;
 				if(brightness - 1 >= 0)
 					brightness--;
 

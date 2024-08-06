@@ -2117,7 +2117,6 @@ void Sem_update_thread(void* arg)
 	std::string dir_path = "";
 	std::string file_name = "";
 	std::string url = "";
-	std::string last_url = "";
 	std::string parse_cache = "";
 	std::string parse_start[6] = {"<newest>", "<3dsx_available>", "<cia_available>", "<3dsx_url>", "<cia_url>", "<patch_note>", };
 	std::string parse_end[6] = { "</newest>", "</3dsx_available>", "</cia_available>", "</3dsx_url>", "</cia_url>", "</patch_note>", };

@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/hid_types.h"
+#include "system/util/log_enum_types.h"
 #include "system/util/log_types.h"
 
 /**

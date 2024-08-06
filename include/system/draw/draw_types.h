@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <citro2d.h>
 #include <citro3d.h>
+#include "system/util/log_enum_types.h"
 
 #define DEF_DRAW_DMA_ENABLE					/*(bool)(*/true/*)*/	//Enable DMA in draw module for faster processing.
 #define DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS	(uint32_t)(128)
@@ -35,6 +36,16 @@ typedef enum
 	DRAW_SCREEN_MAX,
 } Draw_screen;
 
+DEF_LOG_ENUM_DEBUG
+(
+	Draw_screen,
+	DRAW_SCREEN_INVALID,
+	DRAW_SCREEN_TOP_LEFT,
+	DRAW_SCREEN_BOTTOM,
+	DRAW_SCREEN_TOP_RIGHT,
+	DRAW_SCREEN_MAX
+);
+
 typedef enum
 {
 	DRAW_X_ALIGN_INVALID = -1,
@@ -45,6 +56,16 @@ typedef enum
 
 	DRAW_X_ALIGN_MAX,
 } Draw_text_align_x;
+
+DEF_LOG_ENUM_DEBUG
+(
+	Draw_text_align_x,
+	DRAW_X_ALIGN_INVALID,
+	DRAW_X_ALIGN_LEFT,
+	DRAW_X_ALIGN_CENTER,
+	DRAW_X_ALIGN_RIGHT,
+	DRAW_X_ALIGN_MAX
+);
 
 typedef enum
 {
@@ -57,6 +78,16 @@ typedef enum
 	DRAW_Y_ALIGN_MAX,
 } Draw_text_align_y;
 
+DEF_LOG_ENUM_DEBUG
+(
+	Draw_text_align_y,
+	DRAW_Y_ALIGN_INVALID,
+	DRAW_Y_ALIGN_TOP,
+	DRAW_Y_ALIGN_CENTER,
+	DRAW_Y_ALIGN_BOTTOM,
+	DRAW_Y_ALIGN_MAX
+);
+
 typedef enum
 {
 	DRAW_BACKGROUND_INVALID = -1,
@@ -67,6 +98,16 @@ typedef enum
 
 	DRAW_BACKGROUND_MAX,
 } Draw_background;
+
+DEF_LOG_ENUM_DEBUG
+(
+	Draw_background,
+	DRAW_BACKGROUND_INVALID,
+	DRAW_BACKGROUND_NONE,
+	DRAW_BACKGROUND_ENTIRE_BOX,
+	DRAW_BACKGROUND_UNDER_TEXT,
+	DRAW_BACKGROUND_MAX
+);
 
 typedef struct
 {

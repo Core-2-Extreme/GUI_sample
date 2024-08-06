@@ -30,7 +30,7 @@ extern "C"
 #include "sub_app3.hpp"
 
 
-enum Sapp3_camera_command
+typedef enum
 {
 	CAM_NONE,
 
@@ -39,16 +39,34 @@ enum Sapp3_camera_command
 	CAM_TAKE_A_PICTURE_REQUEST,
 
 	CAM_MAX = 0xFF,
-};
+} Sapp3_camera_command;
 
-enum Sapp3_camera_state
+DEF_LOG_ENUM_DEBUG
+(
+	Sapp3_camera_command,
+	CAM_NONE,
+	CAM_DISABLE_REQUEST,
+	CAM_ENABLE_REQUEST,
+	CAM_TAKE_A_PICTURE_REQUEST,
+	CAM_MAX
+);
+
+typedef enum
 {
 	CAM_IDLE,
 	CAM_ENABLED,
 	CAM_SAVING_A_PICTURE,
-};
+} Sapp3_camera_state;
 
-enum Sapp3_mic_command
+DEF_LOG_ENUM_DEBUG
+(
+	Sapp3_camera_state,
+	CAM_IDLE,
+	CAM_ENABLED,
+	CAM_SAVING_A_PICTURE
+);
+
+typedef enum
 {
 	MIC_NONE,
 
@@ -56,28 +74,45 @@ enum Sapp3_mic_command
 	MIC_STOP_RECORDING_REQUEST,
 
 	MIC_MAX = 0xFF,
-};
+} Sapp3_mic_command;
 
-enum Sapp3_mic_state
+DEF_LOG_ENUM_DEBUG
+(
+	Sapp3_mic_command,
+	MIC_NONE,
+	MIC_START_RECORDING_REQUEST,
+	MIC_STOP_RECORDING_REQUEST,
+	MIC_MAX
+);
+
+typedef enum
 {
 	MIC_IDLE,
 	MIC_RECORDING,
 	MIC_STOPPING_RECORDING,
-};
+} Sapp3_mic_state;
+
+DEF_LOG_ENUM_DEBUG
+(
+	Sapp3_mic_state,
+	MIC_IDLE,
+	MIC_RECORDING,
+	MIC_STOPPING_RECORDING
+);
 
 
 bool sapp3_main_run = false;
 bool sapp3_thread_run = false;
 bool sapp3_already_init = false;
 bool sapp3_thread_suspend = true;
-int sapp3_camera_buffer_index = 0;
+uint8_t sapp3_camera_buffer_index = 0;
 Thread sapp3_init_thread = NULL, sapp3_exit_thread = NULL, sapp3_camera_thread = NULL, sapp3_mic_thread = NULL;
 Draw_image_data sapp3_camera_image[2] = { 0, };
 Queue_data sapp3_camera_command_queue = { 0, }, sapp3_mic_command_queue = { 0, };
 Str_data sapp3_status = { 0, };
 Str_data sapp3_msg[DEF_SAPP3_NUM_OF_MSG] = { 0, };
-Str_data sapp3_camera_saved_file_path = { 0, };
-Str_data sapp3_mic_saved_file = { 0, };
+Str_data sapp3_camera_saved_path = { 0, };
+Str_data sapp3_mic_saved_path = { 0, };
 Sapp3_camera_state sapp3_camera_state = CAM_IDLE;
 Sapp3_mic_state sapp3_mic_state = MIC_IDLE;
 
@@ -250,8 +285,8 @@ void Sapp3_exit(bool draw)
 
 void Sapp3_main(void)
 {
-	int color = DEF_DRAW_BLACK;
-	int back_color = DEF_DRAW_WHITE;
+	uint32_t color = DEF_DRAW_BLACK;
+	uint32_t back_color = DEF_DRAW_WHITE;
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP3);
 
 	if (var_night_mode)
@@ -263,13 +298,16 @@ void Sapp3_main(void)
 	//Check if we should update the screen.
 	if(Util_is_watch_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
 	{
+		Str_data temp_msg = { 0, };
+
+		Util_str_init(&temp_msg);
 		var_need_reflesh = false;
+
 		Draw_frame_ready();
 
 		if(var_turn_on_top_lcd)
 		{
-			int draw_cammera_buffer_index = (sapp3_camera_buffer_index == 0 ? 1 : 0);
-			std::string status = "";
+			uint8_t draw_cammera_buffer_index = (sapp3_camera_buffer_index == 0 ? 1 : 0);
 
 			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
@@ -281,25 +319,26 @@ void Sapp3_main(void)
 				Draw_texture(&sapp3_camera_image[draw_cammera_buffer_index], DEF_DRAW_NO_COLOR, 0, 0, 400, 240);
 			}
 
+			Util_str_clear(&temp_msg);
 			//Notify user that we are saving a picture.
 			if(sapp3_camera_state == CAM_SAVING_A_PICTURE)
-				status = "Saving a picture...";
+				Util_str_add(&temp_msg, "Saving a picture...");
 
 			//Notify user that we are recording.
 			if(sapp3_mic_state == MIC_RECORDING || sapp3_mic_state == MIC_STOPPING_RECORDING)
 			{
-				if(status != "")
-					status += "\n";
+				if(Util_str_has_data(&temp_msg))
+					Util_str_add(&temp_msg, "\n");
 
-				status += "Recording sound...";
+				Util_str_add(&temp_msg, "Recording sound...");
 			}
 
-			if(status != "")
+			if(Util_str_has_data(&temp_msg))
 			{
 				Draw_image_data background = { 0, };
 				background.c2d = var_square_image[0];
 
-				Draw_with_background_c(status.c_str(), 40, 40, 0.5, 0.5, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER,
+				Draw_with_background(&temp_msg, 40, 40, 0.5, 0.5, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER,
 				DRAW_Y_ALIGN_CENTER, 320, 20, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 			}
 
@@ -341,10 +380,10 @@ void Sapp3_main(void)
 			}
 
 			//Draw picture path.
-			if(sapp3_camera_state != CAM_SAVING_A_PICTURE && Util_str_has_data(&sapp3_camera_saved_file_path))
+			if(sapp3_camera_state != CAM_SAVING_A_PICTURE && Util_str_has_data(&sapp3_camera_saved_path))
 			{
 				Draw_c("Picture was saved as :", 0, 40, 0.45, 0.45, DEF_DRAW_BLUE);
-				Draw(&sapp3_camera_saved_file_path, 0, 50, 0.45, 0.45, DEF_DRAW_BLUE);
+				Draw(&sapp3_camera_saved_path, 0, 50, 0.45, 0.45, DEF_DRAW_BLUE);
 			}
 
 			//Draw mic controls.
@@ -354,11 +393,19 @@ void Sapp3_main(void)
 				Draw_c("Press X to stop recording sound.", 0, 70, 0.5, 0.5, color);
 
 			//Draw sound recording path.
-			if(sapp3_mic_state == MIC_IDLE && Util_str_has_data(&sapp3_mic_saved_file))
+			if(sapp3_mic_state == MIC_IDLE && Util_str_has_data(&sapp3_mic_saved_path))
 			{
 				Draw_c("Sound recording was saved as : ", 0, 80, 0.45, 0.45, DEF_DRAW_BLUE);
-				Draw(&sapp3_mic_saved_file, 0, 90, 0.45, 0.45, DEF_DRAW_BLUE);
+				Draw(&sapp3_mic_saved_path, 0, 90, 0.45, 0.45, DEF_DRAW_BLUE);
 			}
+
+			//Draw current camera state.
+			Util_str_format(&temp_msg, "State (cam) : %s (%" PRIu32 ")", Sapp3_camera_state_get_name(sapp3_camera_state), (uint32_t)sapp3_camera_state);
+			Draw(&temp_msg, 0, 110, 0.5, 0.5, color);
+
+			//Draw current mic state.
+			Util_str_format(&temp_msg, "State (mic) : %s (%" PRIu32 ")", Sapp3_mic_state_get_name(sapp3_mic_state), (uint32_t)sapp3_mic_state);
+			Draw(&temp_msg, 0, 120, 0.5, 0.5, color);
 
 			if(Util_expl_query_show_flag())
 				Util_expl_draw();
@@ -377,8 +424,8 @@ void Sapp3_main(void)
 
 static void Sapp3_draw_init_exit_message(void)
 {
-	int color = DEF_DRAW_BLACK;
-	int back_color = DEF_DRAW_WHITE;
+	uint32_t color = DEF_DRAW_BLACK;
+	uint32_t back_color = DEF_DRAW_WHITE;
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP3);
 
 	if (var_night_mode)
@@ -436,12 +483,14 @@ static void Sapp3_init_thread(void* arg)
 	sapp3_camera_state = CAM_IDLE;
 	sapp3_mic_state = MIC_IDLE;
 
-	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp3_camera_saved_file_path), (result == DEF_SUCCESS), result);
-	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp3_mic_saved_file), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp3_camera_saved_path), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp3_mic_saved_path), (result == DEF_SUCCESS), result);
 
 	//Add to watch to detect value changes, screen will be rerenderd when value is changed.
 	Util_add_watch(WATCH_HANDLE_SUB_APP3, &sapp3_camera_state, sizeof(sapp3_camera_state));
 	Util_add_watch(WATCH_HANDLE_SUB_APP3, &sapp3_mic_state, sizeof(sapp3_mic_state));
+	Util_add_watch(WATCH_HANDLE_SUB_APP3, &sapp3_camera_saved_path.sequencial_id, sizeof(sapp3_camera_saved_path.sequencial_id));
+	Util_add_watch(WATCH_HANDLE_SUB_APP3, &sapp3_mic_saved_path.sequencial_id, sizeof(sapp3_mic_saved_path.sequencial_id));
 
 	Util_str_add(&sapp3_status, "\nInitializing queue...");
 	//Create the queues for commands.
@@ -474,7 +523,7 @@ static void Sapp3_init_thread(void* arg)
 	// Util_cam_set_white_balance(CAM_WHITE_BALANCE_AUTO);
 
 	//5. Init 512x256 tectures (double buffering to prevent glitch).
-	for(int i = 0; i < 2; i++)
+	for(uint8_t i = 0; i < 2; i++)
 		DEF_LOG_RESULT_SMART(result, Draw_texture_init(&sapp3_camera_image[i], 512, 256, RAW_PIXEL_RGB565LE);, (result == DEF_SUCCESS), result);
 
 	Util_str_add(&sapp3_status, "\nStarting threads...");
@@ -515,7 +564,7 @@ static void Sapp3_exit_thread(void* arg)
 	Util_cam_exit();
 
 	//Free textures.
-	for(int i = 0; i < 2; i++)
+	for(uint8_t i = 0; i < 2; i++)
 		Draw_texture_free(&sapp3_camera_image[i]);
 
 	//Delete the queues.
@@ -525,10 +574,12 @@ static void Sapp3_exit_thread(void* arg)
 	//Remove watch on exit.
 	Util_remove_watch(WATCH_HANDLE_SUB_APP3, &sapp3_camera_state);
 	Util_remove_watch(WATCH_HANDLE_SUB_APP3, &sapp3_mic_state);
+	Util_remove_watch(WATCH_HANDLE_SUB_APP3, &sapp3_camera_saved_path);
+	Util_remove_watch(WATCH_HANDLE_SUB_APP3, &sapp3_mic_saved_path);
 
 	//Free string buffers.
-	Util_str_free(&sapp3_camera_saved_file_path);
-	Util_str_free(&sapp3_mic_saved_file);
+	Util_str_free(&sapp3_camera_saved_path);
+	Util_str_free(&sapp3_mic_saved_path);
 
 	sapp3_already_init = false;
 
@@ -556,7 +607,7 @@ static void Sapp3_camera_thread(void* arg)
 		if(result == DEF_SUCCESS)
 		{
 			//Got a command.
-			DEF_LOG_FORMAT("Received event : %" PRIu32, event_id);
+			DEF_LOG_FORMAT("Received event : %s (%" PRIu32 ")", Sapp3_camera_command_get_name((Sapp3_camera_command)event_id), event_id);
 
 			switch ((Sapp3_camera_command)event_id)
 			{
@@ -638,9 +689,9 @@ static void Sapp3_camera_thread(void* arg)
 							DEF_LOG_RESULT_SMART(result, Util_encoder_image_encode(path, parameters.converted, width, height, MEDIA_I_CODEC_PNG, 0), (result == DEF_SUCCESS), result);
 
 							if(result == DEF_SUCCESS)
-								Util_str_set(&sapp3_camera_saved_file_path, path);
+								Util_str_set(&sapp3_camera_saved_path, path);
 							else
-								Util_str_set(&sapp3_camera_saved_file_path, "");
+								Util_str_set(&sapp3_camera_saved_path, "");
 						}
 
 						free(parameters.converted);
@@ -688,7 +739,7 @@ static void Sapp3_mic_thread(void* arg)
 		if(result == DEF_SUCCESS)
 		{
 			//Got a command.
-			DEF_LOG_FORMAT("Received event : %" PRIu32, event_id);
+			DEF_LOG_FORMAT("Received event : %s (%" PRIu32 ")", Sapp3_mic_command_get_name((Sapp3_mic_command)event_id), event_id);
 
 			switch ((Sapp3_mic_command)event_id)
 			{
@@ -726,12 +777,12 @@ static void Sapp3_mic_thread(void* arg)
 						if(result == DEF_SUCCESS)
 						{
 							sapp3_mic_state = MIC_RECORDING;
-							Util_str_set(&sapp3_mic_saved_file, path);
+							Util_str_set(&sapp3_mic_saved_path, path);
 						}
 						else//Error.
 						{
 							sapp3_mic_state = MIC_STOPPING_RECORDING;
-							Util_str_set(&sapp3_mic_saved_file, "");
+							Util_str_set(&sapp3_mic_saved_path, "");
 						}
 					}
 					else

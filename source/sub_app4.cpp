@@ -28,7 +28,7 @@ extern "C"
 #include "sub_app4.hpp"
 
 
-enum Sapp4_command
+typedef enum
 {
 	NONE,
 
@@ -36,13 +36,29 @@ enum Sapp4_command
 	STOP_REQUEST,
 
 	MAX = 0xFF,
-};
+} Sapp4_command;
 
-enum Sapp4_speaker_state
+DEF_LOG_ENUM_DEBUG
+(
+	Sapp4_command,
+	NONE,
+	PLAY_REQUEST,
+	STOP_REQUEST,
+	MAX
+);
+
+typedef enum
 {
 	SPEAKER_IDLE,
 	SPEAKER_PLAYING,
-};
+} Sapp4_speaker_state;
+
+DEF_LOG_ENUM_DEBUG
+(
+	Sapp4_speaker_state,
+	SPEAKER_IDLE,
+	SPEAKER_PLAYING
+);
 
 
 bool sapp4_main_run = false;
@@ -207,8 +223,8 @@ void Sapp4_exit(bool draw)
 
 void Sapp4_main(void)
 {
-	int color = DEF_DRAW_BLACK;
-	int back_color = DEF_DRAW_WHITE;
+	uint32_t color = DEF_DRAW_BLACK;
+	uint32_t back_color = DEF_DRAW_WHITE;
 	double samples = 0;
 	double current_pos = 0;
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP4);
@@ -232,12 +248,15 @@ void Sapp4_main(void)
 	//Check if we should update the screen.
 	if(Util_is_watch_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
 	{
+		Str_data temp_msg = { 0, };
+
 		var_need_reflesh = false;
+		Util_str_init(&temp_msg);
+
 		Draw_frame_ready();
 
 		if(var_turn_on_top_lcd)
 		{
-			char msg[64] = { 0, };
 			Str_data time = { 0, };
 
 			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
@@ -251,20 +270,25 @@ void Sapp4_main(void)
 				Draw_c("Press B to stop music.", 0, 40, 0.425, 0.425, color);
 
 			//Draw buffer health.
-			snprintf(msg, sizeof(msg), "%.2fs of data is cached in speaker buffer.", sapp4_buffer_health);
-			Draw_c(msg, 0, 70, 0.425, 0.425, color);
+			Util_str_format(&temp_msg, "%.2fs of data is cached in speaker buffer.", sapp4_buffer_health);
+			Draw(&temp_msg, 0, 70, 0.425, 0.425, color);
 
 			//Draw playback position.
-			Util_convert_seconds_to_time(current_pos, &time);
+			if(Util_convert_seconds_to_time(current_pos, &time) == DEF_SUCCESS)
+			{
+				Util_str_format(&temp_msg, "Current pos : %s", time.buffer);
+				Draw(&temp_msg, 0, 80, 0.425, 0.425, color);
+			}
 
-			if(Util_str_has_data(&time))
-				Draw_c(((std::string)"Current pos : " + time.buffer).c_str(), 0, 80, 0.425, 0.425, color);
+			//Draw current state.
+			Util_str_format(&temp_msg, "State : %s (%" PRIu32 ")", Sapp4_speaker_state_get_name(sapp4_speaker_state), (uint32_t)sapp4_speaker_state);
+			Draw(&temp_msg, 0, 90, 0.5, 0.5, color);
 
 			//Draw dsp warning.
-			Draw_c(((std::string)"If you can't hear any audio, then you need to dump dsp firmawre.\n"
-			+ "On luma3ds >= v10.3, you can use luma3ds menu -> miscellaneous\n"
-			+ "-> dump dsp firmware.\n"
-			+ "On older luma3ds, run dsp1 (https://github.com/zoogie/DSP1/releases).").c_str(), 0, 180, 0.45, 0.45, DEF_DRAW_RED);
+			Draw_c("If you can't hear any audio, then you need to dump dsp firmawre.\n"
+			"On luma3ds >= v10.3, you can use luma3ds menu -> miscellaneous\n"
+			"-> dump dsp firmware.\n"
+			"On older luma3ds, run dsp1 (https://github.com/zoogie/DSP1/releases).", 0, 180, 0.45, 0.45, DEF_DRAW_RED);
 
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
@@ -286,6 +310,8 @@ void Sapp4_main(void)
 				if(var_monitor_cpu_usage)
 					Draw_cpu_usage_info();
 			}
+
+			Util_str_free(&time);
 		}
 
 		if(var_turn_on_bottom_lcd)
@@ -304,6 +330,8 @@ void Sapp4_main(void)
 		}
 
 		Draw_apply_draw();
+
+		Util_str_free(&temp_msg);
 	}
 	else
 		gspWaitForVBlank();
@@ -311,8 +339,8 @@ void Sapp4_main(void)
 
 static void Sapp4_draw_init_exit_message(void)
 {
-	int color = DEF_DRAW_BLACK;
-	int back_color = DEF_DRAW_WHITE;
+	uint32_t color = DEF_DRAW_BLACK;
+	uint32_t back_color = DEF_DRAW_WHITE;
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP4);
 
 	if (var_night_mode)
@@ -371,6 +399,7 @@ static void Sapp4_init_thread(void* arg)
 	//Add to watch to detect value changes, screen will be rerenderd when value is changed.
 	Util_add_watch(WATCH_HANDLE_SUB_APP4, &sapp4_buffer_health, sizeof(sapp4_buffer_health));
 	Util_add_watch(WATCH_HANDLE_SUB_APP4, &sapp4_last_decoded_pos_ms, sizeof(sapp4_last_decoded_pos_ms));
+	Util_add_watch(WATCH_HANDLE_SUB_APP4, &sapp4_speaker_state, sizeof(sapp4_speaker_state));
 
 	Util_str_add(&sapp4_status, "\nInitializing queue...");
 	//Create the queue for commands.
@@ -413,6 +442,7 @@ static void Sapp4_exit_thread(void* arg)
 	//Remove watch on exit
 	Util_remove_watch(WATCH_HANDLE_SUB_APP4, &sapp4_buffer_health);
 	Util_remove_watch(WATCH_HANDLE_SUB_APP4, &sapp4_last_decoded_pos_ms);
+	Util_remove_watch(WATCH_HANDLE_SUB_APP4, &sapp4_speaker_state);
 
 	sapp4_already_init = false;
 
@@ -436,7 +466,7 @@ static void Sapp4_worker_thread(void* arg)
 		if(result == DEF_SUCCESS)
 		{
 			//Got a command.
-			DEF_LOG_FORMAT("Received event : %" PRIu32, event_id);
+			DEF_LOG_FORMAT("Received event : %s (%" PRIu32 ")", Sapp4_command_get_name((Sapp4_command)event_id), event_id);
 
 			switch((Sapp4_command)event_id)
 			{

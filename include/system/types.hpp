@@ -7,7 +7,9 @@
 #include <3ds.h>
 #include <citro2d.h>
 
-enum Watch_handle
+#include "system/util/log_enum_types.h"
+
+typedef enum
 {
 	WATCH_HANDLE_INVALID = -1,
 
@@ -25,7 +27,26 @@ enum Watch_handle
 
 	WATCH_HANDLE_MAX,
 	WATCH_HANDLE_FORCE_8BIT = INT8_MAX,
-};
+} Watch_handle;
+
+DEF_LOG_ENUM_DEBUG
+(
+	Watch_handle,
+	WATCH_HANDLE_INVALID,
+	WATCH_HANDLE_GLOBAL,
+	WATCH_HANDLE_MAIN_MENU,
+	WATCH_HANDLE_SETTINGS_MENU,
+	WATCH_HANDLE_SUB_APP0,
+	WATCH_HANDLE_SUB_APP1,
+	WATCH_HANDLE_SUB_APP2,
+	WATCH_HANDLE_SUB_APP3,
+	WATCH_HANDLE_SUB_APP4,
+	WATCH_HANDLE_SUB_APP5,
+	WATCH_HANDLE_SUB_APP6,
+	WATCH_HANDLE_SUB_APP7,
+	WATCH_HANDLE_MAX,
+	WATCH_HANDLE_FORCE_8BIT
+);
 
 typedef uint16_t Watch_handle_bit;
 #define	DEF_WATCH_HANDLE_BIT_NONE			(Watch_handle_bit)(0 << 0)							//No watch handles.
@@ -41,12 +62,12 @@ typedef uint16_t Watch_handle_bit;
 #define	DEF_WATCH_HANDLE_BIT_SUB_APP6		(Watch_handle_bit)(1 << WATCH_HANDLE_SUB_APP6)		//Watch handle bit for WATCH_HANDLE_SUB_APP6.
 #define	DEF_WATCH_HANDLE_BIT_SUB_APP7		(Watch_handle_bit)(1 << WATCH_HANDLE_SUB_APP7)		//Watch handle bit for WATCH_HANDLE_SUB_APP7.
 
-struct Watch_data
+typedef struct
 {
 	void* original_address = NULL;				//Original data address.
 	void* previous_data = NULL;					//Previous data.
 	uint32_t data_length = 0;					//Data length for this data.
 	Watch_handle handle = WATCH_HANDLE_INVALID;	//Watch handle.
-};
+} Watch_data;
 
 #endif //!defined(DEF_TYPES_HPP)
