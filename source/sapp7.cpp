@@ -17,6 +17,7 @@ extern "C"
 	#include "system/util/log.h"
 	#include "system/util/str.h"
 	#include "system/util/thread_types.h"
+	#include "system/util/watch.h"
 }
 
 //Include myself.
@@ -104,7 +105,7 @@ void Sapp7_init(bool draw)
 
 	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp7_status), (result == DEF_SUCCESS), result);
 
-	Util_add_watch(WATCH_HANDLE_SUB_APP7, &sapp7_status.sequencial_id, sizeof(sapp7_status.sequencial_id));
+	Util_watch_add(WATCH_HANDLE_SUB_APP7, &sapp7_status.sequencial_id, sizeof(sapp7_status.sequencial_id));
 
 	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) && var_core_2_available)
 		sapp7_init_thread = threadCreate(Sapp7_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
@@ -152,7 +153,7 @@ void Sapp7_exit(bool draw)
 	DEF_LOG_RESULT_SMART(result, threadJoin(sapp7_exit_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(sapp7_exit_thread);
 
-	Util_remove_watch(WATCH_HANDLE_SUB_APP7, &sapp7_status.sequencial_id);
+	Util_watch_remove(WATCH_HANDLE_SUB_APP7, &sapp7_status.sequencial_id);
 	Util_str_free(&sapp7_status);
 	var_need_reflesh = true;
 
@@ -172,7 +173,7 @@ void Sapp7_main(void)
 	}
 
 	//Check if we should update the screen.
-	if(Util_is_watch_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	if(Util_watch_is_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
 	{
 		var_need_reflesh = false;
 		Draw_frame_ready();
@@ -238,7 +239,7 @@ static void Sapp7_draw_init_exit_message(void)
 	}
 
 	//Check if we should update the screen.
-	if(Util_is_watch_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	if(Util_watch_is_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
 	{
 		var_need_reflesh = false;
 		Draw_frame_ready();

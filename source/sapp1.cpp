@@ -17,6 +17,7 @@ extern "C"
 	#include "system/util/log.h"
 	#include "system/util/str.h"
 	#include "system/util/thread_types.h"
+	#include "system/util/watch.h"
 }
 
 //Include myself.
@@ -115,7 +116,7 @@ void Sapp1_init(bool draw)
 
 	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp1_status), (result == DEF_SUCCESS), result);
 
-	Util_add_watch(WATCH_HANDLE_SUB_APP1, &sapp1_status.sequencial_id, sizeof(sapp1_status.sequencial_id));
+	Util_watch_add(WATCH_HANDLE_SUB_APP1, &sapp1_status.sequencial_id, sizeof(sapp1_status.sequencial_id));
 
 	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) && var_core_2_available)
 		sapp1_init_thread = threadCreate(Sapp1_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
@@ -163,7 +164,7 @@ void Sapp1_exit(bool draw)
 	DEF_LOG_RESULT_SMART(result, threadJoin(sapp1_exit_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(sapp1_exit_thread);
 
-	Util_remove_watch(WATCH_HANDLE_SUB_APP1, &sapp1_status.sequencial_id);
+	Util_watch_remove(WATCH_HANDLE_SUB_APP1, &sapp1_status.sequencial_id);
 	Util_str_free(&sapp1_status);
 	var_need_reflesh = true;
 
@@ -183,7 +184,7 @@ void Sapp1_main(void)
 	}
 
 	//Check if we should update the screen.
-	if(Util_is_watch_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	if(Util_watch_is_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
 	{
 		var_need_reflesh = false;
 		Draw_frame_ready();
@@ -254,7 +255,7 @@ static void Sapp1_draw_init_exit_message(void)
 	}
 
 	//Check if we should update the screen.
-	if(Util_is_watch_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	if(Util_watch_is_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
 	{
 		var_need_reflesh = false;
 		Draw_frame_ready();
@@ -303,8 +304,8 @@ static void Sapp1_init_thread(void* arg)
 	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp1_file_info), (result == DEF_SUCCESS), result);
 
 	//Add to watch to detect value changes, screen will be rerenderd when value is changed.
-	Util_add_watch(WATCH_HANDLE_SUB_APP1, &sapp1_selected_path.sequencial_id, sizeof(sapp1_selected_path.sequencial_id));
-	Util_add_watch(WATCH_HANDLE_SUB_APP1, &sapp1_file_info.sequencial_id, sizeof(sapp1_file_info.sequencial_id));
+	Util_watch_add(WATCH_HANDLE_SUB_APP1, &sapp1_selected_path.sequencial_id, sizeof(sapp1_selected_path.sequencial_id));
+	Util_watch_add(WATCH_HANDLE_SUB_APP1, &sapp1_file_info.sequencial_id, sizeof(sapp1_file_info.sequencial_id));
 	Util_str_set(&sapp1_selected_path, "Press X button to open file explorer.");
 
 	Util_str_add(&sapp1_status, "\nInitializing queue...");
@@ -335,8 +336,8 @@ static void Sapp1_exit_thread(void* arg)
 	threadFree(sapp1_worker_thread);
 
 	//Remove watch on exit.
-	Util_remove_watch(WATCH_HANDLE_SUB_APP1, &sapp1_selected_path.sequencial_id);
-	Util_remove_watch(WATCH_HANDLE_SUB_APP1, &sapp1_file_info.sequencial_id);
+	Util_watch_remove(WATCH_HANDLE_SUB_APP1, &sapp1_selected_path.sequencial_id);
+	Util_watch_remove(WATCH_HANDLE_SUB_APP1, &sapp1_file_info.sequencial_id);
 
 	//Free string buffers.
 	Util_str_free(&sapp1_selected_path);

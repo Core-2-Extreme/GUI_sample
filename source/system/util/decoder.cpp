@@ -41,7 +41,7 @@ extern "C"
 static void Util_decoder_audio_exit(uint8_t session);
 static void Util_decoder_video_exit(uint8_t session);
 static void Util_decoder_mvd_exit(uint8_t session);
-static void Util_subtitle_decoder_exit(uint8_t session);
+static void Util_decoder_subtitle_exit(uint8_t session);
 extern "C" void memcpy_asm(uint8_t*, uint8_t*, uint32_t);
 
 
@@ -2714,7 +2714,7 @@ void Util_decoder_close_file(uint8_t session)
 	Util_decoder_audio_exit(session);
 	Util_decoder_video_exit(session);
 	Util_decoder_mvd_exit(session);
-	Util_subtitle_decoder_exit(session);
+	Util_decoder_subtitle_exit(session);
 	for(uint16_t i = 0; i < DEF_DECODER_MAX_CACHE_PACKETS; i++)
 		av_packet_free(&util_decoder_cache_packet[session][i]);
 
@@ -2786,7 +2786,7 @@ static void Util_decoder_mvd_exit(uint8_t session)
 	}
 }
 
-static void Util_subtitle_decoder_exit(uint8_t session)
+static void Util_decoder_subtitle_exit(uint8_t session)
 {
 	for(uint8_t i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
 	{

@@ -23,6 +23,7 @@ extern "C"
 	#include "system/util/queue.h"
 	#include "system/util/str.h"
 	#include "system/util/thread_types.h"
+	#include "system/util/watch.h"
 }
 
 //Include myself.
@@ -227,7 +228,7 @@ void Sapp3_init(bool draw)
 
 	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp3_status), (result == DEF_SUCCESS), result);
 
-	Util_add_watch(WATCH_HANDLE_SUB_APP3, &sapp3_status.sequencial_id, sizeof(sapp3_status.sequencial_id));
+	Util_watch_add(WATCH_HANDLE_SUB_APP3, &sapp3_status.sequencial_id, sizeof(sapp3_status.sequencial_id));
 
 	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) && var_core_2_available)
 		sapp3_init_thread = threadCreate(Sapp3_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
@@ -275,7 +276,7 @@ void Sapp3_exit(bool draw)
 	DEF_LOG_RESULT_SMART(result, threadJoin(sapp3_exit_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(sapp3_exit_thread);
 
-	Util_remove_watch(WATCH_HANDLE_SUB_APP3, &sapp3_status.sequencial_id);
+	Util_watch_remove(WATCH_HANDLE_SUB_APP3, &sapp3_status.sequencial_id);
 	Util_str_free(&sapp3_status);
 	var_need_reflesh = true;
 
@@ -295,7 +296,7 @@ void Sapp3_main(void)
 	}
 
 	//Check if we should update the screen.
-	if(Util_is_watch_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	if(Util_watch_is_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
 	{
 		Str_data temp_msg = { 0, };
 
@@ -434,7 +435,7 @@ static void Sapp3_draw_init_exit_message(void)
 	}
 
 	//Check if we should update the screen.
-	if(Util_is_watch_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	if(Util_watch_is_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
 	{
 		var_need_reflesh = false;
 		Draw_frame_ready();
@@ -486,10 +487,10 @@ static void Sapp3_init_thread(void* arg)
 	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp3_mic_saved_path), (result == DEF_SUCCESS), result);
 
 	//Add to watch to detect value changes, screen will be rerenderd when value is changed.
-	Util_add_watch(WATCH_HANDLE_SUB_APP3, &sapp3_camera_state, sizeof(sapp3_camera_state));
-	Util_add_watch(WATCH_HANDLE_SUB_APP3, &sapp3_mic_state, sizeof(sapp3_mic_state));
-	Util_add_watch(WATCH_HANDLE_SUB_APP3, &sapp3_camera_saved_path.sequencial_id, sizeof(sapp3_camera_saved_path.sequencial_id));
-	Util_add_watch(WATCH_HANDLE_SUB_APP3, &sapp3_mic_saved_path.sequencial_id, sizeof(sapp3_mic_saved_path.sequencial_id));
+	Util_watch_add(WATCH_HANDLE_SUB_APP3, &sapp3_camera_state, sizeof(sapp3_camera_state));
+	Util_watch_add(WATCH_HANDLE_SUB_APP3, &sapp3_mic_state, sizeof(sapp3_mic_state));
+	Util_watch_add(WATCH_HANDLE_SUB_APP3, &sapp3_camera_saved_path.sequencial_id, sizeof(sapp3_camera_saved_path.sequencial_id));
+	Util_watch_add(WATCH_HANDLE_SUB_APP3, &sapp3_mic_saved_path.sequencial_id, sizeof(sapp3_mic_saved_path.sequencial_id));
 
 	Util_str_add(&sapp3_status, "\nInitializing queue...");
 	//Create the queues for commands.
@@ -571,10 +572,10 @@ static void Sapp3_exit_thread(void* arg)
 	Util_queue_delete(&sapp3_mic_command_queue);
 
 	//Remove watch on exit.
-	Util_remove_watch(WATCH_HANDLE_SUB_APP3, &sapp3_camera_state);
-	Util_remove_watch(WATCH_HANDLE_SUB_APP3, &sapp3_mic_state);
-	Util_remove_watch(WATCH_HANDLE_SUB_APP3, &sapp3_camera_saved_path);
-	Util_remove_watch(WATCH_HANDLE_SUB_APP3, &sapp3_mic_saved_path);
+	Util_watch_remove(WATCH_HANDLE_SUB_APP3, &sapp3_camera_state);
+	Util_watch_remove(WATCH_HANDLE_SUB_APP3, &sapp3_mic_state);
+	Util_watch_remove(WATCH_HANDLE_SUB_APP3, &sapp3_camera_saved_path);
+	Util_watch_remove(WATCH_HANDLE_SUB_APP3, &sapp3_mic_saved_path);
 
 	//Free string buffers.
 	Util_str_free(&sapp3_camera_saved_path);

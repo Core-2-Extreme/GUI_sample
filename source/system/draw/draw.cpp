@@ -19,6 +19,7 @@ extern "C"
 	#include "system/util/hid.h"
 	#include "system/util/log.h"
 	#include "system/util/str.h"
+	#include "system/util/watch.h"
 }
 
 extern "C"
@@ -1139,7 +1140,7 @@ static void Draw_debug_info(void)
 	Util_str_format(&temp, "Linear RAM:%.3fMB", (var_free_linear_ram / 1000.0 / 1000.0));
 	Draw_with_background(&temp, 0, 190, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "Watch:%" PRIu32 "/%" PRIu32 "(%.1f%%)", Util_get_watch_total_usage(), DEF_WATCH_MAX_VARIABLES, ((double)Util_get_watch_total_usage() / DEF_WATCH_MAX_VARIABLES * 100));
+	Util_str_format(&temp, "Watch:%" PRIu32 "/%" PRIu32 "(%.1f%%)", Util_watch_get_total_usage(), DEF_WATCH_MAX_VARIABLES, ((double)Util_watch_get_total_usage() / DEF_WATCH_MAX_VARIABLES * 100));
 	Draw_with_background(&temp, 0, 200, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_free(&temp);
