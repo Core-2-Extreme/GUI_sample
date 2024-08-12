@@ -4,7 +4,7 @@ extern "C"
 }
 
 #if DEF_EXPL_API_ENABLE
-#include <algorithm>
+#include <ctype.h>
 #include <stdbool.h>
 #include <stdint.h>
 

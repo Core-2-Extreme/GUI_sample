@@ -6,8 +6,10 @@ extern "C"
 #if DEF_CURL_API_ENABLE
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "system/types.hpp"
+#include "3ds.h"
 
 #include "system/util/util.hpp"
 

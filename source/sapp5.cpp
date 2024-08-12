@@ -1,8 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "system/types.hpp"
-
 #include "system/menu.hpp"
 #include "system/variables.hpp"
 

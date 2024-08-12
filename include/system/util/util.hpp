@@ -2,8 +2,9 @@
 #define DEF_UTIL_HPP
 #include <stdbool.h>
 #include <stdint.h>
+#include <string>
+#include "3ds.h"
 #include "system/util/str_types.h"
-#include "system/types.hpp"
 
 extern "C" void* __real_malloc(size_t size);
 extern "C" void* __real_realloc(void* ptr, size_t size);

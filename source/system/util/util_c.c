@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <3ds.h>
+#include "3ds.h"
 
 void Util_sleep(uint64_t us)
 {

@@ -1,4 +1,7 @@
+extern "C"
+{
 #include "system/util/keyboard.h"
+}
 
 #if DEF_KEYBOARD_API_ENABLE
 #include <stdbool.h>

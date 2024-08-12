@@ -6,6 +6,9 @@ extern "C"
 #if DEF_SPEAKER_API_ENABLE
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
+
+#include "3ds.h"
 
 #include "system/util/util.hpp"
 

@@ -5,6 +5,11 @@ extern "C"
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "3ds.h"
 
 #include "system/util/util.hpp"
 extern "C"

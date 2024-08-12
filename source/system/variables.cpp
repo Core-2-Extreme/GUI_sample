@@ -1,7 +1,12 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <string>
 
-#include "system/types.hpp"
+#include "3ds.h"
+#include "citro2d.h"
+
+#include "system/sem.hpp"
+
 #include "system/util/util.hpp"
 
 //Include myself.

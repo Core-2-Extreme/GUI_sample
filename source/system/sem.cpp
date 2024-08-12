@@ -1,7 +1,8 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <string>
 
-#include "system/types.hpp"
+#include "3ds.h"
 
 #include "system/menu.hpp"
 #include "system/variables.hpp"

@@ -6,7 +6,10 @@ extern "C"
 #include <malloc.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 #include <unistd.h>
+
+#include "3ds.h"
 
 #include "system/variables.hpp"
 

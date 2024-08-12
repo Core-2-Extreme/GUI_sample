@@ -180,9 +180,8 @@ a120, a121, a122, a123, a124, a125, ...) \
 #define DEF_LOG_ENUM_ARGS_TO_STRING(...)				DEF_LOG_ENUM_ARGS_TO_STRING_(DEF_LOG_ENUM_NUM_OF_ARGS(__VA_ARGS__))(__VA_ARGS__)
 
 #define DEF_LOG_ENUM_DEBUG(enum_name, ...) \
-static const char* enum_name##_get_name(enum_name value) \
+static inline const char* enum_name##_get_name(enum_name value) \
 { \
-	(void)enum_name##_get_name; \
 	static const char* names[] = \
 	{\
 		DEF_LOG_ENUM_ARGS_TO_STRING(__VA_ARGS__), \
@@ -207,7 +206,7 @@ static const char* enum_name##_get_name(enum_name value) \
 #define DEF_LOG_ENUM_DEBUG_DISABLED_MSG					(const char*)("(Enum debug is disabled.)")
 
 #define DEF_LOG_ENUM_DEBUG(enum_name, ...) \
-static const char* enum_name##_get_name(enum_name value) \
+static inline const char* enum_name##_get_name(enum_name value) \
 { \
 	return DEF_LOG_ENUM_DEBUG_DISABLED_MSG; \
 } \

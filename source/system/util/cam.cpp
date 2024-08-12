@@ -7,6 +7,8 @@ extern "C"
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "3ds.h"
+
 #include "system/util/util.hpp"
 
 extern "C"

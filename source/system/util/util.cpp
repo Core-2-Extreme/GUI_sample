@@ -1,10 +1,12 @@
 #include "system/util/util.hpp"
 
+#include <inttypes.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <inttypes.h>
+#include <string.h>
 
-#include "system/types.hpp"
+#include "3ds.h"
 
 extern "C"
 {

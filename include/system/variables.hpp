@@ -2,8 +2,8 @@
 #define DEF_VARIABLES_HPP
 #include <stdbool.h>
 #include <stdint.h>
-#include "system/types.hpp"
-#include "system/sem.hpp"
+#include <string>
+#include "citro2d.h"
 
 extern bool var_connect_test_succes;
 extern bool var_need_reflesh;
