@@ -43,12 +43,9 @@ extern "C" void* __real_linearRealloc(void* mem, size_t size);
 extern "C" size_t __real_linearGetSize(void* mem);
 extern "C" void __real_linearFree(void* mem);
 extern "C" uint32_t __real_linearSpaceFree(void);
-extern "C" Result __real_APT_SetAppCpuTimeLimit(uint32_t percent);
-extern "C" Result __real_APT_GetAppCpuTimeLimit(uint32_t* percent);
 
 
 bool util_init = false;
-uint32_t util_max_core_1 = 0;
 LightLock util_linear_alloc_mutex = 1;//Initially unlocked state.
 LightLock util_malloc_mutex = 1;//Initially unlocked state.
 void* (*memalign_heap)(size_t align, size_t size) = memalign_heap_only;
@@ -427,24 +424,6 @@ extern "C" uint32_t __wrap_linearSpaceFree(void)
 	return space;
 }
 
-extern "C" Result __wrap_APT_SetAppCpuTimeLimit(uint32_t percent)
-{
-	Result code = __real_APT_SetAppCpuTimeLimit(percent);
-	if(code == 0)
-		util_max_core_1 = percent;
-
-	return code;
-}
-
-extern "C" Result __wrap_APT_GetAppCpuTimeLimit(uint32_t* percent)
-{
-	Result code = __real_APT_GetAppCpuTimeLimit(percent);
-	if(percent && code == 0)
-		util_max_core_1 = *percent;
-
-	return code;
-}
-
 uint32_t Util_init(void)
 {
 	if(util_init)
@@ -708,17 +687,12 @@ void Util_sleep(uint64_t us)
 	svcSleepThread(us * 1000);
 }
 
-uint32_t Util_get_core_1_max(void)
-{
-	return util_max_core_1;
-}
-
-long Util_min(long value_0, long value_1)
+int64_t Util_min(int64_t value_0, int64_t value_1)
 {
 	return (value_0 > value_1 ? value_1 : value_0);
 }
 
-long Util_max(long value_0, long value_1)
+int64_t Util_max(int64_t value_0, int64_t value_1)
 {
 	return (value_0 > value_1 ? value_0 : value_1);
 }

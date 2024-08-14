@@ -1062,11 +1062,11 @@ void Draw_cpu_usage_info(void)
 
 	background.c2d = var_square_image[0];
 
-	char_length = snprintf(msg_cache, 128, "CPU : %.1f%%", Util_cpu_usage_monitor_get_cpu_usage(-1));
+	char_length = snprintf(msg_cache, 128, "CPU : %.1f%%", Util_cpu_usage_get_cpu_usage(-1));
 	for(uint8_t i = 0; i < 4; i++)
-		char_length += snprintf((msg_cache + char_length), 128 - char_length, "\nCore #%d : %.1f%%", i, Util_cpu_usage_monitor_get_cpu_usage(i));
+		char_length += snprintf((msg_cache + char_length), 128 - char_length, "\nCore #%d : %.1f%%", i, Util_cpu_usage_get_cpu_usage(i));
 
-	snprintf((msg_cache + char_length), 128 - char_length, "\n(#1 max : %ld%%)", Util_get_core_1_max());
+	snprintf((msg_cache + char_length), 128 - char_length, "\n(#1 max : %ld%%)", Util_cpu_usage_get_core_1_limit());
 
 	Draw_with_background_c(msg_cache, 300, 25, 0.4, 0.4, DEF_DRAW_BLACK, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER,
 	100, 60, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);

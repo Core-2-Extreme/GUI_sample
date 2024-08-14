@@ -403,7 +403,7 @@ void Menu_exit(void)
 	Exfont_exit();
 	Util_err_exit();
 	Util_exit();
-	Util_cpu_usage_monitor_exit();
+	Util_cpu_usage_exit();
 
 	DEF_LOG_RESULT_SMART(result, threadJoin(menu_worker_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(menu_worker_thread);

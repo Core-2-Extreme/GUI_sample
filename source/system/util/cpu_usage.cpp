@@ -23,18 +23,22 @@ extern "C"
 {
 bool util_cpu_usage_monitor_init = false;
 bool util_cpu_usage_reset_counter_request[4] = { false, false, false, false, };
+uint8_t util_cpu_usage_core_1_limit = 0;
 uint8_t util_cpu_usage_core_id[4] = { 0, 1, 2, 3, };
 uint16_t util_cpu_usage_counter_cache[4] = { 0, 0, 0, 0, };
-uint32_t util_cpu_usage_max_core_1 = 0;
 float util_cpu_usage_per_core[4] = { NAN, NAN, NAN, NAN, };
 float util_cpu_usage = NAN;
 Thread util_cpu_usage_thread_handle[5] = { 0, 0, 0, 0, };
 Handle timer_handle = 0;
 
+
+extern Result __real_APT_SetAppCpuTimeLimit(uint32_t percent);
+extern Result __real_APT_GetAppCpuTimeLimit(uint32_t* percent);
 void Util_cpu_usage_counter_thread(void* arg);
 void Util_cpu_usage_calculate_thread(void* arg);
 
-uint32_t Util_cpu_usage_monitor_init(void)
+
+uint32_t Util_cpu_usage_init(void)
 {
 	if(util_cpu_usage_monitor_init)
 		goto already_inited;
@@ -63,7 +67,7 @@ uint32_t Util_cpu_usage_monitor_init(void)
 	return DEF_ERR_ALREADY_INITIALIZED;
 }
 
-void Util_cpu_usage_monitor_exit(void)
+void Util_cpu_usage_exit(void)
 {
 	if(!util_cpu_usage_monitor_init)
 		return;
@@ -80,7 +84,7 @@ void Util_cpu_usage_monitor_exit(void)
 	}
 }
 
-float Util_cpu_usage_monitor_get_cpu_usage(int8_t core_id)
+float Util_cpu_usage_get_cpu_usage(int8_t core_id)
 {
 	if(!util_cpu_usage_monitor_init)
 		return NAN;
@@ -94,6 +98,31 @@ float Util_cpu_usage_monitor_get_cpu_usage(int8_t core_id)
 		return util_cpu_usage_per_core[core_id];
 }
 
+uint8_t Util_cpu_usage_get_core_1_limit(void)
+{
+	if(!util_cpu_usage_monitor_init)
+		return 0;
+
+	return util_cpu_usage_core_1_limit;
+}
+
+Result __wrap_APT_SetAppCpuTimeLimit(uint32_t percent)
+{
+	Result code = __real_APT_SetAppCpuTimeLimit(percent);
+	if(code == DEF_SUCCESS)
+		util_cpu_usage_core_1_limit = percent;
+
+	return code;
+}
+
+Result __wrap_APT_GetAppCpuTimeLimit(uint32_t* percent)
+{
+	Result code = __real_APT_GetAppCpuTimeLimit(percent);
+	if(percent && code == DEF_SUCCESS)
+		util_cpu_usage_core_1_limit = *percent;
+
+	return code;
+}
 
 void Util_cpu_usage_counter_thread(void* arg)
 {
@@ -162,8 +191,10 @@ void Util_cpu_usage_calculate_thread(void* arg)
 
 				if(i == 1)
 				{
-					if(Util_get_core_1_max() != 0)
-						util_cpu_usage_per_core[i] = cpu_usage_cache / (100.0 / Util_get_core_1_max());
+					uint8_t core_1_limit = util_cpu_usage_core_1_limit;
+
+					if(core_1_limit != 0)
+						util_cpu_usage_per_core[i] = cpu_usage_cache / (100.0 / core_1_limit);
 					else
 						util_cpu_usage_per_core[i] = 0;
 				}

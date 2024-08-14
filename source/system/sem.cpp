@@ -2070,7 +2070,7 @@ void Sem_worker_callback(void)
 		{
 			if(var_monitor_cpu_usage)
 			{
-				DEF_LOG_RESULT_SMART(result, Util_cpu_usage_monitor_init(), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_cpu_usage_init(), (result == DEF_SUCCESS), result);
 				if(result == DEF_SUCCESS)
 					sem_is_cpu_usage_monitor_running = true;
 				else
@@ -2082,7 +2082,7 @@ void Sem_worker_callback(void)
 			}
 			else
 			{
-				Util_cpu_usage_monitor_exit();
+				Util_cpu_usage_exit();
 				sem_is_cpu_usage_monitor_running = false;
 			}
 		}

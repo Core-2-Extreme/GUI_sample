@@ -92,13 +92,6 @@ uint32_t Util_check_free_linear_space(void);
 uint32_t Util_check_free_ram(void);
 
 /**
- * @brief Check max allowed core #1 usage.
- * @return Max allowed core #1 usage.
- * @warning Thread dangerous (untested)
-*/
-uint32_t Util_get_core_1_max(void);
-
-/**
  * @brief Sleep thread.
  * @param ns (in) Time to sleep in us.
  * @note Thread safe
@@ -112,7 +105,7 @@ void Util_sleep(uint64_t us);
  * @return Minimum value.
  * @note Thread safe
 */
-long Util_min(long value_0, long value_1);
+int64_t Util_min(int64_t value_0, int64_t value_1);
 
 /**
  * @brief Compare values and return maximum value.
@@ -121,7 +114,7 @@ long Util_min(long value_0, long value_1);
  * @return Maximum value.
  * @note Thread safe
 */
-long Util_max(long value_0, long value_1);
+int64_t Util_max(int64_t value_0, int64_t value_1);
 
 /**
  * @brief Compare double values and return minimum value.
