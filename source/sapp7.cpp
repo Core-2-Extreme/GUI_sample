@@ -4,8 +4,6 @@
 #include "system/menu.hpp"
 #include "system/variables.hpp"
 
-#include "system/util/util.hpp"
-
 extern "C"
 {
 	#include "system/draw/draw.h"
@@ -15,6 +13,7 @@ extern "C"
 	#include "system/util/log.h"
 	#include "system/util/str.h"
 	#include "system/util/thread_types.h"
+	#include "system/util/util_c.h"
 	#include "system/util/watch.h"
 }
 

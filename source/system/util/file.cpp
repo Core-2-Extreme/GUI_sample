@@ -11,13 +11,13 @@ extern "C"
 
 #include "3ds.h"
 
-#include "system/util/util.hpp"
 extern "C"
 {
 #include "system/util/err_types.h"
 #include "system/util/expl.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
+#include "system/util/util_c.h"
 }
 
 

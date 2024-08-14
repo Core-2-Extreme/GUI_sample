@@ -7,8 +7,6 @@
 
 #include "system/sem.hpp"
 
-#include "system/util/util.hpp"
-
 //Include myself.
 #include "system/variables.hpp"
 

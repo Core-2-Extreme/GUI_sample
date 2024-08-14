@@ -6,16 +6,16 @@ extern "C"
 #if DEF_MIC_API_ENABLE
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "3ds.h"
-
-#include "system/util/util.hpp"
 
 extern "C"
 {
 #include "system/util/err_types.h"
 #include "system/util/log.h"
+#include "system/util/util_c.h"
 }
 
 

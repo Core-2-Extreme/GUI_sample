@@ -9,13 +9,12 @@ extern "C"
 
 #include "3ds.h"
 
-#include "system/util/util.hpp"
-
 extern "C"
 {
 #include "system/util/err_types.h"
 #include "system/util/raw_types.h"
 #include "system/util/log.h"
+#include "system/util/util_c.h"
 }
 
 extern "C"

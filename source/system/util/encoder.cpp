@@ -6,12 +6,14 @@ extern "C"
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "system/util/util.hpp"
+#include "3ds.h"
+
 extern "C"
 {
 #include "system/util/err_types.h"
 #include "system/util/log.h"
 #include "system/util/media_types.h"
+#include "system/util/util_c.h"
 }
 
 #if DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
