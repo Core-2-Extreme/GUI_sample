@@ -236,7 +236,7 @@ void Sem_init(void)
 			var_top_lcd_brightness = var_lcd_brightness;
 			var_bottom_lcd_brightness = var_lcd_brightness;
 		}
-		Util_safe_linear_free(read_cache);
+		free(read_cache);
 		read_cache = NULL;
 	}
 
@@ -771,13 +771,13 @@ void Sem_main(void)
 				if(sem_update_progress == 2)
 				{
 					//Downloading.
-					Draw_c((std::to_string(sem_dled_size / 1024.0 / 1024.0).substr(0, 4) + "MB(" + std::to_string(sem_dled_size / 1024) + "KB)").c_str(), 17.5, 180, 0.425, 0.425, DEF_DRAW_BLACK);
+					Draw_c((std::to_string(sem_dled_size / 1000.0 / 1000.0).substr(0, 4) + "MB(" + std::to_string(sem_dled_size / 1000) + "KB)").c_str(), 17.5, 180, 0.425, 0.425, DEF_DRAW_BLACK);
 					Draw(&sem_msg[DEF_SEM_DOWNLOADING_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
 				}
 				else if(sem_update_progress == 3)
 				{
 					//Installing.
-					Draw_c((std::to_string(sem_installed_size / 1024.0 / 1024.0).substr(0, 4) + "MB/" + std::to_string(sem_total_cia_size / 1024.0 / 1024.0).substr(0, 4) + "MB").c_str(), 17.5, 180, 0.425, 0.425, DEF_DRAW_BLACK);
+					Draw_c((std::to_string(sem_installed_size / 1000.0 / 1000.0).substr(0, 4) + "MB/" + std::to_string(sem_total_cia_size / 1000.0 / 1000.0).substr(0, 4) + "MB").c_str(), 17.5, 180, 0.425, 0.425, DEF_DRAW_BLACK);
 					Draw(&sem_msg[DEF_SEM_INSTALLING_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
 				}
 				else if (sem_update_progress == 4)
@@ -1749,7 +1749,7 @@ void Sem_encode_thread(void* arg)
 
 				sem_wait_request = true;
 				sem_encode_request = false;
-				yuv420p = (uint8_t*)Util_safe_linear_alloc(sem_rec_width * sem_rec_height * 1.5);
+				yuv420p = (uint8_t*)linearAlloc(sem_rec_width * sem_rec_height * 1.5);
 				if(yuv420p == NULL)
 					sem_stop_record_request = true;
 				else
@@ -1764,7 +1764,7 @@ void Sem_encode_thread(void* arg)
 					}
 				}
 
-				Util_safe_linear_free(yuv420p);
+				free(yuv420p);
 				yuv420p = NULL;
 				sem_wait_request = false;
 			}
@@ -1860,7 +1860,7 @@ void Sem_record_thread(void* arg)
 			if(result != DEF_SUCCESS)
 				sem_record_request = false;
 
-			sem_yuv420p = (uint8_t*)Util_safe_linear_alloc(rec_width * rec_height * 1.5);
+			sem_yuv420p = (uint8_t*)linearAlloc(rec_width * rec_height * 1.5);
 			if(sem_yuv420p == NULL)
 				sem_stop_record_request = true;
 
@@ -1891,12 +1891,12 @@ void Sem_record_thread(void* arg)
 						break;
 					}
 
-					both_bgr = (uint8_t*)Util_safe_linear_alloc(rec_width * rec_height * 3);
+					both_bgr = (uint8_t*)linearAlloc(rec_width * rec_height * 3);
 					if(both_bgr == NULL)
 						break;
 
 					memcpy(both_bgr, top_bgr, 400 * 240 * 3);
-					Util_safe_linear_free(top_bgr);
+					free(top_bgr);
 					top_bgr = NULL;
 
 					offset = 400 * 240 * 3;
@@ -1912,7 +1912,7 @@ void Sem_record_thread(void* arg)
 						memset(both_bgr + offset, 0x0, 40 * 3);
 						offset += 40 * 3;
 					}
-					Util_safe_linear_free(bot_bgr);
+					free(bot_bgr);
 					bot_bgr = NULL;
 				}
 				else if(mode == DEF_SEM_RECORD_TOP)
@@ -1946,7 +1946,7 @@ void Sem_record_thread(void* arg)
 				parameters.source = both_bgr;
 
 				result = Util_converter_convert_color(&parameters);
-				Util_safe_linear_free(both_bgr);
+				free(both_bgr);
 				both_bgr = NULL;
 				if(result != DEF_SUCCESS)
 				{
@@ -1954,7 +1954,7 @@ void Sem_record_thread(void* arg)
 					break;
 				}
 				memcpy(sem_yuv420p, parameters.converted, rec_width * rec_height * 1.5);
-				Util_safe_linear_free(parameters.converted);
+				free(parameters.converted);
 				parameters.converted = NULL;
 
 				sem_encode_request = true;
@@ -1968,10 +1968,10 @@ void Sem_record_thread(void* arg)
 				Util_sleep(100000);
 
 			Util_encoder_close_output_file(0);
-			Util_safe_linear_free(both_bgr);
-			Util_safe_linear_free(bot_bgr);
-			Util_safe_linear_free(top_bgr);
-			Util_safe_linear_free(sem_yuv420p);
+			free(both_bgr);
+			free(bot_bgr);
+			free(top_bgr);
+			free(sem_yuv420p);
 			both_bgr = NULL;
 			bot_bgr = NULL;
 			top_bgr = NULL;
@@ -2239,7 +2239,7 @@ void Sem_update_thread(void* arg)
 
 						while (true)
 						{
-							Util_safe_linear_free(buffer);
+							free(buffer);
 							buffer = NULL;
 
 							DEF_LOG_RESULT_SMART(result, Util_file_load_from_file(file_name.c_str(), dir_path.c_str(), &buffer, 0x20000, offset, &read_size), (result == DEF_SUCCESS), result);
@@ -2265,7 +2265,7 @@ void Sem_update_thread(void* arg)
 				}
 			}
 
-			Util_safe_linear_free(buffer);
+			free(buffer);
 			buffer = NULL;
 			if(sem_check_update_request)
 				sem_check_update_request = false;

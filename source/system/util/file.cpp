@@ -157,8 +157,8 @@ uint32_t Util_file_load_from_file(const char* file_name, const char* dir_path, u
 	}
 
 	max_read_size = (((file_size - read_offset) > (uint64_t)max_size) ? max_size : (file_size - read_offset));
-	Util_safe_linear_free(*read_data);
-	*read_data = (uint8_t*)Util_safe_linear_alloc(max_read_size + 1);
+	free(*read_data);
+	*read_data = (uint8_t*)linearAlloc(max_read_size + 1);
 	if(!*read_data)
 		goto out_of_memory;
 
@@ -185,7 +185,7 @@ uint32_t Util_file_load_from_file(const char* file_name, const char* dir_path, u
 
 	out_of_memory:
 	free(utf16_path);
-	Util_safe_linear_free(*read_data);
+	free(*read_data);
 	utf16_path = NULL;
 	*read_data = NULL;
 	FSFILE_Close(handle);
@@ -194,7 +194,7 @@ uint32_t Util_file_load_from_file(const char* file_name, const char* dir_path, u
 
 	nintendo_api_failed:
 	free(utf16_path);
-	Util_safe_linear_free(*read_data);
+	free(*read_data);
 	utf16_path = NULL;
 	*read_data = NULL;
 	FSFILE_Close(handle);
@@ -251,8 +251,8 @@ uint32_t Util_file_load_from_rom(const char* file_name, const char* dir_path, ui
 	rewind(handle);
 
 	max_read_size = ((file_size > (uint64_t)max_size) ? max_size : file_size);
-	Util_safe_linear_free(*read_data);
-	*read_data = (uint8_t*)Util_safe_linear_alloc(max_read_size + 1);
+	free(*read_data);
+	*read_data = (uint8_t*)linearAlloc(max_read_size + 1);
 	if(!*read_data)
 		goto out_of_memory;
 
@@ -279,7 +279,7 @@ uint32_t Util_file_load_from_rom(const char* file_name, const char* dir_path, ui
 	return result;
 
 	io_failed:
-	Util_safe_linear_free(*read_data);
+	free(*read_data);
 	*read_data = NULL;
 	if(handle)
 		fclose(handle);

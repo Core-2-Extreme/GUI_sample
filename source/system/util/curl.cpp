@@ -83,7 +83,7 @@ uint32_t Util_curl_init(uint32_t buffer_size)
 	if(buffer_size < 0)
 		goto invalid_arg;
 
-	util_curl_buffer = (uint32_t*)__real_memalign(0x1000, buffer_size);
+	util_curl_buffer = (uint32_t*)memalign_heap(0x1000, buffer_size);
 	if(!util_curl_buffer)
 		goto out_of_memory;
 
@@ -328,7 +328,7 @@ static size_t Util_curl_write_callback(char* input_data, size_t size, size_t nme
 	{
 		buffer_size = ((http_data->max_size > (http_data->current_size + 0x40000)) ? (http_data->current_size + 0x40000) : http_data->max_size);
 
-		http_data->data = (uint8_t*)Util_safe_linear_realloc(http_data->data, buffer_size);
+		http_data->data = (uint8_t*)linearRealloc(http_data->data, buffer_size);
 		if (!http_data->data)
 			goto error;
 
@@ -343,7 +343,7 @@ static size_t Util_curl_write_callback(char* input_data, size_t size, size_t nme
 	return input_size;
 
 	error:
-	Util_safe_linear_free(http_data->data);
+	free(http_data->data);
 	http_data->data = NULL;
 	*http_data->used_size = 0;
 	http_data->current_size = 0;
@@ -506,7 +506,7 @@ static uint32_t Util_curl_request(CURL** curl_handle, const char* url, CURLoptio
 		goto curl_api_failed;
 	}
 
-	result = curl_easy_setopt(*curl_handle, CURLOPT_BUFFERSIZE, 1024 * 128);
+	result = curl_easy_setopt(*curl_handle, CURLOPT_BUFFERSIZE, 1000 * 128);
 	if (result != CURLE_OK)
 	{
 		DEF_LOG_RESULT(curl_easy_setopt_BUFFERSIZE, false, result);
@@ -637,7 +637,7 @@ static uint32_t Util_curl_download_data(CURL** curl_handle, Http_data* http_data
 
 	curl_api_failed:
 	Util_curl_close(curl_handle);
-	Util_safe_linear_free(http_data->data);
+	free(http_data->data);
 	http_data->data = NULL;
 	*http_data->used_size = 0;
 	http_data->current_size = 0;
@@ -661,7 +661,7 @@ static uint32_t Util_curl_save_data_internal(CURL** curl_handle, Http_data* http
 	uint32_t result = DEF_ERR_OTHER;
 	char error_message[4096] = { 0, };
 
-	http_data->data = (uint8_t*)Util_safe_linear_alloc(http_data->max_size);
+	http_data->data = (uint8_t*)linearAlloc(http_data->max_size);
 	if(!http_data->data)
 		goto out_of_memory;
 
@@ -698,7 +698,7 @@ static uint32_t Util_curl_save_data_internal(CURL** curl_handle, Http_data* http
 
 	Util_file_save_to_file(http_data->file_name, http_data->dir_path, http_data->data, http_data->current_size, false);
 
-	Util_safe_linear_free(http_data->data);
+	free(http_data->data);
 	http_data->data = NULL;
 	return result;
 
@@ -711,7 +711,7 @@ static uint32_t Util_curl_save_data_internal(CURL** curl_handle, Http_data* http
 
 	curl_api_failed:
 	Util_curl_close(curl_handle);
-	Util_safe_linear_free(http_data->data);
+	free(http_data->data);
 	http_data->data = NULL;
 	*http_data->used_size = 0;
 	http_data->current_size = 0;

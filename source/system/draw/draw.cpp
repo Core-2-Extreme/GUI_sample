@@ -300,8 +300,8 @@ uint32_t Draw_texture_init(Draw_image_data* image, uint16_t tex_size_x, uint16_t
 	else if(color_format == RAW_PIXEL_RGB565LE)
 		color = GPU_RGB565;
 
-	image->subtex = (Tex3DS_SubTexture*)Util_safe_linear_alloc(sizeof(Tex3DS_SubTexture));
-	image->c2d.tex = (C3D_Tex*)Util_safe_linear_alloc(sizeof(C3D_Tex));
+	image->subtex = (Tex3DS_SubTexture*)linearAlloc(sizeof(Tex3DS_SubTexture));
+	image->c2d.tex = (C3D_Tex*)linearAlloc(sizeof(C3D_Tex));
 	if(!image->subtex || !image->c2d.tex)
 		goto out_of_linear_memory;
 
@@ -325,8 +325,8 @@ uint32_t Draw_texture_init(Draw_image_data* image, uint16_t tex_size_x, uint16_t
 	return DEF_ERR_INVALID_ARG;
 
 	out_of_linear_memory:
-	Util_safe_linear_free(image->subtex);
-	Util_safe_linear_free(image->c2d.tex);
+	free(image->subtex);
+	free(image->c2d.tex);
 	image->subtex = NULL;
 	image->c2d.tex = NULL;
 	return DEF_ERR_OUT_OF_LINEAR_MEMORY;
@@ -342,12 +342,12 @@ void Draw_texture_free(Draw_image_data* image)
 
 	if(image->c2d.tex)
 	{
-		Util_safe_linear_free(image->c2d.tex->data);
+		free(image->c2d.tex->data);
 		image->c2d.tex->data = NULL;
 	}
 
-	Util_safe_linear_free(image->c2d.tex);
-	Util_safe_linear_free(image->subtex);
+	free(image->c2d.tex);
+	free(image->subtex);
 	image->c2d.tex = NULL;
 	image->c2d.subtex = NULL;
 	image->subtex = NULL;

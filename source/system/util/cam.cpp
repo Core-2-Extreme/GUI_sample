@@ -177,7 +177,7 @@ uint32_t Util_cam_take_a_picture(uint8_t** raw_data, uint16_t* width, uint16_t* 
 		goto invalid_arg;
 
 	size = util_cam_width * util_cam_height * 2;
-	*raw_data = (uint8_t*)Util_safe_linear_alloc(size);
+	*raw_data = (uint8_t*)linearAlloc(size);
 	if(*raw_data == NULL)
 		goto out_of_memory;
 

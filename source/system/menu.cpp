@@ -144,7 +144,6 @@ void Menu_init(void)
 	DEF_LOG_RESULT_SMART(result, cfguInit(), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, amInit(), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, APT_SetAppCpuTimeLimit(30), (result == DEF_SUCCESS), result);
-	DEF_LOG_RESULT_SMART(result, Util_safe_linear_alloc_init(), (result == DEF_SUCCESS), result);
 
 	//Create directories.
 	Util_file_save_to_file(".", DEF_MENU_MAIN_DIR, &dummy, 1, true);
@@ -156,7 +155,7 @@ void Menu_init(void)
 	{
 		var_fake_model = true;
 		var_model = *data;
-		Util_safe_linear_free(data);
+		free(data);
 		data = NULL;
 	}
 
@@ -435,7 +434,6 @@ void Menu_exit(void)
 	Util_httpc_exit();
 	Util_curl_exit();
 
-	Util_safe_linear_alloc_exit();
 	fsExit();
 	acExit();
 	aptExit();
@@ -1251,7 +1249,7 @@ void Menu_send_app_info_thread(void* arg)
 	Util_httpc_post_and_dl_data(DEF_MENU_SEND_APP_INFO_URL, (uint8_t*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, NULL, NULL, 5, NULL);
 #endif
 
-	Util_safe_linear_free(dl_data);
+	free(dl_data);
 	dl_data = NULL;
 
 	DEF_LOG_STRING("Thread exit.");
@@ -1277,7 +1275,7 @@ void Menu_check_connectivity_thread(void* arg)
 #else
 			Util_curl_dl_data(DEF_MENU_CHECK_INTERNET_URL, &http_buffer, 0x1000, NULL, &status_code, 0, NULL);
 #endif
-			Util_safe_linear_free(http_buffer);
+			free(http_buffer);
 			http_buffer = NULL;
 
 			if (status_code == 204)
@@ -1428,7 +1426,7 @@ void Menu_update_thread(void* arg)
 		}
 	}
 
-	Util_safe_linear_free(http_buffer);
+	free(http_buffer);
 	http_buffer = NULL;
 
 	DEF_LOG_STRING("Thread exit.");

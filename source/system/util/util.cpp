@@ -1,6 +1,7 @@
 #include "system/util/util.hpp"
 
 #include <inttypes.h>
+#include <malloc.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -19,102 +20,411 @@ extern "C"
 #include "base64/base64.h"
 
 
-bool util_safe_linear_alloc_init = false, util_init = false;
-uint32_t util_max_core_1 = 0;
-LightLock util_safe_linear_alloc_mutex = 1;//Initially unlocked state.
+#define DEF_UTIL_LINEAR_THRESHOLD_SIZE		(uint32_t)(1000 * 32)
+#define DEF_UTIL_IS_LINEAR_RAM(ptr)			(bool)((ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE)) \
+											|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
 
 
+static inline bool Util_is_heap_low(void);
+static void* Util_realloc_heap_to_linear(void* ptr, size_t size);
+static void* Util_realloc_linear_to_heap(void* ptr, size_t size);
+static void* memalign_heap_only(size_t align, size_t size);
+static void* malloc_heap_only(size_t size);
 extern "C" void memcpy_asm(uint8_t*, uint8_t*, int);
+extern "C" void* __real_malloc(size_t size);
+extern "C" void* __real_calloc(size_t items, size_t size);
+extern "C" void* __real_realloc(void* ptr, size_t size);
+extern "C" void __real_free(void* ptr);
+extern "C" void __real__free_r(struct _reent* r, void* ptr);
+extern "C" void* __real_memalign(size_t alignment, size_t size);
+extern "C" void* __real_linearAlloc(size_t size);
+extern "C" void* __real_linearMemAlign(size_t size, size_t alignment);
+extern "C" void* __real_linearRealloc(void* mem, size_t size);
+extern "C" size_t __real_linearGetSize(void* mem);
+extern "C" void __real_linearFree(void* mem);
+extern "C" uint32_t __real_linearSpaceFree(void);
+extern "C" Result __real_APT_SetAppCpuTimeLimit(uint32_t percent);
+extern "C" Result __real_APT_GetAppCpuTimeLimit(uint32_t* percent);
 
-extern "C" void* __wrap_malloc(size_t size)
+
+bool util_init = false;
+uint32_t util_max_core_1 = 0;
+LightLock util_linear_alloc_mutex = 1;//Initially unlocked state.
+LightLock util_malloc_mutex = 1;//Initially unlocked state.
+void* (*memalign_heap)(size_t align, size_t size) = memalign_heap_only;
+void* (*malloc_heap)(size_t size) = malloc_heap_only;
+
+
+static inline bool Util_is_heap_low(void)
 {
+	bool is_low = true;
 	void* ptr = NULL;
-	//Alloc memory on linear ram if requested size is greater than 32KB to prevent slow down (linear alloc is slow).
-	//If allocation failed, try different memory before giving up.
-	if(size > 1024 * 32)
+
+	LightLock_Lock(&util_malloc_mutex);
+	ptr = __real_malloc(DEF_UTIL_LOW_HEAP_THRESHOLD);
+	if(ptr)
+		is_low = false;
+
+	__real_free(ptr);
+	LightLock_Unlock(&util_malloc_mutex);
+
+	return is_low;
+}
+
+static void* Util_realloc_heap_to_linear(void* ptr, size_t size)
+{
+	//Not portable, but efficient.
+
+	//Previous pointer was on heap, new pointer will be
+	//on linear RAM, use linearAlloc() to allocate new pointer
+	//then copy old data manually, finally free previous pointer.
+	void* new_ptr = linearAlloc(size);
+	if(new_ptr)
 	{
-		ptr = Util_safe_linear_alloc(size);
-		if(!ptr)
-			ptr = __real_malloc(size);
+		uint32_t pointer_size = malloc_usable_size(ptr);
+
+		if(size > pointer_size)
+			memcpy_asm((uint8_t*)new_ptr, (uint8_t*)ptr, pointer_size);
+		else
+			memcpy_asm((uint8_t*)new_ptr, (uint8_t*)ptr, size);
+
+		free(ptr);
+	}
+
+	return new_ptr;
+
+	//Portable but need to realloc on heap onec
+	//so that it may fail if we are running low on heap.
+
+	/*
+	//Previous pointer was on heap, new pointer
+	//will be on linear RAM, use realloc() to allocate new pointer
+	//then use linearAlloc() to allocate linear RAM, copy old data
+	//manually, finally free unnecessary pointers.
+	void* new_ptr[2] = { NULL, NULL, };
+
+	//Move onto linear RAM.
+	LightLock_Lock(&util_malloc_mutex);
+	new_ptr[0] = __real_realloc(ptr, size);
+	LightLock_Unlock(&util_malloc_mutex);
+
+	if(new_ptr[0])
+	{
+		new_ptr[1] = linearAlloc(size);
+		if(new_ptr[1])
+		{
+			memcpy(new_ptr[1], new_ptr[0], size);
+			free(new_ptr[0]);
+			return new_ptr[1];
+		}
+		else
+			return new_ptr[0];
 	}
 	else
 	{
-		ptr = __real_malloc(size);
+		//Previous pointer was on heap, new pointer
+		//will be on heap, just use realloc().
+		LightLock_Lock(&util_malloc_mutex);
+		new_ptr[0] = __real_realloc(ptr, size);
+		LightLock_Unlock(&util_malloc_mutex);
+
+		return new_ptr[0];
+	}
+	*/
+}
+
+static void* Util_realloc_linear_to_heap(void* ptr, size_t size)
+{
+	//Previous pointer was on linear RAM, new pointer will be
+	//on heap, use malloc() to allocate new pointer
+	//then copy old data manually, finally free previous pointer.
+	void* new_ptr = NULL;
+
+	LightLock_Lock(&util_malloc_mutex);
+	new_ptr = __real_malloc(size);
+	LightLock_Unlock(&util_malloc_mutex);
+
+	if(new_ptr)
+	{
+		uint32_t pointer_size = linearGetSize(ptr);
+
+		if(size > pointer_size)
+			memcpy_asm((uint8_t*)new_ptr, (uint8_t*)ptr, pointer_size);
+		else
+			memcpy_asm((uint8_t*)new_ptr, (uint8_t*)ptr, size);
+
+		free(ptr);
+	}
+
+	return new_ptr;
+}
+
+static void* memalign_heap_only(size_t align, size_t size)
+{
+	void* ptr = NULL;
+
+	//Alloc memory on heap for some libctru functions (precisely svcCreateMemoryBlock()).
+	//Only heap is acceptable here.
+	LightLock_Lock(&util_malloc_mutex);
+	ptr = __real_memalign(align, size);
+	LightLock_Unlock(&util_malloc_mutex);
+
+	return ptr;
+}
+
+static void* malloc_heap_only(size_t size)
+{
+	void* ptr = NULL;
+
+	//Alloc memory on heap for some libctru functions (precisely svcCreateMemoryBlock()).
+	//Only heap is acceptable here.
+	LightLock_Lock(&util_malloc_mutex);
+	ptr = __real_malloc(size);
+	LightLock_Unlock(&util_malloc_mutex);
+
+	return ptr;
+}
+
+extern "C" void* __wrap_malloc(size_t size)
+{
+	bool is_heap_low = Util_is_heap_low();
+	void* ptr = NULL;
+
+	//Alloc memory on linear ram if requested size is greater than threshold
+	//or running low on heap to prevent slow down (linear alloc is slow).
+	//If allocation failed, try different memory before giving up.
+	if(size > DEF_UTIL_LINEAR_THRESHOLD_SIZE || is_heap_low)
+	{
+		ptr = linearAlloc(size);
 		if(!ptr)
-			ptr = Util_safe_linear_alloc(size);
+		{
+			LightLock_Lock(&util_malloc_mutex);
+			ptr = __real_malloc(size);
+			LightLock_Unlock(&util_malloc_mutex);
+		}
+	}
+	else
+	{
+		LightLock_Lock(&util_malloc_mutex);
+		ptr = __real_malloc(size);
+		LightLock_Unlock(&util_malloc_mutex);
+
+		if(!ptr)
+			ptr = linearAlloc(size);
+	}
+	return ptr;
+}
+
+extern "C" void* __wrap_calloc(size_t items, size_t size)
+{
+	bool is_heap_low = Util_is_heap_low();
+	void* ptr = NULL;
+
+	//Alloc memory on linear ram if requested size is greater than threshold
+	//or running low on heap to prevent slow down (linear alloc is slow).
+	//If allocation failed, try different memory before giving up.
+	if((size * items) > DEF_UTIL_LINEAR_THRESHOLD_SIZE || is_heap_low)
+	{
+		ptr = linearAlloc(size * items);
+		if(!ptr)
+		{
+			LightLock_Lock(&util_malloc_mutex);
+			ptr = __real_calloc(items, size);
+			LightLock_Unlock(&util_malloc_mutex);
+		}
+		else
+			memset(ptr, 0x00, (size * items));
+	}
+	else
+	{
+		LightLock_Lock(&util_malloc_mutex);
+		ptr = __real_calloc(items, size);
+		LightLock_Unlock(&util_malloc_mutex);
+
+		if(!ptr)
+		{
+			ptr = linearAlloc(size * items);
+			if(ptr)
+				memset(ptr, 0x00, (size * items));
+		}
 	}
 	return ptr;
 }
 
 extern "C" void* __wrap_realloc(void* ptr, size_t size)
 {
-	void* new_ptr[2] = { NULL, NULL, };
+	bool is_heap_low = Util_is_heap_low();
+	void* new_ptr = NULL;
 
-	//Alloc memory on linear ram if requested size is greater than 32KB
-	//or previous pointer is allocated on linear ram to prevent slow down (linear alloc is slow).
-	if(size > 1024 * 32 || (ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))
-		|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
+	//Alloc memory on linear ram if requested size is greater than threshold,
+	//running low on heap or previous pointer is allocated on
+	//linear ram to prevent slow down (linear alloc is slow).
+	//If allocation failed, try different memory before giving up.
+	if(size > DEF_UTIL_LINEAR_THRESHOLD_SIZE || is_heap_low || DEF_UTIL_IS_LINEAR_RAM(ptr))
 	{
-		if(!ptr || (ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))
-		|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
-			return Util_safe_linear_realloc(ptr, size);
+		if(!ptr || DEF_UTIL_IS_LINEAR_RAM(ptr))
+		{
+			//Previous pointer was on linear RAM, new pointer will be on linear RAM, just use linearRealloc().
+			new_ptr = linearRealloc(ptr, size);
+			if(!new_ptr)
+				new_ptr = Util_realloc_linear_to_heap(ptr, size);
+		}
 		else
 		{
-			//move onto linear ram
-			new_ptr[0] = __real_realloc(ptr, size);
-			if(new_ptr[0])
+			new_ptr = Util_realloc_heap_to_linear(ptr, size);
+			if(!new_ptr)
 			{
-				new_ptr[1] = Util_safe_linear_alloc(size);
-				if(new_ptr[1])
-					memcpy(new_ptr[1], new_ptr[0], size);
-
-				free(new_ptr[0]);
-				return new_ptr[1];
+				//Previous pointer was on heap, new pointer will be on heap, just use realloc().
+				LightLock_Lock(&util_malloc_mutex);
+				new_ptr = __real_realloc(ptr, size);
+				LightLock_Unlock(&util_malloc_mutex);
 			}
-			else
-				return new_ptr[0];
 		}
 	}
 	else
-		return __real_realloc(ptr, size);
+	{
+		//Previous pointer was on heap, new pointer will be on heap, just use realloc().
+		LightLock_Lock(&util_malloc_mutex);
+		new_ptr = __real_realloc(ptr, size);
+		LightLock_Unlock(&util_malloc_mutex);
+		if(!new_ptr)
+			new_ptr = Util_realloc_heap_to_linear(ptr, size);
+	}
+
+	return new_ptr;
 }
 
 extern "C" void __wrap_free(void* ptr)
 {
-	if((ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))
-	|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
-		Util_safe_linear_free(ptr);
+	if(DEF_UTIL_IS_LINEAR_RAM(ptr))
+		linearFree(ptr);
 	else
+	{
+		LightLock_Lock(&util_malloc_mutex);
 		__real_free(ptr);
+		LightLock_Unlock(&util_malloc_mutex);
+	}
 }
 
-extern "C" void __wrap__free_r(struct _reent *r, void* ptr)
+extern "C" void __wrap__free_r(struct _reent* r, void* ptr)
 {
-	if((ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))
-	|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
-		Util_safe_linear_free(ptr);
+	if(DEF_UTIL_IS_LINEAR_RAM(ptr))
+		linearFree(ptr);
 	else
 		__real__free_r(r, ptr);
 }
 
 extern "C" void* __wrap_memalign(size_t alignment, size_t size)
 {
+	bool is_heap_low = Util_is_heap_low();
 	void* ptr = NULL;
-	//Alloc memory on linear ram if requested size is greater than 32KB to prevent slow down (linear alloc is slow).
+
+	//Alloc memory on linear ram if requested size is greater than threshold
+	//or running low on heap to prevent slow down (linear alloc is slow).
 	//If allocation failed, try different memory before giving up.
-	if(size > 1024 * 32)
+	if(size > DEF_UTIL_LINEAR_THRESHOLD_SIZE || is_heap_low)
 	{
-		ptr = Util_safe_linear_align(alignment, size);
+		ptr = linearMemAlign(size, alignment);
 		if(!ptr)
+		{
+			LightLock_Lock(&util_malloc_mutex);
 			ptr = __real_memalign(alignment, size);
+			LightLock_Unlock(&util_malloc_mutex);
+		}
 	}
 	else
 	{
+		LightLock_Lock(&util_malloc_mutex);
 		ptr = __real_memalign(alignment, size);
+		LightLock_Unlock(&util_malloc_mutex);
+
 		if(!ptr)
-			ptr = Util_safe_linear_align(alignment, size);
+			ptr = linearMemAlign(size, alignment);
 	}
 	return ptr;
+}
+
+extern "C" void* __wrap_linearAlloc(size_t size)
+{
+	void* pointer = NULL;
+
+	LightLock_Lock(&util_linear_alloc_mutex);
+	pointer = __real_linearAlloc(size);
+	LightLock_Unlock(&util_linear_alloc_mutex);
+
+	return pointer;
+}
+
+extern "C" void* __wrap_linearMemAlign(size_t size, size_t alignment)
+{
+	void* pointer = NULL;
+
+	LightLock_Lock(&util_linear_alloc_mutex);
+	pointer = __real_linearMemAlign(size, alignment);
+	LightLock_Unlock(&util_linear_alloc_mutex);
+
+	return pointer;
+}
+
+extern "C" void* __wrap_linearRealloc(void* mem, size_t size)
+{
+	void* new_ptr = NULL;
+
+	LightLock_Lock(&util_linear_alloc_mutex);
+	if(size == 0)
+	{
+		__real_linearFree(mem);
+		new_ptr = mem;
+	}
+	else if(!mem)
+		new_ptr = __real_linearAlloc(size);
+	else
+	{
+		new_ptr = __real_linearAlloc(size);
+		if(new_ptr)
+		{
+			uint32_t pointer_size = __real_linearGetSize(mem);
+
+			if(size > pointer_size)
+				memcpy_asm((uint8_t*)new_ptr, (uint8_t*)mem, pointer_size);
+			else
+				memcpy_asm((uint8_t*)new_ptr, (uint8_t*)mem, size);
+
+			__real_linearFree(mem);
+		}
+	}
+	LightLock_Unlock(&util_linear_alloc_mutex);
+
+	return new_ptr;
+}
+
+extern "C" size_t __wrap_linearGetSize(void* mem)
+{
+	size_t size = 0;
+
+	LightLock_Lock(&util_linear_alloc_mutex);
+	size = __real_linearGetSize(mem);
+	LightLock_Unlock(&util_linear_alloc_mutex);
+
+	return size;
+}
+
+extern "C" void __wrap_linearFree(void* mem)
+{
+	LightLock_Lock(&util_linear_alloc_mutex);
+	__real_linearFree(mem);
+	LightLock_Unlock(&util_linear_alloc_mutex);
+}
+
+extern "C" uint32_t __wrap_linearSpaceFree(void)
+{
+	uint32_t space = 0;
+
+	LightLock_Lock(&util_linear_alloc_mutex);
+	space = __real_linearSpaceFree();
+	LightLock_Unlock(&util_linear_alloc_mutex);
+
+	return space;
 }
 
 extern "C" Result __wrap_APT_SetAppCpuTimeLimit(uint32_t percent)
@@ -324,7 +634,7 @@ uint32_t Util_load_msg(const char* file_name, Str_data* out_msg, uint32_t num_of
 	if (result != DEF_SUCCESS)
 		goto api_failed;
 
-	Util_safe_linear_free(fs_buffer);
+	free(fs_buffer);
 	fs_buffer = NULL;
 	return DEF_SUCCESS;
 
@@ -332,7 +642,7 @@ uint32_t Util_load_msg(const char* file_name, Str_data* out_msg, uint32_t num_of
 	return DEF_ERR_INVALID_ARG;
 
 	api_failed:
-	Util_safe_linear_free(fs_buffer);
+	free(fs_buffer);
 	fs_buffer = NULL;
 	return result;
 }
@@ -347,137 +657,60 @@ std::string Util_decode_from_base64(std::string source)
 	return base64_decode(source);
 }
 
-uint32_t Util_safe_linear_alloc_init(void)
-{
-	if(util_safe_linear_alloc_init)
-		goto already_inited;
-
-	LightLock_Init(&util_safe_linear_alloc_mutex);
-
-	util_safe_linear_alloc_init = true;
-	return DEF_SUCCESS;
-
-	already_inited:
-	return DEF_ERR_ALREADY_INITIALIZED;
-}
-
-void Util_safe_linear_alloc_exit(void)
-{
-	if(!util_safe_linear_alloc_init)
-		return;
-
-	util_safe_linear_alloc_init = false;
-}
-
-void* Util_safe_linear_alloc(size_t size)
-{
-	void* pointer = NULL;
-	if(!util_safe_linear_alloc_init)
-		return NULL;
-
-	LightLock_Lock(&util_safe_linear_alloc_mutex);
-	pointer = linearAlloc(size);
-	LightLock_Unlock(&util_safe_linear_alloc_mutex);
-
-	return pointer;
-}
-
-void* Util_safe_linear_align(size_t alignment, size_t size)
-{
-	void* pointer = NULL;
-	if(!util_safe_linear_alloc_init)
-		return NULL;
-
-	LightLock_Lock(&util_safe_linear_alloc_mutex);
-	pointer = linearMemAlign(size, alignment);
-	LightLock_Unlock(&util_safe_linear_alloc_mutex);
-
-	return pointer;
-}
-
-void* __attribute__((optimize("O0"))) Util_safe_linear_realloc(void* pointer, size_t size)
-{
-	void* new_ptr = NULL;
-	uint32_t pointer_size = 0;
-	if(!util_safe_linear_alloc_init)
-		return NULL;
-
-	if(size == 0)
-	{
-		Util_safe_linear_free(pointer);
-		return pointer;
-	}
-	if(!pointer)
-		return Util_safe_linear_alloc(size);
-
-	new_ptr = Util_safe_linear_alloc(size);
-	if(new_ptr)
-	{
-		LightLock_Lock(&util_safe_linear_alloc_mutex);
-		pointer_size = linearGetSize(pointer);
-		LightLock_Unlock(&util_safe_linear_alloc_mutex);
-
-		if(size > pointer_size)
-			memcpy_asm((uint8_t*)new_ptr, (uint8_t*)pointer, pointer_size);
-		else
-			memcpy_asm((uint8_t*)new_ptr, (uint8_t*)pointer, size);
-
-		Util_safe_linear_free(pointer);
-	}
-	return new_ptr;
-}
-
-void Util_safe_linear_free(void* pointer)
-{
-	if(!util_safe_linear_alloc_init)
-		return;
-
-	LightLock_Lock(&util_safe_linear_alloc_mutex);
-	linearFree(pointer);
-	LightLock_Unlock(&util_safe_linear_alloc_mutex);
-}
-
 uint32_t Util_check_free_linear_space(void)
 {
-	uint32_t space = 0;
-	if(!util_safe_linear_alloc_init)
-		return 0;
-
-	LightLock_Lock(&util_safe_linear_alloc_mutex);
-	space = linearSpaceFree();
-	LightLock_Unlock(&util_safe_linear_alloc_mutex);
-	return space;
+	return linearSpaceFree();
 }
 
 uint32_t Util_check_free_ram(void)
 {
-	uint8_t* malloc_check[2000];
-	uint32_t count;
+	//Put this array on static area so that we don't need to fly our stack.
+	static uint8_t* malloc_check[1024] = { 0, };
+	uint32_t index = 0;
+	uint32_t alloc_size = (1000 * 16000);
+	uint32_t alloced_size = 0;
 
-	for (int i = 0; i < 2000; i++)
+	for (uint32_t i = 0; i < 1024; i++)
 		malloc_check[i] = NULL;
 
-	for (count = 0; count < 2000; count++)
+	//Block malloc opetations while we are checking for available heap size.
+	LightLock_Lock(&util_malloc_mutex);
+	while(true)
 	{
-		malloc_check[count] = (uint8_t*)__real_malloc(0x186A0);//100KB.
-		if (malloc_check[count] == NULL)
+		if(index == 1024)
 			break;
+
+		malloc_check[index] = (uint8_t*)__real_malloc(alloc_size);
+		if (malloc_check[index])
+		{
+			alloced_size += alloc_size;
+			index++;
+		}
+		else
+		{
+			if(alloc_size == 1)
+				break;//Out of memory.
+
+			alloc_size /= 2;
+		}
 	}
 
-	for (uint32_t i = 0; i <= count; i++)
+	for (uint32_t i = 0; i < index; i++)
 		__real_free(malloc_check[i]);
 
-	return count * 100 * 1024;//Return free bytes.
-}
+	LightLock_Unlock(&util_malloc_mutex);
 
-uint32_t Util_get_core_1_max(void)
-{
-	return util_max_core_1;
+	return alloced_size;//Return free bytes.
 }
 
 void Util_sleep(uint64_t us)
 {
 	svcSleepThread(us * 1000);
+}
+
+uint32_t Util_get_core_1_max(void)
+{
+	return util_max_core_1;
 }
 
 long Util_min(long value_0, long value_1)
@@ -486,6 +719,16 @@ long Util_min(long value_0, long value_1)
 }
 
 long Util_max(long value_0, long value_1)
+{
+	return (value_0 > value_1 ? value_0 : value_1);
+}
+
+double Util_min_d(double value_0, double value_1)
+{
+	return (value_0 > value_1 ? value_1 : value_0);
+}
+
+double Util_max_d(double value_0, double value_1)
 {
 	return (value_0 > value_1 ? value_0 : value_1);
 }

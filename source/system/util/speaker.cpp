@@ -83,7 +83,7 @@ uint32_t Util_speaker_set_audio_info(uint8_t play_ch, uint8_t music_ch, uint32_t
 	ndspChnSetRate(play_ch, sample_rate);
 	for(uint32_t i = 0; i < DEF_SPEAKER_MAX_BUFFERS; i++)
 	{
-		Util_safe_linear_free((void*)util_ndsp_buffer[play_ch][i].data_vaddr);
+		free((void*)util_ndsp_buffer[play_ch][i].data_vaddr);
 		util_ndsp_buffer[play_ch][i].data_vaddr = NULL;
 		memset(util_ndsp_buffer[play_ch], 0, sizeof(util_ndsp_buffer[play_ch]));
 	}
@@ -116,7 +116,7 @@ uint32_t Util_speaker_add_buffer(uint8_t play_ch, uint8_t* buffer, uint32_t size
 		if(util_ndsp_buffer[play_ch][i].status == NDSP_WBUF_FREE || util_ndsp_buffer[play_ch][i].status == NDSP_WBUF_DONE)
 		{
 			//Free unused data if exist.
-			Util_safe_linear_free((void*)util_ndsp_buffer[play_ch][i].data_vaddr);
+			free((void*)util_ndsp_buffer[play_ch][i].data_vaddr);
 			util_ndsp_buffer[play_ch][i].data_vaddr = NULL;
 
 			if(free_queue == UINT32_MAX)
@@ -130,7 +130,7 @@ uint32_t Util_speaker_add_buffer(uint8_t play_ch, uint8_t* buffer, uint32_t size
 		goto try_again;
 	}
 
-	util_ndsp_buffer[play_ch][free_queue].data_vaddr = (uint8_t*)Util_safe_linear_alloc(size);
+	util_ndsp_buffer[play_ch][free_queue].data_vaddr = (uint8_t*)linearAlloc(size);
 	if(!util_ndsp_buffer[play_ch][free_queue].data_vaddr)
 		goto out_of_linear_memory;
 
@@ -206,7 +206,7 @@ void Util_speaker_clear_buffer(uint8_t play_ch)
 	ndspChnWaveBufClear(play_ch);
 	for(uint32_t i = 0; i < DEF_SPEAKER_MAX_BUFFERS; i++)
 	{
-		Util_safe_linear_free((void*)util_ndsp_buffer[play_ch][i].data_vaddr);
+		free((void*)util_ndsp_buffer[play_ch][i].data_vaddr);
 		util_ndsp_buffer[play_ch][i].data_vaddr = NULL;
 	}
 }

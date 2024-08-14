@@ -381,7 +381,7 @@ uint8_t util_audio_decoder_sample_format_size_table[] =
 
 void Util_decoder_video_free(void *opaque, uint8_t *data)
 {
-	Util_safe_linear_free(data);
+	free(data);
 }
 
 //We can't get rid of this "int" because library uses "int" type as args.
@@ -422,13 +422,13 @@ int Util_decoder_video_allocate_buffer(AVCodecContext *avctx, AVFrame *frame, in
 		if(buffer_size <= 0)
 			return -1;
 
-		buffer = (uint8_t*)Util_safe_linear_alloc(buffer_size);
+		buffer = (uint8_t*)linearAlloc(buffer_size);
 		if(!buffer)
 			return -1;
 
 		if(av_image_fill_arrays(frame->data, frame->linesize, buffer, avctx->pix_fmt, width, height, 1) <= 0)
 		{
-			Util_safe_linear_free(buffer);
+			free(buffer);
 			buffer = NULL;
 			return -1;
 		}
@@ -443,7 +443,7 @@ int Util_decoder_video_allocate_buffer(AVCodecContext *avctx, AVFrame *frame, in
 					for(uint8_t k = 0; k < AV_NUM_DATA_POINTERS; k++)
 						frame->buf[k] = NULL;
 
-					Util_safe_linear_free(buffer);
+					free(buffer);
 					buffer = NULL;
 					return -1;
 				}
@@ -806,8 +806,8 @@ uint32_t Util_decoder_mvd_init(uint8_t session)
 	util_mvd_video_decoder_available_raw_image[session] = 0;
 	util_mvd_video_decoder_should_skip_process_nal_unit = false;
 
-	util_mvd_video_decoder_packet_size = 1024 * 256;
-	util_mvd_video_decoder_packet = (uint8_t*)Util_safe_linear_alloc(util_mvd_video_decoder_packet_size);
+	util_mvd_video_decoder_packet_size = 1000 * 256;
+	util_mvd_video_decoder_packet = (uint8_t*)linearAlloc(util_mvd_video_decoder_packet_size);
 	if(!util_mvd_video_decoder_packet)
 		goto out_of_linear_memory;
 
@@ -1635,9 +1635,9 @@ uint32_t Util_decoder_audio_decode(uint32_t* samples, uint8_t** raw_data, double
 		*current_pos = current_frame * ((1000.0 / util_audio_decoder_raw_data[session][packet_index]->sample_rate) * util_audio_decoder_raw_data[session][packet_index]->nb_samples);//calc pos
 
 	copy_size_per_ch = util_audio_decoder_raw_data[session][packet_index]->nb_samples * util_audio_decoder_sample_format_size_table[util_audio_decoder_context[session][packet_index]->sample_fmt];
-	Util_safe_linear_free(*raw_data);
+	free(*raw_data);
 	*raw_data = NULL;
-	*raw_data = (uint8_t*)Util_safe_linear_alloc(copy_size_per_ch * util_audio_decoder_context[session][packet_index]->ch_layout.nb_channels);
+	*raw_data = (uint8_t*)linearAlloc(copy_size_per_ch * util_audio_decoder_context[session][packet_index]->ch_layout.nb_channels);
 
 	if(util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_U8P || util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_S16P
 	|| util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_S32P || util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_S64P
@@ -1667,7 +1667,7 @@ uint32_t Util_decoder_audio_decode(uint32_t* samples, uint8_t** raw_data, double
 
 	ffmpeg_api_failed:
 	util_audio_decoder_packet_ready[session][packet_index] = false;
-	Util_safe_linear_free(*raw_data);
+	free(*raw_data);
 	*raw_data = NULL;
 	av_packet_free(&util_audio_decoder_packet[session][packet_index]);
 	av_frame_free(&util_audio_decoder_raw_data[session][packet_index]);
@@ -1813,16 +1813,16 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 		goto ffmpeg_api_failed;
 	}
 
-	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = (uint8_t*)Util_safe_linear_alloc(width * height * 2);
+	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = (uint8_t*)linearAlloc(width * height * 2);
 	if(!util_mvd_video_decoder_raw_image[session][buffer_num]->data[0])
 		goto out_of_linear_memory;
 
 	if(util_video_decoder_packet[session][0]->size > (int32_t)util_mvd_video_decoder_packet_size)
 	{
 		util_mvd_video_decoder_packet_size = util_video_decoder_packet[session][0]->size;
-		Util_safe_linear_free(util_mvd_video_decoder_packet);
+		free(util_mvd_video_decoder_packet);
 		util_mvd_video_decoder_packet = NULL;
-		util_mvd_video_decoder_packet = (uint8_t*)Util_safe_linear_alloc(util_mvd_video_decoder_packet_size);
+		util_mvd_video_decoder_packet = (uint8_t*)linearAlloc(util_mvd_video_decoder_packet_size);
 		if(!util_mvd_video_decoder_packet)
 		{
 			util_mvd_video_decoder_packet_size = 0;
@@ -2030,7 +2030,7 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 	return DEF_ERR_TRY_AGAIN;
 
 	try_again_no_output:
-	Util_safe_linear_free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
+	free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
 	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = NULL;
 	av_frame_free(&util_mvd_video_decoder_raw_image[session][buffer_num]);
 	return DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT;
@@ -2040,7 +2040,7 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 
 	need_more_packet:
 	util_video_decoder_packet_ready[session][0] = false;
-	Util_safe_linear_free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
+	free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
 	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = NULL;
 	av_packet_free(&util_video_decoder_packet[session][0]);
 	av_frame_free(&util_mvd_video_decoder_raw_image[session][buffer_num]);
@@ -2048,7 +2048,7 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 
 	out_of_linear_memory:
 	util_video_decoder_packet_ready[session][0] = false;
-	Util_safe_linear_free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
+	free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
 	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = NULL;
 	av_packet_free(&util_video_decoder_packet[session][0]);
 	av_frame_free(&util_mvd_video_decoder_raw_image[session][buffer_num]);
@@ -2056,7 +2056,7 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 
 	ffmpeg_api_failed:
 	util_video_decoder_packet_ready[session][0] = false;
-	Util_safe_linear_free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
+	free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
 	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = NULL;
 	av_packet_free(&util_video_decoder_packet[session][0]);
 	av_frame_free(&util_mvd_video_decoder_raw_image[session][buffer_num]);
@@ -2064,7 +2064,7 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 
 	nintendo_api_failed:
 	util_video_decoder_packet_ready[session][0] = false;
-	Util_safe_linear_free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
+	free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
 	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = NULL;
 	av_packet_free(&util_video_decoder_packet[session][0]);
 	av_frame_free(&util_mvd_video_decoder_raw_image[session][buffer_num]);
@@ -2094,10 +2094,10 @@ uint32_t Util_decoder_subtitle_decode(Media_s_data* subtitle_data, uint8_t packe
 	subtitle_data->start_time = 0;
 	subtitle_data->end_time = 0;
 
-	util_subtitle_decoder_raw_data[session][packet_index] = (AVSubtitle*)Util_safe_linear_alloc(sizeof(AVSubtitle));
+	util_subtitle_decoder_raw_data[session][packet_index] = (AVSubtitle*)linearAlloc(sizeof(AVSubtitle));
 	if(!util_subtitle_decoder_raw_data[session][packet_index])
 	{
-		DEF_LOG_RESULT(Util_safe_linear_alloc, false, DEF_ERR_OUT_OF_MEMORY);
+		DEF_LOG_RESULT(linearAlloc, false, DEF_ERR_OUT_OF_MEMORY);
 		goto out_of_memory;
 	}
 
@@ -2241,7 +2241,7 @@ uint32_t Util_decoder_subtitle_decode(Media_s_data* subtitle_data, uint8_t packe
 	util_subtitle_decoder_packet_ready[session][packet_index] = false;
 	av_packet_free(&util_subtitle_decoder_packet[session][packet_index]);
 	avsubtitle_free(util_subtitle_decoder_raw_data[session][packet_index]);
-	Util_safe_linear_free(util_subtitle_decoder_raw_data[session][packet_index]);
+	free(util_subtitle_decoder_raw_data[session][packet_index]);
 	util_subtitle_decoder_raw_data[session][packet_index] = NULL;
 	return DEF_SUCCESS;
 
@@ -2258,7 +2258,7 @@ uint32_t Util_decoder_subtitle_decode(Media_s_data* subtitle_data, uint8_t packe
 	util_subtitle_decoder_packet_ready[session][packet_index] = false;
 	av_packet_free(&util_subtitle_decoder_packet[session][packet_index]);
 	avsubtitle_free(util_subtitle_decoder_raw_data[session][packet_index]);
-	Util_safe_linear_free(util_subtitle_decoder_raw_data[session][packet_index]);
+	free(util_subtitle_decoder_raw_data[session][packet_index]);
 	util_subtitle_decoder_raw_data[session][packet_index] = NULL;
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 
@@ -2266,7 +2266,7 @@ uint32_t Util_decoder_subtitle_decode(Media_s_data* subtitle_data, uint8_t packe
 	util_subtitle_decoder_packet_ready[session][packet_index] = false;
 	av_packet_free(&util_subtitle_decoder_packet[session][packet_index]);
 	avsubtitle_free(util_subtitle_decoder_raw_data[session][packet_index]);
-	Util_safe_linear_free(util_subtitle_decoder_raw_data[session][packet_index]);
+	free(util_subtitle_decoder_raw_data[session][packet_index]);
 	util_subtitle_decoder_raw_data[session][packet_index] = NULL;
 	return DEF_ERR_OUT_OF_MEMORY;
 
@@ -2274,7 +2274,7 @@ uint32_t Util_decoder_subtitle_decode(Media_s_data* subtitle_data, uint8_t packe
 	util_subtitle_decoder_packet_ready[session][packet_index] = false;
 	av_packet_free(&util_subtitle_decoder_packet[session][packet_index]);
 	avsubtitle_free(util_subtitle_decoder_raw_data[session][packet_index]);
-	Util_safe_linear_free(util_subtitle_decoder_raw_data[session][packet_index]);
+	free(util_subtitle_decoder_raw_data[session][packet_index]);
 	util_subtitle_decoder_raw_data[session][packet_index] = NULL;
 	return DEF_ERR_OTHER;
 }
@@ -2307,7 +2307,7 @@ void Util_decoder_mvd_clear_raw_image(uint8_t session)
 	{
 		if(util_mvd_video_decoder_raw_image[session][i])
 		{
-			Util_safe_linear_free(util_mvd_video_decoder_raw_image[session][i]->data[0]);
+			free(util_mvd_video_decoder_raw_image[session][i]->data[0]);
 			for(uint8_t k = 0; k < AV_NUM_DATA_POINTERS; k++)
 				util_mvd_video_decoder_raw_image[session][i]->data[k] = NULL;
 		}
@@ -2376,9 +2376,9 @@ uint32_t Util_decoder_video_get_image(uint8_t** raw_data, double* current_pos, u
 
 	cpy_size = av_image_get_buffer_size(util_video_decoder_context[session][packet_index]->pix_fmt, width, height, 1);
 	*current_pos = 0;
-	Util_safe_linear_free(*raw_data);
+	free(*raw_data);
 	*raw_data = NULL;
-	*raw_data = (uint8_t*)Util_safe_linear_alloc(cpy_size);
+	*raw_data = (uint8_t*)linearAlloc(cpy_size);
 	if(!*raw_data)
 		goto out_of_memory;
 
@@ -2506,9 +2506,9 @@ uint32_t Util_decoder_mvd_get_image(uint8_t** raw_data, double* current_pos, uin
 		goto try_again;
 	}
 
-	Util_safe_linear_free(*raw_data);
+	free(*raw_data);
 	*raw_data = NULL;
-	*raw_data = (uint8_t*)Util_safe_linear_alloc(width * height * 2);
+	*raw_data = (uint8_t*)linearAlloc(width * height * 2);
 	if(!*raw_data)
 		goto out_of_memory;
 
@@ -2545,7 +2545,7 @@ uint32_t Util_decoder_mvd_get_image(uint8_t** raw_data, double* current_pos, uin
 
 	if(util_mvd_video_decoder_raw_image[session][buffer_num])
 	{
-		Util_safe_linear_free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
+		free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
 		for(uint8_t i = 0; i < AV_NUM_DATA_POINTERS; i++)
 			util_mvd_video_decoder_raw_image[session][buffer_num]->data[i] = NULL;
 	}
@@ -2649,7 +2649,7 @@ void Util_decoder_mvd_skip_image(double* current_pos, uint8_t session)
 
 	if(util_mvd_video_decoder_raw_image[session][buffer_num])
 	{
-		Util_safe_linear_free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
+		free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
 		for(uint8_t i = 0; i < AV_NUM_DATA_POINTERS; i++)
 			util_mvd_video_decoder_raw_image[session][buffer_num]->data[i] = NULL;
 	}
@@ -2771,7 +2771,7 @@ static void Util_decoder_mvd_exit(uint8_t session)
 
 	util_mvd_video_decoder_init = false;
 	mvdstdExit();
-	Util_safe_linear_free(util_mvd_video_decoder_packet);
+	free(util_mvd_video_decoder_packet);
 	util_mvd_video_decoder_packet = NULL;
 	util_mvd_video_decoder_available_raw_image[session] = 0;
 	util_mvd_video_decoder_raw_image_ready_index[session] = 0;
@@ -2780,7 +2780,7 @@ static void Util_decoder_mvd_exit(uint8_t session)
 	{
 		if(util_mvd_video_decoder_raw_image[session][i])
 		{
-			Util_safe_linear_free(util_mvd_video_decoder_raw_image[session][i]->data[0]);
+			free(util_mvd_video_decoder_raw_image[session][i]->data[0]);
 			for(uint8_t k = 0; k < AV_NUM_DATA_POINTERS; k++)
 				util_mvd_video_decoder_raw_image[session][i]->data[k] = NULL;
 		}
@@ -2803,7 +2803,7 @@ static void Util_decoder_subtitle_exit(uint8_t session)
 			if(util_subtitle_decoder_raw_data[session][i])
 			{
 				avsubtitle_free(util_subtitle_decoder_raw_data[session][i]);
-				Util_safe_linear_free(util_subtitle_decoder_raw_data[session][i]);
+				free(util_subtitle_decoder_raw_data[session][i]);
 				util_subtitle_decoder_raw_data[session][i] = NULL;
 			}
 		}

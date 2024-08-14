@@ -491,7 +491,7 @@ uint32_t Util_encoder_audio_encode(uint32_t size, uint8_t* raw_data, uint8_t ses
 	in_samples = size / 2;
 	swr_in_cache[0] = raw_data;
 	max_out_samples = in_samples * util_audio_encoder_conversion_size_rate[session];
-	raw_audio = (uint8_t*)Util_safe_linear_alloc((max_out_samples * bytes_per_sample) + util_audio_encoder_cache_size[session]);
+	raw_audio = (uint8_t*)linearAlloc((max_out_samples * bytes_per_sample) + util_audio_encoder_cache_size[session]);
 	if(!raw_audio)
 		goto out_of_memory;
 
@@ -550,16 +550,16 @@ uint32_t Util_encoder_audio_encode(uint32_t size, uint8_t* raw_data, uint8_t ses
 			break;
 	}
 
-	Util_safe_linear_free(util_audio_encoder_cache[session]);
+	free(util_audio_encoder_cache[session]);
 	util_audio_encoder_cache[session] = NULL;
-	util_audio_encoder_cache[session] = (uint8_t*)Util_safe_linear_alloc(out_size);
+	util_audio_encoder_cache[session] = (uint8_t*)linearAlloc(out_size);
 	if(!util_audio_encoder_cache[session])
 		goto out_of_memory;
 
 	memcpy(util_audio_encoder_cache[session], raw_audio + encode_offset, out_size);
 	util_audio_encoder_cache_size[session] = out_size;
 
-	Util_safe_linear_free(raw_audio);
+	free(raw_audio);
 	raw_audio = NULL;
 	return DEF_SUCCESS;
 
@@ -571,16 +571,16 @@ uint32_t Util_encoder_audio_encode(uint32_t size, uint8_t* raw_data, uint8_t ses
 
 	out_of_memory:
 	util_audio_encoder_cache_size[session] = 0;
-	Util_safe_linear_free(util_audio_encoder_cache[session]);
-	Util_safe_linear_free(raw_audio);
+	free(util_audio_encoder_cache[session]);
+	free(raw_audio);
 	util_audio_encoder_cache[session] = NULL;
 	raw_audio = NULL;
 	return DEF_ERR_OUT_OF_MEMORY;
 
 	ffmpeg_api_failed:
 	util_audio_encoder_cache_size[session] = 0;
-	Util_safe_linear_free(util_audio_encoder_cache[session]);
-	Util_safe_linear_free(raw_audio);
+	free(util_audio_encoder_cache[session]);
+	free(raw_audio);
 	util_audio_encoder_cache[session] = NULL;
 	raw_audio = NULL;
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
@@ -678,7 +678,7 @@ static void Util_encoder_audio_exit(uint8_t session)
 		av_packet_free(&util_audio_encoder_packet[session]);
 		av_frame_free(&util_audio_encoder_raw_data[session]);
 		swr_free(&util_audio_encoder_swr_context[session]);
-		Util_safe_linear_free(util_audio_encoder_cache[session]);
+		free(util_audio_encoder_cache[session]);
 		util_audio_encoder_cache[session] = NULL;
 	}
 	util_audio_encoder_init[session] = false;

@@ -13,10 +13,8 @@
 #include "system/variables.hpp"
 
 
-//set heap size, rest memory will be linear ram
-uint32_t __ctru_heap_size = 1024 * 1024 * 10;
-//Alloc memory on heap for some libctru functions (precisely svcCreateMemoryBlock())
-void* (*memalign_heap_address)(size_t align, size_t size) = __real_memalign;
+//Set heap size, rest of RAM will be linear RAM, it should be (1024 * 1024 * n).
+uint32_t __ctru_heap_size = (1024 * 1024 * 6);
 
 bool var_connect_test_succes = false;
 bool var_need_reflesh = true;

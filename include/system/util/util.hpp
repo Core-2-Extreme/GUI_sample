@@ -6,13 +6,7 @@
 #include "3ds.h"
 #include "system/util/str_types.h"
 
-extern "C" void* __real_malloc(size_t size);
-extern "C" void* __real_realloc(void* ptr, size_t size);
-extern "C" void __real_free(void* ptr);
-extern "C" void __real__free_r(struct _reent *r, void* ptr);
-extern "C" void* __real_memalign(size_t alignment, size_t size);
-extern "C" Result __real_APT_SetAppCpuTimeLimit(uint32_t percent);
-extern "C" Result __real_APT_GetAppCpuTimeLimit(uint32_t* percent);
+#define DEF_UTIL_LOW_HEAP_THRESHOLD		(uint32_t)(1000 * 1000 * 2.5)
 
 /**
  * @brief Initialize util API.
@@ -83,56 +77,6 @@ std::string Util_encode_to_base64(char* source, int size);
 std::string Util_decode_from_base64(std::string source);
 
 /**
- * @brief Initialize a safe linear alloc API.
- * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @warning Thread dangerous (untested)
-*/
-uint32_t Util_safe_linear_alloc_init(void);
-
-/**
- * @brief Uninitialize a safe linear alloc API.
- * Do nothing if safe linear alloc api is not initialized.
- * @warning Thread dangerous (untested)
-*/
-void Util_safe_linear_alloc_exit(void);
-
-/**
- * @brief Linear alloc.
- * Always return NULL if safe linear alloc api is not initialized.
- * @param size (in) Memory size (in byte).
- * @return On success pointer, on failure NULL.
- * @note Thread safe
-*/
-void* Util_safe_linear_alloc(size_t size);
-
-/**
- * @brief Linear align.
- * Always return NULL if safe linear alloc api is not initialized.
- * @param alignment (in) Alignment.
- * @param size (in) Memory size (in byte).
- * @return On success pointer, on failure NULL.
- * @note Thread safe
-*/
-void* Util_safe_linear_align(size_t alignment, size_t size);
-
-/**
- * @brief Linear realloc.
- * Always return NULL if safe linear alloc api is not initialized.
- * @param pointer (in) Old pointer.
- * @param size (in) New memory size (in byte).
- * @return On success pointer, on failure NULL.
- * @note Thread safe
-*/
-void* Util_safe_linear_realloc(void* pointer, size_t size);
-
-/**
- * @brief Free linear memory.
- * Do nothing if safe linear alloc api is not initialized.
- * @note Thread safe
-*/
-void Util_safe_linear_free(void* pointer);
-
-/**
  * @brief Check free linear memory size.
  * Always return 0 if safe linear alloc api is not initialized.
  * @return Free linear memory size.
@@ -178,5 +122,23 @@ long Util_min(long value_0, long value_1);
  * @note Thread safe
 */
 long Util_max(long value_0, long value_1);
+
+/**
+ * @brief Compare double values and return minimum value.
+ * @param value_0 (in) Value to compare.
+ * @param value_1 (in) Value to compare.
+ * @return Minimum value.
+ * @note Thread safe
+*/
+double Util_min_d(double value_0, double value_1);
+
+/**
+ * @brief Compare double values and return maximum value.
+ * @param value_0 (in) Value to compare.
+ * @param value_1 (in) Value to compare.
+ * @return Maximum value.
+ * @note Thread safe
+*/
+double Util_max_d(double value_0, double value_1);
 
 #endif //!defined(DEF_UTIL_HPP)

@@ -40,7 +40,7 @@ uint32_t Util_mic_init(uint32_t buffer_size)
 	util_mic_last_pos = 0;
 	buffer_size -= buffer_size % 0x1000;
 	//Mic module requires memory allocated on heap (precisely svcCreateMemoryBlock() requires it).
-	util_mic_buffer = (uint8_t*)__real_memalign(0x1000, buffer_size);
+	util_mic_buffer = (uint8_t*)memalign_heap(0x1000, buffer_size);
 	if(!util_mic_buffer)
 		goto out_of_memory;
 
@@ -83,7 +83,7 @@ uint32_t Util_mic_init(uint32_t buffer_size)
 	//Fallthrough.
 
 	nintendo_api_failed:
-	__real_free(util_mic_buffer);
+	free(util_mic_buffer);
 	util_mic_buffer = NULL;
 	return result;
 }
@@ -208,7 +208,7 @@ uint32_t Util_mic_get_audio_data(uint8_t** raw_data, uint32_t* size)
 	else
 		buffer_size = (micGetSampleDataSize() - 4) - (util_mic_last_pos - last_pos);
 
-	*raw_data = (uint8_t*)Util_safe_linear_alloc(buffer_size);
+	*raw_data = (uint8_t*)linearAlloc(buffer_size);
 	if(!*raw_data)
 		goto out_of_memory;
 
@@ -247,7 +247,7 @@ void Util_mic_exit(void)
 	MICU_SetAllowShellClosed(false);
 	MICU_SetPower(false);
 	micExit();
-	__real_free(util_mic_buffer);
+	free(util_mic_buffer);
 	util_mic_buffer = NULL;
 	util_mic_init = false;
 }

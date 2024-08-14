@@ -148,7 +148,7 @@ uint32_t Exfont_init(void)
 		goto api_failed;
 	}
 
-	Util_safe_linear_free(fs_buffer);
+	free(fs_buffer);
 	fs_buffer = NULL;
 
 	result = Util_file_load_from_rom("font_right_to_left_samples.txt", "romfs:/gfx/font/sample/", &fs_buffer, 0x8000, &read_size);
@@ -159,7 +159,7 @@ uint32_t Exfont_init(void)
 	}
 
 	Exfont_text_parse_ignore_rtl((char*)fs_buffer, util_exfont_font_right_to_left_samples, 256, &characters);
-	Util_safe_linear_free(fs_buffer);
+	free(fs_buffer);
 	fs_buffer = NULL;
 
 	util_exfont_num_of_right_left_charcters = characters - 1;
@@ -193,7 +193,7 @@ uint32_t Exfont_init(void)
 	return DEF_ERR_ALREADY_INITIALIZED;
 
 	api_failed:
-	Util_safe_linear_free(fs_buffer);
+	free(fs_buffer);
 	fs_buffer = NULL;
 	return result;
 

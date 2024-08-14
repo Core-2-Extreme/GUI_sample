@@ -269,8 +269,8 @@ uint32_t Util_converter_convert_color(Converter_color_parameters* parameters)
 		goto ffmpeg_api_failed;
 	}
 
-	Util_safe_linear_free(parameters->converted);
-	parameters->converted = (uint8_t*)Util_safe_linear_alloc(converted_image_size);
+	free(parameters->converted);
+	parameters->converted = (uint8_t*)linearAlloc(converted_image_size);
 	if(!parameters->converted)
 		goto out_of_memory;
 
@@ -315,7 +315,7 @@ uint32_t Util_converter_convert_color(Converter_color_parameters* parameters)
 	return DEF_ERR_OUT_OF_MEMORY;
 
 	ffmpeg_api_failed:
-	Util_safe_linear_free(parameters->converted);
+	free(parameters->converted);
 	parameters->converted = NULL;
 	sws_freeContext(sws_context);
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
@@ -341,9 +341,9 @@ uint32_t Util_converter_convert_audio(Converter_audio_parameters* parameters)
 
 	parameters->out_samples = 0;
 
-	Util_safe_linear_free(parameters->converted);
+	free(parameters->converted);
 	parameters->converted = NULL;
-	parameters->converted = (uint8_t*)Util_safe_linear_alloc(parameters->in_samples * util_converter_sample_format_size_table[parameters->out_sample_format] * parameters->out_ch);
+	parameters->converted = (uint8_t*)linearAlloc(parameters->in_samples * util_converter_sample_format_size_table[parameters->out_sample_format] * parameters->out_ch);
 	if(!parameters->converted)
 		goto out_of_memory;
 
@@ -406,7 +406,7 @@ uint32_t Util_converter_convert_audio(Converter_audio_parameters* parameters)
 	return DEF_ERR_OUT_OF_MEMORY;
 
 	ffmpeg_api_failed:
-	Util_safe_linear_free(parameters->converted);
+	free(parameters->converted);
 	parameters->converted = NULL;
 	swr_free(&swr_context);
 	av_channel_layout_uninit(&out_ch_layout);
@@ -429,8 +429,8 @@ uint32_t Util_converter_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t** rgb565, 
 	if(!yuv420p || !rgb565 || width == 0 || height == 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
-	Util_safe_linear_free(*rgb565);
-	*rgb565 = (uint8_t*)Util_safe_linear_alloc(width * height * 2);
+	free(*rgb565);
+	*rgb565 = (uint8_t*)linearAlloc(width * height * 2);
 	if(!*rgb565)
 		goto out_of_memory;
 
@@ -473,8 +473,8 @@ uint32_t Util_converter_yuv420p_to_rgb888le(uint8_t* yuv420p, uint8_t** rgb888, 
 	if(!yuv420p || !rgb888 || width == 0 || height == 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
-	Util_safe_linear_free(*rgb888);
-	*rgb888 = (uint8_t*)Util_safe_linear_alloc(width * height * 3);
+	free(*rgb888);
+	*rgb888 = (uint8_t*)linearAlloc(width * height * 3);
 	if(!*rgb888)
 		goto out_of_memory;
 
@@ -568,8 +568,8 @@ uint32_t Util_converter_rgb888_rotate_90_degree(uint8_t* rgb888, uint8_t** rotat
 	if(!rgb888 || !rotated_rgb888 || width == 0 || height == 0 || !rotated_width || !rotated_height)
 		goto invalid_arg;
 
-	Util_safe_linear_free(*rotated_rgb888);
-	*rotated_rgb888 = (uint8_t*)Util_safe_linear_alloc(width * height * 3);
+	free(*rotated_rgb888);
+	*rotated_rgb888 = (uint8_t*)linearAlloc(width * height * 3);
 	if(!*rotated_rgb888)
 		goto out_of_memory;
 
@@ -605,8 +605,8 @@ uint32_t Util_converter_yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t** rgb5
 	if(!yuv420p || !rgb565 || width == 0 || height == 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
-	Util_safe_linear_free(*rgb565);
-	*rgb565 = (uint8_t*)Util_safe_linear_alloc(width * height * 2);
+	free(*rgb565);
+	*rgb565 = (uint8_t*)linearAlloc(width * height * 2);
 	if(!*rgb565)
 		goto out_of_memory;
 
@@ -625,8 +625,8 @@ uint32_t Util_converter_yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t** rgb8
 	if(!yuv420p || !rgb888 || width == 0 || height == 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
-	Util_safe_linear_free(*rgb888);
-	*rgb888 = (uint8_t*)Util_safe_linear_alloc(width * height * 3);
+	free(*rgb888);
+	*rgb888 = (uint8_t*)linearAlloc(width * height * 3);
 	if(!*rgb888)
 		goto out_of_memory;
 
@@ -680,8 +680,8 @@ uint32_t Util_converter_y2r_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t** rgb5
 	if(!yuv420p || !rgb565 || width == 0 || height == 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
-	Util_safe_linear_free(*rgb565);
-	*rgb565 = (uint8_t*)Util_safe_linear_alloc(width * height * 2);
+	free(*rgb565);
+	*rgb565 = (uint8_t*)linearAlloc(width * height * 2);
 	if(!*rgb565)
 		goto out_of_memory;
 
