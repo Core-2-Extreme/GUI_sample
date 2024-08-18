@@ -52,7 +52,6 @@ uint32_t Util_load_msg(const char* file_name, Str_data* out_msg, uint32_t num_of
 
 /**
  * @brief Check free linear memory size.
- * Always return 0 if safe linear alloc api is not initialized.
  * @return Free linear memory size.
  * @note Thread safe
 */
@@ -64,6 +63,14 @@ uint32_t Util_check_free_linear_space(void);
  * @warning Thread dangerous (untested)
 */
 uint32_t Util_check_free_ram(void);
+
+/**
+ * @brief Check if specified core is available (can make a thread).
+ * Always return false if util api is not initialized.
+ * @return Free linear memory size.
+ * @note Thread safe
+*/
+bool Util_is_core_available(uint8_t core_id);
 
 /**
  * @brief Sleep thread.

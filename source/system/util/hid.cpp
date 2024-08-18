@@ -6,8 +6,6 @@ extern "C"
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "system/variables.hpp"
-
 extern "C"
 {
 #include "system/draw/draw.h"
@@ -102,6 +100,7 @@ int util_hid_touch_pos_y = 0;
 int util_hid_pre_touch_pos_y = 0;
 int util_hid_touch_pos_y_moved = 0;
 int util_hid_held_time = 0;
+double util_hid_afk_time = 0;
 uint64_t util_hid_ts = 0;
 void (*util_hid_callbacks[DEF_HID_NUM_OF_CALLBACKS])(void) = { NULL, };
 Thread util_hid_scan_thread = NULL;
@@ -118,7 +117,7 @@ uint32_t Util_hid_init(void)
 	if(util_hid_init)
 		goto already_inited;
 
-	for(int i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
+	for(uint16_t i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
 		util_hid_callbacks[i] = NULL;
 
 	result = hidInit();
@@ -280,11 +279,22 @@ uint32_t Util_hid_query_key_state(Hid_info* out_key_state)
 	out_key_state->touch_y_move = util_hid_touch_pos_y_moved;
 	out_key_state->held_time = util_hid_held_time;
 	out_key_state->ts = util_hid_ts;
+	out_key_state->afk_time_ms = (uint32_t)util_hid_afk_time;
 
 	return DEF_SUCCESS;
 
 	not_inited:
 	return DEF_ERR_NOT_INITIALIZED;
+}
+
+void Util_hid_reset_afk_time(void)
+{
+	if(!util_hid_init)
+		return;
+
+	LightLock_Lock(&util_hid_callback_mutex);
+	util_hid_afk_time = 0;
+	LightLock_Unlock(&util_hid_callback_mutex);
 }
 
 bool Util_hid_add_callback(void (*callback)(void))
@@ -294,13 +304,13 @@ bool Util_hid_add_callback(void (*callback)(void))
 
 	LightLock_Lock(&util_hid_callback_mutex);
 
-	for(int i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
+	for(uint16_t i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
 	{
 		if(util_hid_callbacks[i] == callback)
 			goto success;//Already exist.
 	}
 
-	for(int i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
+	for(uint16_t i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
 	{
 		if(!util_hid_callbacks[i])
 		{
@@ -325,7 +335,7 @@ void Util_hid_remove_callback(void (*callback)(void))
 
 	LightLock_Lock(&util_hid_callback_mutex);
 
-	for(int i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
+	for(uint16_t i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
 	{
 		if(util_hid_callbacks[i] == callback)
 		{
@@ -340,12 +350,15 @@ void Util_hid_remove_callback(void (*callback)(void))
 void Util_hid_scan_hid_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
+	uint32_t key_pressed = 0;
+	uint32_t key_held = 0;
+	uint32_t key_released = 0;
+	touchPosition touch_pos = { 0, };
+	circlePosition circle_pos = { 0, };
+	TickCounter counter = { 0, };
 
-	uint32_t key_pressed;
-	uint32_t key_held;
-	uint32_t key_released;
-	touchPosition touch_pos;
-	circlePosition circle_pos;
+	osTickCounterStart(&counter);
+	osTickCounterUpdate(&counter);
 
 	while (util_hid_thread_run)
 	{
@@ -355,6 +368,8 @@ void Util_hid_scan_hid_thread(void* arg)
 		key_held = hidKeysHeld();
 		key_pressed = hidKeysDown();
 		key_released = hidKeysUp();
+
+		util_hid_ts = osGetTime();
 
 		util_hid_key_A_pressed = (key_pressed & KEY_A);
 		util_hid_key_B_pressed = (key_pressed & KEY_B);
@@ -491,6 +506,18 @@ void Util_hid_scan_hid_thread(void* arg)
 		util_hid_cpad_pos_x = circle_pos.dx;
 		util_hid_cpad_pos_y = circle_pos.dy;
 
+		if (util_hid_key_D_UP_held || util_hid_key_D_DOWN_held || util_hid_key_D_RIGHT_held || util_hid_key_D_LEFT_held
+			|| util_hid_key_C_UP_held || util_hid_key_C_DOWN_held || util_hid_key_C_RIGHT_held || util_hid_key_C_LEFT_held
+			|| util_hid_key_CS_UP_held || util_hid_key_CS_DOWN_held || util_hid_key_CS_RIGHT_held || util_hid_key_CS_LEFT_held
+			|| util_hid_key_touch_held)
+			util_hid_held_time++;
+		else
+			util_hid_held_time = 0;
+
+		LightLock_Lock(&util_hid_callback_mutex);
+
+		osTickCounterUpdate(&counter);
+
 		if (key_pressed != 0 || key_held != 0 || key_released != 0)
 		{
 			if(key_pressed != 0)
@@ -500,23 +527,13 @@ void Util_hid_scan_hid_thread(void* arg)
 			if(key_released != 0)
 				util_hid_key_any_released = true;
 
-			var_afk_time = 0;
+			util_hid_afk_time = 0;
 		}
-
-		if (util_hid_key_D_UP_held || util_hid_key_D_DOWN_held || util_hid_key_D_RIGHT_held || util_hid_key_D_LEFT_held
-			|| util_hid_key_C_UP_held || util_hid_key_C_DOWN_held || util_hid_key_C_RIGHT_held || util_hid_key_C_LEFT_held
-			|| util_hid_key_CS_UP_held || util_hid_key_CS_DOWN_held || util_hid_key_CS_RIGHT_held || util_hid_key_CS_LEFT_held
-			|| util_hid_key_touch_held)
-			util_hid_held_time++;
 		else
-			util_hid_held_time = 0;
-
-		util_hid_ts = osGetTime();
-
-		LightLock_Lock(&util_hid_callback_mutex);
+			util_hid_afk_time += osTickCounterRead(&counter);
 
 		//Call callback functions.
-		for(int i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
+		for(uint16_t i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
 		{
 			if(util_hid_callbacks[i])
 				util_hid_callbacks[i]();

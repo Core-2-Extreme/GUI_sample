@@ -1,13 +1,15 @@
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
 #include "system/menu.hpp"
-#include "system/variables.hpp"
+#include "system/sem.hpp"
 
 extern "C"
 {
 	#include "system/draw/draw.h"
 	#include "system/util/converter.h"
+	#include "system/util/cpu_usage.h"
 	#include "system/util/curl.h"
 	#include "system/util/decoder.h"
 	#include "system/util/err.h"
@@ -52,14 +54,18 @@ bool Sapp0_query_running_flag(void)
 
 void Sapp0_hid(Hid_info key)
 {
+	Sem_config config = { 0, };
+
 	//Do nothing if app is suspended.
 	if(aptShouldJumpToHome())
 		return;
 
+	Sem_get_config(&config);
+
 	if(Util_err_query_error_show_flag())
 		Util_err_main(key);
 	else if(Util_expl_query_show_flag())
-		Util_expl_main(key);
+		Util_expl_main(key, config.scroll_speed);
 	else
 	{
 		if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
@@ -79,7 +85,7 @@ void Sapp0_resume(void)
 {
 	sapp0_thread_suspend = false;
 	sapp0_main_run = true;
-	var_need_reflesh = true;
+	Draw_set_refresh_needed(true);
 	Menu_suspend();
 }
 
@@ -87,7 +93,7 @@ void Sapp0_suspend(void)
 {
 	sapp0_thread_suspend = true;
 	sapp0_main_run = false;
-	var_need_reflesh = true;
+	Draw_set_refresh_needed(true);
 	Menu_resume();
 }
 
@@ -103,12 +109,14 @@ void Sapp0_init(bool draw)
 {
 	DEF_LOG_STRING("Initializing...");
 	uint32_t result = DEF_ERR_OTHER;
+	Sem_state state = { 0, };
 
+	Sem_get_state(&state);
 	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp0_status), (result == DEF_SUCCESS), result);
 
 	Util_watch_add(WATCH_HANDLE_SUB_APP0, &sapp0_status.sequencial_id, sizeof(sapp0_status.sequencial_id));
 
-	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) && var_core_2_available)
+	if(DEF_SEM_MODEL_IS_NEW(state.console_model) && Util_is_core_available(2))
 		sapp0_init_thread = threadCreate(Sapp0_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
@@ -124,7 +132,7 @@ void Sapp0_init(bool draw)
 			Util_sleep(20000);
 	}
 
-	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
+	if(!DEF_SEM_MODEL_IS_NEW(state.console_model) || !Util_is_core_available(2))
 		APT_SetAppCpuTimeLimit(10);
 
 	DEF_LOG_RESULT_SMART(result, threadJoin(sapp0_init_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
@@ -156,7 +164,7 @@ void Sapp0_exit(bool draw)
 
 	Util_watch_remove(WATCH_HANDLE_SUB_APP0, &sapp0_status.sequencial_id);
 	Util_str_free(&sapp0_status);
-	var_need_reflesh = true;
+	Draw_set_refresh_needed(true);
 
 	DEF_LOG_STRING("Exited.");
 }
@@ -166,20 +174,25 @@ void Sapp0_main(void)
 	uint32_t color = DEF_DRAW_BLACK;
 	uint32_t back_color = DEF_DRAW_WHITE;
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP0);
+	Sem_config config = { 0, };
+	Sem_state state = { 0, };
 
-	if (var_night_mode)
+	Sem_get_config(&config);
+	Sem_get_state(&state);
+
+	if (config.is_night)
 	{
 		color = DEF_DRAW_WHITE;
 		back_color = DEF_DRAW_BLACK;
 	}
 
 	//Check if we should update the screen.
-	if(Util_watch_is_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	if(Util_watch_is_changed(watch_handle_bit) || Draw_is_refresh_needed() || !config.is_eco)
 	{
-		var_need_reflesh = false;
+		Draw_set_refresh_needed(false);
 		Draw_frame_ready();
 
-		if(var_turn_on_top_lcd)
+		if(config.is_top_lcd_on)
 		{
 			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
@@ -195,10 +208,13 @@ void Sapp0_main(void)
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
-			Draw_top_ui();
+			Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
 
-			if(var_monitor_cpu_usage)
-				Draw_cpu_usage_info();
+			if(config.is_debug)
+				Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+			if(Util_cpu_usage_query_show_flag())
+				Util_cpu_usage_draw();
 
 			if(Draw_is_3d_mode())
 			{
@@ -207,14 +223,17 @@ void Sapp0_main(void)
 				if(Util_log_query_log_show_flag())
 					Util_log_draw();
 
-				Draw_top_ui();
+				Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
 
-				if(var_monitor_cpu_usage)
-					Draw_cpu_usage_info();
+				if(config.is_debug)
+					Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+				if(Util_cpu_usage_query_show_flag())
+					Util_cpu_usage_draw();
 			}
 		}
 
-		if(var_turn_on_bottom_lcd)
+		if(config.is_bottom_lcd_on)
 		{
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
@@ -240,17 +259,22 @@ static void Sapp0_draw_init_exit_message(void)
 	uint32_t color = DEF_DRAW_BLACK;
 	uint32_t back_color = DEF_DRAW_WHITE;
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP0);
+	Sem_config config = { 0, };
+	Sem_state state = { 0, };
 
-	if (var_night_mode)
+	Sem_get_config(&config);
+	Sem_get_state(&state);
+
+	if (config.is_night)
 	{
 		color = DEF_DRAW_WHITE;
 		back_color = DEF_DRAW_BLACK;
 	}
 
 	//Check if we should update the screen.
-	if(Util_watch_is_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	if(Util_watch_is_changed(watch_handle_bit) || Draw_is_refresh_needed() || !config.is_eco)
 	{
-		var_need_reflesh = false;
+		Draw_set_refresh_needed(false);
 		Draw_frame_ready();
 
 		Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
@@ -258,9 +282,13 @@ static void Sapp0_draw_init_exit_message(void)
 		if(Util_log_query_log_show_flag())
 			Util_log_draw();
 
-		Draw_top_ui();
-		if(var_monitor_cpu_usage)
-			Draw_cpu_usage_info();
+		Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
+
+		if(config.is_debug)
+			Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+		if(Util_cpu_usage_query_show_flag())
+			Util_cpu_usage_draw();
 
 		Draw(&sapp0_status, 0, 20, 0.65, 0.65, color);
 
@@ -273,9 +301,13 @@ static void Sapp0_draw_init_exit_message(void)
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
-			Draw_top_ui();
-			if(var_monitor_cpu_usage)
-				Draw_cpu_usage_info();
+			Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
+
+			if(config.is_debug)
+				Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+			if(Util_cpu_usage_query_show_flag())
+				Util_cpu_usage_draw();
 
 			Draw(&sapp0_status, 0, 20, 0.65, 0.65, color);
 		}

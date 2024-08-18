@@ -1,14 +1,16 @@
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
 #include "system/menu.hpp"
-#include "system/variables.hpp"
+#include "system/sem.hpp"
 
 extern "C"
 {
 	#include "system/draw/draw.h"
 	#include "system/util/cam.h"
 	#include "system/util/converter.h"
+	#include "system/util/cpu_usage.h"
 	#include "system/util/encoder.h"
 	#include "system/util/err.h"
 	#include "system/util/expl.h"
@@ -133,14 +135,18 @@ bool Sapp3_query_running_flag(void)
 
 void Sapp3_hid(Hid_info key)
 {
+	Sem_config config = { 0, };
+
 	//Do nothing if app is suspended.
 	if(aptShouldJumpToHome())
 		return;
 
+	Sem_get_config(&config);
+
 	if(Util_err_query_error_show_flag())
 		Util_err_main(key);
 	else if(Util_expl_query_show_flag())
-		Util_expl_main(key);
+		Util_expl_main(key, config.scroll_speed);
 	else
 	{
 		uint32_t result = DEF_ERR_OTHER;
@@ -198,7 +204,7 @@ void Sapp3_resume(void)
 {
 	sapp3_thread_suspend = false;
 	sapp3_main_run = true;
-	var_need_reflesh = true;
+	Draw_set_refresh_needed(true);
 	Menu_suspend();
 }
 
@@ -206,7 +212,7 @@ void Sapp3_suspend(void)
 {
 	sapp3_thread_suspend = true;
 	sapp3_main_run = false;
-	var_need_reflesh = true;
+	Draw_set_refresh_needed(true);
 	Menu_resume();
 }
 
@@ -222,12 +228,14 @@ void Sapp3_init(bool draw)
 {
 	DEF_LOG_STRING("Initializing...");
 	uint32_t result = DEF_ERR_OTHER;
+	Sem_state state = { 0, };
 
+	Sem_get_state(&state);
 	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp3_status), (result == DEF_SUCCESS), result);
 
 	Util_watch_add(WATCH_HANDLE_SUB_APP3, &sapp3_status.sequencial_id, sizeof(sapp3_status.sequencial_id));
 
-	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) && var_core_2_available)
+	if(DEF_SEM_MODEL_IS_NEW(state.console_model) && Util_is_core_available(2))
 		sapp3_init_thread = threadCreate(Sapp3_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
@@ -243,7 +251,7 @@ void Sapp3_init(bool draw)
 			Util_sleep(20000);
 	}
 
-	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
+	if(!DEF_SEM_MODEL_IS_NEW(state.console_model) || !Util_is_core_available(2))
 		APT_SetAppCpuTimeLimit(10);
 
 	DEF_LOG_RESULT_SMART(result, threadJoin(sapp3_init_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
@@ -275,7 +283,7 @@ void Sapp3_exit(bool draw)
 
 	Util_watch_remove(WATCH_HANDLE_SUB_APP3, &sapp3_status.sequencial_id);
 	Util_str_free(&sapp3_status);
-	var_need_reflesh = true;
+	Draw_set_refresh_needed(true);
 
 	DEF_LOG_STRING("Exited.");
 }
@@ -285,24 +293,29 @@ void Sapp3_main(void)
 	uint32_t color = DEF_DRAW_BLACK;
 	uint32_t back_color = DEF_DRAW_WHITE;
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP3);
+	Sem_config config = { 0, };
+	Sem_state state = { 0, };
 
-	if (var_night_mode)
+	Sem_get_config(&config);
+	Sem_get_state(&state);
+
+	if (config.is_night)
 	{
 		color = DEF_DRAW_WHITE;
 		back_color = DEF_DRAW_BLACK;
 	}
 
 	//Check if we should update the screen.
-	if(Util_watch_is_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	if(Util_watch_is_changed(watch_handle_bit) || Draw_is_refresh_needed() || !config.is_eco)
 	{
 		Str_data temp_msg = { 0, };
 
 		Util_str_init(&temp_msg);
-		var_need_reflesh = false;
+		Draw_set_refresh_needed(false);
 
 		Draw_frame_ready();
 
-		if(var_turn_on_top_lcd)
+		if(config.is_top_lcd_on)
 		{
 			uint8_t draw_cammera_buffer_index = (sapp3_camera_buffer_index == 0 ? 1 : 0);
 
@@ -332,8 +345,7 @@ void Sapp3_main(void)
 
 			if(Util_str_has_data(&temp_msg))
 			{
-				Draw_image_data background = { 0, };
-				background.c2d = var_square_image[0];
+				Draw_image_data background = Draw_get_empty_image();
 
 				Draw_with_background(&temp_msg, 40, 40, 0.5, 0.5, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER,
 				DRAW_Y_ALIGN_CENTER, 320, 20, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
@@ -342,10 +354,13 @@ void Sapp3_main(void)
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
-			Draw_top_ui();
+			Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
 
-			if(var_monitor_cpu_usage)
-				Draw_cpu_usage_info();
+			if(config.is_debug)
+				Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+			if(Util_cpu_usage_query_show_flag())
+				Util_cpu_usage_draw();
 
 			if(Draw_is_3d_mode())
 			{
@@ -354,14 +369,17 @@ void Sapp3_main(void)
 				if(Util_log_query_log_show_flag())
 					Util_log_draw();
 
-				Draw_top_ui();
+				Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
 
-				if(var_monitor_cpu_usage)
-					Draw_cpu_usage_info();
+				if(config.is_debug)
+					Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+				if(Util_cpu_usage_query_show_flag())
+					Util_cpu_usage_draw();
 			}
 		}
 
-		if(var_turn_on_bottom_lcd)
+		if(config.is_bottom_lcd_on)
 		{
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
@@ -424,17 +442,22 @@ static void Sapp3_draw_init_exit_message(void)
 	uint32_t color = DEF_DRAW_BLACK;
 	uint32_t back_color = DEF_DRAW_WHITE;
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP3);
+	Sem_config config = { 0, };
+	Sem_state state = { 0, };
 
-	if (var_night_mode)
+	Sem_get_config(&config);
+	Sem_get_state(&state);
+
+	if (config.is_night)
 	{
 		color = DEF_DRAW_WHITE;
 		back_color = DEF_DRAW_BLACK;
 	}
 
 	//Check if we should update the screen.
-	if(Util_watch_is_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	if(Util_watch_is_changed(watch_handle_bit) || Draw_is_refresh_needed() || !config.is_eco)
 	{
-		var_need_reflesh = false;
+		Draw_set_refresh_needed(false);
 		Draw_frame_ready();
 
 		Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
@@ -442,9 +465,13 @@ static void Sapp3_draw_init_exit_message(void)
 		if(Util_log_query_log_show_flag())
 			Util_log_draw();
 
-		Draw_top_ui();
-		if(var_monitor_cpu_usage)
-			Draw_cpu_usage_info();
+		Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
+
+		if(config.is_debug)
+			Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+		if(Util_cpu_usage_query_show_flag())
+			Util_cpu_usage_draw();
 
 		Draw(&sapp3_status, 0, 20, 0.65, 0.65, color);
 
@@ -457,9 +484,13 @@ static void Sapp3_draw_init_exit_message(void)
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
-			Draw_top_ui();
-			if(var_monitor_cpu_usage)
-				Draw_cpu_usage_info();
+			Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
+
+			if(config.is_debug)
+				Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+			if(Util_cpu_usage_query_show_flag())
+				Util_cpu_usage_draw();
 
 			Draw(&sapp3_status, 0, 20, 0.65, 0.65, color);
 		}
@@ -474,6 +505,9 @@ static void Sapp3_init_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
 	uint32_t result = DEF_ERR_OTHER;
+	Sem_state state = { 0, };
+
+	Sem_get_state(&state);
 
 	Util_str_set(&sapp3_status, "Initializing variables...");
 	sapp3_camera_buffer_index = 0;
@@ -506,7 +540,7 @@ static void Sapp3_init_thread(void* arg)
 	DEF_LOG_RESULT_SMART(result, Util_cam_set_resolution(CAM_RES_400x240), (result == DEF_SUCCESS), result);
 
 	//3. Set framerate. Use 30fps for new 3ds, 20fps for old 3ds.
-	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
+	if(DEF_SEM_MODEL_IS_NEW(state.console_model))
 		DEF_LOG_RESULT_SMART(result, Util_cam_set_fps(CAM_FPS_30), (result == DEF_SUCCESS), result)
 	else
 		DEF_LOG_RESULT_SMART(result, Util_cam_set_fps(CAM_FPS_20), (result == DEF_SUCCESS), result);
@@ -525,7 +559,7 @@ static void Sapp3_init_thread(void* arg)
 
 	Util_str_add(&sapp3_status, "\nStarting threads...");
 	sapp3_thread_run = true;
-	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) && var_core_2_available)
+	if(DEF_SEM_MODEL_IS_NEW(state.console_model) && Util_is_core_available(2))
 		sapp3_camera_thread = threadCreate(Sapp3_camera_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 		sapp3_camera_thread = threadCreate(Sapp3_camera_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
@@ -651,7 +685,7 @@ static void Sapp3_camera_thread(void* arg)
 				if(result == DEF_SUCCESS)
 				{
 					//4. Refresh screen.
-					var_need_reflesh = true;
+					Draw_set_refresh_needed(true);
 
 					if(sapp3_camera_state == CAM_SAVING_A_PICTURE)
 					{
@@ -678,9 +712,13 @@ static void Sapp3_camera_thread(void* arg)
 
 						if(result == DEF_SUCCESS)
 						{
-							char path[96];
-							snprintf(path, sizeof(path), "%simages/%04d_%02d_%02d_%02d_%02d_%02d.png", DEF_MENU_MAIN_DIR,
-							var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
+							char path[96] = { 0, };
+							Sem_state state = { 0, };
+
+							Sem_get_state(&state);
+
+							snprintf(path, sizeof(path), "%simages/%04" PRIu16 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 ".png",
+							DEF_MENU_MAIN_DIR, state.time.years, state.time.months, state.time.days, state.time.hours, state.time.minutes, state.time.seconds);
 
 							//6. Save the picture as png.
 							DEF_LOG_RESULT_SMART(result, Util_encoder_image_encode(path, parameters.converted, width, height, MEDIA_I_CODEC_PNG, 0), (result == DEF_SUCCESS), result);
@@ -742,15 +780,19 @@ static void Sapp3_mic_thread(void* arg)
 			{
 				case MIC_START_RECORDING_REQUEST:
 				{
-					char path[96];
-					snprintf(path, sizeof(path), "%ssound/%04d_%02d_%02d_%02d_%02d_%02d.mp3", DEF_MENU_MAIN_DIR,
-					var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
+					char path[96] = { 0, };
+					Sem_state state = { 0, };
+
+					Sem_get_state(&state);
+
+					snprintf(path, sizeof(path), "%ssound/%04" PRIu16 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 ".mp3",
+					DEF_MENU_MAIN_DIR, state.time.years, state.time.months, state.time.days, state.time.hours, state.time.minutes, state.time.seconds);
 
 					//1. Create an output file.
 					DEF_LOG_RESULT_SMART(result, Util_encoder_create_output_file(path, 0), (result == DEF_SUCCESS), result);
 
 					//2. Init encoder.
-					if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
+					if(DEF_SEM_MODEL_IS_NEW(state.console_model))
 					{
 						//For new 3ds, codec : mp3, sample rate : 32KHz, bit rate : 128kbps.
 						DEF_LOG_RESULT_SMART(result, Util_encoder_audio_init(MEDIA_A_CODEC_MP3, 32728, 32000, 128000, 0), (result == DEF_SUCCESS), result);
@@ -766,7 +808,7 @@ static void Sapp3_mic_thread(void* arg)
 					if(result == DEF_SUCCESS)
 					{
 						//4. Start a recording, for new 3ds use 32728Hz, for old 3ds use 16364Hz.
-						if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
+						if(DEF_SEM_MODEL_IS_NEW(state.console_model))
 							DEF_LOG_RESULT_SMART(result, Util_mic_start_recording(MIC_SAMPLE_RATE_32728HZ), (result == DEF_SUCCESS), result)
 						else
 							DEF_LOG_RESULT_SMART(result, Util_mic_start_recording(MIC_SAMPLE_RATE_16364HZ), (result == DEF_SUCCESS), result);

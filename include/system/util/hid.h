@@ -13,7 +13,7 @@
 uint32_t Util_hid_init(void);
 
 /**
- * @brief Uninitialize a error API.
+ * @brief Uninitialize a hid API.
  * Do nothing if hid api is not initialized.
  * @warning Thread dangerous (untested)
 */
@@ -56,6 +56,13 @@ bool Util_hid_is_released(Hid_info hid_state, Draw_image_data image);
  * @note Thread safe
 */
 uint32_t Util_hid_query_key_state(Hid_info* out_key_state);
+
+/**
+ * @brief Reset afk time.
+ * Do nothing if hid api is not initialized.
+ * @note Thread safe
+*/
+void Util_hid_reset_afk_time(void);
 
 /**
  * @brief Add hid callback.

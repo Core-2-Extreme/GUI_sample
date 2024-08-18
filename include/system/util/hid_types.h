@@ -90,6 +90,7 @@ typedef struct
 	int touch_x_move;
 	int touch_y_move;
 	int held_time;
+	uint32_t afk_time_ms;
 	//Timestamp for this data.
 	uint64_t ts;
 } Hid_info;

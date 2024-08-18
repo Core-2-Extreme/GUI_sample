@@ -12,6 +12,7 @@ extern "C"
 
 extern "C"
 {
+#include "system/draw/draw.h"
 #include "system/util/err_types.h"
 #include "system/util/log.h"
 #include "system/util/thread_types.h"
@@ -20,7 +21,8 @@ extern "C"
 
 extern "C"
 {
-bool util_cpu_usage_monitor_init = false;
+bool util_cpu_usage_init = false;
+bool util_cpu_usage_show_flag = false;
 bool util_cpu_usage_reset_counter_request[4] = { false, false, false, false, };
 uint8_t util_cpu_usage_core_1_limit = 0;
 uint8_t util_cpu_usage_core_id[4] = { 0, 1, 2, 3, };
@@ -28,7 +30,7 @@ uint16_t util_cpu_usage_counter_cache[4] = { 0, 0, 0, 0, };
 float util_cpu_usage_per_core[4] = { NAN, NAN, NAN, NAN, };
 float util_cpu_usage = NAN;
 Thread util_cpu_usage_thread_handle[5] = { 0, 0, 0, 0, };
-Handle timer_handle = 0;
+Handle util_cpu_usage_timer_handle = 0;
 
 
 extern Result __real_APT_SetAppCpuTimeLimit(uint32_t percent);
@@ -39,11 +41,13 @@ void Util_cpu_usage_calculate_thread(void* arg);
 
 uint32_t Util_cpu_usage_init(void)
 {
-	if(util_cpu_usage_monitor_init)
+	if(util_cpu_usage_init)
 		goto already_inited;
 
-	util_cpu_usage_monitor_init = true;
-	for(int i = 0; i < 4; i++)
+	util_cpu_usage_show_flag = false;
+	util_cpu_usage_init = true;
+
+	for(uint8_t i = 0; i < 4; i++)
 	{
 		//This may fail depending on core availability.
 		util_cpu_usage_thread_handle[i] = threadCreate(Util_cpu_usage_counter_thread, &util_cpu_usage_core_id[i], 2048, DEF_THREAD_SYSTEM_PRIORITY_IDLE, i, false);
@@ -59,7 +63,7 @@ uint32_t Util_cpu_usage_init(void)
 	return DEF_SUCCESS;
 
 	nintendo_api_failed:
-	util_cpu_usage_monitor_init = false;
+	util_cpu_usage_init = false;
 	return DEF_ERR_OTHER;
 
 	already_inited:
@@ -68,15 +72,18 @@ uint32_t Util_cpu_usage_init(void)
 
 void Util_cpu_usage_exit(void)
 {
-	if(!util_cpu_usage_monitor_init)
+	if(!util_cpu_usage_init)
 		return;
 
-	util_cpu_usage_monitor_init = false;
-	svcSignalEvent(timer_handle);
-	for(int i = 0; i < 5; i++)
+	util_cpu_usage_init = false;
+	svcSignalEvent(util_cpu_usage_timer_handle);
+	for(uint8_t i = 0; i < 5; i++)
 	{
 		if(util_cpu_usage_thread_handle[i])
 		{
+			//Make sure thread can exit as quick as possible.
+			svcSetThreadPriority(threadGetHandle(util_cpu_usage_thread_handle[i]), DEF_THREAD_SYSTEM_PRIORITY_REALTIME);
+
 			threadJoin(util_cpu_usage_thread_handle[i], DEF_THREAD_WAIT_TIME);
 			threadFree(util_cpu_usage_thread_handle[i]);
 		}
@@ -85,7 +92,7 @@ void Util_cpu_usage_exit(void)
 
 float Util_cpu_usage_get_cpu_usage(int8_t core_id)
 {
-	if(!util_cpu_usage_monitor_init)
+	if(!util_cpu_usage_init)
 		return NAN;
 
 	if(core_id < -1 || core_id > 3)
@@ -99,10 +106,42 @@ float Util_cpu_usage_get_cpu_usage(int8_t core_id)
 
 uint8_t Util_cpu_usage_get_core_1_limit(void)
 {
-	if(!util_cpu_usage_monitor_init)
+	if(!util_cpu_usage_init)
 		return 0;
 
 	return util_cpu_usage_core_1_limit;
+}
+
+bool Util_cpu_usage_query_show_flag(void)
+{
+	if(!util_cpu_usage_init)
+		return false;
+
+	return util_cpu_usage_show_flag;
+}
+
+void Util_cpu_usage_set_show_flag(bool flag)
+{
+	if(!util_cpu_usage_init)
+		return;
+
+	util_cpu_usage_show_flag = flag;
+}
+
+void Util_cpu_usage_draw(void)
+{
+	uint32_t char_length = 0;
+	char msg_cache[128] = { 0, };
+	Draw_image_data background = Draw_get_empty_image();
+
+	char_length = snprintf(msg_cache, 128, "CPU : %.1f%%", Util_cpu_usage_get_cpu_usage(-1));
+	for(uint8_t i = 0; i < 4; i++)
+		char_length += snprintf((msg_cache + char_length), 128 - char_length, "\nCore #%" PRIu8 " : %.1f%%", i, Util_cpu_usage_get_cpu_usage(i));
+
+	snprintf((msg_cache + char_length), 128 - char_length, "\n(#1 max : %" PRIu8 "%%)", Util_cpu_usage_get_core_1_limit());
+
+	Draw_with_background_c(msg_cache, 300, 25, 0.4, 0.4, DEF_DRAW_BLACK, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER,
+	100, 60, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
 }
 
 Result __wrap_APT_SetAppCpuTimeLimit(uint32_t percent)
@@ -138,7 +177,7 @@ void Util_cpu_usage_counter_thread(void* arg)
 	DEF_LOG_FORMAT("#%" PRIu8 " thread started.", core_id);
 
 	//This thread will run at the lowest priority.
-	while(util_cpu_usage_monitor_init)
+	while(util_cpu_usage_init)
 	{
 		//1ms
 		Util_sleep(1000);
@@ -164,18 +203,18 @@ void Util_cpu_usage_calculate_thread(void* arg)
 	float total_cpu_usage = 0;
 	float cpu_usage_cache = 0;
 
-	svcCreateTimer(&timer_handle, RESET_PULSE);
-	svcSetTimer(timer_handle, 0, 1000000000);//1000ms
+	svcCreateTimer(&util_cpu_usage_timer_handle, RESET_PULSE);
+	svcSetTimer(util_cpu_usage_timer_handle, 0, 1000000000);//1000ms
 
-	while(util_cpu_usage_monitor_init)
+	while(util_cpu_usage_init)
 	{
 		total_cpu_usage = 0;
 		div = 0;
 
 		//Update cpu usage every 1000ms.
-		svcWaitSynchronization(timer_handle, U64_MAX);
+		svcWaitSynchronization(util_cpu_usage_timer_handle, U64_MAX);
 
-		for(int i = 0; i < 4; i++)
+		for(uint8_t i = 0; i < 4; i++)
 		{
 			//Core is not available
 			if(!util_cpu_usage_thread_handle[i])
@@ -210,8 +249,8 @@ void Util_cpu_usage_calculate_thread(void* arg)
 			util_cpu_usage = total_cpu_usage / div;
 	}
 
-	svcCancelTimer(timer_handle);
-	svcCloseHandle(timer_handle);
+	svcCancelTimer(util_cpu_usage_timer_handle);
+	svcCloseHandle(util_cpu_usage_timer_handle);
 
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);

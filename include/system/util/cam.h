@@ -1,5 +1,5 @@
-#if !defined(DEF_CAM_HPP)
-#define DEF_CAM_HPP
+#if !defined(DEF_CAM_H)
+#define DEF_CAM_H
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/cam_types.h"
@@ -113,4 +113,4 @@ void Util_cam_exit(void);
 
 #endif //defined(DEF_CAM_API_ENABLE)
 
-#endif //!defined(DEF_CAM_HPP)
+#endif //!defined(DEF_CAM_H)

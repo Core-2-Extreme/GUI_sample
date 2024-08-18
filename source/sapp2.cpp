@@ -1,12 +1,14 @@
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
 #include "system/menu.hpp"
-#include "system/variables.hpp"
+#include "system/sem.hpp"
 
 extern "C"
 {
 	#include "system/draw/draw.h"
+	#include "system/util/cpu_usage.h"
 	#include "system/util/err.h"
 	#include "system/util/expl.h"
 	#include "system/util/hid.h"
@@ -87,14 +89,18 @@ bool Sapp2_query_running_flag(void)
 
 void Sapp2_hid(Hid_info key)
 {
+	Sem_config config = { 0, };
+
 	//Do nothing if app is suspended.
 	if(aptShouldJumpToHome())
 		return;
 
+	Sem_get_config(&config);
+
 	if(Util_err_query_error_show_flag())
 		Util_err_main(key);
 	else if(Util_expl_query_show_flag())
-		Util_expl_main(key);
+		Util_expl_main(key, config.scroll_speed);
 	else
 	{
 		Sapp2_command command = NONE;
@@ -145,7 +151,7 @@ void Sapp2_resume(void)
 {
 	sapp2_thread_suspend = false;
 	sapp2_main_run = true;
-	var_need_reflesh = true;
+	Draw_set_refresh_needed(true);
 	Menu_suspend();
 }
 
@@ -153,7 +159,7 @@ void Sapp2_suspend(void)
 {
 	sapp2_thread_suspend = true;
 	sapp2_main_run = false;
-	var_need_reflesh = true;
+	Draw_set_refresh_needed(true);
 	Menu_resume();
 }
 
@@ -169,12 +175,14 @@ void Sapp2_init(bool draw)
 {
 	DEF_LOG_STRING("Initializing...");
 	uint32_t result = DEF_ERR_OTHER;
+	Sem_state state = { 0, };
 
+	Sem_get_state(&state);
 	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp2_status), (result == DEF_SUCCESS), result);
 
 	Util_watch_add(WATCH_HANDLE_SUB_APP2, &sapp2_status.sequencial_id, sizeof(sapp2_status.sequencial_id));
 
-	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) && var_core_2_available)
+	if(DEF_SEM_MODEL_IS_NEW(state.console_model) && Util_is_core_available(2))
 		sapp2_init_thread = threadCreate(Sapp2_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
@@ -190,7 +198,7 @@ void Sapp2_init(bool draw)
 			Util_sleep(20000);
 	}
 
-	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
+	if(!DEF_SEM_MODEL_IS_NEW(state.console_model) || !Util_is_core_available(2))
 		APT_SetAppCpuTimeLimit(10);
 
 	DEF_LOG_RESULT_SMART(result, threadJoin(sapp2_init_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
@@ -222,7 +230,7 @@ void Sapp2_exit(bool draw)
 
 	Util_watch_remove(WATCH_HANDLE_SUB_APP2, &sapp2_status.sequencial_id);
 	Util_str_free(&sapp2_status);
-	var_need_reflesh = true;
+	Draw_set_refresh_needed(true);
 
 	DEF_LOG_STRING("Exited.");
 }
@@ -232,20 +240,25 @@ void Sapp2_main(void)
 	uint32_t color = DEF_DRAW_BLACK;
 	uint32_t back_color = DEF_DRAW_WHITE;
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP2);
+	Sem_config config = { 0, };
+	Sem_state state = { 0, };
 
-	if (var_night_mode)
+	Sem_get_config(&config);
+	Sem_get_state(&state);
+
+	if (config.is_night)
 	{
 		color = DEF_DRAW_WHITE;
 		back_color = DEF_DRAW_BLACK;
 	}
 
 	//Check if we should update the screen.
-	if(Util_watch_is_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	if(Util_watch_is_changed(watch_handle_bit) || Draw_is_refresh_needed() || !config.is_eco)
 	{
-		var_need_reflesh = false;
+		Draw_set_refresh_needed(false);
 		Draw_frame_ready();
 
-		if(var_turn_on_top_lcd)
+		if(config.is_top_lcd_on)
 		{
 			char msg[64];
 			Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
@@ -257,17 +270,17 @@ void Sapp2_main(void)
 			Draw_c("Press Y to sleep and wake up if you reopen the shell", 0, 60, 0.425, 0.425, color);
 			Draw_c("or press the home button.", 0, 70, 0.425, 0.425, color);
 
-			snprintf(msg, sizeof(msg), "Press X to toggle wifi state. Current wifi state : %s", (var_wifi_enabled ? "enable" : "disable"));
+			snprintf(msg, sizeof(msg), "Press X to toggle wifi state. Current wifi state : %s", (config.is_wifi_on ? "enable" : "disable"));
 			Draw_c(msg, 0, 90, 0.425, 0.425, color);
 
 			Draw_c("Press or hold circle pad up to increase top screen brightness.", 0, 110, 0.425, 0.425, color);
 			Draw_c("Press or hold circle pad down to decrease top screen brightness.", 0, 120, 0.425, 0.425, color);
-			snprintf(msg, sizeof(msg), "Current top lcd brightness : %d", var_top_lcd_brightness);
+			snprintf(msg, sizeof(msg), "Current top lcd brightness : %d", config.top_lcd_brightness);
 			Draw_c(msg, 0, 130, 0.425, 0.425, color);
 
 			Draw_c("Press or hold direction pad up to increase bottom screen brightness.", 0, 150, 0.425, 0.425, color);
 			Draw_c("Press or hold direction pad down to decrease bottom screen brightness.", 0, 160, 0.425, 0.425, color);
-			snprintf(msg, sizeof(msg), "Current bottom lcd brightness : %d", var_bottom_lcd_brightness);
+			snprintf(msg, sizeof(msg), "Current bottom lcd brightness : %d", config.bottom_lcd_brightness);
 			Draw_c(msg, 0, 170, 0.425, 0.425, color);
 
 			Draw_c("Press L to turn top screen off. (turn it back on in 5s)", 0, 190, 0.425, 0.425, color);
@@ -278,10 +291,13 @@ void Sapp2_main(void)
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
-			Draw_top_ui();
+			Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
 
-			if(var_monitor_cpu_usage)
-				Draw_cpu_usage_info();
+			if(config.is_debug)
+				Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+			if(Util_cpu_usage_query_show_flag())
+				Util_cpu_usage_draw();
 
 			if(Draw_is_3d_mode())
 			{
@@ -290,14 +306,17 @@ void Sapp2_main(void)
 				if(Util_log_query_log_show_flag())
 					Util_log_draw();
 
-				Draw_top_ui();
+				Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
 
-				if(var_monitor_cpu_usage)
-					Draw_cpu_usage_info();
+				if(config.is_debug)
+					Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+				if(Util_cpu_usage_query_show_flag())
+					Util_cpu_usage_draw();
 			}
 		}
 
-		if(var_turn_on_bottom_lcd)
+		if(config.is_bottom_lcd_on)
 		{
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
@@ -323,17 +342,22 @@ static void Sapp2_draw_init_exit_message(void)
 	uint32_t color = DEF_DRAW_BLACK;
 	uint32_t back_color = DEF_DRAW_WHITE;
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP2);
+	Sem_config config = { 0, };
+	Sem_state state = { 0, };
 
-	if (var_night_mode)
+	Sem_get_config(&config);
+	Sem_get_state(&state);
+
+	if (config.is_night)
 	{
 		color = DEF_DRAW_WHITE;
 		back_color = DEF_DRAW_BLACK;
 	}
 
 	//Check if we should update the screen.
-	if(Util_watch_is_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	if(Util_watch_is_changed(watch_handle_bit) || Draw_is_refresh_needed() || !config.is_eco)
 	{
-		var_need_reflesh = false;
+		Draw_set_refresh_needed(false);
 		Draw_frame_ready();
 
 		Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
@@ -341,9 +365,13 @@ static void Sapp2_draw_init_exit_message(void)
 		if(Util_log_query_log_show_flag())
 			Util_log_draw();
 
-		Draw_top_ui();
-		if(var_monitor_cpu_usage)
-			Draw_cpu_usage_info();
+		Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
+
+		if(config.is_debug)
+			Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+		if(Util_cpu_usage_query_show_flag())
+			Util_cpu_usage_draw();
 
 		Draw(&sapp2_status, 0, 20, 0.65, 0.65, color);
 
@@ -356,9 +384,13 @@ static void Sapp2_draw_init_exit_message(void)
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
-			Draw_top_ui();
-			if(var_monitor_cpu_usage)
-				Draw_cpu_usage_info();
+			Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
+
+			if(config.is_debug)
+				Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+			if(Util_cpu_usage_query_show_flag())
+				Util_cpu_usage_draw();
 
 			Draw(&sapp2_status, 0, 20, 0.65, 0.65, color);
 		}
@@ -446,6 +478,7 @@ static void Sapp2_worker_thread(void* arg)
 
 				break;
 			}
+
 			case SLEEP_WAKE_UP_WITH_BUTTON_REQUEST:
 			{
 				aptSetSleepAllowed(true);
@@ -454,6 +487,7 @@ static void Sapp2_worker_thread(void* arg)
 
 				break;
 			}
+
 			case SLEEP_WAKE_UP_WITH_SHELL_OR_BUTTON_REQUEST:
 			{
 				Hw_config_wakeup_bit wakeup_bits = (HW_CONFIG_WAKEUP_BIT_OPEN_SHELL | HW_CONFIG_WAKEUP_BIT_PRESS_HOME_BUTTON);
@@ -463,150 +497,167 @@ static void Sapp2_worker_thread(void* arg)
 
 				break;
 			}
+
 			case CHANGE_WIFI_STATE_REQUEST:
 			{
-				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_wifi_state(!var_wifi_enabled), (result == DEF_SUCCESS), result);
-				if(result == DEF_SUCCESS)
-					var_wifi_enabled = !var_wifi_enabled;
+				Sem_config config = { 0, };
+
+				Sem_get_config(&config);
+
+				//Toggle Wifi state.
+				config.is_wifi_on = !config.is_wifi_on;
+
+				//Update config so that settings menu will do the job for us.
+				//Settings menu internally calls Util_hw_config_set_wifi_state().
+				Sem_set_config(&config);
 
 				break;
 			}
+
 			case INCREASE_TOP_SCREEN_BRIGHTNESS_REQUEST:
 			{
-				//This isn't necessary because screen brightness will be changed automatically
-				//in Menu_worker_thread() if you change the value of var_top_lcd_brightness.
-				/*
-				uint8_t brightness = var_top_lcd_brightness;
-				if(brightness + 1 <= 180)
-					brightness++;
+				Sem_config config = { 0, };
 
-				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_screen_brightness(true, false, brightness), (result == DEF_SUCCESS), result);
-				if(result == DEF_SUCCESS)
-					var_top_lcd_brightness = brightness;
-				*/
+				Sem_get_config(&config);
 
-				if(var_top_lcd_brightness + 1 <= 180)
+				if(config.top_lcd_brightness + 1 <= 180)
 				{
-					var_top_lcd_brightness++;
+					config.top_lcd_brightness++;
+
+					//Update config so that settings menu will do the job for us.
+					//Settings menu internally calls Util_hw_config_set_screen_brightness().
+					//Currently, if top and bottom LCD have a different brightness,
+					//brighter one will be shown in settings menu.
+					Sem_set_config(&config);
+
 					//Update brightness value on the screen.
-					var_need_reflesh = true;
+					Draw_set_refresh_needed(true);
 				}
 
 				break;
 			}
+
 			case DECREASE_TOP_SCREEN_BRIGHTNESS_REQUEST:
 			{
-				//This isn't necessary because screen brightness will be changed automatically
-				//in Menu_worker_thread() if you change the value of var_top_lcd_brightness.
-				/*
-				uint8_t brightness = var_top_lcd_brightness;
-				if(brightness - 1 >= 0)
-					brightness--;
+				Sem_config config = { 0, };
 
-				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_screen_brightness(true, false, brightness), (result == DEF_SUCCESS), result);
-				if(result == DEF_SUCCESS)
-					var_top_lcd_brightness = brightness;
-				*/
+				Sem_get_config(&config);
 
-				if(var_top_lcd_brightness - 1 >= 0)
+				if(config.top_lcd_brightness - 1 >= 0)
 				{
-					var_top_lcd_brightness--;
+					config.top_lcd_brightness--;
+
+					//Update config so that settings menu will do the job for us.
+					//Settings menu internally calls Util_hw_config_set_screen_brightness().
+					//Currently, if top and bottom LCD have a different brightness,
+					//brighter one will be shown in settings menu.
+					Sem_set_config(&config);
+
 					//Update brightness value on the screen.
-					var_need_reflesh = true;
+					Draw_set_refresh_needed(true);
 				}
 
 				break;
 			}
+
 			case INCREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST:
 			{
-				//This isn't necessary because screen brightness will be changed automatically
-				//in Menu_worker_thread() if you change the value of var_bottom_lcd_brightness.
-				/*
-				uint8_t brightness = var_bottom_lcd_brightness;
-				if(brightness + 1 <= 180)
-					brightness++;
+				Sem_config config = { 0, };
 
-				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_screen_brightness(false, true, brightness), (result == DEF_SUCCESS), result);
-				if(result == DEF_SUCCESS)
-					var_bottom_lcd_brightness = brightness;
-				*/
+				Sem_get_config(&config);
 
-				if(var_bottom_lcd_brightness + 1 <= 180)
+				if(config.bottom_lcd_brightness + 1 <= 180)
 				{
-					var_bottom_lcd_brightness++;
+					config.bottom_lcd_brightness++;
+
+					//Update config so that settings menu will do the job for us.
+					//Settings menu internally calls Util_hw_config_set_screen_brightness().
+					//Currently, if top and bottom LCD have a different brightness,
+					//brighter one will be shown in settings menu.
+					Sem_set_config(&config);
+
 					//Update brightness value on the screen.
-					var_need_reflesh = true;
+					Draw_set_refresh_needed(true);
 				}
 
 				break;
 			}
+
 			case DECREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST:
 			{
-				//This isn't necessary because screen brightness will be changed automatically
-				//in Menu_worker_thread() if you change the value of var_bottom_lcd_brightness.
-				/*
-				uint8_t brightness = var_bottom_lcd_brightness;
-				if(brightness - 1 >= 0)
-					brightness--;
+				Sem_config config = { 0, };
 
-				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_screen_brightness(false, true, brightness), (result == DEF_SUCCESS), result);
-				if(result == DEF_SUCCESS)
-					var_bottom_lcd_brightness = brightness;
-				*/
+				Sem_get_config(&config);
 
-				if(var_bottom_lcd_brightness - 1 >= 0)
+				if(config.bottom_lcd_brightness - 1 >= 0)
 				{
-					var_bottom_lcd_brightness--;
+					config.bottom_lcd_brightness--;
+
+					//Update config so that settings menu will do the job for us.
+					//Settings menu internally calls Util_hw_config_set_screen_brightness().
+					//Currently, if top and bottom LCD have a different brightness,
+					//brighter one will be shown in settings menu.
+					Sem_set_config(&config);
+
 					//Update brightness value on the screen.
-					var_need_reflesh = true;
+					Draw_set_refresh_needed(true);
 				}
 
 				break;
 			}
+
 			case TURN_TOP_SCREEN_OFF_REQUEST:
 			{
-				//This isn't necessary because screen state will be changed automatically
-				//in Menu_worker_thread() if you change the value of var_turn_on_top_lcd.
-				/*
-				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_screen_state(true, false, false), (result == DEF_SUCCESS), result);
-				if(result == DEF_SUCCESS)
-					var_turn_on_top_lcd = false;
+				Sem_config config = { 0, };
 
+				Sem_get_config(&config);
+
+				//Turn it off.
+				config.is_top_lcd_on = false;
+
+				//Update config so that settings menu will do the job for us.
+				//Settings menu internally calls Util_hw_config_set_screen_state().
+				Sem_set_config(&config);
+
+				//Wait for 5 seconds and turn it back on again.
 				Util_sleep(5000000);
 
-				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_screen_state(true, false, true), (result == DEF_SUCCESS), result);
-				if(result == DEF_SUCCESS)
-					var_turn_on_top_lcd = true;
-				*/
+				//Turn it on.
+				config.is_top_lcd_on = true;
 
-				var_turn_on_top_lcd = false;
-				Util_sleep(5000000);
-				var_turn_on_top_lcd = true;
+				//Update config so that settings menu will do the job for us.
+				//Settings menu internally calls Util_hw_config_set_screen_state().
+				Sem_set_config(&config);
 
 				break;
 			}
+
 			case TURN_BOTTOM_SCREEN_OFF_REQUEST:
 			{
-				//This isn't necessary because screen state will be changed automatically
-				//in Menu_worker_thread() if you change the value of var_turn_on_bottom_lcd.
-				/*
-				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_screen_state(false, true, false), (result == DEF_SUCCESS), result);
-				if(result == DEF_SUCCESS)
-					var_turn_on_bottom_lcd = false;
+				Sem_config config = { 0, };
 
+				Sem_get_config(&config);
+
+				//Turn it off.
+				config.is_bottom_lcd_on = false;
+
+				//Update config so that settings menu will do the job for us.
+				//Settings menu internally calls Util_hw_config_set_screen_state().
+				Sem_set_config(&config);
+
+				//Wait for 5 seconds and turn it back on again.
 				Util_sleep(5000000);
 
-				DEF_LOG_RESULT_SMART(result, Util_hw_config_set_screen_state(false, true, true), (result == DEF_SUCCESS), result);
-				if(result == DEF_SUCCESS)
-					var_turn_on_bottom_lcd = true;
-				*/
+				//Turn it on.
+				config.is_bottom_lcd_on = true;
 
-				var_turn_on_bottom_lcd = false;
-				Util_sleep(5000000);
-				var_turn_on_bottom_lcd = true;
+				//Update config so that settings menu will do the job for us.
+				//Settings menu internally calls Util_hw_config_set_screen_state().
+				Sem_set_config(&config);
 
 				break;
 			}
+
 			default:
 				break;
 		}

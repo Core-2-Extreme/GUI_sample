@@ -5,9 +5,9 @@ extern "C"
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <time.h>
 
 #include "system/menu.hpp"
-#include "system/variables.hpp"
 
 extern "C"
 {
@@ -44,8 +44,8 @@ uint32_t Util_err_init(void)
 
 	util_err_show_flag = false;
 	util_err_save_request = false;
-	util_err_ok_button.c2d = var_square_image[0];
-	util_err_save_button.c2d = var_square_image[0];
+	util_err_ok_button = Draw_get_empty_image();
+	util_err_save_button = Draw_get_empty_image();
 
 	for(uint8_t i = 0; i < (sizeof(str_list) / sizeof(str_list[0])); i++)
 	{
@@ -200,7 +200,7 @@ void Util_err_main(Hid_info key)
 		if (key.p_a)
 		{
 			util_err_show_flag = false;
-			var_need_reflesh = true;
+			Draw_set_refresh_needed(true);
 		}
 		return;
 	}
@@ -208,28 +208,28 @@ void Util_err_main(Hid_info key)
 	if(Util_hid_is_pressed(key, util_err_ok_button) && !util_err_save_request)
 	{
 		util_err_ok_button.selected = true;
-		var_need_reflesh = true;
+		Draw_set_refresh_needed(true);
 	}
 	else if ((key.p_a || (Util_hid_is_released(key, util_err_ok_button) && util_err_ok_button.selected)) && !util_err_save_request)
 	{
 		util_err_show_flag = false;
-		var_need_reflesh = true;
+		Draw_set_refresh_needed(true);
 	}
 	else if(Util_hid_is_pressed(key, util_err_save_button) && !util_err_save_request)
 	{
 		util_err_save_button.selected = true;
-		var_need_reflesh = true;
+		Draw_set_refresh_needed(true);
 	}
 	else if ((key.p_x || (Util_hid_is_released(key, util_err_save_button) && util_err_save_button.selected)) && !util_err_save_request)
 	{
 		Util_err_save_error();
-		var_need_reflesh = true;
+		Draw_set_refresh_needed(true);
 	}
 
 	if(!key.p_touch && !key.h_touch)
 	{
 		if(util_err_ok_button.selected || util_err_save_button.selected)
-			var_need_reflesh = true;
+			Draw_set_refresh_needed(true);
 
 		util_err_ok_button.selected = util_err_save_button.selected = false;
 	}
@@ -237,8 +237,7 @@ void Util_err_main(Hid_info key)
 
 void Util_err_draw(void)
 {
-	Draw_image_data background = { 0, };
-	background.c2d = var_square_image[0];
+	Draw_image_data background = Draw_get_empty_image();
 
 	if(!util_err_init)
 	{
@@ -270,6 +269,11 @@ static void Util_err_save_callback(void)
 		uint32_t result = DEF_ERR_OTHER;
 		Str_data file_name = { 0, };
 		Str_data save_data = { 0, };
+		time_t unix_time = time(NULL);
+		struct tm* time = gmtime((const time_t*)&unix_time);
+
+		time->tm_year += 1900;
+		time->tm_mon += 1;
 
 		result = Util_str_init(&file_name);
 		if(result != DEF_SUCCESS)
@@ -281,8 +285,11 @@ static void Util_err_save_callback(void)
 
 		if(Util_str_is_valid(&file_name) && Util_str_is_valid(&save_data))
 		{
-			Util_str_format(&file_name, "%04d_%02d_%02d_%02d_%02d_%02d.txt", var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
-			Util_str_format(&save_data, "\n\n##ERROR MESSAGE##\n%s\n%s\n%s\n%s\n", util_err_summary.buffer, util_err_description.buffer, util_err_location.buffer, util_err_code.buffer);
+			Util_str_format(&file_name, "%04" PRIu16 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 ".txt",
+			time->tm_year, time->tm_mon, time->tm_mday, time->tm_hour, time->tm_min, time->tm_sec);
+
+			Util_str_format(&save_data, "\n\n##ERROR MESSAGE##\n%s\n%s\n%s\n%s\n",
+			util_err_summary.buffer, util_err_description.buffer, util_err_location.buffer, util_err_code.buffer);
 
 			result = Util_log_dump(file_name.buffer, (DEF_MENU_MAIN_DIR "error/"));
 			if(result != DEF_SUCCESS)

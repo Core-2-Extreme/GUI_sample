@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string>
@@ -5,7 +6,6 @@
 #include "3ds.h"
 
 #include "system/sem.hpp"
-#include "system/variables.hpp"
 
 extern "C"
 {
@@ -39,37 +39,38 @@ extern "C"
 #include "system/menu.hpp"
 
 
+#define DEF_MENU_NUM_OF_SUB_APP		(uint8_t)(8)
+
+
 bool menu_thread_run = false;
 bool menu_main_run = true;
 bool menu_must_exit = false;
 bool menu_check_exit_request = false;
 bool menu_update_available = false;
-bool menu_init_request[9] = { false, false, false, false, false, false, false, false, false, };
-bool menu_exit_request[8] = { false, false, false, false, false, false, false, false, };
-uint32_t menu_icon_texture_num[9] = { UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, };
+bool menu_init_request[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
+bool menu_exit_request[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
+uint32_t menu_icon_texture_num[DEF_MENU_NUM_OF_SUB_APP + 1] = { UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, };
 void (*menu_worker_thread_callbacks[DEF_MENU_NUM_OF_CALLBACKS])(void) = { NULL, };
 Str_data menu_msg[DEF_MENU_NUM_OF_MSG] = { 0, };
 Thread menu_worker_thread = NULL;
 LightLock menu_callback_mutex = 1;//Initially unlocked state.
-Draw_image_data menu_icon_image[10] = { 0, };
-Draw_image_data menu_sapp_button[8] = { 0, };
-Draw_image_data menu_sapp_close_button[8] = { 0, };
+Draw_image_data menu_icon_image[DEF_MENU_NUM_OF_SUB_APP + 2] = { 0, };
+Draw_image_data menu_sapp_button[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
+Draw_image_data menu_sapp_close_button[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
 Draw_image_data menu_sem_button = { 0, };
 
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
-Thread menu_check_connectivity_thread, menu_send_app_info_thread, menu_update_thread;
+Thread menu_send_app_info_thread = NULL, menu_update_thread = NULL;
 
 #endif
 
-void Menu_get_system_info(void);
 void Menu_hid_callback(void);
 void Menu_worker_thread(void* arg);
 
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
 void Menu_send_app_info_thread(void* arg);
-void Menu_check_connectivity_thread(void* arg);
 void Menu_update_thread(void* arg);
 
 #endif
@@ -88,7 +89,7 @@ void Menu_set_must_exit_flag(bool flag)
 void Menu_resume(void)
 {
 	menu_main_run = true;
-	var_need_reflesh = true;
+	Draw_set_refresh_needed(true);
 }
 
 void Menu_suspend(void)
@@ -104,25 +105,17 @@ uint32_t Menu_load_msg(const char* lang)
 	return Util_load_msg(file_name, menu_msg, DEF_MENU_NUM_OF_MSG);
 }
 
-void Menu_check_core_thread(void* arg)
-{
-	threadExit(0);
-}
-
 void Menu_init(void)
 {
 	bool is_800px = false;
 	bool is_3d = false;
-	uint8_t* data = NULL;
 	uint8_t dummy = 0;
-	uint8_t region = 0;
-	uint8_t model = 0;
-	uint32_t read_size = 0;
 	uint32_t result = DEF_ERR_OTHER;
-	Thread core_2 = NULL, core_3 = NULL;
 	C2D_Image cache[2] = { 0, };
+	Sem_config config = { 0, };
+	Sem_state state = { 0, };
 
-	for(int i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
+	for(uint16_t i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
 		menu_worker_thread_callbacks[i] = NULL;
 
 	result = Util_log_init();
@@ -150,58 +143,25 @@ void Menu_init(void)
 	Util_file_save_to_file(".", DEF_MENU_MAIN_DIR "error/", &dummy, 1, true);
 	Util_file_save_to_file(".", DEF_MENU_MAIN_DIR "logs/", &dummy, 1, true);
 
-	if(Util_file_load_from_file("fake_model.txt", DEF_MENU_MAIN_DIR, &data, 1, 0, &read_size) == DEF_SUCCESS && *data <= 5)
-	{
-		var_fake_model = true;
-		var_model = *data;
-		free(data);
-		data = NULL;
-	}
-
-	if(CFGU_SecureInfoGetRegion(&region) == 0)
-	{
-		if(region == CFG_REGION_CHN)
-			var_system_region = 1;
-		else if(region == CFG_REGION_KOR)
-			var_system_region = 2;
-		else if(region == CFG_REGION_TWN)
-			var_system_region = 3;
-		else
-			var_system_region = 0;
-	}
-
-	if(CFGU_GetSystemModel(&model) == 0)
-	{
-		DEF_LOG_FORMAT("Model : %s", var_model_name[model].c_str());
-		if(!var_fake_model)
-			var_model = model;
-	}
-	else
-		DEF_LOG_STRING("Model : Unknown");
-
-	if(var_fake_model)
-		DEF_LOG_FORMAT("Using fake model : %s", var_model_name[var_model].c_str());
-
-	if(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DSXL || var_model == CFG_MODEL_3DS)
-		osSetSpeedupEnable(false);
-
 	//Init our modules.
 	DEF_LOG_RESULT_SMART(result, Util_init(), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, Util_watch_init(), (result == DEF_SUCCESS), result);
 
 	Sem_init();
 	Sem_suspend();
+	Sem_get_config(&config);
+	Sem_get_state(&state);
 
-	if(var_screen_mode == DEF_SEM_SCREEN_AUTO)
+	if(config.screen_mode == DEF_SEM_SCREEN_MODE_AUTO)
 	{
 		if(osGet3DSliderState())
 			is_3d = true;
 		else
 			is_800px = true;
 	}
-	else if(var_screen_mode == DEF_SEM_SCREEN_800PX)
+	else if(config.screen_mode == DEF_SEM_SCREEN_MODE_800PX)
 		is_800px = true;
-	else if(var_screen_mode == DEF_SEM_SCREEN_3D)
+	else if(config.screen_mode == DEF_SEM_SCREEN_MODE_3D)
 		is_3d = true;
 
 	DEF_LOG_RESULT_SMART(result, Draw_init(is_800px, is_3d), (result == DEF_SUCCESS), result);
@@ -209,7 +169,7 @@ void Menu_init(void)
 	//Init screen.
 	Draw_frame_ready();
 	Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, DEF_DRAW_WHITE);
-	Draw_top_ui();
+	Draw_top_ui(false, false, DEF_SEM_WIFI_SIGNAL_DISABLED, 0, NULL);
 	Draw_screen_ready(DRAW_SCREEN_BOTTOM, DEF_DRAW_WHITE);
 	Draw_bot_ui();
 	Draw_apply_draw();
@@ -224,7 +184,7 @@ void Menu_init(void)
 	DEF_LOG_RESULT_SMART(result, Exfont_init(), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, Util_err_init(), (result == DEF_SUCCESS), result);
 
-	for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
+	for (uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		Exfont_set_external_font_request_state(i, true);
 
 	Exfont_request_load_external_font();
@@ -233,37 +193,11 @@ void Menu_init(void)
 	menu_worker_thread = threadCreate(Menu_worker_thread, (void*)(""), DEF_THREAD_STACKSIZE * 2, DEF_THREAD_PRIORITY_ABOVE_NORMAL, 0, false);
 
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
-	menu_check_connectivity_thread = threadCreate(Menu_check_connectivity_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 	menu_update_thread = threadCreate(Menu_update_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, true);
 #endif
 
-	//Check for core availability.
-	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
-	{
-		core_2 = threadCreate(Menu_check_core_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
-		if(!core_2)
-			var_core_2_available = false;
-		else
-		{
-			threadJoin(core_2, U64_MAX);
-			var_core_2_available = true;
-		}
-
-		core_3 = threadCreate(Menu_check_core_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 3, false);
-		if(!core_3)
-			var_core_3_available = false;
-		else
-		{
-			threadJoin(core_3, U64_MAX);
-			var_core_3_available = true;
-		}
-
-		threadFree(core_2);
-		threadFree(core_3);
-	}
-
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
-	if (var_allow_send_app_info)
+	if (config.is_send_info_allowed)
 		menu_send_app_info_thread = threadCreate(Menu_send_app_info_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_LOW, 1, true);
 #endif
 
@@ -323,19 +257,18 @@ void Menu_init(void)
 	menu_icon_image[9].c2d = cache[1];
 #endif
 
-	for(int i = 0; i < 8; i++)
+	for(uint8_t i = 0; i < DEF_MENU_NUM_OF_SUB_APP; i++)
 	{
-		menu_sapp_button[i].c2d = var_square_image[0];
-		menu_sapp_close_button[i].c2d = var_square_image[0];
+		menu_sapp_button[i] = Draw_get_empty_image();
+		menu_sapp_close_button[i] = Draw_get_empty_image();
 	}
-	menu_sem_button.c2d = var_square_image[0];
+	menu_sem_button = Draw_get_empty_image();
 
 	Util_watch_add(WATCH_HANDLE_MAIN_MENU, &menu_must_exit, sizeof(menu_must_exit));
 	Util_watch_add(WATCH_HANDLE_MAIN_MENU, &menu_check_exit_request, sizeof(menu_check_exit_request));
-	Util_watch_add(WATCH_HANDLE_MAIN_MENU, &menu_init_request[8], sizeof(menu_init_request[8]));
 
 	Util_watch_add(WATCH_HANDLE_MAIN_MENU, &menu_sem_button.selected, sizeof(menu_sem_button.selected));
-	for(int i = 0; i < 8; i++)
+	for(uint8_t i = 0; i < DEF_MENU_NUM_OF_SUB_APP; i++)
 	{
 		Util_watch_add(WATCH_HANDLE_MAIN_MENU, &menu_init_request[i], sizeof(menu_init_request[i]));
 		Util_watch_add(WATCH_HANDLE_MAIN_MENU, &menu_exit_request[i], sizeof(menu_exit_request[i]));
@@ -343,8 +276,6 @@ void Menu_init(void)
 		Util_watch_add(WATCH_HANDLE_MAIN_MENU, &menu_sapp_button[i].selected, sizeof(menu_sapp_button[i].selected));
 		Util_watch_add(WATCH_HANDLE_MAIN_MENU, &menu_sapp_close_button[i].selected, sizeof(menu_sapp_close_button[i].selected));
 	}
-
-	Menu_get_system_info();
 
 	Menu_resume();
 	DEF_LOG_STRING("Initialized.");
@@ -393,7 +324,7 @@ void Menu_exit(void)
 	if (Sem_query_init_flag())
 		Sem_exit();
 
-	for(int i = 0; i < 8; i++)
+	for(uint8_t i = 0; i < (DEF_MENU_NUM_OF_SUB_APP + 1); i++)
 		Draw_free_texture(menu_icon_texture_num[i]);
 
 	Util_hid_remove_callback(Menu_hid_callback);
@@ -408,18 +339,15 @@ void Menu_exit(void)
 	threadFree(menu_worker_thread);
 
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
-	DEF_LOG_RESULT_SMART(result, threadJoin(menu_check_connectivity_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, threadJoin(menu_send_app_info_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, threadJoin(menu_update_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
-	threadFree(menu_check_connectivity_thread);
 #endif
 
 	Util_watch_remove(WATCH_HANDLE_MAIN_MENU, &menu_must_exit);
 	Util_watch_remove(WATCH_HANDLE_MAIN_MENU, &menu_check_exit_request);
-	Util_watch_remove(WATCH_HANDLE_MAIN_MENU, &menu_init_request[8]);
 
 	Util_watch_remove(WATCH_HANDLE_MAIN_MENU, &menu_sem_button.selected);
-	for(int i = 0; i < 8; i++)
+	for(uint8_t i = 0; i < DEF_MENU_NUM_OF_SUB_APP; i++)
 	{
 		Util_watch_remove(WATCH_HANDLE_MAIN_MENU, &menu_init_request[i]);
 		Util_watch_remove(WATCH_HANDLE_MAIN_MENU, &menu_exit_request[i]);
@@ -450,13 +378,13 @@ bool Menu_add_worker_thread_callback(void (*callback)(void))
 {
 	LightLock_Lock(&menu_callback_mutex);
 
-	for(int i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
+	for(uint16_t i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
 	{
 		if(menu_worker_thread_callbacks[i] == callback)
 			goto success;//Already exist.
 	}
 
-	for(int i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
+	for(uint16_t i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
 	{
 		if(!menu_worker_thread_callbacks[i])
 		{
@@ -478,7 +406,7 @@ void Menu_remove_worker_thread_callback(void (*callback)(void))
 {
 	LightLock_Lock(&menu_callback_mutex);
 
-	for(int i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
+	for(uint16_t i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
 	{
 		if(menu_worker_thread_callbacks[i] == callback)
 		{
@@ -494,13 +422,17 @@ void Menu_main(void)
 {
 	bool is_800px = false;
 	bool is_3d = false;
-	uint8_t screen_mode = var_screen_mode;
-	int color = DEF_DRAW_BLACK;
-	int back_color = DEF_DRAW_WHITE;
+	uint32_t color = DEF_DRAW_BLACK;
+	uint32_t back_color = DEF_DRAW_WHITE;
+	Sem_config config = { 0, };
+	Sem_state state = { 0, };
 
-	is_800px = (screen_mode == DEF_SEM_SCREEN_800PX);
-	is_3d = (screen_mode == DEF_SEM_SCREEN_3D);
-	if(screen_mode == DEF_SEM_SCREEN_AUTO)
+	Sem_get_config(&config);
+	Sem_get_state(&state);
+
+	is_800px = (config.screen_mode == DEF_SEM_SCREEN_MODE_800PX);
+	is_3d = (config.screen_mode == DEF_SEM_SCREEN_MODE_3D);
+	if(config.screen_mode == DEF_SEM_SCREEN_MODE_AUTO)
 	{
 		if(osGet3DSliderState())
 		{
@@ -510,19 +442,21 @@ void Menu_main(void)
 		else
 		{
 			is_3d = false;
-			is_800px = true;
+			is_800px = ((state.console_model == DEF_SEM_MODEL_OLD2DS) ? false : true);
 		}
 	}
 
-	if(var_model == CFG_MODEL_2DS && is_800px)
+	if(state.console_model == DEF_SEM_MODEL_OLD2DS && is_800px)
 	{
 		is_800px = false;
-		var_screen_mode = DEF_SEM_SCREEN_AUTO;
+		config.screen_mode = DEF_SEM_SCREEN_MODE_AUTO;
+		Sem_set_config(&config);
 	}
-	if((var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_N2DSXL) && is_3d)
+	if((state.console_model == DEF_SEM_MODEL_OLD2DS || state.console_model == DEF_SEM_MODEL_NEW2DSXL) && is_3d)
 	{
 		is_3d = false;
-		var_screen_mode = DEF_SEM_SCREEN_AUTO;
+		config.screen_mode = DEF_SEM_SCREEN_MODE_AUTO;
+		Sem_set_config(&config);
 	}
 
 	//Update screen mode here.
@@ -531,21 +465,22 @@ void Menu_main(void)
 		uint32_t result = DEF_ERR_OTHER;
 
 		DEF_LOG_RESULT_SMART(result, Draw_reinit(is_800px, is_3d), (result == DEF_SUCCESS), result);
-		var_need_reflesh = true;
+		Draw_set_refresh_needed(true);
 	}
 
-	if(var_debug_mode)
-		var_need_reflesh = true;
+	if(config.is_debug)
+		Draw_set_refresh_needed(true);
 
 	if (menu_main_run)
 	{
 		Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_MAIN_MENU);
 
 		//Check if we should update the screen.
-		if(Util_watch_is_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+		if(Util_watch_is_changed(watch_handle_bit) || Draw_is_refresh_needed() || !config.is_eco)
 		{
-			var_need_reflesh = false;
-			if (var_night_mode)
+			Draw_set_refresh_needed(false);
+
+			if (config.is_night)
 			{
 				color = DEF_DRAW_WHITE;
 				back_color = DEF_DRAW_BLACK;
@@ -569,10 +504,13 @@ void Menu_main(void)
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
-			Draw_top_ui();
+			Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
 
-			if(var_monitor_cpu_usage)
-				Draw_cpu_usage_info();
+			if(config.is_debug)
+				Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+			if(Util_cpu_usage_query_show_flag())
+				Util_cpu_usage_draw();
 
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
@@ -708,7 +646,7 @@ void Menu_main(void)
 			Draw_texture(&menu_sem_button, menu_sem_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 260, 170, 60, 60);
 
 			#ifdef DEF_SEM_ENABLE_ICON
-			Draw_texture(&menu_icon_image[8 + var_night_mode], DEF_DRAW_NO_COLOR, 260, 170, 60, 60);
+			Draw_texture(&menu_icon_image[8 + config.is_night], DEF_DRAW_NO_COLOR, 260, 170, 60, 60);
 			#endif
 			#ifdef DEF_SEM_ENABLE_NAME
 			Draw_c(DEF_SEM_NAME, 270, 205, 0.4, 0.4, color);
@@ -820,11 +758,6 @@ void Menu_main(void)
 			menu_exit_request[7] = false;
 		}
 		#endif
-		if(menu_init_request[8])
-		{
-			Sem_init();
-			menu_init_request[8] = false;
-		}
 	}
 	#ifdef DEF_SAPP0_ENABLE
 	else if (Sapp0_query_running_flag())
@@ -1079,21 +1012,12 @@ void Menu_hid_callback(void)
 					else if (Util_hid_is_pressed(key, menu_sem_button))
 						menu_sem_button.selected = true;
 					else if (Util_hid_is_released(key, menu_sem_button) && menu_sem_button.selected)
-					{
-						if (!Sem_query_init_flag())
-						{
-							menu_init_request[8] = true;
-							while(menu_init_request[8])
-								Util_sleep(20000);
-						}
-						else
-							Sem_resume();
-					}
+						Sem_resume();
 				}
 
 				if(!key.p_touch && !key.h_touch)
 				{
-					for(int i = 0; i < 8; i++)
+					for(uint8_t i = 0; i < DEF_MENU_NUM_OF_SUB_APP; i++)
 					{
 						menu_sapp_button[i].selected = false;
 						menu_sapp_close_button[i].selected = false;
@@ -1143,87 +1067,6 @@ void Menu_hid_callback(void)
 		Sem_hid(key);
 }
 
-void Menu_get_system_info(void)
-{
-	uint8_t battery_level = 0;
-	uint8_t battery_voltage = 0;
-	uint8_t battery_temp = 0;
-	uint32_t result = DEF_ERR_OTHER;
-	char* ssid = (char*)malloc(512);
-
-	PTMU_GetBatteryChargeState(&var_battery_charge);//Battery charge.
-	result = MCUHWC_GetBatteryLevel(&battery_level);//Battery level(%).
-	if(result == DEF_SUCCESS)
-	{
-		MCUHWC_GetBatteryVoltage(&battery_voltage);
-		MCUHWC_ReadRegister(0x0A, &battery_temp, 1);
-		var_battery_voltage = 5.0 * (battery_voltage / 256.0);
-		var_battery_level_raw = battery_level;
-		var_battery_temp = battery_temp;
-	}
-	else
-	{
-		PTMU_GetBatteryLevel(&battery_level);
-		if ((int)battery_level == 0)
-			var_battery_level_raw = 0;
-		else if ((int)battery_level == 1)
-			var_battery_level_raw = 5;
-		else if ((int)battery_level == 2)
-			var_battery_level_raw = 10;
-		else if ((int)battery_level == 3)
-			var_battery_level_raw = 30;
-		else if ((int)battery_level == 4)
-			var_battery_level_raw = 60;
-		else if ((int)battery_level == 5)
-			var_battery_level_raw = 100;
-	}
-
-	//Connected SSID.
-	result = ACU_GetSSID(ssid);
-	if(result == DEF_SUCCESS)
-		var_connected_ssid = ssid;
-	else
-		var_connected_ssid = "";
-
-	free(ssid);
-	ssid = NULL;
-
-	var_wifi_signal = osGetWifiStrength();
-	//Get wifi state from shared memory #0x1FF81067.
-	var_wifi_state = *(uint8_t*)0x1FF81067;
-	if(var_wifi_state == 2)
-	{
-#if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
-		if (!var_connect_test_succes)
-			var_wifi_signal += 4;
-#endif
-	}
-	else
-	{
-		var_wifi_signal = 8;
-		var_connect_test_succes = false;
-	}
-
-	//Get time.
-	time_t unixTime = time(NULL);
-	struct tm* timeStruct = gmtime((const time_t*)&unixTime);
-	var_years = timeStruct->tm_year + 1900;
-	var_months = timeStruct->tm_mon + 1;
-	var_days = timeStruct->tm_mday;
-	var_hours = timeStruct->tm_hour;
-	var_minutes = timeStruct->tm_min;
-	var_seconds = timeStruct->tm_sec;
-
-	if (var_debug_mode)
-	{
-		//Check for free RAM.
-		var_free_ram = Util_check_free_ram();
-		var_free_linear_ram = Util_check_free_linear_space();
-	}
-
-	sprintf(var_status, "%02dfps %04d/%02d/%02d %02d:%02d:%02d ", (int)Draw_query_fps(), var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
-}
-
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 void Menu_send_app_info_thread(void* arg)
 {
@@ -1233,6 +1076,11 @@ void Menu_send_app_info_thread(void* arg)
 	char system_ver_char[0x50] = " ";
 	std::string new3ds = "";
 	OS_VersionBin os_ver = { 0, };
+	Sem_config config = { 0, };
+	Sem_state state = { 0, };
+
+	Sem_get_config(&config);
+	Sem_get_state(&state);
 
 	osGetSystemVersionDataString(&os_ver, &os_ver, system_ver_char, 0x50);
 	std::string system_ver = system_ver_char;
@@ -1240,7 +1088,10 @@ void Menu_send_app_info_thread(void* arg)
 	APT_CheckNew3DS(&is_new3ds);
 	new3ds = is_new3ds ? "yes" : "no";
 
-	std::string send_data = (std::string)"{ \"app_ver\": \"" + DEF_MENU_CURRENT_APP_VER + "\",\"system_ver\" : \"" + system_ver + "\",\"start_num_of_app\" : \"" + std::to_string(var_num_of_app_start) + "\",\"language\" : \"" + var_lang + "\",\"new3ds\" : \"" + new3ds + "\",\"time_to_enter_sleep\" : \"" + std::to_string(var_time_to_turn_off_lcd) + "\",\"scroll_speed\" : \"" + std::to_string(var_scroll_speed) + "\" }";
+	std::string send_data = (std::string)"{ \"app_ver\": \"" + DEF_MENU_CURRENT_APP_VER + "\",\"system_ver\" : \""
+	+ system_ver + "\",\"start_num_of_app\" : \"" + std::to_string(state.num_of_launch) + "\",\"language\" : \""
+	+ config.lang + "\",\"new3ds\" : \"" + new3ds + "\",\"time_to_enter_sleep\" : \"" + std::to_string(config.time_to_turn_off_lcd)
+	+ "\",\"scroll_speed\" : \"" + std::to_string(config.scroll_speed) + "\" }";
 
 #if DEF_CURL_API_ENABLE
 	Util_curl_post_and_dl_data(DEF_MENU_SEND_APP_INFO_URL, (uint8_t*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, NULL, NULL, NULL, 5, NULL);
@@ -1256,134 +1107,16 @@ void Menu_send_app_info_thread(void* arg)
 }
 #endif
 
-#if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
-void Menu_check_connectivity_thread(void* arg)
-{
-	DEF_LOG_STRING("Thread started.");
-	uint8_t* http_buffer = NULL;
-	uint16_t status_code = 0;
-	uint16_t count = 100;
-
-	while (menu_thread_run)
-	{
-		if (count >= 100)
-		{
-			count = 0;
-#if DEF_HTTPC_API_ENABLE//Curl uses more CPU so prefer to use httpc module here.
-			Util_httpc_dl_data(DEF_MENU_CHECK_INTERNET_URL, &http_buffer, 0x1000, NULL, &status_code, 0, NULL);
-#else
-			Util_curl_dl_data(DEF_MENU_CHECK_INTERNET_URL, &http_buffer, 0x1000, NULL, &status_code, 0, NULL);
-#endif
-			free(http_buffer);
-			http_buffer = NULL;
-
-			if (status_code == 204)
-				var_connect_test_succes = true;
-			else
-				var_connect_test_succes = false;
-		}
-		else
-			Util_sleep(DEF_THREAD_ACTIVE_SLEEP_TIME);
-
-		count++;
-	}
-
-	DEF_LOG_STRING("Thread exit.");
-	threadExit(0);
-}
-#endif
-
 void Menu_worker_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
-	uint32_t count = 0;
-	uint32_t result = DEF_ERR_OTHER;
-	uint64_t previous_ts = 0;
 
 	while (menu_thread_run)
 	{
-		if(previous_ts + 50 <= osGetTime())
-		{
-			if(var_flash_mode)
-			{
-				var_night_mode = !var_night_mode;
-				var_need_reflesh = true;
-			}
-			count++;
-
-			if(previous_ts + 100 >= osGetTime())
-				previous_ts += 50;
-			else
-				previous_ts = osGetTime();
-		}
-
-		if(count % 5 == 0)
-			Menu_get_system_info();
-
-		if(count >= 20)
-		{
-			var_need_reflesh = true;
-			var_afk_time++;
-			count = 0;
-		}
-
-		//If var_time_to_turn_off_lcd < 0, it means turn off LCD settings has been disabled.
-		if(var_time_to_turn_off_lcd > 0 && var_afk_time > var_time_to_turn_off_lcd)
-		{
-			result = Util_hw_config_set_screen_state(true, true, false);
-			if(result != DEF_SUCCESS)
-				DEF_LOG_RESULT(Util_hw_config_set_screen_state, false, result);
-		}
-		else if(var_time_to_turn_off_lcd > 0 &&var_afk_time > (var_time_to_turn_off_lcd - 10))
-		{
-			result = Util_hw_config_set_screen_brightness(true, true, 10);
-			if(result != DEF_SUCCESS)
-				DEF_LOG_RESULT(Util_hw_config_set_screen_brightness, false, result);
-		}
-		else
-		{
-			result = Util_hw_config_set_screen_state(true, false, var_turn_on_top_lcd);
-			if(result != DEF_SUCCESS)
-				DEF_LOG_RESULT(Util_hw_config_set_screen_state, false, result);
-
-			result = Util_hw_config_set_screen_state(false, true, var_turn_on_bottom_lcd);
-			if(result != DEF_SUCCESS)
-				DEF_LOG_RESULT(Util_hw_config_set_screen_state, false, result);
-
-			if(var_top_lcd_brightness == var_lcd_brightness && var_bottom_lcd_brightness == var_lcd_brightness)
-			{
-				result = Util_hw_config_set_screen_brightness(true, true, var_lcd_brightness);
-				if(result != DEF_SUCCESS)
-					DEF_LOG_RESULT(Util_hw_config_set_screen_brightness, false, result);
-			}
-			else
-			{
-				result = Util_hw_config_set_screen_brightness(true, false, var_top_lcd_brightness);
-				if(result != DEF_SUCCESS)
-					DEF_LOG_RESULT(Util_hw_config_set_screen_brightness, false, result);
-
-				result = Util_hw_config_set_screen_brightness(false, true, var_bottom_lcd_brightness);
-				if(result != DEF_SUCCESS)
-					DEF_LOG_RESULT(Util_hw_config_set_screen_brightness, false, result);
-			}
-		}
-
-		if(var_time_to_enter_sleep > 0 && var_afk_time > var_time_to_enter_sleep)
-		{
-			result = Util_hw_config_sleep_system((HW_CONFIG_WAKEUP_BIT_OPEN_SHELL | HW_CONFIG_WAKEUP_BIT_PRESS_HOME_BUTTON));
-			if(result == DEF_SUCCESS)
-			{
-				//We woke up from sleep.
-				var_afk_time = 0;
-			}
-			else
-				DEF_LOG_RESULT(Util_hw_config_sleep_system, false, result);
-		}
-
 		LightLock_Lock(&menu_callback_mutex);
 
 		//Call callback functions.
-		for(int i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
+		for(uint16_t i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
 		{
 			if(menu_worker_thread_callbacks[i])
 				menu_worker_thread_callbacks[i]();
@@ -1393,6 +1126,7 @@ void Menu_worker_thread(void* arg)
 
 		gspWaitForVBlank();
 	}
+
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }

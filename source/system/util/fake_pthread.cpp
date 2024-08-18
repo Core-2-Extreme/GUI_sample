@@ -11,12 +11,11 @@ extern "C"
 
 #include "3ds.h"
 
-#include "system/variables.hpp"
-
 extern "C"
 {
 #include "system/util/err_types.h"
 #include "system/util/thread_types.h"
+#include "system/util/util_c.h"
 
 
 int util_fake_pthread_core_offset = 0;
@@ -196,19 +195,27 @@ int posix_memalign(void** memptr, size_t alignment, size_t size)
 
 long sysconf(int name)
 {
-	if(name == _SC_NPROCESSORS_CONF)
+	if(name == _SC_NPROCESSORS_CONF || name == _SC_NPROCESSORS_ONLN)
 	{
-		if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DS || var_model == CFG_MODEL_N3DSXL)
-			return 4;
+		uint8_t model = 0;
+		CFGU_GetSystemModel(&model);
+
+		if(name == _SC_NPROCESSORS_CONF)
+		{
+			if(model == CFG_MODEL_N2DSXL || model == CFG_MODEL_N3DS || model == CFG_MODEL_N3DSXL)
+				return 4;
+			else
+				return 2;
+		}
+		else if(name == _SC_NPROCESSORS_ONLN)
+		{
+			if(model == CFG_MODEL_N2DSXL || model == CFG_MODEL_N3DS || model == CFG_MODEL_N3DSXL)
+				return 2 + Util_is_core_available(2) + Util_is_core_available(3);
+			else
+				return 2;
+		}
 		else
-			return 2;
-	}
-	else if(name == _SC_NPROCESSORS_ONLN)
-	{
-		if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DS || var_model == CFG_MODEL_N3DSXL)
-			return 2 + var_core_2_available + var_core_3_available;
-		else
-			return 2;
+			return -1;
 	}
 	else
 		return -1;

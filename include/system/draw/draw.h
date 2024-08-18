@@ -54,6 +54,22 @@ bool Draw_is_800px_mode(void);
 bool Draw_is_3d_mode(void);
 
 /**
+ * @brief Get if screen needs to be refreshed (re-rendered).
+ * Always return false if draw api is not initialized.
+ * @return true if screen refresh is needed, otherwise false.
+ * @note Thread safe
+*/
+bool Draw_is_refresh_needed(void);
+
+/**
+ * @brief Set if screen needs to be refreshed (re-rendered).
+ * Do nothing if draw api is not initialized.
+ * @param is_refresh_needed (in) Whether screen needs to be refreshed.
+ * @note Thread safe
+*/
+void Draw_set_refresh_needed(bool is_refresh_needed);
+
+/**
  * @brief Query frametime.
  * Always return 0 if draw api is not initialized.
  * @return Frametime (in ms).
@@ -120,6 +136,12 @@ uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pi
  * @note Thread safe
 */
 void Draw_set_texture_filter(Draw_image_data* image, bool filter);
+
+/**
+ * @brief Get empty (1x1 image that can be used to draw square) image.
+ * @note Thread safe
+*/
+Draw_image_data Draw_get_empty_image(void);
 
 /**
  * @brief Get text size.
@@ -225,10 +247,15 @@ void Draw_free_texture(uint32_t sheet_map_num);
 /**
  * @brief Draw top UI.
  * Do nothing if draw api is not initialized.
+ * @param is_eco (in) Whether eco mode is enabled
+ * @param is_charging (in) Whether charger is active.
+ * @param wifi_signal (in) Wifi signal strength.
+ * @param battery_level (in) Battery level in %.
+ * @param message (in) Optional message, can be NULL.
  * @warning Thread dangerous (untested)
  * @warning Call it only from rendering thread.
 */
-void Draw_top_ui(void);
+void Draw_top_ui(bool is_eco, bool is_charging, uint8_t wifi_signal, uint8_t battery_level, const char* message);
 
 /**
  * @brief Draw bottom UI.
@@ -291,21 +318,16 @@ void Draw_texture_with_rotation(Draw_image_data* image, uint32_t abgr8888, float
 */
 void Draw_line(float x_0, float y_0, uint32_t abgr8888_0, float x_1, float y_1, uint32_t abgr8888_1, float width);
 
-#if DEF_CPU_USAGE_API_ENABLE
-
 /**
- * @brief Draw cpu usage.
+ * @brief Draw debug info.
  * Do nothing if draw api is not initialized.
+ * @param is_night Whether night mode is enabled.
+ * @param free_ram Free heap size in bytes.
+ * @param free_linear_ram Free linear RAM size in bytes.
  * @warning Thread dangerous (untested)
  * @warning Call it only from rendering thread.
 */
-void Draw_cpu_usage_info(void);
-
-#else
-
-#define Draw_cpu_usage_info()
-
-#endif //DEF_CPU_USAGE_API_ENABLE
+void Draw_debug_info(bool is_night, uint32_t free_ram, uint32_t free_linear_ram);
 
 /**
  * @brief Ready frame for drawing.

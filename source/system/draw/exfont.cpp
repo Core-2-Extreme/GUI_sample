@@ -7,7 +7,6 @@ extern "C"
 #include <stdint.h>
 
 #include "system/menu.hpp"
-#include "system/variables.hpp"
 
 extern "C"
 {
@@ -103,7 +102,7 @@ void Exfont_load_font_callback(void)
 				if(util_exfont_request_external_font_state[i] && !util_exfont_loaded_external_font[i])
 				{
 					DEF_LOG_RESULT_SMART(result, Exfont_load_exfont(i), (result == DEF_SUCCESS), result);
-					var_need_reflesh = true;
+					Draw_set_refresh_needed(true);
 				}
 			}
 			util_exfont_load_external_font_request = false;
@@ -115,7 +114,7 @@ void Exfont_load_font_callback(void)
 				if(!util_exfont_request_external_font_state[i] && util_exfont_loaded_external_font[i])
 				{
 					Exfont_unload_exfont(i);
-					var_need_reflesh = true;
+					Draw_set_refresh_needed(true);
 				}
 			}
 			util_exfont_unload_external_font_request = false;

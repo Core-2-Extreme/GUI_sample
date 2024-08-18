@@ -1,13 +1,15 @@
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 
 #include "system/menu.hpp"
-#include "system/variables.hpp"
+#include "system/sem.hpp"
 
 extern "C"
 {
 	#include "system/draw/draw.h"
 	#include "system/util/converter.h"
+	#include "system/util/cpu_usage.h"
 	#include "system/util/decoder.h"
 	#include "system/util/err.h"
 	#include "system/util/expl.h"
@@ -90,14 +92,18 @@ bool Sapp4_query_running_flag(void)
 
 void Sapp4_hid(Hid_info key)
 {
+	Sem_config config = { 0, };
+
 	//Do nothing if app is suspended.
 	if(aptShouldJumpToHome())
 		return;
 
+	Sem_get_config(&config);
+
 	if(Util_err_query_error_show_flag())
 		Util_err_main(key);
 	else if(Util_expl_query_show_flag())
-		Util_expl_main(key);
+		Util_expl_main(key, config.scroll_speed);
 	else
 	{
 		Sapp4_command command = NONE;
@@ -136,7 +142,7 @@ void Sapp4_resume(void)
 {
 	sapp4_thread_suspend = false;
 	sapp4_main_run = true;
-	var_need_reflesh = true;
+	Draw_set_refresh_needed(true);
 	Menu_suspend();
 }
 
@@ -144,7 +150,7 @@ void Sapp4_suspend(void)
 {
 	sapp4_thread_suspend = true;
 	sapp4_main_run = false;
-	var_need_reflesh = true;
+	Draw_set_refresh_needed(true);
 	Menu_resume();
 }
 
@@ -160,12 +166,14 @@ void Sapp4_init(bool draw)
 {
 	DEF_LOG_STRING("Initializing...");
 	uint32_t result = DEF_ERR_OTHER;
+	Sem_state state = { 0, };
 
+	Sem_get_state(&state);
 	DEF_LOG_RESULT_SMART(result, Util_str_init(&sapp4_status), (result == DEF_SUCCESS), result);
 
 	Util_watch_add(WATCH_HANDLE_SUB_APP4, &sapp4_status.sequencial_id, sizeof(sapp4_status.sequencial_id));
 
-	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) && var_core_2_available)
+	if(DEF_SEM_MODEL_IS_NEW(state.console_model) && Util_is_core_available(2))
 		sapp4_init_thread = threadCreate(Sapp4_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
@@ -181,7 +189,7 @@ void Sapp4_init(bool draw)
 			Util_sleep(20000);
 	}
 
-	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS) || !var_core_2_available)
+	if(!DEF_SEM_MODEL_IS_NEW(state.console_model) || !Util_is_core_available(2))
 		APT_SetAppCpuTimeLimit(10);
 
 	DEF_LOG_RESULT_SMART(result, threadJoin(sapp4_init_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
@@ -213,7 +221,7 @@ void Sapp4_exit(bool draw)
 
 	Util_watch_remove(WATCH_HANDLE_SUB_APP4, &sapp4_status.sequencial_id);
 	Util_str_free(&sapp4_status);
-	var_need_reflesh = true;
+	Draw_set_refresh_needed(true);
 
 	DEF_LOG_STRING("Exited.");
 }
@@ -225,6 +233,11 @@ void Sapp4_main(void)
 	double samples = 0;
 	double current_pos = 0;
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP4);
+	Sem_config config = { 0, };
+	Sem_state state = { 0, };
+
+	Sem_get_config(&config);
+	Sem_get_state(&state);
 
 	//Calc speaker buffer health.
 	//Sample format is S16, so 2 bytes per sample.
@@ -236,23 +249,23 @@ void Sapp4_main(void)
 	//Current position is (time_of_newest_decoded_frame) - (speaker_buffer_health).
 	current_pos = (sapp4_last_decoded_pos_ms / 1000) - sapp4_buffer_health;
 
-	if (var_night_mode)
+	if (config.is_night)
 	{
 		color = DEF_DRAW_WHITE;
 		back_color = DEF_DRAW_BLACK;
 	}
 
 	//Check if we should update the screen.
-	if(Util_watch_is_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	if(Util_watch_is_changed(watch_handle_bit) || Draw_is_refresh_needed() || !config.is_eco)
 	{
 		Str_data temp_msg = { 0, };
 
-		var_need_reflesh = false;
+		Draw_set_refresh_needed(false);
 		Util_str_init(&temp_msg);
 
 		Draw_frame_ready();
 
-		if(var_turn_on_top_lcd)
+		if(config.is_top_lcd_on)
 		{
 			Str_data time = { 0, };
 
@@ -290,10 +303,13 @@ void Sapp4_main(void)
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
-			Draw_top_ui();
+			Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
 
-			if(var_monitor_cpu_usage)
-				Draw_cpu_usage_info();
+			if(config.is_debug)
+				Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+			if(Util_cpu_usage_query_show_flag())
+				Util_cpu_usage_draw();
 
 			if(Draw_is_3d_mode())
 			{
@@ -302,16 +318,19 @@ void Sapp4_main(void)
 				if(Util_log_query_log_show_flag())
 					Util_log_draw();
 
-				Draw_top_ui();
+				Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
 
-				if(var_monitor_cpu_usage)
-					Draw_cpu_usage_info();
+				if(config.is_debug)
+					Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+				if(Util_cpu_usage_query_show_flag())
+					Util_cpu_usage_draw();
 			}
 
 			Util_str_free(&time);
 		}
 
-		if(var_turn_on_bottom_lcd)
+		if(config.is_bottom_lcd_on)
 		{
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
@@ -339,17 +358,22 @@ static void Sapp4_draw_init_exit_message(void)
 	uint32_t color = DEF_DRAW_BLACK;
 	uint32_t back_color = DEF_DRAW_WHITE;
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SUB_APP4);
+	Sem_config config = { 0, };
+	Sem_state state = { 0, };
 
-	if (var_night_mode)
+	Sem_get_config(&config);
+	Sem_get_state(&state);
+
+	if (config.is_night)
 	{
 		color = DEF_DRAW_WHITE;
 		back_color = DEF_DRAW_BLACK;
 	}
 
 	//Check if we should update the screen.
-	if(Util_watch_is_changed(watch_handle_bit) || var_need_reflesh || !var_eco_mode)
+	if(Util_watch_is_changed(watch_handle_bit) || Draw_is_refresh_needed() || !config.is_eco)
 	{
-		var_need_reflesh = false;
+		Draw_set_refresh_needed(false);
 		Draw_frame_ready();
 
 		Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
@@ -357,9 +381,13 @@ static void Sapp4_draw_init_exit_message(void)
 		if(Util_log_query_log_show_flag())
 			Util_log_draw();
 
-		Draw_top_ui();
-		if(var_monitor_cpu_usage)
-			Draw_cpu_usage_info();
+		Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
+
+		if(config.is_debug)
+			Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+		if(Util_cpu_usage_query_show_flag())
+			Util_cpu_usage_draw();
 
 		Draw(&sapp4_status, 0, 20, 0.65, 0.65, color);
 
@@ -372,9 +400,13 @@ static void Sapp4_draw_init_exit_message(void)
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
-			Draw_top_ui();
-			if(var_monitor_cpu_usage)
-				Draw_cpu_usage_info();
+			Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
+
+			if(config.is_debug)
+				Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
+
+			if(Util_cpu_usage_query_show_flag())
+				Util_cpu_usage_draw();
 
 			Draw(&sapp4_status, 0, 20, 0.65, 0.65, color);
 		}

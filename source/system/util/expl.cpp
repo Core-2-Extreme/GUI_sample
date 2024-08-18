@@ -11,7 +11,6 @@ extern "C"
 #include <citro2d.h>
 
 #include "system/menu.hpp"
-#include "system/variables.hpp"
 
 extern "C"
 {
@@ -48,6 +47,7 @@ typedef struct
 
 
 static void Util_expl_generate_file_type_string(Expl_file_type type, Str_data* type_string);
+//We can't get rid of this "int" because library uses "int" type as return value.
 static int Util_expl_compare_name(const void* a, const void* b);
 static void Util_expl_read_dir_callback(void);
 
@@ -112,7 +112,7 @@ uint32_t Util_expl_init(void)
 	}
 
 	for(uint8_t i = 0; i < 16; i++)
-		util_expl_file_button[i].c2d = var_square_image[0];
+		util_expl_file_button[i] = Draw_get_empty_image();
 
 	if(!Menu_add_worker_thread_callback(Util_expl_read_dir_callback))
 	{
@@ -303,10 +303,8 @@ void Util_expl_set_show_flag(bool flag)
 
 void Util_expl_draw(void)
 {
-	Draw_image_data background = { 0, };
+	Draw_image_data background = Draw_get_empty_image();
 	uint32_t color = DEF_DRAW_BLACK;
-
-	background.c2d = var_square_image[0];
 
 	if(!util_expl_init)
 	{
@@ -369,14 +367,14 @@ void Util_expl_draw(void)
 	}
 }
 
-void Util_expl_main(Hid_info key)
+void Util_expl_main(Hid_info key, double scroll_speed)
 {
 	if(!util_expl_init)
 	{
 		if (key.p_a)
 		{
 			util_expl_show_flag = false;
-			var_need_reflesh = true;
+			Draw_set_refresh_needed(true);
 		}
 		return;
 	}
@@ -387,7 +385,7 @@ void Util_expl_main(Hid_info key)
 			util_expl_cancel_callback();
 
 		util_expl_show_flag = false;
-		var_need_reflesh = true;
+		Draw_set_refresh_needed(true);
 	}
 	else if (!util_expl_read_dir_request)
 	{
@@ -395,17 +393,17 @@ void Util_expl_main(Hid_info key)
 		{
 			if (key.touch_y_move > 0)
 			{
-				if ((util_expl_y_offset + (key.touch_y_move * var_scroll_speed / 8)) < util_expl_num_of_file - 15)
-					util_expl_y_offset += (key.touch_y_move * var_scroll_speed / 8);
+				if ((util_expl_y_offset + (key.touch_y_move * scroll_speed / 8)) < util_expl_num_of_file - 15)
+					util_expl_y_offset += (key.touch_y_move * scroll_speed / 8);
 
-				var_need_reflesh = true;
+				Draw_set_refresh_needed(true);
 			}
 			else if (key.touch_y_move < 0)
 			{
-				if ((util_expl_y_offset + (key.touch_y_move * var_scroll_speed / 8)) > -1.0)
-					util_expl_y_offset += (key.touch_y_move * var_scroll_speed / 8);
+				if ((util_expl_y_offset + (key.touch_y_move * scroll_speed / 8)) > -1.0)
+					util_expl_y_offset += (key.touch_y_move * scroll_speed / 8);
 
-				var_need_reflesh = true;
+				Draw_set_refresh_needed(true);
 			}
 		}
 		else
@@ -415,7 +413,7 @@ void Util_expl_main(Hid_info key)
 				if(Util_hid_is_pressed(key, util_expl_file_button[i]) && util_expl_num_of_file > (i + (uint32_t)util_expl_y_offset))
 				{
 					util_expl_file_button[i].selected = true;
-					var_need_reflesh = true;
+					Draw_set_refresh_needed(true);
 				}
 				else if (key.p_a || (Util_hid_is_released(key, util_expl_file_button[i]) && util_expl_file_button[i].selected))
 				{
@@ -479,7 +477,7 @@ void Util_expl_main(Hid_info key)
 
 							Util_str_free(&file);
 							util_expl_show_flag = false;
-							var_need_reflesh = true;
+							Draw_set_refresh_needed(true);
 						}
 
 						Util_str_free(&dir);
@@ -491,14 +489,14 @@ void Util_expl_main(Hid_info key)
 						if (util_expl_num_of_file > (i + (uint32_t)util_expl_y_offset))
 							util_expl_selected_file_num = i;
 
-						var_need_reflesh = true;
+						Draw_set_refresh_needed(true);
 					}
 				}
 				else if(!Util_hid_is_held(key, util_expl_file_button[i]) && util_expl_file_button[i].selected)
 				{
 					util_expl_file_button[i].selected = false;
 					util_expl_scroll_mode = true;
-					var_need_reflesh = true;
+					Draw_set_refresh_needed(true);
 				}
 			}
 		}
@@ -543,7 +541,7 @@ void Util_expl_main(Hid_info key)
 				util_expl_y_offset = 0.0;
 				util_expl_selected_file_num = 0.0;
 				util_expl_read_dir_request = true;
-				var_need_reflesh = true;
+				Draw_set_refresh_needed(true);
 			}
 
 			Util_str_free(&dir);
@@ -564,7 +562,7 @@ void Util_expl_main(Hid_info key)
 				else if (key.p_d_right || key.h_d_right || key.p_c_right || key.h_c_right)
 					util_expl_y_offset += 1.0;
 			}
-			var_need_reflesh = true;
+			Draw_set_refresh_needed(true);
 		}
 		else if (key.p_d_up || key.h_d_up || key.p_c_up || key.h_c_up || key.p_d_left || key.h_d_left || key.p_c_left || key.h_c_left)
 		{
@@ -582,7 +580,7 @@ void Util_expl_main(Hid_info key)
 				else if (key.p_d_left || key.h_d_left || key.p_c_left || key.h_c_left)
 					util_expl_y_offset -= 1.0;
 			}
-			var_need_reflesh = true;
+			Draw_set_refresh_needed(true);
 		}
 
 		if(!key.p_touch && !key.h_touch)
@@ -590,7 +588,7 @@ void Util_expl_main(Hid_info key)
 			for(uint8_t i = 0; i < 16; i++)
 			{
 				if(util_expl_file_button[i].selected)
-					var_need_reflesh = true;
+					Draw_set_refresh_needed(true);
 
 				util_expl_file_button[i].selected = false;
 			}
@@ -642,6 +640,7 @@ static void Util_expl_generate_file_type_string(Expl_file_type type, Str_data* t
 		Util_str_resize(type_string, (type_string->length - 1));
 }
 
+//We can't get rid of this "int" because library uses "int" type as return value.
 static int Util_expl_compare_name(const void* a, const void* b)
 {
 	Util_expl_file_compare* file_a = (Util_expl_file_compare*)a;
@@ -747,7 +746,7 @@ static void Util_expl_read_dir_callback(void)
 			Util_expl_file files = { 0, };
 			Util_expl_file_compare sort_cache[DEF_EXPL_MAX_FILES] = { 0, };
 
-			var_need_reflesh = true;
+			Draw_set_refresh_needed(true);
 			for (uint32_t i = 0; i < DEF_EXPL_MAX_FILES; i++)
 			{
 				Util_str_clear(&util_expl_files.name[i]);
@@ -798,7 +797,7 @@ static void Util_expl_read_dir_callback(void)
 				Util_str_free(&files.name[i]);
 
 			util_expl_check_file_size_index = 0;
-			var_need_reflesh = true;
+			Draw_set_refresh_needed(true);
 			util_expl_read_dir_request = false;
 		}
 		else if(util_expl_check_file_size_index < util_expl_num_of_file)
@@ -814,7 +813,7 @@ static void Util_expl_read_dir_callback(void)
 					if (result == DEF_SUCCESS)
 					{
 						util_expl_files.size[util_expl_check_file_size_index] = file_size;
-						var_need_reflesh = true;
+						Draw_set_refresh_needed(true);
 					}
 					else
 						DEF_LOG_RESULT(Util_file_check_file_size, (result == DEF_SUCCESS), result);

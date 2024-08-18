@@ -6,8 +6,6 @@ extern "C"
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "system/variables.hpp"
-
 extern "C"
 {
 	#include "system/draw/exfont.h"
@@ -27,6 +25,7 @@ bool util_draw_init = false;
 bool util_draw_sheet_texture_free[DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS] = { 0, };
 bool util_draw_is_800px = false;
 bool util_draw_is_3d = false;
+bool util_draw_is_refresh_needed = false;
 double util_draw_frametime = 0;
 uint32_t util_draw_rendered_frames = 0;
 uint32_t util_draw_rendered_frames_cache = 0;
@@ -35,15 +34,16 @@ C2D_Font util_draw_system_fonts[4] = { 0, };
 C3D_RenderTarget* util_draw_screen[3] = { 0, };
 C2D_SpriteSheet util_draw_sheet_texture[DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS] = { 0, };
 TickCounter util_draw_frame_time_stopwatch = { 0, };
+LightLock util_draw_need_refresh_mutex = 1;//Initially unlocked state.
 Draw_image_data util_draw_wifi_icon_image[9] = { 0, };
 Draw_image_data util_draw_battery_level_icon_image[21] = { 0, };
 Draw_image_data util_draw_battery_charge_icon_image[1] = { 0, };
 Draw_image_data util_draw_eco_image[2] = { 0, };
 Draw_image_data util_draw_bot_ui = { 0, };
+Draw_image_data util_draw_empty_image = { 0, };
 
 
 static void Draw_texture_internal(C2D_Image image, uint32_t abgr8888, float x, float y, float x_size, float y_size, float angle, float center_x, float center_y);
-static void Draw_debug_info(void);
 extern void memcpy_asm(uint8_t*, uint8_t*, uint32_t);
 extern void memcpy_asm_4b(uint8_t*, uint8_t*);
 
@@ -61,6 +61,8 @@ uint32_t Draw_init(bool wide, bool _3d)
 	gfxSetWide(false);
 	util_draw_is_800px = false;
 	util_draw_is_3d = false;
+	util_draw_is_refresh_needed = false;
+	LightLock_Init(&util_draw_need_refresh_mutex);
 
 	if(wide)
 		gfxSetWide(wide);
@@ -138,14 +140,15 @@ uint32_t Draw_init(bool wide, bool _3d)
 	for(uint8_t i = 0; i < (sizeof(util_draw_eco_image) / sizeof(util_draw_eco_image[0])); i++)
 		util_draw_eco_image[i].c2d = texture_cache[i];
 
-	result = Draw_load_texture("romfs:/gfx/draw/square.t3x", 4, var_square_image, 0, 1);
+	result = Draw_load_texture("romfs:/gfx/draw/square.t3x", 4, texture_cache, 0, 1);
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Draw_load_texture, false, result);
 		goto other;
 	}
 
-	util_draw_bot_ui.c2d = var_square_image[0];
+	util_draw_bot_ui.c2d = texture_cache[0];
+	util_draw_empty_image.c2d = texture_cache[0];
 	util_draw_reset_fps_counter_time = osGetTime() + 1000;
 	util_draw_is_800px = wide;
 	util_draw_is_3d = _3d;
@@ -253,6 +256,30 @@ bool Draw_is_3d_mode(void)
 		return false;
 	else
 		return util_draw_is_3d;
+}
+
+bool Draw_is_refresh_needed(void)
+{
+	bool is_needed = false;
+
+	if(!util_draw_init)
+		return false;
+
+	LightLock_Lock(&util_draw_need_refresh_mutex);
+	is_needed = util_draw_is_refresh_needed;
+	LightLock_Unlock(&util_draw_need_refresh_mutex);
+
+	return is_needed;
+}
+
+void Draw_set_refresh_needed(bool is_refresh_needed)
+{
+	if(!util_draw_init)
+		return;
+
+	LightLock_Lock(&util_draw_need_refresh_mutex);
+	util_draw_is_refresh_needed = true;
+	LightLock_Unlock(&util_draw_need_refresh_mutex);
 }
 
 double Draw_query_frametime(void)
@@ -566,6 +593,11 @@ void Draw_set_texture_filter(Draw_image_data* image, bool filter)
 		C3D_TexSetFilter(image->c2d.tex, GPU_NEAREST, GPU_NEAREST);
 }
 
+Draw_image_data Draw_get_empty_image(void)
+{
+	return util_draw_empty_image;
+}
+
 void Draw_get_text_size(const char* text, float text_size_x, float text_size_y, double* out_text_size_x, double* out_text_size_y)
 {
 	bool new_line = false;
@@ -824,40 +856,30 @@ Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background t
 
 void Draw_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888)
 {
-	Draw_image_data dummy = { 0, };
-	dummy.c2d = var_null_image;
-	Draw_internal(text, x, y, text_size_x, text_size_y, abgr8888, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_TOP, 0, 0, DRAW_BACKGROUND_NONE, &dummy, DEF_DRAW_NO_COLOR);
+	Draw_internal(text, x, y, text_size_x, text_size_y, abgr8888, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_TOP, 0, 0, DRAW_BACKGROUND_NONE, NULL, DEF_DRAW_NO_COLOR);
 }
 
 void Draw(Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888)
 {
-	Draw_image_data dummy = { 0, };
-
 	if(!Util_str_has_data(text))
 		return;
 
-	dummy.c2d = var_null_image;
-	Draw_internal(text->buffer, x, y, text_size_x, text_size_y, abgr8888, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_TOP, 0, 0, DRAW_BACKGROUND_NONE, &dummy, DEF_DRAW_NO_COLOR);
+	Draw_internal(text->buffer, x, y, text_size_x, text_size_y, abgr8888, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_TOP, 0, 0, DRAW_BACKGROUND_NONE, NULL, DEF_DRAW_NO_COLOR);
 }
 
 void Draw_align_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
 Draw_text_align_y y_align, float box_size_x, float box_size_y)
 {
-	Draw_image_data dummy = { 0, };
-	dummy.c2d = var_null_image;
-	Draw_internal(text, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, DRAW_BACKGROUND_NONE, &dummy, DEF_DRAW_NO_COLOR);
+	Draw_internal(text, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, DRAW_BACKGROUND_NONE, NULL, DEF_DRAW_NO_COLOR);
 }
 
 void Draw_align(Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
 Draw_text_align_y y_align, float box_size_x, float box_size_y)
 {
-	Draw_image_data dummy = { 0, };
-
 	if(!Util_str_has_data(text))
 		return;
 
-	dummy.c2d = var_null_image;
-	Draw_internal(text->buffer, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, DRAW_BACKGROUND_NONE, &dummy, DEF_DRAW_NO_COLOR);
+	Draw_internal(text->buffer, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, DRAW_BACKGROUND_NONE, NULL, DEF_DRAW_NO_COLOR);
 }
 
 void Draw_with_background_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
@@ -940,31 +962,37 @@ void Draw_free_texture(uint32_t sheet_map_num)
 	}
 }
 
-void Draw_top_ui(void)
+void Draw_top_ui(bool is_eco, bool is_charging, uint8_t wifi_signal, uint8_t battery_level, const char* message)
 {
+	uint8_t max_wifi_signal = 0;
 	Draw_image_data background = { 0, };
 	Str_data temp = { 0, };
 
 	if(!util_draw_init)
 		return;
 
+	max_wifi_signal = ((sizeof(util_draw_wifi_icon_image) / sizeof(util_draw_wifi_icon_image[0])) - 1);
+	if(wifi_signal >= max_wifi_signal)
+		wifi_signal = max_wifi_signal;
+
+	if(battery_level > 100)
+		battery_level = 100;
+
 	Util_str_init(&temp);
 
-	background.c2d = var_square_image[0];
+	background = Draw_get_empty_image();
 	Draw_texture(&background, DEF_DRAW_BLACK, 0.0, 0.0, 400.0, 15.0);
-	Draw_texture(&util_draw_wifi_icon_image[var_wifi_signal], DEF_DRAW_NO_COLOR, 360.0, 0.0, 15.0, 15.0);
-	Draw_texture(&util_draw_battery_level_icon_image[var_battery_level_raw / 5], DEF_DRAW_NO_COLOR, 315.0, 0.0, 30.0, 15.0);
-	Draw_texture(&util_draw_eco_image[var_eco_mode], DEF_DRAW_NO_COLOR, 345.0, 0.0, 15.0, 15.0);
-	if (var_battery_charge)
+	Draw_texture(&util_draw_wifi_icon_image[wifi_signal], DEF_DRAW_NO_COLOR, 360.0, 0.0, 15.0, 15.0);
+	Draw_texture(&util_draw_battery_level_icon_image[battery_level / 5], DEF_DRAW_NO_COLOR, 315.0, 0.0, 30.0, 15.0);
+	Draw_texture(&util_draw_eco_image[is_eco], DEF_DRAW_NO_COLOR, 345.0, 0.0, 15.0, 15.0);
+	if (is_charging)
 		Draw_texture(&util_draw_battery_charge_icon_image[0], DEF_DRAW_NO_COLOR, 295.0, 0.0, 20.0, 15.0);
 
-	Draw_c(var_status, 0.0, 0.0, 0.45, 0.45, DEF_DRAW_GREEN);
+	if(message)
+		Draw_c(message, 0.0, 0.0, 0.45, 0.45, DEF_DRAW_GREEN);
 
-	Util_str_format(&temp, "%" PRIi8, var_battery_level_raw);
+	Util_str_format(&temp, "%" PRIi8, battery_level);
 	Draw(&temp, 322.5, 1.25, 0.425, 0.425, DEF_DRAW_BLACK);
-
-	if (var_debug_mode)
-		Draw_debug_info();
 
 	Util_str_free(&temp);
 }
@@ -1049,30 +1077,7 @@ void Draw_line(float x_0, float y_0, uint32_t abgr8888_0, float x_1, float y_1, 
 	C2D_DrawLine(x_0, y_0, abgr8888_0, x_1, y_1, abgr8888_1, width, 0);
 }
 
-#if DEF_CPU_USAGE_API_ENABLE
-void Draw_cpu_usage_info(void)
-{
-	uint32_t char_length = 0;
-	char msg_cache[128] = { 0, };
-	Draw_image_data background = { 0, };
-
-	if(!util_draw_init)
-		return;
-
-	background.c2d = var_square_image[0];
-
-	char_length = snprintf(msg_cache, 128, "CPU : %.1f%%", Util_cpu_usage_get_cpu_usage(-1));
-	for(uint8_t i = 0; i < 4; i++)
-		char_length += snprintf((msg_cache + char_length), 128 - char_length, "\nCore #%" PRIu8 " : %.1f%%", i, Util_cpu_usage_get_cpu_usage(i));
-
-	snprintf((msg_cache + char_length), 128 - char_length, "\n(#1 max : %" PRIu8 "%%)", Util_cpu_usage_get_core_1_limit());
-
-	Draw_with_background_c(msg_cache, 300, 25, 0.4, 0.4, DEF_DRAW_BLACK, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER,
-	100, 60, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
-}
-#endif //DEF_CPU_USAGE_API_ENABLE
-
-static void Draw_debug_info(void)
+void Draw_debug_info(bool is_night, uint32_t free_ram, uint32_t free_linear_ram)
 {
 	uint32_t color = DEF_DRAW_BLACK;
 	Hid_info key = { 0, };
@@ -1086,10 +1091,10 @@ static void Draw_debug_info(void)
 	Util_hid_query_key_state(&key);
 	Util_str_init(&temp);
 
-	if (var_night_mode)
+	if (is_night)
 		color = DEF_DRAW_WHITE;
 
-	background.c2d = var_square_image[0];
+	background = Draw_get_empty_image();
 
 	Util_str_format(&temp, "A:%c B:%c", empty_p_h[key.p_a + (key.h_a * 2)], empty_p_h[key.p_b + (key.h_b * 2)]);
 	Draw_with_background(&temp, 0, 40, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
@@ -1133,10 +1138,10 @@ static void Draw_debug_info(void)
 	Util_str_format(&temp, "Frametime:%.4fms", util_draw_frametime);
 	Draw_with_background(&temp, 0, 170, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "RAM:%.3fMB", (var_free_ram / 1000.0 / 1000.0));
+	Util_str_format(&temp, "RAM:%.3fMB", (free_ram / 1000.0 / 1000.0));
 	Draw_with_background(&temp, 0, 180, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "Linear RAM:%.3fMB", (var_free_linear_ram / 1000.0 / 1000.0));
+	Util_str_format(&temp, "Linear RAM:%.3fMB", (free_linear_ram / 1000.0 / 1000.0));
 	Draw_with_background(&temp, 0, 190, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "Watch:%" PRIu32 "/%" PRIu32 "(%.1f%%)", Util_watch_get_total_usage(), DEF_WATCH_MAX_VARIABLES, ((double)Util_watch_get_total_usage() / DEF_WATCH_MAX_VARIABLES * 100));

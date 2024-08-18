@@ -123,9 +123,10 @@ void Util_expl_draw(void);
 /**
  * @brief Process user input for Util_expl_draw().
  * @param key (in) key info returned by Util_hid_query_key_state().
+ * @param scroll_speed (in) Scroll sensitivity.
  * @warning Thread dangerous (untested)
 */
-void Util_expl_main(Hid_info key);
+void Util_expl_main(Hid_info key, double scroll_speed);
 
 #else
 

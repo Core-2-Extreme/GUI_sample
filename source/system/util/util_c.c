@@ -13,6 +13,7 @@
 #include "system/util/file.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
+#include "system/util/thread_types.h"
 
 
 #define DEF_UTIL_LINEAR_THRESHOLD_SIZE		(uint32_t)(1000 * 32)
@@ -25,7 +26,7 @@ static void* Util_realloc_heap_to_linear(void* ptr, size_t size);
 static void* Util_realloc_linear_to_heap(void* ptr, size_t size);
 static void* memalign_heap_only(size_t align, size_t size);
 static void* malloc_heap_only(size_t size);
-extern void memcpy_asm(uint8_t*, uint8_t*, int);
+extern void memcpy_asm(uint8_t*, uint8_t*, uint32_t);
 extern void* __real_malloc(size_t size);
 extern void* __real_calloc(size_t items, size_t size);
 extern void* __real_realloc(void* ptr, size_t size);
@@ -38,10 +39,14 @@ extern void* __real_linearRealloc(void* mem, size_t size);
 extern size_t __real_linearGetSize(void* mem);
 extern void __real_linearFree(void* mem);
 extern uint32_t __real_linearSpaceFree(void);
+void Util_check_core_thread(void* arg);
 
 
+//Set heap size, rest of RAM will be linear RAM, it should be (1024 * 1024 * n).
+uint32_t __ctru_heap_size = (1024 * 1024 * 6);
 
 bool util_init = false;
+bool util_is_core_available[4] = { 0, };
 LightLock util_linear_alloc_mutex = 1;//Initially unlocked state.
 LightLock util_malloc_mutex = 1;//Initially unlocked state.
 void* (*memalign_heap)(size_t align, size_t size) = memalign_heap_only;
@@ -422,8 +427,38 @@ uint32_t __wrap_linearSpaceFree(void)
 
 uint32_t Util_init(void)
 {
+	uint8_t model = 0;
+	uint8_t loop = 0;
+
 	if(util_init)
 		goto already_inited;
+
+	for(uint8_t i = 0; i < 4; i++)
+		util_is_core_available[i] = false;
+
+	CFGU_GetSystemModel(&model);
+
+	//NEW3DS have 4 cores, OLD3DS have 2 cores.
+	if(model == CFG_MODEL_N2DSXL || model == CFG_MODEL_N3DS || model == CFG_MODEL_N3DSXL)
+		loop = 4;
+	else
+		loop = 2;
+
+	//Check for core availability.
+	for(uint8_t i = 0; i < loop; i++)
+	{
+		Thread thread = threadCreate(Util_check_core_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, i, false);
+
+		if(!thread)
+			util_is_core_available[i] = false;
+		else
+		{
+			threadJoin(thread, U64_MAX);
+			util_is_core_available[i] = true;
+		}
+
+		threadFree(thread);
+	}
 
 	util_init = true;
 	return DEF_SUCCESS;
@@ -646,6 +681,16 @@ uint32_t Util_check_free_ram(void)
 	return alloced_size;//Return free bytes.
 }
 
+bool Util_is_core_available(uint8_t core_id)
+{
+	if(!util_init)
+		return false;
+	if(core_id > 4)
+		return false;
+	else
+		return util_is_core_available[core_id];
+}
+
 void Util_sleep(uint64_t us)
 {
 	svcSleepThread(us * 1000);
@@ -669,4 +714,9 @@ double Util_min_d(double value_0, double value_1)
 double Util_max_d(double value_0, double value_1)
 {
 	return (value_0 > value_1 ? value_0 : value_1);
+}
+
+void Util_check_core_thread(void* arg)
+{
+	threadExit(0);
 }

@@ -8,8 +8,6 @@ extern "C"
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "system/variables.hpp"
-
 extern "C"
 {
 	#include "system/draw/draw.h"
@@ -150,7 +148,7 @@ void Util_log_set_log_show_flag(bool flag)
 		return;
 
 	util_log_show_flag = flag;
-	var_need_reflesh = true;
+	Draw_set_refresh_needed(true);
 }
 
 uint32_t Util_log_format(const char* caller, const char* format_string, ...)
@@ -292,7 +290,7 @@ void Util_log_main(Hid_info key)
 		if (key.p_a)
 		{
 			util_log_show_flag = false;
-			var_need_reflesh = true;
+			Draw_set_refresh_needed(true);
 		}
 		return;
 	}
@@ -301,7 +299,7 @@ void Util_log_main(Hid_info key)
 	{
 		if (util_log_y > 0)
 		{
-			var_need_reflesh = true;
+			Draw_set_refresh_needed(true);
 			util_log_y--;
 		}
 	}
@@ -309,7 +307,7 @@ void Util_log_main(Hid_info key)
 	{
 		if (util_log_y + 1 <= DEF_LOG_BUFFER_LINES - DEF_LOG_DISPLAYED_LINES)
 		{
-			var_need_reflesh = true;
+			Draw_set_refresh_needed(true);
 			util_log_y++;
 		}
 	}
@@ -320,7 +318,7 @@ void Util_log_main(Hid_info key)
 		else
 			util_log_x = 0.0;
 
-		var_need_reflesh = true;
+		Draw_set_refresh_needed(true);
 	}
 	if (key.h_c_right)
 	{
@@ -329,7 +327,7 @@ void Util_log_main(Hid_info key)
 		else
 			util_log_x = -1000.0;
 
-		var_need_reflesh = true;
+		Draw_set_refresh_needed(true);
 	}
 }
 
@@ -427,7 +425,7 @@ static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, cons
 	Util_str_free(&temp_text);
 
 	if(util_log_show_flag)
-		var_need_reflesh = true;
+		Draw_set_refresh_needed(true);
 
 	return log_index;
 }

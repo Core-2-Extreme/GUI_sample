@@ -38,12 +38,38 @@ float Util_cpu_usage_get_cpu_usage(int8_t core_id);
 */
 uint8_t Util_cpu_usage_get_core_1_limit(void);
 
+/**
+ * @brief Query cpu usage show flag.
+ * Always return false if cpu usage api is not initialized.
+ * @return Internal cpu usage show flag.
+ * @warning Thread dangerous (untested)
+*/
+bool Util_cpu_usage_query_show_flag(void);
+
+/**
+ * @brief Set cpu usage show flag.
+ * Do nothing if cpu usage api is not initialized.
+ * @param flag (in) When true, internal cpu usage show flag will be set to true otherwise set to false.
+ * @warning Thread dangerous (untested)
+*/
+void Util_cpu_usage_set_show_flag(bool flag);
+
+/**
+ * @brief Draw cpu usage.
+ * @warning Thread dangerous (untested)
+ * @warning Call it only from rendering thread.
+*/
+void Util_cpu_usage_draw(void);
+
 #else
 
 #define Util_cpu_usage_init() DEF_ERR_DISABLED
 #define Util_cpu_usage_exit()
 #define Util_cpu_usage_get_cpu_usage(...) NAN
 #define Util_cpu_usage_get_core_1_limit() 0
+#define Util_cpu_usage_query_show_flag() false
+#define Util_cpu_usage_set_show_flag(...)
+#define Util_cpu_usage_draw()
 
 #endif //DEF_CPU_USAGE_API_ENABLE
 
