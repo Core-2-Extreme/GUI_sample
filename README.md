@@ -26,10 +26,10 @@ This is a sample code to draw images such as .png and .jpg.
 
 Application source code : [`source/sub_app0.cpp`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/source/sub_app0.cpp) \
 Used APIs : 
-* [`Draw_texture*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/draw/draw.hpp)
-* [`Util_converter_convert_color()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/converter.hpp)
-* [`Util_curl_dl_data()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/curl.hpp)
-* [`Util_image_decoder_decode()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/decoder.hpp)
+* [`Draw_texture*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/draw/draw.h)
+* [`Util_converter_convert_color()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/converter.h)
+* [`Util_curl_dl_data()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/curl.h)
+* [`Util_decoder_image_decode*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/decoder.h)
 
 ### File explorer sample
 This is a sample code to use file explorer.
@@ -38,7 +38,7 @@ This is a sample code to use file explorer.
 
 Application source code : [`source/sub_app1.cpp`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/source/sub_app1.cpp) \
 Used APIs : 
-* [`Util_expl*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/explorer.hpp)
+* [`Util_expl*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/expl.h)
 
 ### Hardware settings sample
 This is a sample code to change hardware settings such as wifi state, screen brightness and sleep.
@@ -47,8 +47,8 @@ This is a sample code to change hardware settings such as wifi state, screen bri
 
 Application source code : [`source/sub_app2.cpp`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/source/sub_app2.cpp) \
 Used APIs : 
-* [`Util_cset*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/change_setting.hpp)
-* [`Util_queue*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/queue.hpp)
+* [`Util_hw_config*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/hw_config.h)
+* [`Util_queue*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/queue.h)
 
 ### Camera and mic sample
 This is a sample code to take a picture by using camera and record sound by using mic.
@@ -57,11 +57,11 @@ This is a sample code to take a picture by using camera and record sound by usin
 
 Application source code : [`source/sub_app3.cpp`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/source/sub_app3.cpp) \
 Used APIs : 
-* [`Util_cam*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/camera.hpp)
-* [`Util_converter_convert_color()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/converter.hpp)
-* [`Util_encoder*(), Util_audio_encoder*(), Util_image_encoder_encode()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/encoder.hpp)
-* [`Util_mic*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/mic.hpp)
-* [`Util_queue*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/queue.hpp)
+* [`Util_cam*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/cam.h)
+* [`Util_converter_convert_color()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/converter.h)
+* [`Util_encoder*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/encoder.h)
+* [`Util_mic*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/mic.h)
+* [`Util_queue*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/queue.h)
 
 ### Speaker sample
 This is a sample code to playback audio.
@@ -70,10 +70,10 @@ This is a sample code to playback audio.
 
 Application source code : [`source/sub_app4.cpp`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/source/sub_app4.cpp) \
 Used APIs : 
-* [`Util_converter_convert_audio()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/converter.hpp)
-* [`Util_audio_decoder*(), Util_decoder*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/decoder.hpp)
-* [`Util_speaker*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/speaker.hpp)
-* [`Util_queue*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/queue.hpp)
+* [`Util_converter_convert_audio()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/converter.h)
+* [`Util_decoder*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/decoder.h)
+* [`Util_speaker*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/speaker.h)
+* [`Util_queue*()`](https://github.com/Core-2-Extreme/GUI_sample/blob/main/include/system/util/queue.h)
 
 ## Build
 You need : 
@@ -82,7 +82,7 @@ You need :
 If you want to build .cia, then you also need : 
 * [bannertool](https://github.com/Steveice10/bannertool/releases) and [makerom](https://github.com/3DSGuy/Project_CTR/releases) (Copy them in your path e.g. in `{devkitPro_install_dir}\tools\bin`).
 
-If you already have devkitpro, type `{devkitPro_install_dir}\devkitARM\bin\arm-none-eabi-gcc -v`. \
+After installing devkitpro, type `{devkitPro_install_dir}\devkitARM\bin\arm-none-eabi-gcc -v`. \
 You should see something like : 
 ```
 .....
@@ -92,8 +92,8 @@ Thread model: posix
 Supported LTO compression algorithms: zlib zstd
 gcc version 13.2.0 (devkitARM release 62)
 ```
-Make sure you have release 62. \
-(later version may work but sometimes later version has incompatibility) \
+Make sure you have release 62 or later. \
+Note : Sometimes later versions have incompatibility, if you can't build with the newest tools, let me know. \
 If you have older devkitpro, update it or compilation will fail.
 
 * Clone this repository
