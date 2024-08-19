@@ -49,6 +49,32 @@ uint32_t Util_convert_seconds_to_time(double input_seconds, Str_data* time_strin
 */
 uint32_t Util_load_msg(const char* file_name, Str_data* out_msg, uint32_t num_of_msg);
 
+/**
+ * @brief Convert [\n](new line), ["](double quote) and [\](backslash) to escape expression.
+ * @param text (in) Input text.
+ * @param escaped_text (out) Escaped text.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
+ * @note Thread safe
+*/
+uint32_t Util_encode_to_escape(const char* text, Str_data* escaped_text);
+
+/**
+ * @brief Encode text with base64.
+ * @param text (in) Text to be encoded.
+ * @param encoded_text (out) Encoded text.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
+ * @note Thread safe
+*/
+uint32_t Util_base64_encode(const char* text, Str_data* encoded_text);
+
+/**
+ * @brief Decode base64.
+ * @param encoded_text (in) Encoded text to be decoded.
+ * @param text (out) Decoded text.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
+ * @note Thread safe
+*/
+uint32_t Util_base64_decode(const char* encoded_text, Str_data* text);
 
 /**
  * @brief Check free linear memory size.

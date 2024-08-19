@@ -185,6 +185,8 @@ const char* Util_err_get_error_msg(uint32_t result)
 			return DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT_STR;
 		case DEF_ERR_DECODER_TRY_AGAIN:
 			return DEF_ERR_DECODER_TRY_AGAIN_STR;
+		case DEF_ERR_MBEDTLS_RETURNED_NOT_SUCCESS:
+			return DEF_ERR_MBEDTLS_RETURNED_NOT_SUCCESS_STR;
 		case DEF_ERR_DISABLED:
 			return DEF_ERR_DISABLED_STR;
 		default:

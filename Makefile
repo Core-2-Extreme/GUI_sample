@@ -33,7 +33,7 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source source/system source/system/util source/system/draw library/base64
+SOURCES		:=	source source/system source/system/util source/system/draw
 DATA		:=	data
 INCLUDES	:=	include library library/ffmpeg/include library/libctru/include library/curl/include library/portlibs/include
 GRAPHICS	:=	gfx

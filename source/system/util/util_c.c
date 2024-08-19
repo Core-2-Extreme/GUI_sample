@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "mbedtls/base64.h"
 #include "3ds.h"
 
 #include "system/util/err_types.h"
@@ -633,6 +634,193 @@ uint32_t Util_load_msg(const char* file_name, Str_data* out_msg, uint32_t num_of
 	free(fs_buffer);
 	fs_buffer = NULL;
 	return result;
+}
+
+uint32_t Util_encode_to_escape(const char* text, Str_data* escaped_text)
+{
+	uint32_t in_text_length = 0;
+	uint32_t result = DEF_ERR_OTHER;
+
+	if(!text || !escaped_text)
+		goto invalid_arg;
+
+	result = Util_str_init(escaped_text);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_init, false, result);
+		goto api_failed;
+	}
+
+	in_text_length = strlen(text);
+	for(uint32_t i = 0; i < in_text_length; i++)
+	{
+		if(text[i] == '\n')
+			result = Util_str_add(escaped_text, "\\n");
+		else if(text[i] == '"')
+			result = Util_str_add(escaped_text, "\\\"");
+		else if(text[i] == '\\')
+			result = Util_str_add(escaped_text, "\\\\");
+		else
+		{
+			char one_char[2] = { text[i], 0x00 };
+			result = Util_str_add(escaped_text, one_char);
+		}
+
+		if(result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Util_str_add, false, result);
+			goto api_failed;
+		}
+	}
+
+	return DEF_SUCCESS;
+
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
+
+	api_failed:
+	Util_str_free(escaped_text);
+	return result;
+}
+
+uint32_t Util_base64_encode(const char* text, Str_data* encoded_text)
+{
+	uint32_t in_text_length = 0;
+	uint32_t result = DEF_ERR_OTHER;
+	uint32_t out_text_length = 0;
+	size_t written = 0;
+	char* encoded = NULL;
+
+	if(!text || !encoded_text)
+		goto invalid_arg;
+
+	//Calc output size then allocate output buffer.
+	in_text_length = strlen(text);
+	out_text_length = ((((4 * in_text_length) / 3) + 3) & ~0x03);
+	out_text_length++;//+1 for NULL terminator.
+	encoded = (char*)malloc(out_text_length);
+	if(!encoded)
+		goto out_of_memory;
+
+	result = Util_str_init(encoded_text);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_init, false, result);
+		goto api_failed;
+	}
+
+	result = mbedtls_base64_encode((unsigned char*)encoded, out_text_length, &written, (const unsigned char*)text, in_text_length);
+	if(result != 0)
+	{
+		DEF_LOG_RESULT(mbedtls_base64_encode, false, result);
+		goto mbed_tls_api_failed;
+	}
+
+	//Add NULL terminator.
+	if(out_text_length <= written)
+		encoded[out_text_length - 1] = 0x00;
+	else
+		encoded[written] = 0x00;
+
+	result = Util_str_set(encoded_text, encoded);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_set, false, result);
+		goto api_failed;
+	}
+
+	free(encoded);
+	encoded = NULL;
+
+	return DEF_SUCCESS;
+
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
+
+	out_of_memory:
+	return DEF_ERR_OUT_OF_MEMORY;
+
+	api_failed:
+	Util_str_free(encoded_text);
+	free(encoded);
+	encoded = NULL;
+	return result;
+
+	mbed_tls_api_failed:
+	Util_str_free(encoded_text);
+	free(encoded);
+	encoded = NULL;
+	return DEF_ERR_MBEDTLS_RETURNED_NOT_SUCCESS;
+}
+
+uint32_t Util_base64_decode(const char* encoded_text, Str_data* text)
+{
+	uint32_t in_text_length = 0;
+	uint32_t result = DEF_ERR_OTHER;
+	uint32_t out_text_length = 0;
+	size_t written = 0;
+	char* decoded = NULL;
+
+	if(!encoded_text || !text)
+		goto invalid_arg;
+
+	//Calc output size then allocate output buffer.
+	in_text_length = strlen(encoded_text);
+	out_text_length = ((in_text_length / 4) * 3);
+	out_text_length++;//+1 for NULL terminator.
+	decoded = (char*)malloc(out_text_length);
+	if(!decoded)
+		goto out_of_memory;
+
+	result = Util_str_init(text);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_init, false, result);
+		goto api_failed;
+	}
+
+	result = mbedtls_base64_decode((unsigned char*)decoded, out_text_length, &written, (const unsigned char*)encoded_text, in_text_length);
+	if(result != 0)
+	{
+		DEF_LOG_RESULT(mbedtls_base64_decode, false, result);
+		goto mbed_tls_api_failed;
+	}
+
+	//Add NULL terminator.
+	if(out_text_length <= written)
+		decoded[out_text_length - 1] = 0x00;
+	else
+		decoded[written] = 0x00;
+
+	result = Util_str_set(text, decoded);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_set, false, result);
+		goto api_failed;
+	}
+
+	free(decoded);
+	decoded = NULL;
+
+	return DEF_SUCCESS;
+
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
+
+	out_of_memory:
+	return DEF_ERR_OUT_OF_MEMORY;
+
+	api_failed:
+	Util_str_free(text);
+	free(decoded);
+	decoded = NULL;
+	return result;
+
+	mbed_tls_api_failed:
+	Util_str_free(text);
+	free(decoded);
+	decoded = NULL;
+	return DEF_ERR_MBEDTLS_RETURNED_NOT_SUCCESS;
 }
 
 uint32_t Util_check_free_linear_space(void)
