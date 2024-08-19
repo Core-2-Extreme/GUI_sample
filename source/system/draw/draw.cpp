@@ -278,7 +278,7 @@ void Draw_set_refresh_needed(bool is_refresh_needed)
 		return;
 
 	LightLock_Lock(&util_draw_need_refresh_mutex);
-	util_draw_is_refresh_needed = true;
+	util_draw_is_refresh_needed = is_refresh_needed;
 	LightLock_Unlock(&util_draw_need_refresh_mutex);
 }
 

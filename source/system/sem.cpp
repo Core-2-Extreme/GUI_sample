@@ -57,6 +57,7 @@ bool sem_thread_suspend = false;
 bool sem_reload_msg_request = false;
 bool sem_scroll_mode = false;
 bool sem_dump_log_request = false;
+bool sem_should_wifi_enabled = false;
 int8_t sem_selected_menu_mode = DEF_SEM_MENU_TOP;
 double sem_y_offset = 0.0;
 double sem_y_max = 0.0;
@@ -207,6 +208,7 @@ void Sem_get_config(Sem_config* config)
 void Sem_set_config(Sem_config* new_config)
 {
 	bool reload_msg = false;
+	bool set_wifi_state = false;
 
 	if(!sem_already_init)
 		return;
@@ -228,9 +230,11 @@ void Sem_set_config(Sem_config* new_config)
 		//Do nothing.
 	if(sem_config.is_wifi_on != new_config->is_wifi_on)
 	{
-		uint32_t result = Util_hw_config_set_wifi_state(new_config->is_wifi_on);
-		if(result != DEF_SUCCESS && result != 0xC8A06C0D)
-			new_config->is_wifi_on = sem_config.is_wifi_on;
+		//Send a request.
+		sem_should_wifi_enabled = new_config->is_wifi_on;
+		set_wifi_state = true;
+		//Don't update config yet, Sem_hw_config_thread() will do the job later.
+		new_config->is_wifi_on = sem_config.is_wifi_on;
 	}
 	// if(sem_config.is_top_lcd_on != new_config->is_top_lcd_on)
 		//Do nothing, Sem_hw_config_thread() will do the job later.
@@ -265,6 +269,7 @@ void Sem_set_config(Sem_config* new_config)
 	if(strncmp(sem_config.lang, new_config->lang, sizeof(sem_config.lang)) != 0)
 	{
 		//Validate the value and send a request if the value is valid.
+		//Sem_worker_callback() will do the job.
 		if(strcmp(new_config->lang, "jp") != 0 && strcmp(new_config->lang, "en") != 0
 		&& strcmp(new_config->lang, "hu") != 0 && strcmp(new_config->lang, "zh-cn") != 0
 		&& strcmp(new_config->lang, "it") != 0 && strcmp(new_config->lang, "es") != 0
@@ -279,6 +284,8 @@ void Sem_set_config(Sem_config* new_config)
 		new_config->time_to_enter_sleep = new_config->time_to_turn_off_lcd;
 
 	memcpy(&sem_config, new_config, sizeof(Sem_config));
+	if(set_wifi_state)
+		sem_should_wifi_enabled = true;
 	if(reload_msg)
 		sem_reload_msg_request = true;
 
@@ -463,6 +470,7 @@ void Sem_init(void)
 	if(result == DEF_SUCCESS || result == 0xC8A06C0D)
 		config.is_wifi_on = wifi_state;
 
+	sem_should_wifi_enabled = config.is_wifi_on;
 	sem_config = config;
 	sem_state = state;
 
@@ -1403,7 +1411,6 @@ void Sem_hid(Hid_info key)
 {
 	int8_t menu_button_list[9] = { DEF_SEM_MENU_UPDATE, DEF_SEM_MENU_LANGAGES, DEF_SEM_MENU_LCD, DEF_SEM_MENU_CONTROL,
 	DEF_SEM_MENU_FONT, DEF_SEM_MENU_WIFI, DEF_SEM_MENU_ADVANCED, DEF_SEM_MENU_BATTERY, DEF_SEM_MENU_RECORDING };
-	uint32_t result = DEF_ERR_OTHER;
 	Sem_config config = { 0, };
 	Sem_state state = { 0, };
 
@@ -1842,25 +1849,11 @@ void Sem_hid(Hid_info key)
 				if (Util_hid_is_pressed(key, sem_wifi_on_button))
 					sem_wifi_on_button.selected = true;
 				else if (Util_hid_is_released(key, sem_wifi_on_button) && sem_wifi_on_button.selected)
-				{
-					result = Util_hw_config_set_wifi_state(true);
-					if(result == DEF_SUCCESS || result == 0xC8A06C0D)
-					{
-						config.is_wifi_on = true;
-						Sem_set_config(&config);
-					}
-				}
+					sem_should_wifi_enabled = true;
 				else if (Util_hid_is_pressed(key, sem_wifi_off_button))
 					sem_wifi_off_button.selected = true;
 				else if (Util_hid_is_released(key, sem_wifi_off_button) && sem_wifi_off_button.selected)
-				{
-					result = Util_hw_config_set_wifi_state(false);
-					if(result == DEF_SUCCESS || result == 0xC8A06C0D)
-					{
-						config.is_wifi_on = false;
-						Sem_set_config(&config);
-					}
-				}
+					sem_should_wifi_enabled = false;
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_ADVANCED)//Advanced settings
 			{
@@ -2577,6 +2570,21 @@ void Sem_hw_config_thread(void* arg)
 		{
 			Draw_set_refresh_needed(true);
 			count = 0;
+		}
+
+		if(sem_should_wifi_enabled != config.is_wifi_on)
+		{
+			result = Util_hw_config_set_wifi_state(sem_should_wifi_enabled);
+			if(result == DEF_SUCCESS || result == 0xC8A06C0D)//0xC8A06C0D means "already requested state".
+			{
+				//We need to directly update wifi state here, otherwise
+				//(i.e. with Sem_set_config()) it'll try to send a request again.
+				LightLock_Lock(&sem_config_state_mutex);
+				sem_config.is_wifi_on = sem_should_wifi_enabled;
+				LightLock_Unlock(&sem_config_state_mutex);
+			}
+			else
+				sem_should_wifi_enabled = !sem_should_wifi_enabled;
 		}
 
 		//If config.time_to_turn_off_lcd == 0, it means automatic turn off LCD feature has been disabled.
