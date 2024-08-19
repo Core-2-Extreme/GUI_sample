@@ -5,10 +5,9 @@
 
 #include "3ds.h"
 
-#include "system/sem.hpp"
-
 extern "C"
 {
+#include "system/sem.h"
 #include "system/draw/draw.h"
 #include "system/draw/exfont.h"
 #include "system/util/cpu_usage.h"
@@ -36,7 +35,10 @@ extern "C"
 #include "sapp7.hpp"
 
 //Include myself.
-#include "system/menu.hpp"
+extern "C"
+{
+#include "system/menu.h"
+}
 
 
 #define DEF_MENU_NUM_OF_SUB_APP		(uint8_t)(8)

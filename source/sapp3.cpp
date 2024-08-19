@@ -2,11 +2,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "system/menu.hpp"
-#include "system/sem.hpp"
-
 extern "C"
 {
+	#include "system/menu.h"
+	#include "system/sem.h"
 	#include "system/draw/draw.h"
 	#include "system/util/cam.h"
 	#include "system/util/converter.h"

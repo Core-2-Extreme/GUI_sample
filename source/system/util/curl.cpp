@@ -13,14 +13,13 @@ extern "C"
 
 extern "C"
 {
+#include "system/menu.h"
 #include "system/util/err_types.h"
 #include "system/util/file.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
 #include "system/util/util_c.h"
 }
-
-#include "system/menu.hpp"
 
 extern "C"
 {

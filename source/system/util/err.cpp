@@ -7,10 +7,9 @@ extern "C"
 #include <stdint.h>
 #include <time.h>
 
-#include "system/menu.hpp"
-
 extern "C"
 {
+	#include "system/menu.h"
 	#include "system/draw/draw.h"
 	#include "system/util/file.h"
 	#include "system/util/hid.h"

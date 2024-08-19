@@ -4,9 +4,8 @@
 extern "C"
 {
 #include "3ds.h"
+#include "system/menu.h"
 }
-
-#include "system/menu.hpp"
 
 
 int main()

@@ -8,12 +8,9 @@ extern "C"
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <citro2d.h>
-
-#include "system/menu.hpp"
-
 extern "C"
 {
+#include "system/menu.h"
 #include "system/draw/draw.h"
 #include "system/util/err_types.h"
 #include "system/util/file.h"

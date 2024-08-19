@@ -1,5 +1,5 @@
-#if !defined(DEF_MENU_HPP)
-#define DEF_MENU_HPP
+#if !defined(DEF_MENU_H)
+#define DEF_MENU_H
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -41,4 +41,4 @@ void Menu_exit(void);
 
 void Menu_main(void);
 
-#endif //!defined(DEF_MENU_HPP)
+#endif //!defined(DEF_MENU_H)

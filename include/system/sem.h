@@ -1,5 +1,5 @@
-#if !defined(DEF_SEM_HPP)
-#define DEF_SEM_HPP
+#if !defined(DEF_SEM_H)
+#define DEF_SEM_H
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/hid_types.h"
@@ -209,4 +209,4 @@ void Sem_main(void);
 
 void Sem_hid(Hid_info key);
 
-#endif //!defined(DEF_SEM_HPP)
+#endif //!defined(DEF_SEM_H)
