@@ -1,15 +1,16 @@
+//Includes.
 extern "C"
 {
 #include "system/util/expl.h"
 }
 
 #if DEF_EXPL_API_ENABLE
+extern "C"
+{
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-extern "C"
-{
 #include "system/menu.h"
 #include "system/draw/draw.h"
 #include "system/util/err_types.h"
@@ -18,16 +19,14 @@ extern "C"
 #include "system/util/log.h"
 #include "system/util/str.h"
 #include "system/util/util.h"
-}
 
-extern "C"
-{
+//Defines.
 #define DEF_EXPL_SORT_TYPE_UNDEFINED		(uint8_t)(0)	//Unknown.
 #define DEF_EXPL_SORT_TYPE_SPECIAL_CHAR		(uint8_t)(1)	//Other than 0-9,a-z,A-Z.
 #define DEF_EXPL_SORT_TYPE_NUMBER			(uint8_t)(2)	//0-9.
 #define DEF_EXPL_SORT_TYPE_ALPHABET			(uint8_t)(3)	//a-z or A-Z.
 
-
+//Typedefs.
 typedef struct
 {
 	uint32_t size[DEF_EXPL_MAX_FILES];
@@ -42,13 +41,13 @@ typedef struct
 	Expl_file_type type;
 } Util_expl_file_compare;
 
-
+//Prototypes.
 static void Util_expl_generate_file_type_string(Expl_file_type type, Str_data* type_string);
 //We can't get rid of this "int" because library uses "int" type as return value.
 static int Util_expl_compare_name(const void* a, const void* b);
 static void Util_expl_read_dir_callback(void);
 
-
+//Variables.
 void (*util_expl_callback)(Str_data*, Str_data*) = NULL;
 void (*util_expl_cancel_callback)(void) = NULL;
 bool util_expl_read_dir_request = false;
@@ -57,13 +56,13 @@ bool util_expl_scroll_mode = false;
 bool util_expl_init = false;
 uint32_t util_expl_num_of_file = 0;
 uint32_t util_expl_check_file_size_index = 0;
-double util_expl_y_offset = 0.0;
-double util_expl_selected_file_num = 0.0;
+double util_expl_y_offset = 0;
+double util_expl_selected_file_num = 0;
 Str_data util_expl_current_dir = { 0, };
 Draw_image_data util_expl_file_button[16] = { 0, };
 Util_expl_file util_expl_files = { 0, };
 
-
+//Code.
 uint32_t Util_expl_init(void)
 {
 	uint32_t result = DEF_ERR_OTHER;

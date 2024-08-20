@@ -1,26 +1,33 @@
+//Includes.
 extern "C"
 {
 #include "system/draw/draw.h"
-}
 
 #include <stdbool.h>
 #include <stdint.h>
 
-extern "C"
-{
-	#include "system/draw/exfont.h"
-	#include "system/util/converter_types.h"
-	#include "system/util/cpu_usage.h"
-	#include "system/util/err_types.h"
-	#include "system/util/hid.h"
-	#include "system/util/log.h"
-	#include "system/util/str.h"
-	#include "system/util/util.h"
-	#include "system/util/watch.h"
-}
+#include "system/draw/exfont.h"
+#include "system/util/converter_types.h"
+#include "system/util/cpu_usage.h"
+#include "system/util/err_types.h"
+#include "system/util/hid.h"
+#include "system/util/log.h"
+#include "system/util/str.h"
+#include "system/util/util.h"
+#include "system/util/watch.h"
 
-extern "C"
-{
+//Defines.
+//N/A.
+
+//Typedefs.
+//N/A.
+
+//Prototypes.
+extern void memcpy_asm(uint8_t*, uint8_t*, uint32_t);
+extern void memcpy_asm_4b(uint8_t*, uint8_t*);
+static void Draw_texture_internal(C2D_Image image, uint32_t abgr8888, float x, float y, float x_size, float y_size, float angle, float center_x, float center_y);
+
+//Variables.
 bool util_draw_init = false;
 bool util_draw_sheet_texture_free[DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS] = { 0, };
 bool util_draw_is_800px = false;
@@ -42,12 +49,7 @@ Draw_image_data util_draw_eco_image[2] = { 0, };
 Draw_image_data util_draw_bot_ui = { 0, };
 Draw_image_data util_draw_empty_image = { 0, };
 
-
-static void Draw_texture_internal(C2D_Image image, uint32_t abgr8888, float x, float y, float x_size, float y_size, float angle, float center_x, float center_y);
-extern void memcpy_asm(uint8_t*, uint8_t*, uint32_t);
-extern void memcpy_asm_4b(uint8_t*, uint8_t*);
-
-
+//Code.
 uint32_t Draw_init(bool wide, bool _3d)
 {
 	uint32_t result = DEF_ERR_OTHER;

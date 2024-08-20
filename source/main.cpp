@@ -1,13 +1,27 @@
+//Includes.
+extern "C"
+{
 #include <stdbool.h>
 #include <stdint.h>
 
-extern "C"
-{
 #include "3ds.h"
+
 #include "system/menu.h"
 }
 
+//Defines.
+//N/A.
 
+//Typedefs.
+//N/A.
+
+//Prototypes.
+//N/A.
+
+//Variables.
+//N/A.
+
+//Code.
 int main()
 {
 	Menu_init();

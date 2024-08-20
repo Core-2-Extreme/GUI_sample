@@ -1,7 +1,7 @@
+//Includes.
 extern "C"
 {
 #include "system/util/cpu_usage.h"
-}
 
 #if DEF_CPU_USAGE_API_ENABLE
 #include <stdarg.h>
@@ -10,35 +10,37 @@ extern "C"
 
 #include "3ds.h"
 
-extern "C"
-{
 #include "system/draw/draw.h"
 #include "system/util/err_types.h"
 #include "system/util/log.h"
 #include "system/util/thread_types.h"
 #include "system/util/util.h"
-}
 
-extern "C"
-{
-bool util_cpu_usage_init = false;
-bool util_cpu_usage_show_flag = false;
-bool util_cpu_usage_reset_counter_request[4] = { false, false, false, false, };
-uint8_t util_cpu_usage_core_1_limit = 0;
-uint8_t util_cpu_usage_core_id[4] = { 0, 1, 2, 3, };
-uint16_t util_cpu_usage_counter_cache[4] = { 0, 0, 0, 0, };
-float util_cpu_usage_per_core[4] = { NAN, NAN, NAN, NAN, };
-float util_cpu_usage = NAN;
-Thread util_cpu_usage_thread_handle[5] = { 0, 0, 0, 0, };
-Handle util_cpu_usage_timer_handle = 0;
+//Defines.
+//N/A.
 
+//Typedefs.
+//N/A.
 
+//Prototypes.
 extern Result __real_APT_SetAppCpuTimeLimit(uint32_t percent);
 extern Result __real_APT_GetAppCpuTimeLimit(uint32_t* percent);
 void Util_cpu_usage_counter_thread(void* arg);
 void Util_cpu_usage_calculate_thread(void* arg);
 
+//Variables.
+bool util_cpu_usage_init = false;
+bool util_cpu_usage_show_flag = false;
+bool util_cpu_usage_reset_counter_request[4] = { 0, };
+uint8_t util_cpu_usage_core_1_limit = 0;
+uint8_t util_cpu_usage_core_id[4] = { 0, };
+uint16_t util_cpu_usage_counter_cache[4] = { 0, };
+float util_cpu_usage_per_core[4] = { 0, };
+float util_cpu_usage = NAN;
+Thread util_cpu_usage_thread_handle[5] = { 0, };
+Handle util_cpu_usage_timer_handle = 0;
 
+//Code.
 uint32_t Util_cpu_usage_init(void)
 {
 	if(util_cpu_usage_init)
@@ -46,6 +48,11 @@ uint32_t Util_cpu_usage_init(void)
 
 	util_cpu_usage_show_flag = false;
 	util_cpu_usage_init = true;
+	for(uint8_t i = 0; i < 4; i++)
+	{
+		util_cpu_usage_core_id[i] = i;
+		util_cpu_usage_per_core[i] = NAN;
+	}
 
 	for(uint8_t i = 0; i < 4; i++)
 	{

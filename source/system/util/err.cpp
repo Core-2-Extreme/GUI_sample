@@ -1,28 +1,29 @@
+//Includes.
 extern "C"
 {
 #include "system/util/err.h"
-}
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
 
-extern "C"
-{
-	#include "system/menu.h"
-	#include "system/draw/draw.h"
-	#include "system/util/file.h"
-	#include "system/util/hid.h"
-	#include "system/util/log.h"
-	#include "system/util/str.h"
-}
+#include "system/menu.h"
+#include "system/draw/draw.h"
+#include "system/util/file.h"
+#include "system/util/hid.h"
+#include "system/util/log.h"
+#include "system/util/str.h"
 
+//Defines.
+//N/A.
 
-extern "C"
-{
+//Typedefs.
+//N/A.
+
+//Prototypes.
 static void Util_err_save_callback(void);
 
-
+//Variables.
 bool util_err_show_flag = false;
 bool util_err_save_request = false;
 bool util_err_init = false;
@@ -32,7 +33,7 @@ Str_data util_err_location = { 0, };
 Str_data util_err_code = { 0, };
 Draw_image_data util_err_ok_button = { 0, }, util_err_save_button = { 0, };
 
-
+//Code.
 uint32_t Util_err_init(void)
 {
 	uint32_t result = DEF_ERR_OTHER;

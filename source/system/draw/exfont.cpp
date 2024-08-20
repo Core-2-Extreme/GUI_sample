@@ -1,28 +1,33 @@
+//Includes.
 extern "C"
 {
 #include "system/draw/exfont.h"
-}
 
 #include <stdbool.h>
 #include <stdint.h>
 
-extern "C"
-{
-	#include "system/menu.h"
-	#include "system/draw/draw.h"
-	#include "system/util/err_types.h"
-	#include "system/util/file.h"
-	#include "system/util/log.h"
-	#include "system/util/str.h"
-	#include "system/util/util.h"
+#include "system/menu.h"
+#include "system/draw/draw.h"
+#include "system/util/err_types.h"
+#include "system/util/file.h"
+#include "system/util/log.h"
+#include "system/util/str.h"
+#include "system/util/util.h"
 }
 
+//Defines.
+//N/A.
 
+//Typedefs.
+//N/A.
+
+//Prototypes.
 static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string, uint32_t num_of_characters, float texture_x, float texture_y, float texture_size_x, float texture_size_y, uint32_t abgr8888, float* out_width, float* out_height, bool size_only);
 static uint32_t Exfont_load_exfont(uint16_t exfont_id);
 static void Exfont_unload_exfont(uint16_t exfont_id);
+static void Exfont_load_font_callback(void);
 
-
+//Variables.
 static bool util_exfont_loaded_external_font[DEF_EXFONT_NUM_OF_FONT_NAME] = { 0, };
 static bool util_exfont_request_external_font_state[DEF_EXFONT_NUM_OF_FONT_NAME] = { 0, };
 static bool util_exfont_load_external_font_request = false;
@@ -87,40 +92,7 @@ static const Exfont_one_char util_exfont_samples_four_bytes[DEF_EXFONT_NUM_OF_FO
 };
 static C2D_Image util_exfont_font_images[41376] = { 0, };
 
-
-void Exfont_load_font_callback(void)
-{
-	uint32_t result = DEF_ERR_OTHER;
-
-	if(util_exfont_init)
-	{
-		if(util_exfont_load_external_font_request)
-		{
-			for(uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
-			{
-				if(util_exfont_request_external_font_state[i] && !util_exfont_loaded_external_font[i])
-				{
-					DEF_LOG_RESULT_SMART(result, Exfont_load_exfont(i), (result == DEF_SUCCESS), result);
-					Draw_set_refresh_needed(true);
-				}
-			}
-			util_exfont_load_external_font_request = false;
-		}
-		else if(util_exfont_unload_external_font_request)
-		{
-			for(uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
-			{
-				if(!util_exfont_request_external_font_state[i] && util_exfont_loaded_external_font[i])
-				{
-					Exfont_unload_exfont(i);
-					Draw_set_refresh_needed(true);
-				}
-			}
-			util_exfont_unload_external_font_request = false;
-		}
-	}
-}
-
+//Code.
 uint32_t Exfont_init(void)
 {
 	uint32_t characters = 0;
@@ -179,7 +151,7 @@ uint32_t Exfont_init(void)
 
 	if(!Menu_add_worker_thread_callback(Exfont_load_font_callback))
 	{
-		DEF_LOG_RESULT(Exfont_load_font_callback, false, DEF_ERR_OTHER);
+		DEF_LOG_RESULT(Menu_add_worker_thread_callback, false, DEF_ERR_OTHER);
 		goto other;
 	}
 
@@ -517,7 +489,7 @@ static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string,
 				end_pos = DEF_EXFONT_NUM_OF_THREE_BYTES_FONT;
 			}
 
-			for (uint8_t  i = start_pos; i < end_pos; i++)
+			for (uint8_t i = start_pos; i < end_pos; i++)
 			{
 				if (strcmp(in_part_string[s].buffer, util_exfont_samples_three_bytes[i].buffer) < 0)
 				{
@@ -1535,5 +1507,38 @@ static void Exfont_unload_exfont(uint16_t exfont_id)
 		}
 		else
 			Draw_free_texture(util_exfont_texture_num[exfont_id]);
+	}
+}
+
+static void Exfont_load_font_callback(void)
+{
+	uint32_t result = DEF_ERR_OTHER;
+
+	if(util_exfont_init)
+	{
+		if(util_exfont_load_external_font_request)
+		{
+			for(uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
+			{
+				if(util_exfont_request_external_font_state[i] && !util_exfont_loaded_external_font[i])
+				{
+					DEF_LOG_RESULT_SMART(result, Exfont_load_exfont(i), (result == DEF_SUCCESS), result);
+					Draw_set_refresh_needed(true);
+				}
+			}
+			util_exfont_load_external_font_request = false;
+		}
+		else if(util_exfont_unload_external_font_request)
+		{
+			for(uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
+			{
+				if(!util_exfont_request_external_font_state[i] && util_exfont_loaded_external_font[i])
+				{
+					Exfont_unload_exfont(i);
+					Draw_set_refresh_needed(true);
+				}
+			}
+			util_exfont_unload_external_font_request = false;
+		}
 	}
 }

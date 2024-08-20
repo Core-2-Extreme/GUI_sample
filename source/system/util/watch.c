@@ -1,3 +1,4 @@
+//Includes.
 #include "system/util/watch.h"
 
 #include <stdbool.h>
@@ -10,13 +11,22 @@
 
 #include "system/util/err_types.h"
 
+//Defines.
+//N/A.
 
+//Typedefs.
+//N/A.
+
+//Prototypes.
+//N/A.
+
+//Variables.
 bool util_watch_init = false;
 uint32_t util_watch_num_of_active[WATCH_HANDLE_MAX] = { 0, };
 LightLock util_watch_variables_mutex = 1;//Initially unlocked state.
 Watch_data util_watch_data[DEF_WATCH_MAX_VARIABLES] = { 0, };
 
-
+//Code.
 uint32_t Util_watch_init(void)
 {
 	if(util_watch_init)

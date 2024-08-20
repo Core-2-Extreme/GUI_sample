@@ -1,41 +1,40 @@
+//Includes.
 extern "C"
 {
-	#include "system/util/log.h"
-}
+#include "system/util/log.h"
 
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-extern "C"
-{
-	#include "system/draw/draw.h"
-	#include "system/util/err_types.h"
-	#include "system/util/file.h"
-	#include "system/util/str.h"
-}
+#include "system/draw/draw.h"
+#include "system/util/err_types.h"
+#include "system/util/file.h"
+#include "system/util/str.h"
 
-
-extern "C"
-{
+//Defines.
 #define DEF_LOG_DISPLAYED_LINES 23
 
+//Typedefs.
+//N/A.
+
+//Prototypes.
+static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, const char* caller, const char* format_string, va_list args);
+
+//Variables.
 bool util_log_show_flag = false;
 bool util_log_init = false;
 uint32_t util_log_current_index = 0;
 uint32_t util_log_y = 0;
-double util_log_x = 0.0;
-double util_log_uptime_ms = 0.0;
+double util_log_x = 0;
+double util_log_uptime_ms = 0;
 double util_log_spend_time[DEF_LOG_BUFFER_LINES] = { 0, };
 Str_data util_log_logs[DEF_LOG_BUFFER_LINES] = { 0, };
 TickCounter util_log_uptime_stopwatch = { 0, };
 LightLock util_log_mutex = 1;//Initially unlocked state.
 
-
-static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, const char* caller, const char* format_string, va_list args);
-
-
+//Code.
 uint32_t Util_log_init(void)
 {
 	uint32_t result = DEF_ERR_OTHER;

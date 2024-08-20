@@ -1,7 +1,7 @@
+//Includes.
 extern "C"
 {
 #include "system/util/fake_pthread.h"
-}
 
 #include <malloc.h>
 #include <stdbool.h>
@@ -11,19 +11,26 @@ extern "C"
 
 #include "3ds.h"
 
-extern "C"
-{
 #include "system/util/err_types.h"
 #include "system/util/thread_types.h"
 #include "system/util/util.h"
 
+//Defines.
+//N/A.
 
+//Typedefs.
+//N/A.
+
+//Prototypes.
+//N/A.
+
+//Variables.
 int util_fake_pthread_core_offset = 0;
 int util_fake_pthread_enabled_core_list[4] = { 0, 1, -3, -3, };
 int util_fake_pthread_enabled_cores = 2;
 LightLock util_fake_pthread_mutex = 1;//Initially unlocked state.
 
-
+//Code.
 void Util_fake_pthread_set_enabled_core(bool enabled_core[4])
 {
 	int num_of_core = 0;
@@ -220,5 +227,4 @@ long sysconf(int name)
 	else
 		return -1;
 }
-
 }

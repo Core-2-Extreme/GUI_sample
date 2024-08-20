@@ -23,7 +23,7 @@ typedef enum
 
 	KEYBOARD_TYPE_NORMAL,		//Normal keyboard.
 	KEYBOARD_TYPE_QWERTY,		//QWERTY only keyboard.
-	KEYBOARD_TYPE_NUMPAD,     	//Number pad only keyboard.
+	KEYBOARD_TYPE_NUMPAD,		//Number pad only keyboard.
 	KEYBOARD_TYPE_WESTERN,		//Same as TYPE_NORMAL except no Japanese support.
 
 	KEYBOARD_TYPE_MAX,

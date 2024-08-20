@@ -1,9 +1,12 @@
+//Includes.
 extern "C"
 {
 #include "system/util/httpc.h"
 }
 
 #if DEF_HTTPC_API_ENABLE
+extern "C"
+{
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -11,8 +14,6 @@ extern "C"
 
 #include "3ds.h"
 
-extern "C"
-{
 #include "system/menu.h"
 #include "system/util/err_types.h"
 #include "system/util/file.h"
@@ -21,10 +22,13 @@ extern "C"
 #include "system/util/util.h"
 }
 
+//Defines.
+//N/A.
 
-bool util_httpc_init = false;
+//Typedefs.
+//N/A.
 
-
+//Prototypes.
 static uint32_t Util_httpc_request(httpcContext* httpc_context, const char* url, HTTPC_RequestMethod method, uint8_t* post_data, uint32_t post_data_size);
 static uint32_t Util_httpc_get_request(httpcContext* httpc_context, const char* url);
 static uint32_t Util_httpc_post_request(httpcContext* httpc_context, const char* url, uint8_t* post_data, uint32_t post_data_size);
@@ -33,7 +37,10 @@ static uint32_t Util_httpc_download_data(httpcContext* httpc_context, uint8_t** 
 static void Util_httpc_close(httpcContext* httpc_context);
 static uint32_t Util_httpc_save_data(httpcContext* httpc_context, uint32_t buffer_size, uint32_t* downloaded_size, const char* dir_path, const char* file_name);
 
+//Variables.
+bool util_httpc_init = false;
 
+//Code.
 uint32_t Util_httpc_init(uint32_t buffer_size)
 {
 	uint32_t result = DEF_ERR_OTHER;
@@ -774,5 +781,4 @@ static uint32_t Util_httpc_save_data(httpcContext* httpc_context, uint32_t buffe
 	Util_httpc_close(httpc_context);
 	return result;
 }
-
-#endif
+#endif //DEF_HTTPC_API_ENABLE

@@ -1,22 +1,29 @@
+//Includes.
 #include "system/util/muxer.h"
 
 #if DEF_MUXER_API_ENABLE
+extern "C"
+{
 #include <stdbool.h>
 #include <stdint.h>
 
-extern "C"
-{
+#include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
+
 #include "system/util/err_types.h"
 #include "system/util/log.h"
 }
 
-extern "C"
-{
-#include "libavcodec/avcodec.h"
-#include "libavformat/avformat.h"
-}
+//Defines.
+//N/A.
 
+//Typedefs.
+//N/A.
 
+//Prototypes.
+//N/A.
+
+//Variables.
 bool util_audio_muxer_init[DEF_MUXER_MAX_SESSIONS] = { 0, };
 uint8_t util_audio_muxer_stream_num[DEF_MUXER_MAX_SESSIONS] = { 0, };
 AVPacket* util_audio_muxer_packet[DEF_MUXER_MAX_SESSIONS] = { 0, };
@@ -35,7 +42,7 @@ AVStream* util_video_muxer_format_stream[DEF_MUXER_MAX_SESSIONS] = { 0, };
 
 AVFormatContext* util_muxer_format_context[DEF_MUXER_MAX_SESSIONS] = { 0, };
 
-
+//Code.
 uint32_t Util_muxer_open_audio_file(const char* file_path, uint8_t session)
 {
 	int32_t ffmpeg_result = 0;
@@ -437,5 +444,4 @@ void Util_muxer_close(uint8_t session)
 	util_audio_muxer_init[session] = false;
 	util_video_muxer_init[session] = false;
 }
-
-#endif
+#endif //DEF_MUXER_API_ENABLE

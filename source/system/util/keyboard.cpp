@@ -1,16 +1,17 @@
+//Includes.
 extern "C"
 {
 #include "system/util/keyboard.h"
 }
 
 #if DEF_KEYBOARD_API_ENABLE
+extern "C"
+{
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-extern "C"
-{
 #include "3ds.h"
 
 #include "system/util/err_types.h"
@@ -18,7 +19,17 @@ extern "C"
 #include "system/util/str.h"
 }
 
+//Defines.
+//N/A.
 
+//Typedefs.
+//N/A.
+
+//Prototypes.
+static uint32_t Util_keyboard_init_internal(Keyboard_type type, Keyboard_acceptable_input valid_type, Keyboard_display_button button_type,
+uint32_t max_length, const char* hint_text, const char* init_text, Keyboard_password_mode password_mode, Keyboard_features_bit features);
+
+//Variables.
 bool util_keyboard_init = false;
 uint32_t util_keyboard_max_length = 0;
 uint32_t util_keyboard_features = 0;
@@ -34,11 +45,7 @@ SwkbdLearningData util_keyboard_learn_data = { 0, };
 SwkbdDictWord util_keyboard_user_words[DEF_KEYBOARD_MAX_DIC_WORDS] = { 0, };
 SwkbdState util_keyboard = { 0, };
 
-
-static uint32_t Util_keyboard_init_internal(Keyboard_type type, Keyboard_acceptable_input valid_type, Keyboard_display_button button_type,
-uint32_t max_length, const char* hint_text, const char* init_text, Keyboard_password_mode password_mode, Keyboard_features_bit features);
-
-
+//Code.
 uint32_t Util_keyboard_init(Keyboard_type type, Keyboard_acceptable_input valid_type, Keyboard_display_button button_type,
 uint32_t max_length, Str_data* hint_text, Str_data* init_text, Keyboard_password_mode password_mode, Keyboard_features_bit features)
 {
@@ -266,5 +273,4 @@ uint32_t max_length, const char* hint_text, const char* init_text, Keyboard_pass
 	Util_str_free(&util_keyboard_hint_text);
 	return result;
 }
-
-#endif
+#endif //DEF_KEYBOARD_API_ENABLE

@@ -1,12 +1,17 @@
+//Includes.
+extern "C"
+{
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <string>
+}
 
-#include "3ds.h"
+#include <string>
 
 extern "C"
 {
+#include "3ds.h"
+
 #include "system/menu.h"
 #include "system/draw/draw.h"
 #include "system/draw/exfont.h"
@@ -41,7 +46,10 @@ extern "C"
 #include "system/sem.h"
 }
 
+//Defines.
+//N/A.
 
+//Typedefs.
 typedef struct
 {
 	bool is_connect_test_succes;
@@ -49,7 +57,25 @@ typedef struct
 	Sem_model fake_model;
 } Sem_internal_state;
 
+//Prototypes.
+static void Sem_get_system_info(void);
+static void Sem_worker_callback(void);
+void Sem_hw_config_thread(void* arg);
 
+#if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
+void Sem_encode_thread(void* arg);
+void Sem_record_thread(void* arg);
+#endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
+
+#if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
+void Sem_check_connectivity_thread(void* arg);
+#endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
+
+#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+void Sem_update_thread(void* arg);
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+
+//Variables.
 bool sem_main_run = false;
 bool sem_already_init = false;
 bool sem_thread_run = false;
@@ -59,10 +85,10 @@ bool sem_scroll_mode = false;
 bool sem_dump_log_request = false;
 bool sem_should_wifi_enabled = false;
 int8_t sem_selected_menu_mode = DEF_SEM_MENU_TOP;
-double sem_y_offset = 0.0;
-double sem_y_max = 0.0;
-double sem_touch_x_move_left = 0.0;
-double sem_touch_y_move_left = 0.0;
+double sem_y_offset = 0;
+double sem_y_max = 0;
+double sem_touch_x_move_left = 0;
+double sem_touch_y_move_left = 0;
 const char* sem_model_name[6] = { "OLD 3DS", "OLD 3DS XL", "OLD 2DS", "NEW 3DS", "NEW 3DS XL", "NEW 2DS XL", };
 Str_data sem_msg[DEF_SEM_NUM_OF_MSG] = { 0, };
 std::string sem_newest_ver_data[6];//0 newest version number, 1 3dsx available, 2 cia available, 3 3dsx dl url, 4 cia dl url, 5 patch note
@@ -86,16 +112,13 @@ Sem_config sem_config = { 0, };
 #if DEF_CPU_USAGE_API_ENABLE
 bool sem_is_cpu_usage_monitor_running = false;
 bool sem_should_cpu_usage_monitor_running = false;
-#endif
+#endif //DEF_CPU_USAGE_API_ENABLE
 
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
-
 Thread sem_check_connectivity_thread = NULL;
-
-#endif
+#endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
-
 bool sem_check_update_request = false;
 bool sem_new_version_available = false;
 bool sem_show_patch_note_request = false;
@@ -110,17 +133,13 @@ Thread sem_update_thread = NULL;
 Draw_image_data sem_check_update_button = { 0, }, sem_select_edtion_button = { 0, }, sem_close_updater_button = { 0, },
 sem_3dsx_button = { 0, }, sem_cia_button = { 0, }, sem_dl_install_button = { 0, }, sem_back_to_patch_note_button = { 0, },
 sem_close_app_button = { 0, };
-
-#endif
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 #if DEF_CPU_USAGE_API_ENABLE
-
 Draw_image_data sem_monitor_cpu_usage_on_button = { 0, }, sem_monitor_cpu_usage_off_button = { 0, };
-
-#endif
+#endif //DEF_CPU_USAGE_API_ENABLE
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
-
 bool sem_record_request = false;
 bool sem_encode_request = false;
 bool sem_wait_request = false;
@@ -129,36 +148,10 @@ uint8_t sem_selected_recording_mode = 0;
 uint8_t* sem_yuv420p = NULL;
 uint16_t sem_rec_width = 400;
 uint16_t sem_rec_height = 480;
-Thread sem_record_thread, sem_encode_thread;
+Thread sem_record_thread = NULL, sem_encode_thread = NULL;
+#endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
-#endif
-
-
-static void Sem_get_system_info(void);
-
-#if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
-
-void Sem_encode_thread(void* arg);
-void Sem_record_thread(void* arg);
-
-#endif
-
-void Sem_worker_callback(void);
-void Sem_hw_config_thread(void* arg);
-
-#if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
-
-void Sem_check_connectivity_thread(void* arg);
-
-#endif
-
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
-
-void Sem_update_thread(void* arg);
-
-#endif
-
-
+//Code.
 bool Sem_query_init_flag(void)
 {
 	return sem_already_init;
@@ -478,11 +471,11 @@ void Sem_init(void)
 	sem_hw_config_thread = threadCreate(Sem_hw_config_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 	sem_check_connectivity_thread = threadCreate(Sem_check_connectivity_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
-#endif
+#endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 	sem_update_thread = threadCreate(Sem_update_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
-#endif
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 	sem_record_thread = threadCreate(Sem_record_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
@@ -490,7 +483,7 @@ void Sem_init(void)
 		sem_encode_thread = threadCreate(Sem_encode_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 2, false);
 	else
 		sem_encode_thread = threadCreate(Sem_encode_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
-#endif
+#endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
 	sem_reload_msg_request = true;
 
@@ -504,7 +497,6 @@ void Sem_init(void)
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_back_button.selected, sizeof(sem_back_button.selected));
 	for(uint8_t i = 0; i < 9; i++)
 		Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_menu_button[i].selected, sizeof(sem_menu_button[i].selected));
-
 
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 	//Updater.
@@ -524,7 +516,7 @@ void Sem_init(void)
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_dl_install_button.selected, sizeof(sem_dl_install_button.selected));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_close_app_button.selected, sizeof(sem_close_app_button.selected));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_check_update_button.selected, sizeof(sem_check_update_button.selected));
-#endif
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 	//Languages.
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_reload_msg_request, sizeof(sem_reload_msg_request));
@@ -592,7 +584,7 @@ void Sem_init(void)
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_is_cpu_usage_monitor_running, sizeof(sem_is_cpu_usage_monitor_running));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_cpu_usage_on_button.selected, sizeof(sem_monitor_cpu_usage_on_button.selected));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_cpu_usage_off_button.selected, sizeof(sem_monitor_cpu_usage_off_button.selected));
-#endif
+#endif //DEF_CPU_USAGE_API_ENABLE
 
 	//Battery.
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_config.is_eco, sizeof(sem_config.is_eco));
@@ -603,7 +595,7 @@ void Sem_init(void)
 	//Screen recording.
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_record_request, sizeof(sem_record_request));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_stop_record_request, sizeof(sem_stop_record_request));
-#endif
+#endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_record_both_lcd_button.selected, sizeof(sem_record_both_lcd_button.selected));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_record_top_lcd_button.selected, sizeof(sem_record_top_lcd_button.selected));
@@ -673,12 +665,12 @@ void Sem_draw_init(void)
 	sem_dl_install_button = Draw_get_empty_image();
 	sem_back_to_patch_note_button = Draw_get_empty_image();
 	sem_close_app_button = Draw_get_empty_image();
-#endif
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 #if DEF_CPU_USAGE_API_ENABLE
 	sem_monitor_cpu_usage_on_button = Draw_get_empty_image();
 	sem_monitor_cpu_usage_off_button = Draw_get_empty_image();
-#endif
+#endif //DEF_CPU_USAGE_API_ENABLE
 
 	for(uint8_t i = 0; i < 9; i++)
 		sem_menu_button[i] = Draw_get_empty_image();
@@ -709,7 +701,7 @@ void Sem_exit(void)
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 	sem_stop_record_request = true;
-#endif
+#endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
 	sem_already_init = false;
 	sem_thread_suspend = false;
@@ -734,14 +726,14 @@ void Sem_exit(void)
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 	DEF_LOG_RESULT_SMART(result, threadJoin(sem_update_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(sem_update_thread);
-#endif
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 	DEF_LOG_RESULT_SMART(result, threadJoin(sem_encode_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, threadJoin(sem_record_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(sem_encode_thread);
 	threadFree(sem_record_thread);
-#endif
+#endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
 	DEF_LOG_RESULT_SMART(result, threadJoin(sem_hw_config_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(sem_hw_config_thread);
@@ -749,7 +741,7 @@ void Sem_exit(void)
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 	DEF_LOG_RESULT_SMART(result, threadJoin(sem_check_connectivity_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(sem_check_connectivity_thread);
-#endif
+#endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
 	//Global.
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &Draw_get_bot_ui_button()->selected);
@@ -781,7 +773,7 @@ void Sem_exit(void)
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_dl_install_button.selected);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_close_app_button.selected);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_check_update_button.selected);
-#endif
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 	//Languages.
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_reload_msg_request);
@@ -849,7 +841,7 @@ void Sem_exit(void)
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_is_cpu_usage_monitor_running);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_cpu_usage_on_button.selected);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_cpu_usage_off_button.selected);
-#endif
+#endif //DEF_CPU_USAGE_API_ENABLE
 
 	//Battery.
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_config.is_eco);
@@ -860,7 +852,7 @@ void Sem_exit(void)
 	//Screen recording.
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_record_request);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_stop_record_request);
-#endif
+#endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_record_both_lcd_button.selected);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_record_top_lcd_button.selected);
@@ -1062,7 +1054,7 @@ void Sem_main(void)
 			}
 #else
 			Draw_c("☢Updater is disabled\non this app.☢", 10, 25, 0.75, 0.75, DEF_DRAW_RED);
-#endif
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES)
 		{
@@ -1122,7 +1114,7 @@ void Sem_main(void)
 				cache_color[1] = DEF_DRAW_WEAK_BLACK;
 				cache_color[2] = DEF_DRAW_WEAK_BLACK;
 			}
-#endif
+#endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
 			if(state.console_model == DEF_SEM_MODEL_OLD2DS && config.is_night)
 			{
@@ -1354,7 +1346,7 @@ void Sem_main(void)
 			//OFF.
 			Draw_with_background(&sem_msg[DEF_SEM_OFF_MSG], 110, 200, 0.55, 0.55, sem_is_cpu_usage_monitor_running ? color : DEF_DRAW_RED, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_cpu_usage_off_button, sem_monitor_cpu_usage_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
-#endif
+#endif //DEF_CPU_USAGE_API_ENABLE
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_BATTERY)
 		{
@@ -1392,7 +1384,7 @@ void Sem_main(void)
 				Draw(&sem_msg[DEF_SEM_CANNOT_RECORD_MSG], 10, 120, 0.5, 0.5, DEF_DRAW_RED);
 #else
 			Draw_c("☢Screen recorder is disabled\non this app.☢", 10, 25, 0.75, 0.75, DEF_DRAW_RED);
-#endif
+#endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 		}
 
 		if(Util_err_query_error_show_flag())
@@ -1453,7 +1445,7 @@ void Sem_hid(Hid_info key)
 
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 			enable_back_button = (!sem_show_patch_note_request && !sem_select_ver_request);
-#endif
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 			if (Util_hid_is_pressed(key, sem_back_button) && enable_back_button)
 				sem_back_button.selected = true;
@@ -1518,7 +1510,7 @@ void Sem_hid(Hid_info key)
 						sem_show_patch_note_request = true;
 					}
 				}
-#endif
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES)//Language
 			{
@@ -1631,7 +1623,7 @@ void Sem_hid(Hid_info key)
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 				record_request = sem_record_request;
-#endif
+#endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
 				if(Util_hid_is_pressed(key, sem_night_mode_on_button))
 					sem_night_mode_on_button.selected = true;
@@ -1911,7 +1903,7 @@ void Sem_hid(Hid_info key)
 					sem_monitor_cpu_usage_off_button.selected = true;
 				else if (Util_hid_is_released(key, sem_monitor_cpu_usage_off_button) && sem_monitor_cpu_usage_off_button.selected)
 					sem_should_cpu_usage_monitor_running = false;
-#endif
+#endif //DEF_CPU_USAGE_API_ENABLE
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_BATTERY)//Battery
 			{
@@ -1972,7 +1964,7 @@ void Sem_hid(Hid_info key)
 					}
 				}
 			}
-#endif
+#endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 		}
 
 		//Scroll bar
@@ -2026,11 +2018,11 @@ void Sem_hid(Hid_info key)
 			sem_check_update_button.selected = sem_close_updater_button.selected = sem_select_edtion_button.selected
 			= sem_3dsx_button.selected = sem_cia_button.selected = sem_back_to_patch_note_button.selected
 			= sem_dl_install_button.selected = sem_close_app_button.selected = false;
-#endif
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 #if DEF_CPU_USAGE_API_ENABLE
 			sem_monitor_cpu_usage_on_button.selected = sem_monitor_cpu_usage_off_button.selected = false;
-#endif
+#endif //DEF_CPU_USAGE_API_ENABLE
 
 			Draw_get_bot_ui_button()->selected = false;
 
@@ -2117,7 +2109,7 @@ static void Sem_get_system_info(void)
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 		if (!sem_internal_state.is_connect_test_succes)
 			state.wifi_signal += 4;//Without Internet access.
-#endif
+#endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 	}
 	else
 	{
@@ -2148,8 +2140,244 @@ static void Sem_get_system_info(void)
 	LightLock_Unlock(&sem_config_state_mutex);
 }
 
-#if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
+static void Sem_worker_callback(void)
+{
+	uint32_t result = DEF_ERR_OTHER;
 
+	if (sem_already_init)
+	{
+		if (sem_reload_msg_request)
+		{
+			Sem_config config = { 0, };
+
+			Sem_get_config(&config);
+
+			//Try to load specified language messages, if it fails
+			//(i.e. no translation available), load English messags.
+			DEF_LOG_RESULT_SMART(result, Sem_load_msg(config.lang), (result == DEF_SUCCESS), result);
+			if (result != DEF_SUCCESS)
+				DEF_LOG_RESULT_SMART(result, Sem_load_msg("en"), (result == DEF_SUCCESS), result);
+
+			DEF_LOG_RESULT_SMART(result, Menu_load_msg(config.lang), (result == DEF_SUCCESS), result);
+			if (result != DEF_SUCCESS)
+				DEF_LOG_RESULT_SMART(result, Menu_load_msg("en"), (result == DEF_SUCCESS), result);
+
+#ifdef DEF_SAPP0_ENABLE
+			DEF_LOG_RESULT_SMART(result, Sapp0_load_msg(config.lang), (result == DEF_SUCCESS), result);
+			if (result != DEF_SUCCESS)
+				DEF_LOG_RESULT_SMART(result, Sapp0_load_msg("en"), (result == DEF_SUCCESS), result);
+#endif //DEF_SAPP0_ENABLE
+
+#ifdef DEF_SAPP1_ENABLE
+			DEF_LOG_RESULT_SMART(result, Sapp1_load_msg(config.lang), (result == DEF_SUCCESS), result);
+			if (result != DEF_SUCCESS)
+				DEF_LOG_RESULT_SMART(result, Sapp1_load_msg("en"), (result == DEF_SUCCESS), result);
+#endif //DEF_SAPP1_ENABLE
+
+#ifdef DEF_SAPP2_ENABLE
+			DEF_LOG_RESULT_SMART(result, Sapp2_load_msg(config.lang), (result == DEF_SUCCESS), result);
+			if (result != DEF_SUCCESS)
+				DEF_LOG_RESULT_SMART(result, Sapp2_load_msg("en"), (result == DEF_SUCCESS), result);
+#endif //DEF_SAPP2_ENABLE
+
+#ifdef DEF_SAPP3_ENABLE
+			DEF_LOG_RESULT_SMART(result, Sapp3_load_msg(config.lang), (result == DEF_SUCCESS), result);
+			if (result != DEF_SUCCESS)
+				DEF_LOG_RESULT_SMART(result, Sapp3_load_msg("en"), (result == DEF_SUCCESS), result);
+#endif //DEF_SAPP3_ENABLE
+
+#ifdef DEF_SAPP4_ENABLE
+			DEF_LOG_RESULT_SMART(result, Sapp4_load_msg(config.lang), (result == DEF_SUCCESS), result);
+			if (result != DEF_SUCCESS)
+				DEF_LOG_RESULT_SMART(result, Sapp4_load_msg("en"), (result == DEF_SUCCESS), result);
+#endif //DEF_SAPP4_ENABLE
+
+#ifdef DEF_SAPP5_ENABLE
+			DEF_LOG_RESULT_SMART(result, Sapp5_load_msg(config.lang), (result == DEF_SUCCESS), result);
+			if (result != DEF_SUCCESS)
+				DEF_LOG_RESULT_SMART(result, Sapp5_load_msg("en"), (result == DEF_SUCCESS), result);
+#endif //DEF_SAPP5_ENABLE
+
+#ifdef DEF_SAPP6_ENABLE
+			DEF_LOG_RESULT_SMART(result, Sapp6_load_msg(config.lang), (result == DEF_SUCCESS), result);
+			if (result != DEF_SUCCESS)
+				DEF_LOG_RESULT_SMART(result, Sapp6_load_msg("en"), (result == DEF_SUCCESS), result);
+#endif //DEF_SAPP6_ENABLE
+
+#ifdef DEF_SAPP7_ENABLE
+			DEF_LOG_RESULT_SMART(result, Sapp7_load_msg(config.lang), (result == DEF_SUCCESS), result);
+			if (result != DEF_SUCCESS)
+				DEF_LOG_RESULT_SMART(result, Sapp7_load_msg("en"), (result == DEF_SUCCESS), result);
+#endif //DEF_SAPP7_ENABLE
+
+			sem_reload_msg_request = false;
+			Draw_set_refresh_needed(true);
+		}
+#if DEF_CPU_USAGE_API_ENABLE
+		else if(sem_is_cpu_usage_monitor_running != sem_should_cpu_usage_monitor_running)
+		{
+			if(sem_should_cpu_usage_monitor_running)
+			{
+				DEF_LOG_RESULT_SMART(result, Util_cpu_usage_init(), (result == DEF_SUCCESS), result);
+				if(result == DEF_SUCCESS)
+				{
+					Util_cpu_usage_set_show_flag(true);
+					sem_is_cpu_usage_monitor_running = true;
+				}
+				else
+				{
+					Util_err_set_error_message(Util_err_get_error_msg(result), "", DEF_LOG_GET_FUNCTION_NAME(), result);
+					Util_err_set_error_show_flag(true);
+					sem_should_cpu_usage_monitor_running = false;
+				}
+			}
+			else
+			{
+				Util_cpu_usage_set_show_flag(false);
+				Util_cpu_usage_exit();
+				sem_is_cpu_usage_monitor_running = false;
+			}
+		}
+#endif //DEF_CPU_USAGE_API_ENABLE
+		else if(sem_dump_log_request)
+		{
+			char file_name[64] = { 0, };
+			char dir_name[64] = { 0, };
+			Sem_state state = { 0, };
+
+			Sem_get_state(&state);
+
+			snprintf(file_name, sizeof(file_name), "%04" PRIu16 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 ".txt",
+			state.time.years, state.time.months, state.time.days, state.time.hours, state.time.minutes, state.time.seconds);
+			snprintf(dir_name, sizeof(dir_name), "%slogs/", DEF_MENU_MAIN_DIR);
+
+			DEF_LOG_RESULT_SMART(result, Util_log_dump(file_name, dir_name), (result == DEF_SUCCESS), result);
+			if(result == DEF_SUCCESS)
+				DEF_LOG_FORMAT("Log file was dumped at : %s%s", dir_name, file_name);
+
+			sem_dump_log_request = false;
+		}
+	}
+}
+
+void Sem_hw_config_thread(void* arg)
+{
+	DEF_LOG_STRING("Thread started.");
+	uint32_t count = 0;
+	uint64_t previous_ts = 0;
+
+	while (sem_thread_run)
+	{
+		uint32_t result = DEF_ERR_OTHER;
+		Sem_config config = { 0, };
+		Hid_info hid_info = { 0, };
+
+		Sem_get_config(&config);
+		Util_hid_query_key_state(&hid_info);
+
+		if(previous_ts + 50 <= osGetTime())
+		{
+			if(config.is_flash)
+			{
+				config.is_night = !config.is_night;
+				Sem_set_config(&config);
+
+				Draw_set_refresh_needed(true);
+			}
+			count++;
+
+			if(previous_ts + 100 >= osGetTime())
+				previous_ts += 50;
+			else
+				previous_ts = osGetTime();
+		}
+
+		if(count % 5 == 0)
+			Sem_get_system_info();
+
+		if(count >= 20)
+		{
+			Draw_set_refresh_needed(true);
+			count = 0;
+		}
+
+		if(sem_should_wifi_enabled != config.is_wifi_on)
+		{
+			result = Util_hw_config_set_wifi_state(sem_should_wifi_enabled);
+			if(result == DEF_SUCCESS || result == 0xC8A06C0D)//0xC8A06C0D means "already requested state".
+			{
+				//We need to directly update wifi state here, otherwise
+				//(i.e. with Sem_set_config()) it'll try to send a request again.
+				LightLock_Lock(&sem_config_state_mutex);
+				sem_config.is_wifi_on = sem_should_wifi_enabled;
+				LightLock_Unlock(&sem_config_state_mutex);
+			}
+			else
+				sem_should_wifi_enabled = !sem_should_wifi_enabled;
+		}
+
+		//If config.time_to_turn_off_lcd == 0, it means automatic turn off LCD feature has been disabled.
+		if(config.time_to_turn_off_lcd > 0 && (hid_info.afk_time_ms / 1000) > config.time_to_turn_off_lcd)
+		{
+			result = Util_hw_config_set_screen_state(true, true, false);
+			if(result != DEF_SUCCESS)
+				DEF_LOG_RESULT(Util_hw_config_set_screen_state, false, result);
+		}
+		else if(config.time_to_turn_off_lcd > 0 && (hid_info.afk_time_ms / 1000) > (uint16_t)(config.time_to_turn_off_lcd - 10))
+		{
+			result = Util_hw_config_set_screen_brightness(true, true, 10);
+			if(result != DEF_SUCCESS)
+				DEF_LOG_RESULT(Util_hw_config_set_screen_brightness, false, result);
+		}
+		else
+		{
+			result = Util_hw_config_set_screen_state(true, false, config.is_top_lcd_on);
+			if(result != DEF_SUCCESS)
+				DEF_LOG_RESULT(Util_hw_config_set_screen_state, false, result);
+
+			result = Util_hw_config_set_screen_state(false, true, config.is_bottom_lcd_on);
+			if(result != DEF_SUCCESS)
+				DEF_LOG_RESULT(Util_hw_config_set_screen_state, false, result);
+
+			if(config.top_lcd_brightness == config.bottom_lcd_brightness)
+			{
+				result = Util_hw_config_set_screen_brightness(true, true, config.top_lcd_brightness);
+				if(result != DEF_SUCCESS)
+					DEF_LOG_RESULT(Util_hw_config_set_screen_brightness, false, result);
+			}
+			else
+			{
+				result = Util_hw_config_set_screen_brightness(true, false, config.top_lcd_brightness);
+				if(result != DEF_SUCCESS)
+					DEF_LOG_RESULT(Util_hw_config_set_screen_brightness, false, result);
+
+				result = Util_hw_config_set_screen_brightness(false, true, config.bottom_lcd_brightness);
+				if(result != DEF_SUCCESS)
+					DEF_LOG_RESULT(Util_hw_config_set_screen_brightness, false, result);
+			}
+		}
+
+		//If config.time_to_enter_sleep == 0, it means automatic sleep feature has been disabled.
+		if(config.time_to_enter_sleep > 0 && (hid_info.afk_time_ms / 1000) > config.time_to_enter_sleep)
+		{
+			result = Util_hw_config_sleep_system((HW_CONFIG_WAKEUP_BIT_OPEN_SHELL | HW_CONFIG_WAKEUP_BIT_PRESS_HOME_BUTTON));
+			if(result == DEF_SUCCESS)
+			{
+				//We woke up from sleep.
+				Util_hid_reset_afk_time();
+			}
+			else
+				DEF_LOG_RESULT(Util_hw_config_sleep_system, false, result);
+		}
+
+		Util_sleep(DEF_THREAD_ACTIVE_SLEEP_TIME);
+	}
+
+	DEF_LOG_STRING("Thread exit.");
+	threadExit(0);
+}
+
+#if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 void Sem_encode_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
@@ -2408,245 +2636,7 @@ void Sem_record_thread(void* arg)
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
-
-#endif
-
-void Sem_worker_callback(void)
-{
-	uint32_t result = DEF_ERR_OTHER;
-
-	if (sem_already_init)
-	{
-		if (sem_reload_msg_request)
-		{
-			Sem_config config = { 0, };
-
-			Sem_get_config(&config);
-
-			//Try to load specified language messages, if it fails
-			//(i.e. no translation available), load English messags.
-			DEF_LOG_RESULT_SMART(result, Sem_load_msg(config.lang), (result == DEF_SUCCESS), result);
-			if (result != DEF_SUCCESS)
-				DEF_LOG_RESULT_SMART(result, Sem_load_msg("en"), (result == DEF_SUCCESS), result);
-
-			DEF_LOG_RESULT_SMART(result, Menu_load_msg(config.lang), (result == DEF_SUCCESS), result);
-			if (result != DEF_SUCCESS)
-				DEF_LOG_RESULT_SMART(result, Menu_load_msg("en"), (result == DEF_SUCCESS), result);
-
-			#ifdef DEF_SAPP0_ENABLE
-			DEF_LOG_RESULT_SMART(result, Sapp0_load_msg(config.lang), (result == DEF_SUCCESS), result);
-			if (result != DEF_SUCCESS)
-				DEF_LOG_RESULT_SMART(result, Sapp0_load_msg("en"), (result == DEF_SUCCESS), result);
-			#endif
-
-			#ifdef DEF_SAPP1_ENABLE
-			DEF_LOG_RESULT_SMART(result, Sapp1_load_msg(config.lang), (result == DEF_SUCCESS), result);
-			if (result != DEF_SUCCESS)
-				DEF_LOG_RESULT_SMART(result, Sapp1_load_msg("en"), (result == DEF_SUCCESS), result);
-			#endif
-
-			#ifdef DEF_SAPP2_ENABLE
-			DEF_LOG_RESULT_SMART(result, Sapp2_load_msg(config.lang), (result == DEF_SUCCESS), result);
-			if (result != DEF_SUCCESS)
-				DEF_LOG_RESULT_SMART(result, Sapp2_load_msg("en"), (result == DEF_SUCCESS), result);
-			#endif
-
-			#ifdef DEF_SAPP3_ENABLE
-			DEF_LOG_RESULT_SMART(result, Sapp3_load_msg(config.lang), (result == DEF_SUCCESS), result);
-			if (result != DEF_SUCCESS)
-				DEF_LOG_RESULT_SMART(result, Sapp3_load_msg("en"), (result == DEF_SUCCESS), result);
-			#endif
-
-			#ifdef DEF_SAPP4_ENABLE
-			DEF_LOG_RESULT_SMART(result, Sapp4_load_msg(config.lang), (result == DEF_SUCCESS), result);
-			if (result != DEF_SUCCESS)
-				DEF_LOG_RESULT_SMART(result, Sapp4_load_msg("en"), (result == DEF_SUCCESS), result);
-			#endif
-
-			#ifdef DEF_SAPP5_ENABLE
-			DEF_LOG_RESULT_SMART(result, Sapp5_load_msg(config.lang), (result == DEF_SUCCESS), result);
-			if (result != DEF_SUCCESS)
-				DEF_LOG_RESULT_SMART(result, Sapp5_load_msg("en"), (result == DEF_SUCCESS), result);
-			#endif
-
-			#ifdef DEF_SAPP6_ENABLE
-			DEF_LOG_RESULT_SMART(result, Sapp6_load_msg(config.lang), (result == DEF_SUCCESS), result);
-			if (result != DEF_SUCCESS)
-				DEF_LOG_RESULT_SMART(result, Sapp6_load_msg("en"), (result == DEF_SUCCESS), result);
-			#endif
-
-			#ifdef DEF_SAPP7_ENABLE
-			DEF_LOG_RESULT_SMART(result, Sapp7_load_msg(config.lang), (result == DEF_SUCCESS), result);
-			if (result != DEF_SUCCESS)
-				DEF_LOG_RESULT_SMART(result, Sapp7_load_msg("en"), (result == DEF_SUCCESS), result);
-			#endif
-
-			sem_reload_msg_request = false;
-			Draw_set_refresh_needed(true);
-		}
-#if DEF_CPU_USAGE_API_ENABLE
-		else if(sem_is_cpu_usage_monitor_running != sem_should_cpu_usage_monitor_running)
-		{
-			if(sem_should_cpu_usage_monitor_running)
-			{
-				DEF_LOG_RESULT_SMART(result, Util_cpu_usage_init(), (result == DEF_SUCCESS), result);
-				if(result == DEF_SUCCESS)
-				{
-					Util_cpu_usage_set_show_flag(true);
-					sem_is_cpu_usage_monitor_running = true;
-				}
-				else
-				{
-					Util_err_set_error_message(Util_err_get_error_msg(result), "", DEF_LOG_GET_FUNCTION_NAME(), result);
-					Util_err_set_error_show_flag(true);
-					sem_should_cpu_usage_monitor_running = false;
-				}
-			}
-			else
-			{
-				Util_cpu_usage_set_show_flag(false);
-				Util_cpu_usage_exit();
-				sem_is_cpu_usage_monitor_running = false;
-			}
-		}
-#endif
-		else if(sem_dump_log_request)
-		{
-			char file_name[64] = { 0, };
-			char dir_name[64] = { 0, };
-			Sem_state state = { 0, };
-
-			Sem_get_state(&state);
-
-			snprintf(file_name, sizeof(file_name), "%04" PRIu16 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 ".txt",
-			state.time.years, state.time.months, state.time.days, state.time.hours, state.time.minutes, state.time.seconds);
-			snprintf(dir_name, sizeof(dir_name), "%slogs/", DEF_MENU_MAIN_DIR);
-
-			DEF_LOG_RESULT_SMART(result, Util_log_dump(file_name, dir_name), (result == DEF_SUCCESS), result);
-			if(result == DEF_SUCCESS)
-				DEF_LOG_FORMAT("Log file was dumped at : %s%s", dir_name, file_name);
-
-			sem_dump_log_request = false;
-		}
-	}
-}
-
-void Sem_hw_config_thread(void* arg)
-{
-	DEF_LOG_STRING("Thread started.");
-	uint32_t count = 0;
-	uint64_t previous_ts = 0;
-
-	while (sem_thread_run)
-	{
-		uint32_t result = DEF_ERR_OTHER;
-		Sem_config config = { 0, };
-		Hid_info hid_info = { 0, };
-
-		Sem_get_config(&config);
-		Util_hid_query_key_state(&hid_info);
-
-		if(previous_ts + 50 <= osGetTime())
-		{
-			if(config.is_flash)
-			{
-				config.is_night = !config.is_night;
-				Sem_set_config(&config);
-
-				Draw_set_refresh_needed(true);
-			}
-			count++;
-
-			if(previous_ts + 100 >= osGetTime())
-				previous_ts += 50;
-			else
-				previous_ts = osGetTime();
-		}
-
-		if(count % 5 == 0)
-			Sem_get_system_info();
-
-		if(count >= 20)
-		{
-			Draw_set_refresh_needed(true);
-			count = 0;
-		}
-
-		if(sem_should_wifi_enabled != config.is_wifi_on)
-		{
-			result = Util_hw_config_set_wifi_state(sem_should_wifi_enabled);
-			if(result == DEF_SUCCESS || result == 0xC8A06C0D)//0xC8A06C0D means "already requested state".
-			{
-				//We need to directly update wifi state here, otherwise
-				//(i.e. with Sem_set_config()) it'll try to send a request again.
-				LightLock_Lock(&sem_config_state_mutex);
-				sem_config.is_wifi_on = sem_should_wifi_enabled;
-				LightLock_Unlock(&sem_config_state_mutex);
-			}
-			else
-				sem_should_wifi_enabled = !sem_should_wifi_enabled;
-		}
-
-		//If config.time_to_turn_off_lcd == 0, it means automatic turn off LCD feature has been disabled.
-		if(config.time_to_turn_off_lcd > 0 && (hid_info.afk_time_ms / 1000) > config.time_to_turn_off_lcd)
-		{
-			result = Util_hw_config_set_screen_state(true, true, false);
-			if(result != DEF_SUCCESS)
-				DEF_LOG_RESULT(Util_hw_config_set_screen_state, false, result);
-		}
-		else if(config.time_to_turn_off_lcd > 0 && (hid_info.afk_time_ms / 1000) > (uint16_t)(config.time_to_turn_off_lcd - 10))
-		{
-			result = Util_hw_config_set_screen_brightness(true, true, 10);
-			if(result != DEF_SUCCESS)
-				DEF_LOG_RESULT(Util_hw_config_set_screen_brightness, false, result);
-		}
-		else
-		{
-			result = Util_hw_config_set_screen_state(true, false, config.is_top_lcd_on);
-			if(result != DEF_SUCCESS)
-				DEF_LOG_RESULT(Util_hw_config_set_screen_state, false, result);
-
-			result = Util_hw_config_set_screen_state(false, true, config.is_bottom_lcd_on);
-			if(result != DEF_SUCCESS)
-				DEF_LOG_RESULT(Util_hw_config_set_screen_state, false, result);
-
-			if(config.top_lcd_brightness == config.bottom_lcd_brightness)
-			{
-				result = Util_hw_config_set_screen_brightness(true, true, config.top_lcd_brightness);
-				if(result != DEF_SUCCESS)
-					DEF_LOG_RESULT(Util_hw_config_set_screen_brightness, false, result);
-			}
-			else
-			{
-				result = Util_hw_config_set_screen_brightness(true, false, config.top_lcd_brightness);
-				if(result != DEF_SUCCESS)
-					DEF_LOG_RESULT(Util_hw_config_set_screen_brightness, false, result);
-
-				result = Util_hw_config_set_screen_brightness(false, true, config.bottom_lcd_brightness);
-				if(result != DEF_SUCCESS)
-					DEF_LOG_RESULT(Util_hw_config_set_screen_brightness, false, result);
-			}
-		}
-
-		//If config.time_to_enter_sleep == 0, it means automatic sleep feature has been disabled.
-		if(config.time_to_enter_sleep > 0 && (hid_info.afk_time_ms / 1000) > config.time_to_enter_sleep)
-		{
-			result = Util_hw_config_sleep_system((HW_CONFIG_WAKEUP_BIT_OPEN_SHELL | HW_CONFIG_WAKEUP_BIT_PRESS_HOME_BUTTON));
-			if(result == DEF_SUCCESS)
-			{
-				//We woke up from sleep.
-				Util_hid_reset_afk_time();
-			}
-			else
-				DEF_LOG_RESULT(Util_hw_config_sleep_system, false, result);
-		}
-
-		Util_sleep(DEF_THREAD_ACTIVE_SLEEP_TIME);
-	}
-
-	DEF_LOG_STRING("Thread exit.");
-	threadExit(0);
-}
+#endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 void Sem_check_connectivity_thread(void* arg)
@@ -2665,7 +2655,7 @@ void Sem_check_connectivity_thread(void* arg)
 			Util_httpc_dl_data(DEF_MENU_CHECK_INTERNET_URL, &http_buffer, 0x1000, NULL, &status_code, 0, NULL);
 #else
 			Util_curl_dl_data(DEF_MENU_CHECK_INTERNET_URL, &http_buffer, 0x1000, NULL, &status_code, 0, NULL);
-#endif
+#endif //DEF_HTTPC_API_ENABLE
 			free(http_buffer);
 			http_buffer = NULL;
 
@@ -2680,7 +2670,7 @@ void Sem_check_connectivity_thread(void* arg)
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
-#endif
+#endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 void Sem_update_thread(void* arg)
@@ -2745,7 +2735,7 @@ void Sem_update_thread(void* arg)
 				DEF_LOG_RESULT_SMART(result, Util_curl_save_data(url.c_str(), 0x20000, &sem_dled_size, NULL, 5, NULL, dir_path.c_str(), file_name.c_str()), (result == DEF_SUCCESS), result);
 #else
 				DEF_LOG_RESULT_SMART(result, Util_httpc_save_data(url.c_str(), 0x20000, &sem_dled_size, NULL, 5, NULL, dir_path.c_str(), file_name.c_str()), (result == DEF_SUCCESS), result);
-#endif
+#endif //DEF_CURL_API_ENABLE
 			}
 			else
 			{
@@ -2753,7 +2743,7 @@ void Sem_update_thread(void* arg)
 				DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(url.c_str(), &buffer, 0x20000, &sem_dled_size, NULL, 5, NULL), (result == DEF_SUCCESS), result);
 #else
 				DEF_LOG_RESULT_SMART(result, Util_httpc_dl_data(url.c_str(), &buffer, 0x20000, &sem_dled_size, NULL, 5, NULL), (result == DEF_SUCCESS), result);
-#endif
+#endif //DEF_CURL_API_ENABLE
 			}
 
 			if (result != DEF_SUCCESS)
@@ -2860,4 +2850,4 @@ void Sem_update_thread(void* arg)
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
-#endif
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)

@@ -1,9 +1,12 @@
+//Includes.
 extern "C"
 {
 #include "system/util/mic.h"
 }
 
 #if DEF_MIC_API_ENABLE
+extern "C"
+{
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -11,22 +14,26 @@ extern "C"
 
 #include "3ds.h"
 
-extern "C"
-{
 #include "system/util/err_types.h"
 #include "system/util/log.h"
 #include "system/util/util.h"
-}
 
+//Defines.
+//N/A.
 
-extern "C"
-{
+//Typedefs.
+//N/A.
+
+//Prototypes.
+//N/A.
+
+//Variables.
 bool util_mic_init = false;
 uint8_t* util_mic_buffer = NULL;
 uint32_t util_mic_last_pos = 0;
 uint32_t util_mic_sample_rate = 0;
 
-
+//Code.
 uint32_t Util_mic_init(uint32_t buffer_size)
 {
 	uint32_t result = DEF_ERR_OTHER;

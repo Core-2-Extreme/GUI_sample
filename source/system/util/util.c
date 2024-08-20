@@ -1,3 +1,4 @@
+//Includes.
 #include "system/util/util.h"
 
 #include <malloc.h>
@@ -16,17 +17,15 @@
 #include "system/util/str.h"
 #include "system/util/thread_types.h"
 
-
+//Defines.
 #define DEF_UTIL_LINEAR_THRESHOLD_SIZE		(uint32_t)(1000 * 32)
 #define DEF_UTIL_IS_LINEAR_RAM(ptr)			(bool)((ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE)) \
 											|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
 
+//Typedefs.
+//N/A.
 
-static inline bool Util_is_heap_low(void);
-static void* Util_realloc_heap_to_linear(void* ptr, size_t size);
-static void* Util_realloc_linear_to_heap(void* ptr, size_t size);
-static void* memalign_heap_only(size_t align, size_t size);
-static void* malloc_heap_only(size_t size);
+//Prototypes.
 extern void memcpy_asm(uint8_t*, uint8_t*, uint32_t);
 extern void* __real_malloc(size_t size);
 extern void* __real_calloc(size_t items, size_t size);
@@ -40,9 +39,14 @@ extern void* __real_linearRealloc(void* mem, size_t size);
 extern size_t __real_linearGetSize(void* mem);
 extern void __real_linearFree(void* mem);
 extern uint32_t __real_linearSpaceFree(void);
+static inline bool Util_is_heap_low(void);
+static void* Util_realloc_heap_to_linear(void* ptr, size_t size);
+static void* Util_realloc_linear_to_heap(void* ptr, size_t size);
+static void* memalign_heap_only(size_t align, size_t size);
+static void* malloc_heap_only(size_t size);
 void Util_check_core_thread(void* arg);
 
-
+//Variables.
 //Set heap size, rest of RAM will be linear RAM, it should be (1024 * 1024 * n).
 uint32_t __ctru_heap_size = (1024 * 1024 * 6);
 
@@ -53,7 +57,7 @@ LightLock util_malloc_mutex = 1;//Initially unlocked state.
 void* (*memalign_heap)(size_t align, size_t size) = memalign_heap_only;
 void* (*malloc_heap)(size_t size) = malloc_heap_only;
 
-
+//Code.
 static inline bool Util_is_heap_low(void)
 {
 	bool is_low = true;

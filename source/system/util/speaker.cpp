@@ -1,9 +1,12 @@
+//Includes.
 extern "C"
 {
 #include "system/util/speaker.h"
 }
 
 #if DEF_SPEAKER_API_ENABLE
+extern "C"
+{
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -11,21 +14,25 @@ extern "C"
 
 #include "3ds.h"
 
-extern "C"
-{
 #include "system/util/err_types.h"
 #include "system/util/log.h"
 #include "system/util/util.h"
-}
 
+//Defines.
+//N/A.
 
-extern "C"
-{
+//Typedefs.
+//N/A.
+
+//Prototypes.
+//N/A.
+
+//Variables.
 bool util_speaker_init = false;
 uint32_t util_speaker_music_ch[24] = { 0, };
 ndspWaveBuf util_ndsp_buffer[24][DEF_SPEAKER_MAX_BUFFERS] = { 0, };
 
-
+//Code.
 uint32_t Util_speaker_init(void)
 {
 	uint32_t result = DEF_ERR_OTHER;

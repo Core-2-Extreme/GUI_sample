@@ -1,22 +1,26 @@
+//Includes.
 extern "C"
 {
 #include "system/util/hid.h"
-}
 
 #include <stdbool.h>
 #include <stdint.h>
 
-extern "C"
-{
 #include "system/draw/draw.h"
 #include "system/util/err_types.h"
 #include "system/util/log.h"
 #include "system/util/thread_types.h"
-}
 
+//Defines.
+//N/A.
 
-extern "C"
-{
+//Typedefs.
+//N/A.
+
+//Prototypes.
+void Util_hid_scan_hid_thread(void* arg);
+
+//Variables.
 bool util_hid_thread_run = false;
 bool util_hid_init = false;
 bool util_hid_key_A_pressed = false;
@@ -102,14 +106,11 @@ int util_hid_touch_pos_y_moved = 0;
 int util_hid_held_time = 0;
 double util_hid_afk_time = 0;
 uint64_t util_hid_ts = 0;
-void (*util_hid_callbacks[DEF_HID_NUM_OF_CALLBACKS])(void) = { NULL, };
+void (*util_hid_callbacks[DEF_HID_NUM_OF_CALLBACKS])(void) = { 0, };
 Thread util_hid_scan_thread = NULL;
 LightLock util_hid_callback_mutex = 1;//Initially unlocked state.
 
-
-void Util_hid_scan_hid_thread(void* arg);
-
-
+//Code.
 uint32_t Util_hid_init(void)
 {
 	uint32_t result = DEF_ERR_OTHER;

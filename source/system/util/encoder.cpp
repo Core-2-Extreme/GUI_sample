@@ -1,15 +1,13 @@
+//Includes.
 extern "C"
 {
 #include "system/util/encoder.h"
-}
 
 #include <stdbool.h>
 #include <stdint.h>
 
 #include "3ds.h"
 
-extern "C"
-{
 #include "system/util/err_types.h"
 #include "system/util/log.h"
 #include "system/util/media_types.h"
@@ -17,7 +15,6 @@ extern "C"
 }
 
 #if DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
-
 extern "C"
 {
 #include "libswscale/swscale.h"
@@ -26,18 +23,30 @@ extern "C"
 #include "libavformat/avformat.h"
 #include "libavutil/opt.h"
 }
-
 #endif //DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
 
 #if DEF_ENCODER_IMAGE_API_ENABLE
-
+extern "C"
+{
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image/stb_image_write.h"
-
+}
 #endif //DEF_ENCODER_IMAGE_API_ENABLE
 
-#if DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
+//Defines.
+//N/A.
 
+//Typedefs.
+//N/A.
+
+//Prototypes.
+#if DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
+static void Util_encoder_audio_exit(uint8_t session);
+static void Util_encoder_video_exit(uint8_t session);
+#endif //DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
+
+//Variables.
+#if DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
 bool util_audio_encoder_init[DEF_ENCODER_MAX_SESSIONS] = { 0, };
 uint8_t util_audio_stream_index[DEF_ENCODER_MAX_SESSIONS] = { 0, };
 uint8_t* util_audio_encoder_cache[DEF_ENCODER_MAX_SESSIONS] = { 0, };
@@ -66,12 +75,10 @@ bool util_encoder_created_file[DEF_ENCODER_MAX_SESSIONS] = { 0, };
 bool util_encoder_wrote_header[DEF_ENCODER_MAX_SESSIONS] = { 0, };
 uint8_t util_encoder_next_stream_index[DEF_ENCODER_MAX_SESSIONS] = { 0, };
 AVFormatContext* util_encoder_format_context[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+#endif //DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
 
-
-static void Util_encoder_audio_exit(uint8_t session);
-static void Util_encoder_video_exit(uint8_t session);
-
-
+//Code.
+#if DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
 uint32_t Util_encoder_create_output_file(const char* path, uint8_t session)
 {
 	int32_t ffmpeg_result = 0;
@@ -441,7 +448,6 @@ uint32_t Util_encoder_write_header(uint8_t session)
 	if(!util_encoder_created_file[session])
 		goto not_inited;
 
-
 	util_encoder_format_context[session]->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 	ffmpeg_result = avformat_write_header(util_encoder_format_context[session], NULL);
 	if(ffmpeg_result != 0)
@@ -696,11 +702,9 @@ static void Util_encoder_video_exit(uint8_t session)
 	}
 	util_video_encoder_init[session] = false;
 }
-
-#endif
+#endif //DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
 
 #if DEF_ENCODER_IMAGE_API_ENABLE
-
 uint32_t Util_encoder_image_encode(const char* path, uint8_t* raw_data, uint32_t width, uint32_t height, Media_i_codec codec, uint8_t quality)
 {
 	int32_t stbi_result = 0;
@@ -740,5 +744,4 @@ uint32_t Util_encoder_image_encode(const char* path, uint8_t* raw_data, uint32_t
 	stbi_api_failed:
 	return DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS;
 }
-
-#endif //DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
+#endif //DEF_ENCODER_IMAGE_API_ENABLE

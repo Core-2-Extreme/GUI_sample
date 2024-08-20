@@ -1,7 +1,7 @@
+//Includes.
 extern "C"
 {
 #include "system/util/curl.h"
-}
 
 #if DEF_CURL_API_ENABLE
 #include <stdbool.h>
@@ -10,9 +10,8 @@ extern "C"
 #include <string.h>
 
 #include "3ds.h"
+#include "curl/curl.h"
 
-extern "C"
-{
 #include "system/menu.h"
 #include "system/util/err_types.h"
 #include "system/util/file.h"
@@ -21,15 +20,10 @@ extern "C"
 #include "system/util/util.h"
 }
 
-extern "C"
-{
-#include "curl/curl.h"
-}
+//Defines.
+//N/A.
 
-
-bool util_curl_init = false;
-uint32_t* util_curl_buffer = NULL;
-
+//Typedefs.
 typedef struct
 {
 	uint8_t* data;
@@ -50,7 +44,7 @@ typedef struct
 	int32_t (*callback)(void* buffer, uint32_t max_size, void* user_data);
 } Upload_data;
 
-
+//Prototypes.
 static size_t Util_curl_write_callback(char* input_data, size_t size, size_t nmemb, void* user_data);
 static size_t Util_curl_save_callback(char* input_data, size_t size, size_t nmemb, void* user_data);
 static size_t Util_curl_read_callback(char* output_buffer, size_t size, size_t nitems, void* user_data);
@@ -70,7 +64,11 @@ static uint32_t Util_curl_post_and_save_data_internal(const char* url, uint8_t* 
 uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* dir_path,
 const char* file_name, int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data);
 
+//Variables.
+bool util_curl_init = false;
+uint32_t* util_curl_buffer = NULL;
 
+//Code.
 uint32_t Util_curl_init(uint32_t buffer_size)
 {
 	uint32_t result = DEF_ERR_OTHER;
@@ -643,17 +641,6 @@ static uint32_t Util_curl_download_data(CURL** curl_handle, Http_data* http_data
 	return DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
 }
 
-static void Util_curl_close(CURL** curl_handle)
-{
-	if(!curl_handle)
-		return;
-
-	if(*curl_handle)
-		curl_easy_cleanup(*curl_handle);
-
-	*curl_handle = NULL;
-}
-
 static uint32_t Util_curl_save_data_internal(CURL** curl_handle, Http_data* http_data)
 {
 	uint32_t result = DEF_ERR_OTHER;
@@ -715,6 +702,17 @@ static uint32_t Util_curl_save_data_internal(CURL** curl_handle, Http_data* http
 	http_data->current_size = 0;
 	http_data->max_size = 0;
 	return DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
+}
+
+static void Util_curl_close(CURL** curl_handle)
+{
+	if(!curl_handle)
+		return;
+
+	if(*curl_handle)
+		curl_easy_cleanup(*curl_handle);
+
+	*curl_handle = NULL;
 }
 
 static uint32_t Util_curl_post_and_dl_data_internal(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data,
@@ -929,5 +927,4 @@ const char* file_name, int32_t (*read_callback)(void* buffer, uint32_t max_size,
 
 	return result;
 }
-
-#endif
+#endif //DEF_CURL_API_ENABLE

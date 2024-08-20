@@ -1,25 +1,65 @@
+//Includes.
 extern "C"
 {
 #include "system/util/converter.h"
 }
 
-#if DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE
+#if (DEF_CONVERTER_HW_API_ENABLE || DEF_CONVERTER_SW_ASM_API_ENABLE || DEF_CONVERTER_SW_API_ENABLE || DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE || DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE)
+extern "C"
+{
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "3ds.h"
+}
+#if DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE
+extern "C"
+{
+#include "libswscale/swscale.h"
+#include "libavutil/imgutils.h"
+}
+#endif //DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE
+
+#if DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE
+extern "C"
+{
+#include "libswresample/swresample.h"
+}
+#endif //DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE
 
 extern "C"
 {
 #include "system/util/err_types.h"
 #include "system/util/log.h"
 #include "system/util/util.h"
-
-#include "libswscale/swscale.h"
-#include "libavutil/imgutils.h"
 }
 
+//Defines.
+#if DEF_CONVERTER_SW_API_ENABLE
+#define CLIP(x) ((x) > 255 ? 255 : (x) < 0 ? 0 : x)
+// YUV -> RGB
+#define C(y) ((y) - 16)
+#define D(u) ((u) - 128)
+#define E(v) ((v) - 128)
 
+#define YUV2R(y, v) 	CLIP((298 * C(y) + 409 * E(v) + 128) >> 8)
+#define YUV2G(y, u, v) 	CLIP((298 * C(y) - 100 * D(u) - 208 * E(v) + 128) >> 8)
+#define YUV2B(y, u) 	CLIP((298 * C(y) + 516 * D(u) + 128) >> 8)
+#endif //DEF_CONVERTER_SW_API_ENABLE
+
+//Typedefs.
+//N/A.
+
+//Prototypes.
+#if DEF_CONVERTER_SW_ASM_API_ENABLE
+extern void yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t* rgb565, uint32_t width, uint32_t height);
+extern void yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t* rgb888, uint32_t width, uint32_t height);
+#endif //DEF_CONVERTER_SW_ASM_API_ENABLE
+
+//Variables.
+#if DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE
 //Translation table for Raw_pixel -> AVPixelFormat.
 AVPixelFormat util_converter_pixel_format_table[RAW_PIXEL_MAX] =
 {
@@ -171,16 +211,9 @@ AVPixelFormat util_converter_pixel_format_table[RAW_PIXEL_MAX] =
 	AV_PIX_FMT_YA16BE,
 	AV_PIX_FMT_YA16LE,
 };
-
-#endif
+#endif //DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE
 
 #if DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE
-
-extern "C"
-{
-#include "libswresample/swresample.h"
-}
-
 //Translation table for Raw_sample -> AVSampleFormat.
 AVSampleFormat util_converter_sample_format_table[RAW_SAMPLE_MAX] =
 {
@@ -197,7 +230,6 @@ AVSampleFormat util_converter_sample_format_table[RAW_SAMPLE_MAX] =
 	AV_SAMPLE_FMT_DBL,
 	AV_SAMPLE_FMT_DBLP,
 };
-
 uint8_t util_converter_sample_format_size_table[] =
 {
 	sizeof(uint8_t),
@@ -213,38 +245,14 @@ uint8_t util_converter_sample_format_size_table[] =
 	sizeof(double),
 	sizeof(double),
 };
-
-#endif
-
-#if DEF_CONVERTER_SW_API_ENABLE
-
-#define CLIP(x) ((x) > 255 ? 255 : (x) < 0 ? 0 : x)
-// YUV -> RGB
-#define C(y) ((y) - 16)
-#define D(u) ((u) - 128)
-#define E(v) ((v) - 128)
-
-#define YUV2R(y, v) 	CLIP((298 * C(y) + 409 * E(v) + 128) >> 8)
-#define YUV2G(y, u, v) 	CLIP((298 * C(y) - 100 * D(u) - 208 * E(v) + 128) >> 8)
-#define YUV2B(y, u) 	CLIP((298 * C(y) + 516 * D(u) + 128) >> 8)
-
-#endif
-
-#if DEF_CONVERTER_SW_ASM_API_ENABLE
-
-extern "C" void yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t* rgb565, uint32_t width, uint32_t height);
-extern "C" void yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t* rgb888, uint32_t width, uint32_t height);
-
-#endif
+#endif //DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE
 
 #if DEF_CONVERTER_HW_API_ENABLE
-
 bool util_y2r_init = false;
+#endif //DEF_CONVERTER_HW_API_ENABLE
 
-#endif
-
+//Code.
 #if DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE
-
 uint32_t Util_converter_convert_color(Converter_color_parameters* parameters)
 {
 	//We can't get rid of this "int" because library uses "int" type as args.
@@ -319,11 +327,9 @@ uint32_t Util_converter_convert_color(Converter_color_parameters* parameters)
 	sws_freeContext(sws_context);
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
-
-#endif
+#endif //DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE
 
 #if DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE
-
 uint32_t Util_converter_convert_audio(Converter_audio_parameters* parameters)
 {
 	uint8_t* src_data[AV_NUM_DATA_POINTERS] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
@@ -412,11 +418,9 @@ uint32_t Util_converter_convert_audio(Converter_audio_parameters* parameters)
 	av_channel_layout_uninit(&in_ch_layout);
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
-
-#endif
+#endif //DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE
 
 #if DEF_CONVERTER_SW_API_ENABLE
-
 uint32_t Util_converter_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t** rgb565, uint32_t width, uint32_t height)
 {
 	uint32_t index = 0;
@@ -594,11 +598,9 @@ uint32_t Util_converter_rgb888_rotate_90_degree(uint8_t* rgb888, uint8_t** rotat
 	out_of_memory:
 	return DEF_ERR_OUT_OF_MEMORY;
 }
-
-#endif
+#endif //DEF_CONVERTER_SW_API_ENABLE
 
 #if DEF_CONVERTER_SW_ASM_API_ENABLE
-
 uint32_t Util_converter_yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t** rgb565, uint32_t width, uint32_t height)
 {
 	if(!yuv420p || !rgb565 || width == 0 || height == 0 || width % 2 != 0 || height % 2 != 0)
@@ -638,11 +640,9 @@ uint32_t Util_converter_yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t** rgb8
 	out_of_memory:
 	return DEF_ERR_OUT_OF_MEMORY;
 }
-
-#endif
+#endif //DEF_CONVERTER_SW_ASM_API_ENABLE
 
 #if DEF_CONVERTER_HW_API_ENABLE
-
 uint32_t Util_converter_y2r_init(void)
 {
 	uint32_t result = DEF_ERR_OTHER;
@@ -768,5 +768,6 @@ void Util_converter_y2r_exit(void)
 
 	util_y2r_init = false;
 }
+#endif //DEF_CONVERTER_HW_API_ENABLE
 
-#endif
+#endif //(DEF_CONVERTER_HW_API_ENABLE || DEF_CONVERTER_SW_ASM_API_ENABLE || DEF_CONVERTER_SW_API_ENABLE || DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE || DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE)

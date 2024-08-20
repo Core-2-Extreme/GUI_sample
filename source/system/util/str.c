@@ -1,3 +1,4 @@
+//Includes.
 #include "system/util/str.h"
 
 #include <stdarg.h>
@@ -8,11 +9,20 @@
 
 #include "system/util/err_types.h"
 
+//Defines.
+//N/A.
 
+//Typedefs.
+//N/A.
+
+//Prototypes.
 static uint32_t Util_str_get_optimal_buffer_capacity(Str_data* string);
 static uint32_t Util_str_vformat_internal(Str_data* string, bool is_append, const char* format_string, va_list args);
 
+//Variables.
+//N/A.
 
+//Code.
 uint32_t Util_str_init(Str_data* string)
 {
 	if(!string)

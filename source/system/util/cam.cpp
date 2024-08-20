@@ -1,7 +1,7 @@
+//Includes.
 extern "C"
 {
 #include "system/util/cam.h"
-}
 
 #if DEF_CAM_API_ENABLE
 #include <stdbool.h>
@@ -9,16 +9,21 @@ extern "C"
 
 #include "3ds.h"
 
-extern "C"
-{
 #include "system/util/err_types.h"
 #include "system/util/raw_types.h"
 #include "system/util/log.h"
 #include "system/util/util.h"
-}
 
-extern "C"
-{
+//Defines.
+//N/A.
+
+//Typedefs.
+//N/A.
+
+//Prototypes.
+//N/A.
+
+//Variables.
 bool util_cam_init = false;
 uint16_t util_cam_width = 640;
 uint16_t util_cam_height = 480;
@@ -26,6 +31,7 @@ uint32_t util_cam_buffer_size = 0;
 Cam_resolution util_cam_resolution = CAM_RES_640x480;
 Cam_port util_cam_port = CAM_PORT_OUT_RIGHT;
 
+//Code.
 uint32_t Util_cam_init(Raw_pixel color_format)
 {
 	uint16_t width = 0;

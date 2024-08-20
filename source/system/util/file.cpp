@@ -1,7 +1,7 @@
+//Includes.
 extern "C"
 {
 #include "system/util/file.h"
-}
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -11,8 +11,6 @@ extern "C"
 
 #include "3ds.h"
 
-extern "C"
-{
 #include "system/util/err_types.h"
 #include "system/util/expl.h"
 #include "system/util/log.h"
@@ -20,10 +18,19 @@ extern "C"
 #include "system/util/util.h"
 }
 
+//Defines.
+//N/A.
 
+//Typedefs.
+//N/A.
+
+//Prototypes.
 static uint32_t Util_file_make_path(const char* file_name, const char* dir_path, uint16_t** utf16_path, uint16_t** utf16_dir_path);
 
+//Variables.
+//N/A.
 
+//Code.
 uint32_t Util_file_save_to_file(const char* file_name, const char* dir_path, const uint8_t* write_data, uint32_t size, bool delete_old_file)
 {
 	uint16_t* utf16_dir_path = NULL;

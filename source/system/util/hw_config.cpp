@@ -1,23 +1,29 @@
+//Includes.
 extern "C"
 {
 #include "system/util/hw_config.h"
-}
 
 #include <stdbool.h>
 #include <stdint.h>
 
-extern "C"
-{
 #include "3ds.h"
 
 #include "system/util/err_types.h"
 #include "system/util/log.h"
-}
 
+//Defines.
+//N/A.
 
-extern "C"
-{
+//Typedefs.
+//N/A.
 
+//Prototypes.
+//N/A.
+
+//Variables.
+//N/A.
+
+//Code.
 uint32_t Util_hw_config_set_screen_brightness(bool top_screen, bool bottom_screen, uint8_t brightness)
 {
 	uint32_t result = DEF_ERR_OTHER;

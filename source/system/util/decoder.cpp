@@ -1,15 +1,13 @@
+//Includes.
 extern "C"
 {
 #include "system/util/decoder.h"
-}
 
 #include <stdbool.h>
 #include <stdint.h>
 
 #include "3ds.h"
 
-extern "C"
-{
 #include "system/util/converter_types.h"
 #include "system/util/err_types.h"
 #include "system/util/fake_pthread.h"
@@ -19,33 +17,39 @@ extern "C"
 }
 
 #if DEF_DECODER_VIDEO_AUDIO_API_ENABLE
-
 extern "C"
 {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 #include "libavutil/imgutils.h"
 }
-
-#endif
+#endif //DEF_DECODER_VIDEO_AUDIO_API_ENABLE
 
 #if DEF_DECODER_IMAGE_API_ENABLE
-
+extern "C"
+{
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
+}
+#endif //DEF_DECODER_IMAGE_API_ENABLE
 
-#endif
+//Defines.
+//N/A.
 
+//Typedefs.
+//N/A.
+
+//Prototypes.
 #if DEF_DECODER_VIDEO_AUDIO_API_ENABLE
-
-
+extern "C" void memcpy_asm(uint8_t*, uint8_t*, uint32_t);
 static void Util_decoder_audio_exit(uint8_t session);
 static void Util_decoder_video_exit(uint8_t session);
 static void Util_decoder_mvd_exit(uint8_t session);
 static void Util_decoder_subtitle_exit(uint8_t session);
-extern "C" void memcpy_asm(uint8_t*, uint8_t*, uint32_t);
+#endif //DEF_DECODER_VIDEO_AUDIO_API_ENABLE
 
-
+//Variables.
+#if DEF_DECODER_VIDEO_AUDIO_API_ENABLE
 bool util_audio_decoder_init[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
 bool util_audio_decoder_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
 bool util_audio_decoder_cache_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
@@ -368,7 +372,10 @@ uint8_t util_audio_decoder_sample_format_size_table[] =
 	sizeof(int64_t),
 	sizeof(int64_t),
 };
+#endif //DEF_DECODER_VIDEO_AUDIO_API_ENABLE
 
+//Code.
+#if DEF_DECODER_VIDEO_AUDIO_API_ENABLE
 //We can't get rid of this "int" because library uses "int" type as args.
 // void Util_decoder_video_log_callback(void *avcl, int level, const char *fmt, va_list list)
 // {
@@ -1913,7 +1920,6 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 		else
 			util_mvd_video_decoder_next_cached_pts_index = 0;
 
-
 		if(util_mvd_video_decoder_first)
 		{
 			//Do I need to send same nal data at first frame?
@@ -2358,7 +2364,7 @@ uint32_t Util_decoder_video_get_image(uint8_t** raw_data, double* current_pos, u
 	uint32_t dma_result[3] = { 0, 0, 0, };
 	Handle dma_handle[3] = { 0, 0, 0, };
 	DmaConfig dma_config;
-#endif
+#endif //DEF_DECODER_DMA_ENABLE
 
 	if(!raw_data || !current_pos || width == 0 || height == 0
 	|| packet_index >= DEF_DECODER_MAX_VIDEO_TRACKS || session >= DEF_DECODER_MAX_SESSIONS)
@@ -2452,7 +2458,7 @@ uint32_t Util_decoder_video_get_image(uint8_t** raw_data, double* current_pos, u
 		memcpy_asm((*raw_data) + y_size, util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1], uv_size);
 		memcpy_asm((*raw_data) + y_size + uv_size, util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2], uv_size);
 	}
-#endif
+#endif //DEF_DECODER_DMA_ENABLE
 
 	av_frame_free(&util_video_decoder_raw_image[session][packet_index][buffer_num]);
 
@@ -2491,7 +2497,7 @@ uint32_t Util_decoder_mvd_get_image(uint8_t** raw_data, double* current_pos, uin
 	uint32_t dma_result = 0;
 	Handle dma_handle = 0;
 	DmaConfig dma_config;
-#endif
+#endif //DEF_DECODER_DMA_ENABLE
 
 	if(!raw_data || !current_pos || width == 0 || height == 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
@@ -2538,7 +2544,7 @@ uint32_t Util_decoder_mvd_get_image(uint8_t** raw_data, double* current_pos, uin
 	svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (uint32_t)*raw_data, cpy_size);
 #else
 	memcpy_asm(*raw_data, util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size);
-#endif
+#endif //DEF_DECODER_DMA_ENABLE
 
 	buffer_num = util_mvd_video_decoder_raw_image_ready_index[session];
 
@@ -2808,11 +2814,9 @@ static void Util_decoder_subtitle_exit(uint8_t session)
 		}
 	}
 }
-
-#endif
+#endif //DEF_DECODER_VIDEO_AUDIO_API_ENABLE
 
 #if DEF_DECODER_IMAGE_API_ENABLE
-
 uint32_t Util_decoder_image_decode(const char* path, uint8_t** raw_data, uint32_t* width, uint32_t* height, Raw_pixel* format)
 {
 	//We can't get rid of this "int" because library uses "int" type as args.
@@ -2884,5 +2888,4 @@ uint32_t Util_decoder_image_decode_data(uint8_t* compressed_data, uint32_t compr
 	stbi_api_failed:
 	return DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS;
 }
-
-#endif
+#endif //DEF_DECODER_IMAGE_API_ENABLE
