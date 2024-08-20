@@ -22,7 +22,7 @@ extern "C"
 #include "system/util/str.h"
 #include "system/util/thread_types.h"
 #include "system/util/watch.h"
-#include "system/util/util_c.h"
+#include "system/util/util.h"
 }
 
 #include "sapp0.hpp"

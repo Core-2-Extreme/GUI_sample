@@ -15,7 +15,7 @@ extern "C"
 #include "system/util/fake_pthread.h"
 #include "system/util/log.h"
 #include "system/util/media_types.h"
-#include "system/util/util_c.h"
+#include "system/util/util.h"
 }
 
 #if DEF_DECODER_VIDEO_AUDIO_API_ENABLE

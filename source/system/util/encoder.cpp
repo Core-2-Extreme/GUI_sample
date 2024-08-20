@@ -13,7 +13,7 @@ extern "C"
 #include "system/util/err_types.h"
 #include "system/util/log.h"
 #include "system/util/media_types.h"
-#include "system/util/util_c.h"
+#include "system/util/util.h"
 }
 
 #if DEF_ENCODER_VIDEO_AUDIO_API_ENABLE

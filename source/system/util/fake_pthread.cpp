@@ -15,7 +15,7 @@ extern "C"
 {
 #include "system/util/err_types.h"
 #include "system/util/thread_types.h"
-#include "system/util/util_c.h"
+#include "system/util/util.h"
 
 
 int util_fake_pthread_core_offset = 0;

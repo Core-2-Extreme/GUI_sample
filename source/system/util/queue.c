@@ -8,7 +8,7 @@
 #include <3ds/synchronization.h>
 
 #include "system/util/err_types.h"
-#include "system/util/util_c.h"
+#include "system/util/util.h"
 
 
 LightLock util_queue_mutex = 1;//Initially unlocked state.

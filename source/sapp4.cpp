@@ -18,7 +18,7 @@ extern "C"
 	#include "system/util/speaker.h"
 	#include "system/util/str.h"
 	#include "system/util/thread_types.h"
-	#include "system/util/util_c.h"
+	#include "system/util/util.h"
 	#include "system/util/watch.h"
 }
 

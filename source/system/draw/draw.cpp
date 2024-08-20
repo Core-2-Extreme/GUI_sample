@@ -15,7 +15,7 @@ extern "C"
 	#include "system/util/hid.h"
 	#include "system/util/log.h"
 	#include "system/util/str.h"
-	#include "system/util/util_c.h"
+	#include "system/util/util.h"
 	#include "system/util/watch.h"
 }
 

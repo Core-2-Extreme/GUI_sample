@@ -14,7 +14,7 @@ extern "C"
 	#include "system/util/file.h"
 	#include "system/util/log.h"
 	#include "system/util/str.h"
-	#include "system/util/util_c.h"
+	#include "system/util/util.h"
 }
 
 
