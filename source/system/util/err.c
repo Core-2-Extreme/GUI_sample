@@ -1,6 +1,4 @@
 //Includes.
-extern "C"
-{
 #include "system/util/err.h"
 
 #include <stdbool.h>
@@ -308,5 +306,4 @@ static void Util_err_save_callback(void)
 		Util_str_free(&file_name);
 		Util_str_free(&save_data);
 	}
-}
 }

@@ -1,12 +1,7 @@
 //Includes.
-extern "C"
-{
 #include "system/util/httpc.h"
-}
 
 #if DEF_HTTPC_API_ENABLE
-extern "C"
-{
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -20,7 +15,6 @@ extern "C"
 #include "system/util/log.h"
 #include "system/util/str.h"
 #include "system/util/util.h"
-}
 
 //Defines.
 //N/A.
@@ -35,7 +29,7 @@ static uint32_t Util_httpc_post_request(httpcContext* httpc_context, const char*
 static void Util_httpc_get_response(httpcContext* httpc_context, uint16_t* status_code, Str_data* new_url, bool* redirected);
 static uint32_t Util_httpc_download_data(httpcContext* httpc_context, uint8_t** data, uint32_t max_size, uint32_t* downloaded_size);
 static void Util_httpc_close(httpcContext* httpc_context);
-static uint32_t Util_httpc_save_data(httpcContext* httpc_context, uint32_t buffer_size, uint32_t* downloaded_size, const char* dir_path, const char* file_name);
+static uint32_t Util_httpc_save_data_internal(httpcContext* httpc_context, uint32_t buffer_size, uint32_t* downloaded_size, const char* dir_path, const char* file_name);
 
 //Variables.
 bool util_httpc_init = false;
@@ -265,7 +259,7 @@ uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* fil
 
 		if (!is_redirected)
 		{
-			result = Util_httpc_save_data(&httpc_context, buffer_size, downloaded_size, dir_path, file_name);
+			result = Util_httpc_save_data_internal(&httpc_context, buffer_size, downloaded_size, dir_path, file_name);
 			if(result != DEF_SUCCESS)
 				goto api_failed;
 		}
@@ -493,7 +487,7 @@ uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* di
 
 		if (!is_redirected)
 		{
-			result = Util_httpc_save_data(&httpc_context, buffer_size, downloaded_size, dir_path, file_name);
+			result = Util_httpc_save_data_internal(&httpc_context, buffer_size, downloaded_size, dir_path, file_name);
 			if(result != DEF_SUCCESS)
 				goto api_failed;
 		}
@@ -710,7 +704,7 @@ static void Util_httpc_close(httpcContext* httpc_context)
 	httpc_context = NULL;
 }
 
-static uint32_t Util_httpc_save_data(httpcContext* httpc_context, uint32_t buffer_size, uint32_t* downloaded_size, const char* dir_path, const char* file_name)
+static uint32_t Util_httpc_save_data_internal(httpcContext* httpc_context, uint32_t buffer_size, uint32_t* downloaded_size, const char* dir_path, const char* file_name)
 {
 	bool first = true;
 	uint8_t* cache = NULL;

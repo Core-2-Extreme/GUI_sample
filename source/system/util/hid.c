@@ -1,6 +1,4 @@
 //Includes.
-extern "C"
-{
 #include "system/util/hid.h"
 
 #include <stdbool.h>
@@ -546,5 +544,4 @@ void Util_hid_scan_hid_thread(void* arg)
 	}
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
-}
 }

@@ -1,6 +1,4 @@
 //Includes.
-extern "C"
-{
 #include "system/util/file.h"
 
 #include <stdbool.h>
@@ -16,7 +14,6 @@ extern "C"
 #include "system/util/log.h"
 #include "system/util/str.h"
 #include "system/util/util.h"
-}
 
 //Defines.
 //N/A.

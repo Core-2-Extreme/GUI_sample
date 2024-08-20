@@ -1,6 +1,4 @@
 //Includes.
-extern "C"
-{
 #include "system/util/hw_config.h"
 
 #include <stdbool.h>
@@ -185,5 +183,4 @@ uint32_t Util_hw_config_sleep_system(Hw_config_wakeup_bit wakeup_events)
 	not_allowed:
 	nintendo_api_failed:
 	return result;
-}
 }

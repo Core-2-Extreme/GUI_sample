@@ -1,6 +1,4 @@
 //Includes.
-extern "C"
-{
 #include "system/util/cam.h"
 
 #if DEF_CAM_API_ENABLE
@@ -629,6 +627,5 @@ void Util_cam_exit(void)
 
 	camExit();
 	util_cam_init = false;
-}
 }
 #endif //DEF_CAM_API_ENABLE

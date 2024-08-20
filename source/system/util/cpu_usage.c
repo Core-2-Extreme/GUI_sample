@@ -1,6 +1,4 @@
 //Includes.
-extern "C"
-{
 #include "system/util/cpu_usage.h"
 
 #if DEF_CPU_USAGE_API_ENABLE
@@ -261,6 +259,5 @@ void Util_cpu_usage_calculate_thread(void* arg)
 
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
-}
 }
 #endif //DEF_CPU_USAGE_API_ENABLE

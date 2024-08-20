@@ -1,12 +1,7 @@
 //Includes.
-extern "C"
-{
 #include "system/util/keyboard.h"
-}
 
 #if DEF_KEYBOARD_API_ENABLE
-extern "C"
-{
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -17,7 +12,6 @@ extern "C"
 #include "system/util/err_types.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
-}
 
 //Defines.
 //N/A.

@@ -1,6 +1,4 @@
 //Includes.
-extern "C"
-{
 #include "system/util/fake_pthread.h"
 
 #include <malloc.h>
@@ -226,5 +224,4 @@ long sysconf(int name)
 	}
 	else
 		return -1;
-}
 }

@@ -1,6 +1,4 @@
 //Includes.
-extern "C"
-{
 #include "system/util/encoder.h"
 
 #include <stdbool.h>
@@ -12,25 +10,18 @@ extern "C"
 #include "system/util/log.h"
 #include "system/util/media_types.h"
 #include "system/util/util.h"
-}
 
 #if DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
-extern "C"
-{
 #include "libswscale/swscale.h"
 #include "libavcodec/avcodec.h"
 #include "libswresample/swresample.h"
 #include "libavformat/avformat.h"
 #include "libavutil/opt.h"
-}
 #endif //DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
 
 #if DEF_ENCODER_IMAGE_API_ENABLE
-extern "C"
-{
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image/stb_image_write.h"
-}
 #endif //DEF_ENCODER_IMAGE_API_ENABLE
 
 //Defines.

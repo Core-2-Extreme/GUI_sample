@@ -1,6 +1,4 @@
 //Includes.
-extern "C"
-{
 #include "system/util/curl.h"
 
 #if DEF_CURL_API_ENABLE
@@ -18,7 +16,6 @@ extern "C"
 #include "system/util/log.h"
 #include "system/util/str.h"
 #include "system/util/util.h"
-}
 
 //Defines.
 //N/A.
@@ -460,7 +457,7 @@ static uint32_t Util_curl_request(CURL** curl_handle, const char* url, CURLoptio
 	}
 
 	if(method == CURLOPT_HTTPPOST)
-		result = curl_easy_setopt(*curl_handle, CURLOPT_HTTPPOST, 1);
+		result = curl_easy_setopt(*curl_handle, CURLOPT_POST, 1);
 	else
 		result = curl_easy_setopt(*curl_handle, CURLOPT_HTTPGET, 1);
 
@@ -577,7 +574,8 @@ static void Util_curl_get_response(CURL** curl_handle, uint16_t* status_code, St
 
 	if(status_code)
 	{
-		uint32_t out = 0;
+		//We can't get rid of this "long" because library uses "long" type as args.
+		long out = 0;
 
 		result = curl_easy_getinfo(*curl_handle, CURLINFO_RESPONSE_CODE, &out);
 		if(result == CURLE_OK)
@@ -588,10 +586,10 @@ static void Util_curl_get_response(CURL** curl_handle, uint16_t* status_code, St
 
 	if(new_url)
 	{
-		char moved_url[4096] = { 0, };
+		char* moved_url = NULL;
 
-		result = curl_easy_getinfo(*curl_handle, CURLINFO_EFFECTIVE_URL, moved_url);
-		if(result == CURLE_OK)
+		result = curl_easy_getinfo(*curl_handle, CURLINFO_EFFECTIVE_URL, &moved_url);
+		if(result == CURLE_OK && moved_url)
 			Util_str_set(new_url, moved_url);
 	}
 }

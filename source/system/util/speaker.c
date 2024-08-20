@@ -1,12 +1,7 @@
 //Includes.
-extern "C"
-{
 #include "system/util/speaker.h"
-}
 
 #if DEF_SPEAKER_API_ENABLE
-extern "C"
-{
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -270,6 +265,5 @@ void Util_speaker_exit(void)
 	ndspExit();
 	for(uint8_t i = 0; i < 24; i++)
 		util_speaker_music_ch[i] = UINT32_MAX;
-}
 }
 #endif //DEF_SPEAKER_API_ENABLE

@@ -2,8 +2,6 @@
 #include "system/util/muxer.h"
 
 #if DEF_MUXER_API_ENABLE
-extern "C"
-{
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -12,7 +10,6 @@ extern "C"
 
 #include "system/util/err_types.h"
 #include "system/util/log.h"
-}
 
 //Defines.
 //N/A.

@@ -1,15 +1,11 @@
 //Includes.
-extern "C"
-{
 #include "system/util/expl.h"
-}
 
 #if DEF_EXPL_API_ENABLE
-extern "C"
-{
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "system/menu.h"
 #include "system/draw/draw.h"
@@ -653,8 +649,8 @@ static int Util_expl_compare_name(const void* a, const void* b)
 
 		for(uint32_t i = 0; i < loop; i++)
 		{
-			char char_a = '\u0000';
-			char char_b = '\u0000';
+			char char_a = 0x00;
+			char char_b = 0x00;
 			uint8_t a_type = DEF_EXPL_SORT_TYPE_UNDEFINED;
 			uint8_t b_type = DEF_EXPL_SORT_TYPE_UNDEFINED;
 
@@ -823,6 +819,5 @@ static void Util_expl_read_dir_callback(void)
 			}
 		}
 	}
-}
 }
 #endif //DEF_EXPL_API_ENABLE

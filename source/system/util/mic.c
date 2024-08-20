@@ -1,12 +1,7 @@
 //Includes.
-extern "C"
-{
 #include "system/util/mic.h"
-}
 
 #if DEF_MIC_API_ENABLE
-extern "C"
-{
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -257,6 +252,5 @@ void Util_mic_exit(void)
 	free(util_mic_buffer);
 	util_mic_buffer = NULL;
 	util_mic_init = false;
-}
 }
 #endif //DEF_MIC_API_ENABLE

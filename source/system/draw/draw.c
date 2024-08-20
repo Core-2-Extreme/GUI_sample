@@ -1,10 +1,9 @@
 //Includes.
-extern "C"
-{
 #include "system/draw/draw.h"
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "system/draw/exfont.h"
 #include "system/util/converter_types.h"
@@ -1188,5 +1187,4 @@ void Draw_apply_draw(void)
 		util_draw_rendered_frames_cache = 0;
 		util_draw_reset_fps_counter_time = osGetTime() + 1000;
 	}
-}
 }

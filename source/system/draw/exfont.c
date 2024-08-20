@@ -1,10 +1,9 @@
 //Includes.
-extern "C"
-{
 #include "system/draw/exfont.h"
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "system/menu.h"
 #include "system/draw/draw.h"
@@ -13,7 +12,6 @@ extern "C"
 #include "system/util/log.h"
 #include "system/util/str.h"
 #include "system/util/util.h"
-}
 
 //Defines.
 //N/A.
@@ -65,7 +63,8 @@ static const Exfont_one_char util_exfont_ignore_chars[] =
 };
 static const Exfont_one_char util_exfont_sample_one_byte[DEF_EXFONT_NUM_OF_ONE_BYTE_FONT] =
 {
-	{ .buffer = "\u0080"},
+	//"\u0080"
+	{ .buffer = { 0xC2, 0x80, }, },
 };
 static const Exfont_one_char util_exfont_samples_two_bytes[DEF_EXFONT_NUM_OF_TWO_BYTES_FONT] =
 {
@@ -263,14 +262,14 @@ void Exfont_text_parse_ignore_rtl(const char* source_string, Exfont_one_char out
 		else if (parse_string_length >= 1)
 		{
 			memcpy(out_string[out_index].buffer, (source_string + offset), parse_string_length);
-			out_string[out_index].buffer[parse_string_length] = '\u0000';
+			out_string[out_index].buffer[parse_string_length] = 0x00;
 			out_index++;
 			offset += parse_string_length;
 		}
 		else
 			offset++;
 	}
-	out_string[out_index].buffer[0] = '\u0000';
+	out_string[out_index].buffer[0] = 0x00;
 	*out_element = out_index;
 }
 
@@ -351,7 +350,7 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
 			if (rtl_found)
 			{
 				memcpy(cache_part_string[rtl_index].buffer, one_char.buffer, parse_string_length);
-				cache_part_string[rtl_index].buffer[parse_string_length] = '\u0000';
+				cache_part_string[rtl_index].buffer[parse_string_length] = 0x00;
 				rtl_index_list[rtl_index] = out_index;
 				rtl_index++;
 			}
@@ -365,7 +364,7 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
 					{
 						length = strlen(cache_part_string[i].buffer);
 						memcpy(out_string[rtl_index_list[m]].buffer, cache_part_string[i].buffer, length);
-						out_string[rtl_index_list[m]].buffer[length] = '\u0000';
+						out_string[rtl_index_list[m]].buffer[length] = 0x00;
 					}
 
 					rtl_index = 0;
@@ -373,7 +372,7 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
 
 				length = strlen(one_char.buffer);
 				memcpy(out_string[out_index].buffer, one_char.buffer, length);
-				out_string[out_index].buffer[length] = '\u0000';
+				out_string[out_index].buffer[length] = 0x00;
 			}
 
 			offset += parse_string_length;
@@ -390,7 +389,7 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
 			uint32_t length = strlen(cache_part_string[i].buffer);
 
 			memcpy(out_string[rtl_index_list[m]].buffer, cache_part_string[i].buffer, length);
-			out_string[rtl_index_list[m]].buffer[length] = '\u0000';
+			out_string[rtl_index_list[m]].buffer[length] = 0x00;
 		}
 
 		rtl_index = 0;
@@ -400,7 +399,7 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
 	free(cache_part_string);
 	rtl_index_list = NULL;
 	cache_part_string = NULL;
-	out_string[out_index].buffer[0] = '\u0000';
+	out_string[out_index].buffer[0] = 0x00;
 	*out_element = out_index;
 }
 

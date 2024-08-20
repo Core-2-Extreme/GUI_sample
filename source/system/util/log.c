@@ -1,6 +1,4 @@
 //Includes.
-extern "C"
-{
 #include "system/util/log.h"
 
 #include <inttypes.h>
@@ -345,7 +343,7 @@ void Util_log_draw(void)
 static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, const char* caller, const char* format_string, va_list args)
 {
 	bool is_append = true;
-	char empty_char = '\u0000';
+	char empty_char = 0x00;
 	char error_msg[] = "(Couldn't format string, this is usually due to out of memory.)";
 	Str_data temp_text = { 0, };
 
@@ -427,5 +425,4 @@ static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, cons
 		Draw_set_refresh_needed(true);
 
 	return log_index;
-}
 }

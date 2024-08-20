@@ -1,40 +1,26 @@
 //Includes.
-extern "C"
-{
 #include "system/util/converter.h"
-}
 
 #if (DEF_CONVERTER_HW_API_ENABLE || DEF_CONVERTER_SW_ASM_API_ENABLE || DEF_CONVERTER_SW_API_ENABLE || DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE || DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE)
-extern "C"
-{
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "3ds.h"
-}
+
 #if DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE
-extern "C"
-{
 #include "libswscale/swscale.h"
 #include "libavutil/imgutils.h"
-}
 #endif //DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE
 
 #if DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE
-extern "C"
-{
 #include "libswresample/swresample.h"
-}
 #endif //DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE
 
-extern "C"
-{
 #include "system/util/err_types.h"
 #include "system/util/log.h"
 #include "system/util/util.h"
-}
 
 //Defines.
 #if DEF_CONVERTER_SW_API_ENABLE
@@ -61,7 +47,7 @@ extern void yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t* rgb888, uint32_t 
 //Variables.
 #if DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE
 //Translation table for Raw_pixel -> AVPixelFormat.
-AVPixelFormat util_converter_pixel_format_table[RAW_PIXEL_MAX] =
+enum AVPixelFormat util_converter_pixel_format_table[RAW_PIXEL_MAX] =
 {
 	//YUV*
 	AV_PIX_FMT_YUV410P,
@@ -215,7 +201,7 @@ AVPixelFormat util_converter_pixel_format_table[RAW_PIXEL_MAX] =
 
 #if DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE
 //Translation table for Raw_sample -> AVSampleFormat.
-AVSampleFormat util_converter_sample_format_table[RAW_SAMPLE_MAX] =
+enum AVSampleFormat util_converter_sample_format_table[RAW_SAMPLE_MAX] =
 {
 	AV_SAMPLE_FMT_U8,
 	AV_SAMPLE_FMT_U8P,
@@ -262,7 +248,7 @@ uint32_t Util_converter_convert_color(Converter_color_parameters* parameters)
 	uint8_t* dst_data[4] = { NULL, NULL, NULL, NULL, };
 	int32_t converted_image_size = 0;
 	int32_t ffmpeg_result = 0;
-	SwsContext* sws_context = NULL;
+	struct SwsContext* sws_context = NULL;
 
 	if(!parameters || !parameters->source || parameters->in_width == 0 || parameters->in_height == 0 || parameters->out_width == 0 || parameters->out_height == 0
 	|| parameters->in_color_format <= RAW_PIXEL_INVALID || parameters->in_color_format >= RAW_PIXEL_MAX || parameters->out_color_format <= RAW_PIXEL_INVALID || parameters->out_color_format >= RAW_PIXEL_MAX)
@@ -304,7 +290,7 @@ uint32_t Util_converter_convert_color(Converter_color_parameters* parameters)
 		goto ffmpeg_api_failed;
 	}
 
-	ffmpeg_result = sws_scale(sws_context, src_data, src_line_size, 0, parameters->in_height, dst_data, dst_line_size);
+	ffmpeg_result = sws_scale(sws_context, (const uint8_t**)src_data, src_line_size, 0, parameters->in_height, dst_data, dst_line_size);
 	if(ffmpeg_result < 0)
 	{
 		DEF_LOG_RESULT(sws_scale, false, ffmpeg_result);

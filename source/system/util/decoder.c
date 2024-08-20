@@ -1,6 +1,4 @@
 //Includes.
-extern "C"
-{
 #include "system/util/decoder.h"
 
 #include <stdbool.h>
@@ -14,23 +12,16 @@ extern "C"
 #include "system/util/log.h"
 #include "system/util/media_types.h"
 #include "system/util/util.h"
-}
 
 #if DEF_DECODER_VIDEO_AUDIO_API_ENABLE
-extern "C"
-{
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 #include "libavutil/imgutils.h"
-}
 #endif //DEF_DECODER_VIDEO_AUDIO_API_ENABLE
 
 #if DEF_DECODER_IMAGE_API_ENABLE
-extern "C"
-{
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
-}
 #endif //DEF_DECODER_IMAGE_API_ENABLE
 
 //Defines.
@@ -41,7 +32,7 @@ extern "C"
 
 //Prototypes.
 #if DEF_DECODER_VIDEO_AUDIO_API_ENABLE
-extern "C" void memcpy_asm(uint8_t*, uint8_t*, uint32_t);
+extern void memcpy_asm(uint8_t*, uint8_t*, uint32_t);
 static void Util_decoder_audio_exit(uint8_t session);
 static void Util_decoder_video_exit(uint8_t session);
 static void Util_decoder_mvd_exit(uint8_t session);
@@ -2122,7 +2113,7 @@ uint32_t Util_decoder_subtitle_decode(Media_s_data* subtitle_data, uint8_t packe
 			subtitle_data->end_time = subtitle_data->start_time + (util_subtitle_decoder_packet[session][packet_index]->duration * timebase * 1000);
 		}
 
-		for(uint i = 0; i < util_subtitle_decoder_raw_data[session][packet_index]->num_rects; i++)
+		for(uint32_t i = 0; i < util_subtitle_decoder_raw_data[session][packet_index]->num_rects; i++)
 		{
 			free(subtitle_data->bitmap);
 			subtitle_data->bitmap = NULL;
