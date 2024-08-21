@@ -38,6 +38,7 @@ typedef uint8_t Sem_screen_mode;
 #define DEF_SEM_SCREEN_MODE_400PX		(Sem_screen_mode)(1)
 #define DEF_SEM_SCREEN_MODE_800PX		(Sem_screen_mode)(2)
 #define DEF_SEM_SCREEN_MODE_3D			(Sem_screen_mode)(3)
+#define DEF_SEM_SCREEN_MODE_MAX			(Sem_screen_mode)(DEF_SEM_SCREEN_MODE_3D + 1)
 
 typedef uint8_t Sem_wifi_signal;
 #define DEF_SEM_WIFI_SIGNAL_BAD_WITH_INTERNET			(uint8_t)(0)

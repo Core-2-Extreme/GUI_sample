@@ -22,6 +22,7 @@ extern "C"
 #include "system/util/hid.h"
 #include "system/util/httpc.h"
 #include "system/util/hw_config.h"
+#include "system/util/json_types.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
 #include "system/util/thread_types.h"
@@ -46,6 +47,7 @@ extern "C"
 
 //Defines.
 #define DEF_MENU_NUM_OF_SUB_APP		(uint8_t)(8)
+#define DEF_MENU_SEND_INFO_FMT_VER	(uint32_t)(1)
 
 //Typedefs.
 //N/A.
@@ -1148,34 +1150,64 @@ void Menu_worker_thread(void* arg)
 void Menu_send_app_info_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
-	bool is_new3ds = false;
+	uint8_t model = 0;
 	uint8_t* dl_data = NULL;
-	char system_ver_char[0x50] = " ";
-	std::string new3ds = "";
-	OS_VersionBin os_ver = { 0, };
+	char system_ver_char[0x20] = { 0, };
+	const char* sem_model_name[DEF_SEM_MODEL_MAX] = { "O3DS", "O3DSXL", "O2DS", "N3DS", "N3DSXL", "N2DSXL", };
+	const char* screen_mode_name[DEF_SEM_SCREEN_MODE_MAX] = { "AUTO", "400PX", "800PX", "3D", };
+	Str_data send_data = { 0, };
 	Sem_config config = { 0, };
 	Sem_state state = { 0, };
 
+	Util_str_init(&send_data);
+
+	//Gather information.
 	Sem_get_config(&config);
 	Sem_get_state(&state);
+	osGetSystemVersionDataString(NULL, NULL, system_ver_char, sizeof(system_ver_char));
+	//We need real model here (in case fake model is enabled).
+	if(CFGU_GetSystemModel(&model) == DEF_SUCCESS)
+	{
+		if(model == CFG_MODEL_3DS)
+			state.console_model = DEF_SEM_MODEL_OLD3DS;
+		else if(model == CFG_MODEL_3DSXL)
+			state.console_model = DEF_SEM_MODEL_OLD3DSXL;
+		else if(model == CFG_MODEL_2DS)
+			state.console_model = DEF_SEM_MODEL_OLD2DS;
+		else if(model == CFG_MODEL_N3DS)
+			state.console_model = DEF_SEM_MODEL_NEW3DS;
+		else if(model == CFG_MODEL_N3DSXL)
+			state.console_model = DEF_SEM_MODEL_NEW3DSXL;
+		else if(model == CFG_MODEL_N2DSXL)
+			state.console_model = DEF_SEM_MODEL_NEW2DSXL;
+	}
 
-	osGetSystemVersionDataString(&os_ver, &os_ver, system_ver_char, 0x50);
-	std::string system_ver = system_ver_char;
-
-	APT_CheckNew3DS(&is_new3ds);
-	new3ds = is_new3ds ? "yes" : "no";
-
-	std::string send_data = (std::string)"{ \"app_ver\": \"" + DEF_MENU_CURRENT_APP_VER + "\",\"system_ver\" : \""
-	+ system_ver + "\",\"start_num_of_app\" : \"" + std::to_string(state.num_of_launch) + "\",\"language\" : \""
-	+ config.lang + "\",\"new3ds\" : \"" + new3ds + "\",\"time_to_enter_sleep\" : \"" + std::to_string(config.time_to_turn_off_lcd)
-	+ "\",\"scroll_speed\" : \"" + std::to_string(config.scroll_speed) + "\" }";
+	//Make a json data, then send it.
+	Util_str_format(&send_data, DEF_JSON_START_OBJECT);
+	Util_str_format_append(&send_data, DEF_JSON_NON_STR_DATA_WITH_KEY("fmt_ver", "%" PRIu32, DEF_MENU_SEND_INFO_FMT_VER));
+	Util_str_format_append(&send_data, DEF_JSON_STR_DATA_WITH_KEY("app_ver", "%s", DEF_MENU_CURRENT_APP_VER));
+	Util_str_format_append(&send_data, DEF_JSON_STR_DATA_WITH_KEY("system_ver", "%s", system_ver_char));
+	Util_str_format_append(&send_data, DEF_JSON_STR_DATA_WITH_KEY("model", "%s", sem_model_name[state.console_model]));
+	Util_str_format_append(&send_data, DEF_JSON_NON_STR_DATA_WITH_KEY("num_of_launch", "%" PRIu32, state.num_of_launch));
+	Util_str_format_append(&send_data, DEF_JSON_STR_DATA_WITH_KEY("lang", "%s", config.lang));
+	Util_str_format_append(&send_data, DEF_JSON_NON_STR_DATA_WITH_KEY("turn_off_lcd", "%" PRIu16, config.time_to_turn_off_lcd));
+	Util_str_format_append(&send_data, DEF_JSON_NON_STR_DATA_WITH_KEY("enter_sleep", "%" PRIu16, config.time_to_enter_sleep));
+	Util_str_format_append(&send_data, DEF_JSON_NON_STR_DATA_WITH_KEY("top_brightness", "%" PRIu8, config.top_lcd_brightness));
+	Util_str_format_append(&send_data, DEF_JSON_NON_STR_DATA_WITH_KEY("bottom_brightness", "%" PRIu8, config.bottom_lcd_brightness));
+	Util_str_format_append(&send_data, DEF_JSON_STR_DATA_WITH_KEY("screen_mode", "%s", screen_mode_name[config.screen_mode]));
+	Util_str_format_append(&send_data, DEF_JSON_NON_STR_DATA_WITH_KEY("scroll_speed", "%f", config.scroll_speed));
+	Util_str_format_append(&send_data, DEF_JSON_NON_STR_DATA_WITH_KEY("is_eco", "%s", (config.is_eco ? "true" : "false")));
+	Util_str_format_append(&send_data, DEF_JSON_NON_STR_DATA_WITH_KEY("is_night", "%s", (config.is_night ? "true" : "false")));
+	Util_str_format_append(&send_data, DEF_JSON_NON_STR_DATA_WITH_KEY_WITHOUT_COMMA("is_wifi_on", "%s", (config.is_wifi_on ? "true" : "false")));
+	Util_str_format_append(&send_data, DEF_JSON_END_OBJECT);
 
 #if DEF_CURL_API_ENABLE
-	Util_curl_post_and_dl_data(DEF_MENU_SEND_APP_INFO_URL, (uint8_t*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, NULL, NULL, NULL, 5, NULL);
+	Util_curl_post_and_dl_data(DEF_MENU_SEND_APP_INFO_URL, (uint8_t*)send_data.buffer, send_data.length, &dl_data, 0x10000, NULL, NULL, NULL, 5, NULL);
 #else
-	Util_httpc_post_and_dl_data(DEF_MENU_SEND_APP_INFO_URL, (uint8_t*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, NULL, NULL, 5, NULL);
+	Util_httpc_post_and_dl_data(DEF_MENU_SEND_APP_INFO_URL, (uint8_t*)send_data.buffer, send_data.length, &dl_data, 0x10000, NULL, NULL, 5, NULL);
 #endif //DEF_CURL_API_ENABLE
 
+	Util_str_free(&send_data);
 	free(dl_data);
 	dl_data = NULL;
 
