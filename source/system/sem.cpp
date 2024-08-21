@@ -248,13 +248,13 @@ void Sem_set_config(Sem_config* new_config)
 	if(sem_config.time_to_turn_off_lcd != new_config->time_to_turn_off_lcd)
 	{
 		//Do nothing (just validate the value), Sem_hw_config_thread() will do the job later.
-		if(new_config->time_to_turn_off_lcd != 0 && (new_config->time_to_turn_off_lcd < 20 || new_config->time_to_turn_off_lcd > 600))
+		if(new_config->time_to_turn_off_lcd > 0 && (new_config->time_to_turn_off_lcd < 20 || new_config->time_to_turn_off_lcd > 600))
 			new_config->time_to_turn_off_lcd = 150;
 	}
 	if(sem_config.time_to_enter_sleep != new_config->time_to_enter_sleep)
 	{
 		//Do nothing (just validate the value), Sem_hw_config_thread() will do the job later.
-		if(new_config->time_to_enter_sleep != 0 && (new_config->time_to_enter_sleep < 20 || new_config->time_to_enter_sleep > 600))
+		if(new_config->time_to_enter_sleep > 0 && (new_config->time_to_enter_sleep < 20 || new_config->time_to_enter_sleep > 600))
 			new_config->time_to_enter_sleep = 175;
 	}
 	// if(sem_config.scroll_speed != new_config->scroll_speed)
@@ -273,7 +273,8 @@ void Sem_set_config(Sem_config* new_config)
 			reload_msg = true;
 	}
 
-	if(new_config->time_to_turn_off_lcd > new_config->time_to_enter_sleep)
+	if(new_config->time_to_turn_off_lcd > 0 && new_config->time_to_enter_sleep > 0
+	&& (new_config->time_to_turn_off_lcd > new_config->time_to_enter_sleep))
 		new_config->time_to_enter_sleep = new_config->time_to_turn_off_lcd;
 
 	memcpy(&sem_config, new_config, sizeof(Sem_config));
@@ -429,7 +430,7 @@ void Sem_init(void)
 			config.top_lcd_brightness = brightness;
 			config.bottom_lcd_brightness = brightness;
 
-			if(config.time_to_turn_off_lcd != 0 && (config.time_to_turn_off_lcd < 20 || config.time_to_turn_off_lcd > 600))
+			if(config.time_to_turn_off_lcd > 0 && (config.time_to_turn_off_lcd < 20 || config.time_to_turn_off_lcd > 600))
 				config.time_to_turn_off_lcd = 150;
 
 			if(config.scroll_speed < 0.05 || config.scroll_speed > 2)
@@ -438,10 +439,11 @@ void Sem_init(void)
 			if(config.screen_mode > DEF_SEM_SCREEN_MODE_3D)
 				config.screen_mode = DEF_SEM_SCREEN_MODE_AUTO;
 
-			if(config.time_to_enter_sleep != 0 && (config.time_to_enter_sleep < 20 || config.time_to_enter_sleep > 600))
+			if(config.time_to_enter_sleep > 0 && (config.time_to_enter_sleep < 20 || config.time_to_enter_sleep > 600))
 				config.time_to_enter_sleep = 175;
 
-			if(config.time_to_turn_off_lcd > config.time_to_enter_sleep)
+			if(config.time_to_turn_off_lcd > 0 && config.time_to_enter_sleep > 0
+			&& (config.time_to_turn_off_lcd > config.time_to_enter_sleep))
 				config.time_to_enter_sleep = config.time_to_turn_off_lcd;
 
 			sem_config = config;
@@ -1683,8 +1685,6 @@ void Sem_hid(Hid_info key)
 					config.time_to_turn_off_lcd = new_time;
 					if(config.time_to_turn_off_lcd > 0 && config.time_to_enter_sleep > 0 && (config.time_to_turn_off_lcd > config.time_to_enter_sleep))
 						config.time_to_enter_sleep = config.time_to_turn_off_lcd;
-					else if(config.time_to_turn_off_lcd < 0)
-						config.time_to_enter_sleep = 0;
 
 					Sem_set_config(&config);
 
@@ -1694,7 +1694,7 @@ void Sem_hid(Hid_info key)
 				|| (key.h_touch && sem_sleep_time_bar.selected))
 				{
 					//Update time enter sleep.
-					int32_t new_time = (580 * ((key.touch_x - 15) / 290.0)) + 20;
+					uint16_t new_time = (580 * ((key.touch_x - 15) / 290.0)) + 20;
 
 					if(new_time < 20)
 						new_time = 20;
