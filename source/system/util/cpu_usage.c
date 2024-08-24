@@ -202,6 +202,7 @@ void Util_cpu_usage_counter_thread(void* arg)
 
 void Util_cpu_usage_calculate_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 
 	uint8_t div = 0;

@@ -1114,6 +1114,7 @@ static void Menu_hid_callback(void)
 
 void Menu_worker_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 
 	while (menu_thread_run)
@@ -1139,6 +1140,7 @@ void Menu_worker_thread(void* arg)
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 void Menu_send_app_info_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint8_t model = 0;
 	uint8_t* dl_data = NULL;
@@ -1207,6 +1209,7 @@ void Menu_send_app_info_thread(void* arg)
 
 void Menu_update_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint8_t* http_buffer = NULL;
 	uint32_t result = DEF_ERR_OTHER;

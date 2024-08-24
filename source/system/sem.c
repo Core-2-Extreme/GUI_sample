@@ -2303,6 +2303,7 @@ static void Sem_worker_callback(void)
 
 void Sem_hw_config_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint32_t count = 0;
 	uint64_t previous_ts = 0;
@@ -2421,6 +2422,7 @@ void Sem_hw_config_thread(void* arg)
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 void Sem_encode_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 
 	while (sem_thread_run)
@@ -2466,6 +2468,7 @@ void Sem_encode_thread(void* arg)
 
 void Sem_record_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	bool new_3ds = false;
 	uint8_t mode = 0;
@@ -2684,6 +2687,7 @@ void Sem_record_thread(void* arg)
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 void Sem_check_connectivity_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint8_t* http_buffer = NULL;
 	uint16_t status_code = 0;
@@ -2718,6 +2722,7 @@ void Sem_check_connectivity_thread(void* arg)
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 void Sem_update_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint32_t result = DEF_ERR_OTHER;
 

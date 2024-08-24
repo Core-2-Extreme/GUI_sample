@@ -348,6 +348,7 @@ void Util_hid_remove_callback(void (*callback)(void))
 
 void Util_hid_scan_hid_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint32_t key_pressed = 0;
 	uint32_t key_held = 0;

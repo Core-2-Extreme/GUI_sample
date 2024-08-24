@@ -73,7 +73,8 @@ uint32_t Util_curl_init(uint32_t buffer_size)
 	if(util_curl_init)
 		goto already_inited;
 
-	if(buffer_size < 0)
+	//Buffer size must be multiple of 0x1000.
+	if((buffer_size % 0x1000) != 0)
 		goto invalid_arg;
 
 	util_curl_buffer = (uint32_t*)memalign_heap(0x1000, buffer_size);
@@ -279,8 +280,8 @@ uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint1
 	uploaded_size, status_code, max_redirect, last_url, NULL, NULL);
 }
 
-uint32_t Util_curl_post_and_dl_data_with_callback(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data, uint32_t max_dl_size,
-uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url,
+uint32_t Util_curl_post_and_dl_data_with_callback(const char* url, uint8_t** dl_data, uint32_t max_dl_size, uint32_t* downloaded_size,
+uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url,
 int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data)
 {
 	return Util_curl_post_and_dl_data_internal(url, NULL, 0, dl_data, max_dl_size, downloaded_size,
@@ -294,9 +295,9 @@ uint32_t* uploaded_size, uint16_t* status_code, Str_data* last_url, uint16_t max
 	uploaded_size, status_code, max_redirect, last_url, dir_path, file_name, NULL, NULL);
 }
 
-uint32_t Util_curl_post_and_save_data_with_callback(const char* url, uint8_t* post_data, uint32_t post_size, uint32_t buffer_size,
-uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* dir_path,
-const char* file_name, int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data)
+uint32_t Util_curl_post_and_save_data_with_callback(const char* url, uint32_t buffer_size, uint32_t* downloaded_size, uint32_t* uploaded_size,
+uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* file_name,
+int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data)
 {
 	return Util_curl_post_and_save_data_internal(url, NULL, 0, buffer_size, downloaded_size, uploaded_size,
 	status_code, max_redirect, last_url, dir_path, file_name, read_callback, user_data);

@@ -301,6 +301,7 @@ double Draw_query_fps(void)
 
 uint32_t Draw_convert_to_pos(uint32_t height, uint32_t width, uint32_t img_height, uint32_t img_width, uint8_t pixel_size)
 {
+	(void)img_height;
 	uint32_t pos = img_width * height;
 	if(pos == 0)
 		pos = img_width;

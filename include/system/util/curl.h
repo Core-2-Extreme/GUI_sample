@@ -76,8 +76,6 @@ uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint1
 /**
  * @brief Make a HTTP post request.
  * @param url (in) URL.
- * @param post_data (in) Pointer for post data.
- * @param post_size (in) Post data size.
  * @param dl_data (out) Pointer for response data, the pointer will be allocated up to max_size
  * depends on server response.
  * @param max_dl_size (in) Max download size.
@@ -91,8 +89,8 @@ uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint1
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_curl_post_and_dl_data_with_callback(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data, uint32_t max_dl_size,
-uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url,
+uint32_t Util_curl_post_and_dl_data_with_callback(const char* url, uint8_t** dl_data, uint32_t max_dl_size, uint32_t* downloaded_size,
+uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url,
 int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data);
 
 /**
@@ -117,8 +115,6 @@ uint32_t* uploaded_size, uint16_t* status_code, Str_data* last_url, uint16_t max
 /**
  * @brief Make a HTTP post request and save response to SD card.
  * @param url (in) URL.
- * @param post_data (in) Pointer for post data.
- * @param post_size (in) Post data size.
  * @param buffer_size (in) Internal work buffer size.
  * @param downloaded_size (out) Actual downloaded size, can be NULL.
  * @param uploaded_size (out) Actual uploaded size, can be NULL.
@@ -132,9 +128,9 @@ uint32_t* uploaded_size, uint16_t* status_code, Str_data* last_url, uint16_t max
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_curl_post_and_save_data_with_callback(const char* url, uint8_t* post_data, uint32_t post_size, uint32_t buffer_size,
-uint32_t* downloaded_size, uint32_t* uploaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* dir_path,
-const char* file_name, int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data);
+uint32_t Util_curl_post_and_save_data_with_callback(const char* url, uint32_t buffer_size, uint32_t* downloaded_size, uint32_t* uploaded_size,
+uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* file_name,
+int32_t (*read_callback)(void* buffer, uint32_t max_size, void* user_data), void* user_data);
 
 #else
 

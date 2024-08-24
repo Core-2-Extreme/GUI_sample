@@ -503,6 +503,7 @@ static void Sapp3_draw_init_exit_message(void)
 
 static void Sapp3_init_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint32_t result = DEF_ERR_OTHER;
 	Sem_state state = { 0, };
@@ -574,6 +575,7 @@ static void Sapp3_init_thread(void* arg)
 
 static void Sapp3_exit_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint32_t result = DEF_ERR_OTHER;
 
@@ -620,6 +622,7 @@ static void Sapp3_exit_thread(void* arg)
 
 static void Sapp3_camera_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint8_t dummy = 0;
 
@@ -756,6 +759,7 @@ static void Sapp3_camera_thread(void* arg)
 
 static void Sapp3_mic_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint8_t dummy = 0;
 

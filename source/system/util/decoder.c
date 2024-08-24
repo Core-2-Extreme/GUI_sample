@@ -378,12 +378,14 @@ uint8_t util_audio_decoder_sample_format_size_table[] =
 
 void Util_decoder_video_free(void *opaque, uint8_t *data)
 {
+	(void)opaque;
 	free(data);
 }
 
 //We can't get rid of this "int" because library uses "int" type as args.
 int Util_decoder_video_allocate_buffer(AVCodecContext *avctx, AVFrame *frame, int flags)
 {
+	(void)flags;
 	uint32_t width = 0;
 	uint32_t height = 0;
 	int32_t buffer_size = 0;

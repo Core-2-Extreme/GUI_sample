@@ -53,6 +53,7 @@ void Util_fake_pthread_set_enabled_core(bool enabled_core[4])
 
 int	pthread_mutex_init(pthread_mutex_t* __mutex, const pthread_mutexattr_t* __attr)
 {
+	(void)__attr;
 	LightLock_Init((LightLock*)__mutex);
 	return 0;
 }
@@ -71,6 +72,7 @@ int	pthread_mutex_unlock(pthread_mutex_t* __mutex)
 
 int	pthread_mutex_destroy(pthread_mutex_t* __mutex)
 {
+	(void)__mutex;
 	return 0;
 }
 
@@ -96,6 +98,7 @@ int	pthread_once(pthread_once_t* __once_control, void (*__init_routine)(void))
 
 int	pthread_cond_init(pthread_cond_t* __cond, const pthread_condattr_t* __attr)
 {
+	(void)__attr;
 	CondVar_Init((CondVar*)__cond);
 	return 0;
 }
@@ -120,6 +123,7 @@ int	pthread_cond_broadcast(pthread_cond_t* __cond)
 
 int	pthread_cond_destroy(pthread_cond_t* __mutex)
 {
+	(void)__mutex;
 	return 0;
 }
 
@@ -131,9 +135,9 @@ int	pthread_create(pthread_t* __pthread, const pthread_attr_t * __attr, void* (*
 		return -1;
 
 	if(__attr)
-		handle = threadCreate((ThreadFunc)__start_routine, __arg, __attr->stacksize, DEF_THREAD_PRIORITY_BELOW_NORMAL, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], true);
+		handle = threadCreate((void*)__start_routine, __arg, __attr->stacksize, DEF_THREAD_PRIORITY_BELOW_NORMAL, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], true);
 	else
-		handle = threadCreate((ThreadFunc)__start_routine, __arg, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_BELOW_NORMAL, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], true);
+		handle = threadCreate((void*)__start_routine, __arg, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_BELOW_NORMAL, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], true);
 
 	*__pthread = (pthread_t)handle;
 
@@ -150,6 +154,7 @@ int	pthread_create(pthread_t* __pthread, const pthread_attr_t * __attr, void* (*
 
 int	pthread_join(pthread_t __pthread, void** __value_ptr)
 {
+	(void)__value_ptr;
 	int result = -1;
 	while(true)
 	{

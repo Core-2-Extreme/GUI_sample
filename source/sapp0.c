@@ -323,6 +323,7 @@ static void Sapp0_draw_init_exit_message(void)
 
 static void Sapp0_init_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint8_t* buffer = NULL;
 	uint8_t* png_data = NULL;
@@ -443,6 +444,7 @@ static void Sapp0_init_thread(void* arg)
 
 static void Sapp0_exit_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint32_t result = DEF_ERR_OTHER;
 
@@ -467,6 +469,7 @@ static void Sapp0_exit_thread(void* arg)
 
 static void Sapp0_worker_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 
 	while (sapp0_thread_run)

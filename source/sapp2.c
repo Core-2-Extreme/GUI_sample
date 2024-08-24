@@ -403,6 +403,7 @@ static void Sapp2_draw_init_exit_message(void)
 
 static void Sapp2_init_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint32_t result = DEF_ERR_OTHER;
 
@@ -425,6 +426,7 @@ static void Sapp2_init_thread(void* arg)
 
 static void Sapp2_exit_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint32_t result = DEF_ERR_OTHER;
 
@@ -448,6 +450,7 @@ static void Sapp2_exit_thread(void* arg)
 
 static void Sapp2_worker_thread(void* arg)
 {
+	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint32_t result = DEF_ERR_OTHER;
 

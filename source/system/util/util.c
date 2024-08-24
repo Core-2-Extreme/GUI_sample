@@ -910,5 +910,6 @@ double Util_max_d(double value_0, double value_1)
 
 void Util_check_core_thread(void* arg)
 {
+	(void)arg;
 	threadExit(0);
 }

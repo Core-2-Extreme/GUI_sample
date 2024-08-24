@@ -58,11 +58,12 @@ RSF_PATH			:= resource/app.rsf
 #---------------------------------------------------------------------------------
 ARCH		:= -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS		:= -Wall -g -O3 -mword-relocations -fomit-frame-pointer -ffunction-sections $(ARCH)
+CFLAGS		:= -Wall -Wextra -g -O3 -mword-relocations -fomit-frame-pointer -ffunction-sections $(ARCH) $(INCLUDE) -D__3DS__
 
-CFLAGS		+= $(INCLUDE) -D__3DS__
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++98
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+#-U__STRICT_ANSI__ is needed for citro2d.
+CFLAGS		+= -U__STRICT_ANSI__ -std=c99
 
 ASFLAGS		:= $(ARCH)
 LDFLAGS		= -specs=3dsx.specs $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--wrap,malloc,--wrap,calloc,--wrap,realloc,--wrap,free,--wrap,_free_r,--wrap,memalign,--wrap,linearAlloc,--wrap,linearMemAlign,--wrap,linearRealloc,--wrap,linearGetSize,--wrap,linearFree,--wrap,linearSpaceFree

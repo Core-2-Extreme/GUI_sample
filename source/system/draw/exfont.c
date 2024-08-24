@@ -328,7 +328,7 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
 				for(uint32_t i = 0; i < util_exfont_num_of_right_left_charcters; i += increment)
 				{
 					int32_t strcmp_result = 0;
-					if(increment == -1 && (i < 0 || i == give_up_pos))
+					if(increment == -1 && (i == give_up_pos))
 						break;
 
 					strcmp_result = strcmp(one_char.buffer, util_exfont_font_right_to_left_samples[i].buffer);
