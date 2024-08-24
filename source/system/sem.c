@@ -2533,7 +2533,7 @@ void Sem_record_thread(void* arg)
 			}
 			sem_rec_width = rec_width;
 			sem_rec_height = rec_height;
-			Util_str_format(&path, "%04" PRIu16 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 ".mp4",
+			Util_str_format(&path, DEF_MENU_MAIN_DIR "screen_recording/%04" PRIu16 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 ".mp4",
 			state.time.years, state.time.months, state.time.days, state.time.hours, state.time.minutes, state.time.seconds);
 
 			DEF_LOG_RESULT_SMART(result, Util_encoder_create_output_file(path.buffer, 0), (result == DEF_SUCCESS), result);
