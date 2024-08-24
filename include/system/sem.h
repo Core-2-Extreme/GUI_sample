@@ -4,8 +4,7 @@
 #include <stdint.h>
 #include "system/util/hid_types.h"
 
-#define DEF_SEM_UPDATE_DIR_PREFIX		/*(const char*)(*/"/3ds/GUI_sample_ver_"/*)*/
-#define DEF_SEM_UPDATE_FILE_PREFIX		/*(const char*)(*/"GUI"/*)*/
+#define DEF_SEM_UPDATE_FILE_PREFIX		/*(const char*)(*/"GUI_"/*)*/
 #define DEF_SEM_CHECK_UPDATE_URL		/*(const char*)(*/"https://script.google.com/macros/s/AKfycbwvEedP97o8vgfpAG6EzcW6jxZZqFfZaMaqE1V7kCdp9BfuXySfRQ4own5CcFW1JxRBBQ/exec"/*)*/
 
 #define DEF_SEM_NUM_OF_MSG				(uint16_t)(71)

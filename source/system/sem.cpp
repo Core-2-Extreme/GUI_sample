@@ -4,9 +4,8 @@ extern "C"
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 }
-
-#include <string>
 
 extern "C"
 {
@@ -91,7 +90,7 @@ double sem_touch_x_move_left = 0;
 double sem_touch_y_move_left = 0;
 const char* sem_model_name[6] = { "OLD 3DS", "OLD 3DS XL", "OLD 2DS", "NEW 3DS", "NEW 3DS XL", "NEW 2DS XL", };
 Str_data sem_msg[DEF_SEM_NUM_OF_MSG] = { 0, };
-std::string sem_newest_ver_data[6];//0 newest version number, 1 3dsx available, 2 cia available, 3 3dsx dl url, 4 cia dl url, 5 patch note
+Str_data sem_newest_ver_data[6] = { 0, };//0 newest version number, 1 3dsx available, 2 cia available, 3 3dsx dl url, 4 cia dl url, 5 patch note.
 LightLock sem_config_state_mutex = 1;//Initially unlocked state.
 Thread sem_hw_config_thread = NULL;
 Draw_image_data sem_back_button = { 0, }, sem_scroll_bar = { 0, }, sem_menu_button[9] = { 0, }, sem_english_button = { 0, },
@@ -327,6 +326,7 @@ void Sem_init(void)
 	config.scroll_speed = 0.5;
 	config.screen_mode = DEF_SEM_SCREEN_MODE_AUTO;
 	memset(config.lang, 0x00, sizeof(config.lang));
+	sem_config = config;
 
 	state.is_charging = false;
 	state.battery_level = 0;
@@ -337,9 +337,18 @@ void Sem_init(void)
 	state.num_of_launch = 0;
 	state.wifi_signal = DEF_SEM_WIFI_SIGNAL_DISABLED;
 	state.console_model = DEF_SEM_MODEL_OLD3DS;
-	state.time = { .years = 1990, .months = 1, .days = 1, .hours = 0, .minutes = 0, .seconds = 0, };
+	state.time.years = 0;
+	state.time.months = 0;
+	state.time.days = 0;
+	state.time.hours = 0;
+	state.time.minutes = 0;
+	state.time.seconds = 0;
 	memset(state.connected_wifi, 0x00, sizeof(state.connected_wifi));
 	memset(state.msg, 0x00, sizeof(state.msg));
+	sem_state = state;
+
+	for(uint8_t i = 0; i < (sizeof(sem_newest_ver_data) / sizeof(sem_newest_ver_data[0])); i++)
+		Util_str_init(&sem_newest_ver_data[i]);
 
 	LightLock_Init(&sem_config_state_mutex);
 
@@ -388,16 +397,24 @@ void Sem_init(void)
 		//If this fails, the settings file may come from older version.
 		//To keep backward compatibility, try to parse with less elements.
 		if(result != DEF_SUCCESS)
-		{
 			DEF_LOG_RESULT_SMART(result, Util_parse_file((char*)read_cache, 12, data), (result == DEF_SUCCESS), result);
-			Util_str_set(&data[12], "175");//Time to turn off LCDs default value.
-		}
+
 		if(result != DEF_SUCCESS)
-		{
 			DEF_LOG_RESULT_SMART(result, Util_parse_file((char*)read_cache, 11, data), (result == DEF_SUCCESS), result);
+
+		if(!Util_str_has_data(&data[11]))
+		{
+			Util_str_init(&data[11]);
 			Util_str_set(&data[11], "175");//Screen mode default value.
+		}
+		if(!Util_str_has_data(&data[12]))
+		{
+			Util_str_init(&data[12]);
 			Util_str_set(&data[12], "175");//Time to turn off LCDs default value.
 		}
+
+		if(!Util_str_has_data(&data[11]) || !Util_str_has_data(&data[12]))
+			result = DEF_ERR_OUT_OF_MEMORY;
 
 		if(result == DEF_SUCCESS)
 		{
@@ -451,6 +468,9 @@ void Sem_init(void)
 		free(read_cache);
 		read_cache = NULL;
 	}
+
+	for(uint8_t i = 0; i < (sizeof(data) / sizeof(data[0])); i++)
+		Util_str_free(&data[i]);
 
 	config = sem_config;
 
@@ -685,21 +705,30 @@ void Sem_exit(void)
 	DEF_LOG_STRING("Exiting...");
 	uint8_t brightness = 0;
 	uint32_t result = DEF_ERR_OTHER;
-	std::string data = "";
+	Str_data data = { 0, };
 	Sem_config config = { 0, };
 	Sem_state state = { 0, };
 
 	Sem_get_config(&config);
 	Sem_get_state(&state);
+	Util_str_init(&data);
 
 	brightness = Util_max(config.top_lcd_brightness, config.bottom_lcd_brightness);
 	state.num_of_launch++;
 
-	data = (std::string)"<0>" + config.lang + "</0><1>" + std::to_string(brightness) + "</1><2>" + std::to_string(config.time_to_turn_off_lcd)
-	+ "</2><3>" + std::to_string(config.scroll_speed) + "</3><4>" + std::to_string(config.is_send_info_allowed) + "</4><5>" + std::to_string(state.num_of_launch)
-	+ "</5><6>" + std::to_string(config.is_night) + "</6><7>" + std::to_string(config.is_eco) + "</7><8>" + std::to_string(config.is_wifi_on) + "</8>"
-	+ "<9>0</9><10>0</10><11>" + std::to_string(config.screen_mode) + "</11><12>" + std::to_string(config.time_to_enter_sleep) + "</12>";
+	Util_str_format_append(&data, "<0>%s</0>", config.lang);
+	Util_str_format_append(&data, "<1>%" PRIu8 "</1>", brightness);
+	Util_str_format_append(&data, "<2>%" PRIu16 "</2>", config.time_to_turn_off_lcd);
+	Util_str_format_append(&data, "<3>%f</3>", config.scroll_speed);
+	Util_str_format_append(&data, "<4>%" PRIu8 "</4>", config.is_send_info_allowed);
+	Util_str_format_append(&data, "<5>%" PRIu32 "</5>", state.num_of_launch);
+	Util_str_format_append(&data, "<6>%" PRIu8 "</6>", config.is_night);
+	Util_str_format_append(&data, "<7>%" PRIu8 "</7>", config.is_eco);
+	Util_str_format_append(&data, "<8>%" PRIu8 "</8>", config.is_wifi_on);
 	//9 and 10 are no longer used.
+	Util_str_format_append(&data, "<9>0</9><10>0</10>");
+	Util_str_format_append(&data, "<11>%" PRIu8 "</11>", config.screen_mode);
+	Util_str_format_append(&data, "<12>%" PRIu16 "</12>", config.time_to_enter_sleep);
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 	sem_stop_record_request = true;
@@ -711,7 +740,9 @@ void Sem_exit(void)
 	Menu_remove_worker_thread_callback(Sem_worker_callback);
 
 	//Save settings.
-	DEF_LOG_RESULT_SMART(result, Util_file_save_to_file("settings.txt", DEF_MENU_MAIN_DIR, (uint8_t*)data.c_str(), data.length(), true), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_file_save_to_file("settings.txt", DEF_MENU_MAIN_DIR, (uint8_t*)data.buffer, data.length, true), (result == DEF_SUCCESS), result);
+
+	Util_str_free(&data);
 
 	if(sem_internal_state.fake_model < DEF_SEM_MODEL_MAX)
 	{
@@ -744,6 +775,9 @@ void Sem_exit(void)
 	DEF_LOG_RESULT_SMART(result, threadJoin(sem_check_connectivity_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(sem_check_connectivity_thread);
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
+
+	for(uint8_t i = 0; i < (sizeof(sem_newest_ver_data) / sizeof(sem_newest_ver_data[0])); i++)
+		Util_str_free(&sem_newest_ver_data[i]);
 
 	//Global.
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &Draw_get_bot_ui_button()->selected);
@@ -988,7 +1022,7 @@ void Sem_main(void)
 				else if (sem_update_progress == 1)//Success.
 				{
 					Draw(&sem_msg[sem_new_version_available ? DEF_SEM_NEW_VERSION_AVAILABLE_MSG : DEF_SEM_UP_TO_DATE_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
-					Draw_c(sem_newest_ver_data[5].c_str(), 17.5, 35, 0.425, 0.425, DEF_DRAW_BLACK);
+					Draw(&sem_newest_ver_data[5], 17.5, 35, 0.425, 0.425, DEF_DRAW_BLACK);
 				}
 				if(strcmp(config.lang, "ro") == 0)
 					Draw(&sem_msg[DEF_SEM_SELECT_EDITION_MSG], 17.5, 200, 0.35, 0.35, DEF_DRAW_BLACK);
@@ -999,6 +1033,8 @@ void Sem_main(void)
 			}
 			else if (sem_select_ver_request)
 			{
+				bool can_press = false;
+
 				Draw_texture(&background, DEF_DRAW_AQUA, 15, 15, 290, 200);
 				Draw_texture(&sem_back_to_patch_note_button, sem_back_to_patch_note_button.selected ? DEF_DRAW_WHITE : DEF_DRAW_WEAK_WHITE, 15, 200, 145, 15);
 				Draw_texture(&sem_dl_install_button, sem_dl_install_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 160, 200, 145, 15);
@@ -1008,7 +1044,7 @@ void Sem_main(void)
 				//3dsx.
 				if(sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
 					Draw(&sem_msg[DEF_SEM_3DSX_MSG], 17.5, 15, 0.8, 0.8, DEF_DRAW_RED);
-				else if(sem_newest_ver_data[1] == "1")
+				else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[1]))[0] == '1')
 					Draw(&sem_msg[DEF_SEM_3DSX_MSG], 17.5, 15, 0.8, 0.8, DEF_DRAW_BLACK);
 				else
 					Draw(&sem_msg[DEF_SEM_3DSX_MSG], 17.5, 15, 0.8, 0.8, DEF_DRAW_WEAK_BLACK);
@@ -1016,29 +1052,37 @@ void Sem_main(void)
 				//Cia.
 				if(sem_selected_edition_num == DEF_SEM_EDTION_CIA)
 					Draw(&sem_msg[DEF_SEM_CIA_MSG], 17.5, 45, 0.8, 0.8, DEF_DRAW_RED);
-				else if(sem_newest_ver_data[2] == "1")
+				else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[2]))[0] == '1')
 					Draw(&sem_msg[DEF_SEM_CIA_MSG], 17.5, 45, 0.8, 0.8, DEF_DRAW_BLACK);
 				else
 					Draw(&sem_msg[DEF_SEM_CIA_MSG], 17.5, 45, 0.8, 0.8, DEF_DRAW_WEAK_BLACK);
 
 				if (sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
 				{
-					Util_str_format(&format_str, "sdmc:%s%s/%s.3dsx", DEF_SEM_UPDATE_DIR_PREFIX, sem_newest_ver_data[0].c_str(), DEF_SEM_UPDATE_FILE_PREFIX);
+					Util_str_format(&format_str, "sdmc:" DEF_MENU_MAIN_DIR "ver/%s%s.3dsx", DEF_SEM_UPDATE_FILE_PREFIX, DEF_STR_NEVER_NULL(&sem_newest_ver_data[0]));
 					Draw(&sem_msg[DEF_SEM_FILE_PATH_MSG], 17.5, 140, 0.5, 0.5, DEF_DRAW_BLACK);
 					Draw(&format_str, 17.5, 150, 0.425, 0.425, DEF_DRAW_RED);
 				}
 
 				if(sem_update_progress == 2)
 				{
+					uint32_t dled_size_kb = (sem_dled_size / 1000);
+					double dled_size_mb = (sem_dled_size / 1000.0 / 1000.0);
+
 					//Downloading.
-					Draw_c((std::to_string(sem_dled_size / 1000.0 / 1000.0).substr(0, 4) + "MB(" + std::to_string(sem_dled_size / 1000) + "KB)").c_str(), 17.5, 180, 0.425, 0.425, DEF_DRAW_BLACK);
+					Util_str_format(&format_str, "%.2fMB(%" PRIu32 "KB)", dled_size_mb, dled_size_kb);
 					Draw(&sem_msg[DEF_SEM_DOWNLOADING_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
+					Draw(&format_str, 17.5, 180, 0.425, 0.425, DEF_DRAW_BLACK);
 				}
 				else if(sem_update_progress == 3)
 				{
+					double installed_size_mb = (sem_installed_size / 1000.0 / 1000.0);
+					double total_size_mb = (sem_total_cia_size / 1000.0 / 1000.0);
+
 					//Installing.
-					Draw_c((std::to_string(sem_installed_size / 1000.0 / 1000.0).substr(0, 4) + "MB/" + std::to_string(sem_total_cia_size / 1000.0 / 1000.0).substr(0, 4) + "MB").c_str(), 17.5, 180, 0.425, 0.425, DEF_DRAW_BLACK);
+					Util_str_format(&format_str, "%.2fMB/%.2fMB", installed_size_mb, total_size_mb);
 					Draw(&sem_msg[DEF_SEM_INSTALLING_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
+					Draw(&format_str, 17.5, 180, 0.425, 0.425, DEF_DRAW_BLACK);
 				}
 				else if (sem_update_progress == 4)
 				{
@@ -1051,7 +1095,11 @@ void Sem_main(void)
 				else if (sem_update_progress == -2)
 					Draw(&sem_msg[DEF_SEM_FAILURE_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
 
-				Draw(&sem_msg[DEF_SEM_DL_INSTALL_MSG], 162.5, 200, 0.425, 0.425, (sem_selected_edition_num != DEF_SEM_EDTION_NONE && sem_newest_ver_data[1 + sem_selected_edition_num] == "1") ? DEF_DRAW_BLACK : DEF_DRAW_WEAK_BLACK);
+				if((sem_selected_edition_num != DEF_SEM_EDTION_NONE)
+				&& (DEF_STR_NEVER_NULL(&sem_newest_ver_data[1 + sem_selected_edition_num]))[0] == '1')
+					can_press = true;
+
+				Draw(&sem_msg[DEF_SEM_DL_INSTALL_MSG], 162.5, 200, 0.425, 0.425, (can_press ? DEF_DRAW_BLACK : DEF_DRAW_WEAK_BLACK));
 				Draw(&sem_msg[DEF_SEM_BACK_TO_PATCH_NOTE_MSG], 17.5, 200, 0.45, 0.45, DEF_DRAW_BLACK);
 			}
 #else
@@ -1478,13 +1526,17 @@ void Sem_hid(Hid_info key)
 				}
 				else if (sem_select_ver_request && !sem_dl_file_request)
 				{
-					if (Util_hid_is_pressed(key, sem_3dsx_button) && sem_newest_ver_data[1] == "1")
+					bool is_3dsx_available = ((DEF_STR_NEVER_NULL(&sem_newest_ver_data[1]))[0] == '1');
+					bool is_cia_available = ((DEF_STR_NEVER_NULL(&sem_newest_ver_data[2]))[0] == '1');
+					bool is_available[2] = { is_3dsx_available, is_cia_available, };
+
+					if (Util_hid_is_pressed(key, sem_3dsx_button) && is_3dsx_available)
 						sem_3dsx_button.selected = true;
-					else if (Util_hid_is_released(key, sem_3dsx_button) && sem_newest_ver_data[1] == "1" && sem_3dsx_button.selected)
+					else if (Util_hid_is_released(key, sem_3dsx_button) && is_3dsx_available && sem_3dsx_button.selected)
 						sem_selected_edition_num = DEF_SEM_EDTION_3DSX;
-					else if (Util_hid_is_pressed(key, sem_cia_button) && sem_newest_ver_data[2] == "1")
+					else if (Util_hid_is_pressed(key, sem_cia_button) && is_cia_available)
 						sem_cia_button.selected = true;
-					else if (Util_hid_is_released(key, sem_cia_button) && sem_newest_ver_data[2] == "1" && sem_cia_button.selected)
+					else if (Util_hid_is_released(key, sem_cia_button) && is_cia_available && sem_cia_button.selected)
 						sem_selected_edition_num = DEF_SEM_EDTION_CIA;
 					else if (Util_hid_is_pressed(key, sem_back_to_patch_note_button))
 						sem_back_to_patch_note_button.selected = true;
@@ -1493,9 +1545,9 @@ void Sem_hid(Hid_info key)
 						sem_show_patch_note_request = true;
 						sem_select_ver_request = false;
 					}
-					else if (Util_hid_is_pressed(key, sem_dl_install_button) && sem_selected_edition_num != DEF_SEM_EDTION_NONE && sem_newest_ver_data[1 + sem_selected_edition_num] == "1")
+					else if (Util_hid_is_pressed(key, sem_dl_install_button) && sem_selected_edition_num != DEF_SEM_EDTION_NONE && is_available[sem_selected_edition_num])
 						sem_dl_install_button.selected = true;
-					else if ((key.p_x || (Util_hid_is_released(key, sem_dl_install_button) && sem_dl_install_button.selected)) && sem_selected_edition_num != DEF_SEM_EDTION_NONE && sem_newest_ver_data[1 + sem_selected_edition_num] == "1")
+					else if ((key.p_x || (Util_hid_is_released(key, sem_dl_install_button) && sem_dl_install_button.selected)) && sem_selected_edition_num != DEF_SEM_EDTION_NONE && is_available[sem_selected_edition_num])
 						sem_dl_file_request = true;
 					else if(Util_hid_is_pressed(key, sem_close_app_button) && sem_update_progress == 4)
 						sem_close_app_button.selected = true;
@@ -2452,10 +2504,11 @@ void Sem_record_thread(void* arg)
 		if (sem_record_request)
 		{
 			uint32_t result = DEF_ERR_OTHER;
-			std::string file_path = "";
+			Str_data path = { 0, };
 			Sem_state state = { 0, };
 
 			Sem_get_state(&state);
+			Util_str_init(&path);
 
 			if(DEF_SEM_MODEL_IS_NEW(state.console_model))
 				APT_SetAppCpuTimeLimit(80);
@@ -2492,11 +2545,10 @@ void Sem_record_thread(void* arg)
 			}
 			sem_rec_width = rec_width;
 			sem_rec_height = rec_height;
-			file_path = (std::string)DEF_MENU_MAIN_DIR + "screen_recording/" + std::to_string(state.time.years) + "_"
-			+ std::to_string(state.time.months) + "_" + std::to_string(state.time.days) + "_" + std::to_string(state.time.hours)
-			+ "_" + std::to_string(state.time.minutes) + "_" + std::to_string(state.time.seconds) + ".mp4";
+			Util_str_format(&path, "%04" PRIu16 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 "_%02" PRIu8 ".mp4",
+			state.time.years, state.time.months, state.time.days, state.time.hours, state.time.minutes, state.time.seconds);
 
-			DEF_LOG_RESULT_SMART(result, Util_encoder_create_output_file(file_path.c_str(), 0), (result == DEF_SUCCESS), result);
+			DEF_LOG_RESULT_SMART(result, Util_encoder_create_output_file(path.buffer, 0), (result == DEF_SUCCESS), result);
 			if(result != DEF_SUCCESS)
 				sem_record_request = false;
 
@@ -2511,6 +2563,8 @@ void Sem_record_thread(void* arg)
 			sem_yuv420p = (uint8_t*)linearAlloc(rec_width * rec_height * 1.5);
 			if(sem_yuv420p == NULL)
 				sem_stop_record_request = true;
+
+			Util_str_free(&path);
 
 			while(sem_record_request)
 			{
@@ -2676,75 +2730,71 @@ void Sem_check_connectivity_thread(void* arg)
 void Sem_update_thread(void* arg)
 {
 	DEF_LOG_STRING("Thread started.");
-
-	uint8_t* buffer = NULL;
-	uint32_t write_size = 0;
-	uint32_t read_size = 0;
 	uint32_t result = DEF_ERR_OTHER;
-	uint64_t offset = 0;
-	size_t parse_start_pos = std::string::npos;
-	size_t parse_end_pos = std::string::npos;
-	std::string dir_path = "";
-	std::string file_name = "";
-	std::string url = "";
-	std::string parse_cache = "";
-	std::string parse_start[6] = {"<newest>", "<3dsx_available>", "<cia_available>", "<3dsx_url>", "<cia_url>", "<patch_note>", };
-	std::string parse_end[6] = { "</newest>", "</3dsx_available>", "</cia_available>", "</3dsx_url>", "</cia_url>", "</patch_note>", };
-	Handle am_handle = 0;
 
 	while (sem_thread_run)
 	{
 		if (sem_check_update_request || sem_dl_file_request)
 		{
+			uint8_t* buffer = NULL;
+			Str_data dir_path = { 0, };
+			Str_data filename = { 0, };
+			Str_data url = { 0, };
+
+			sem_dled_size = 0;
+			sem_installed_size = 0;
+			sem_total_cia_size = 0;
+			Util_str_init(&url);
+			Util_str_init(&dir_path);
+			Util_str_init(&filename);
+
 			if (sem_check_update_request)
 			{
 				sem_update_progress = 0;
 				sem_selected_edition_num = DEF_SEM_EDTION_NONE;
-				url = DEF_SEM_CHECK_UPDATE_URL;
+				Util_str_set(&url, DEF_SEM_CHECK_UPDATE_URL);
 				sem_new_version_available = false;
 				for (uint8_t i = 0; i < 6; i++)
-					sem_newest_ver_data[i] = "";
+					Util_str_clear(&sem_newest_ver_data[i]);
 			}
 			else if (sem_dl_file_request)
 			{
 				sem_update_progress = 2;
-				url = sem_newest_ver_data[3 + sem_selected_edition_num];
+				Util_str_set(&url, DEF_STR_NEVER_NULL(&sem_newest_ver_data[3 + sem_selected_edition_num]));
 			}
 			Draw_set_refresh_needed(true);
 
-			sem_dled_size = 0;
-			offset = 0;
-			sem_installed_size = 0;
-			sem_total_cia_size = 0;
-
 			if(sem_dl_file_request)
 			{
-				dir_path = DEF_SEM_UPDATE_DIR_PREFIX + sem_newest_ver_data[0] + "/";
-				file_name = DEF_SEM_UPDATE_FILE_PREFIX;
-				if(sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
-					file_name += ".3dsx";
-				else if(sem_selected_edition_num == DEF_SEM_EDTION_CIA)
-					file_name += ".cia";
+				Util_str_set(&dir_path, DEF_MENU_MAIN_DIR "ver/");
 
-				Util_file_delete_file(file_name.c_str(), dir_path.c_str());//Delete old file if exist.
+				Util_str_format(&filename, DEF_SEM_UPDATE_FILE_PREFIX "%s.", DEF_STR_NEVER_NULL(&sem_newest_ver_data[0]));
+				if(sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
+					Util_str_format_append(&filename, "3dsx");
+				else if(sem_selected_edition_num == DEF_SEM_EDTION_CIA)
+					Util_str_format_append(&filename, "cia");
+
+				Util_file_delete_file(filename.buffer, dir_path.buffer);//Delete old file if exist.
 			}
 
 			if(sem_dl_file_request)
 			{
 #if DEF_CURL_API_ENABLE
-				DEF_LOG_RESULT_SMART(result, Util_curl_save_data(url.c_str(), 0x20000, &sem_dled_size, NULL, 5, NULL, dir_path.c_str(), file_name.c_str()), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_curl_save_data(url.buffer, 0x20000, &sem_dled_size, NULL, 5, NULL, dir_path.buffer, filename.buffer), (result == DEF_SUCCESS), result);
 #else
-				DEF_LOG_RESULT_SMART(result, Util_httpc_save_data(url.c_str(), 0x20000, &sem_dled_size, NULL, 5, NULL, dir_path.c_str(), file_name.c_str()), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_httpc_save_data(url.buffer, 0x20000, &sem_dled_size, NULL, 5, NULL, dir_path.buffer, filename.buffer), (result == DEF_SUCCESS), result);
 #endif //DEF_CURL_API_ENABLE
 			}
 			else
 			{
 #if DEF_CURL_API_ENABLE
-				DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(url.c_str(), &buffer, 0x20000, &sem_dled_size, NULL, 5, NULL), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(url.buffer, &buffer, 0x20000, &sem_dled_size, NULL, 5, NULL), (result == DEF_SUCCESS), result);
 #else
-				DEF_LOG_RESULT_SMART(result, Util_httpc_dl_data(url.c_str(), &buffer, 0x20000, &sem_dled_size, NULL, 5, NULL), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_httpc_dl_data(url.buffer, &buffer, 0x20000, &sem_dled_size, NULL, 5, NULL), (result == DEF_SUCCESS), result);
 #endif //DEF_CURL_API_ENABLE
 			}
+
+			Util_str_free(&url);
 
 			if (result != DEF_SUCCESS)
 			{
@@ -2754,24 +2804,36 @@ void Sem_update_thread(void* arg)
 					sem_update_progress = -1;
 				else if (sem_dl_file_request)
 					sem_update_progress = -2;
+
 				Draw_set_refresh_needed(true);
 			}
 			else
 			{
 				if (sem_check_update_request && buffer)
 				{
-					parse_cache = (char*)buffer;
+					const char* parse_start[6] = {"<newest>", "<3dsx_available>", "<cia_available>", "<3dsx_url>", "<cia_url>", "<patch_note>", };
+					const char* parse_end[6] = { "</newest>", "</3dsx_available>", "</cia_available>", "</3dsx_url>", "</cia_url>", "</patch_note>", };
 
 					for (uint8_t i = 0; i < 6; i++)
 					{
-						parse_start_pos = parse_cache.find(parse_start[i]);
-						parse_end_pos = parse_cache.find(parse_end[i]);
+						bool is_error = true;
+						char* start_pos = strstr((char*)buffer, parse_start[i]);
+						char* end_pos = strstr((char*)buffer, parse_end[i]);
 
-						parse_start_pos += parse_start[i].length();
-						parse_end_pos -= parse_start_pos;
-						if (parse_start_pos != std::string::npos && parse_end_pos != std::string::npos)
-							sem_newest_ver_data[i] = parse_cache.substr(parse_start_pos, parse_end_pos);
-						else
+						if(start_pos && end_pos)
+						{
+							uint32_t size = 0;
+
+							start_pos += strlen(parse_start[i]);
+							size = (end_pos - start_pos);
+							if(end_pos > start_pos && size < 16384)
+							{
+								Util_str_format(&sem_newest_ver_data[i], "%.*s", size, start_pos);
+								is_error = false;
+							}
+						}
+
+						if(is_error)
 						{
 							sem_update_progress = -1;
 							break;
@@ -2780,14 +2842,14 @@ void Sem_update_thread(void* arg)
 
 					if(sem_update_progress != -1)
 					{
-						if (DEF_MENU_CURRENT_APP_VER_INT < (uint32_t)atoi(sem_newest_ver_data[0].c_str()))
+						if (DEF_MENU_CURRENT_APP_VER_INT < (uint32_t)atoi(DEF_STR_NEVER_NULL(&sem_newest_ver_data[0])))
 							sem_new_version_available = true;
 						else
 							sem_new_version_available = false;
 
-						if(envIsHomebrew() && sem_newest_ver_data[1] == "1")
+						if(envIsHomebrew() && (DEF_STR_NEVER_NULL(&sem_newest_ver_data[1]))[0] == '1')
 							sem_selected_edition_num = DEF_SEM_EDTION_3DSX;
-						else if(sem_newest_ver_data[2] == "1")
+						else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[2]))[0] == '1')
 							sem_selected_edition_num = DEF_SEM_EDTION_CIA;
 					}
 
@@ -2803,16 +2865,22 @@ void Sem_update_thread(void* arg)
 					Draw_set_refresh_needed(true);
 					if (sem_selected_edition_num == DEF_SEM_EDTION_CIA)
 					{
+						uint64_t offset = 0;
+						Handle am_handle = 0;
+
 						sem_total_cia_size = sem_dled_size;
 						DEF_LOG_RESULT_SMART(result, AM_StartCiaInstall(MEDIATYPE_SD, &am_handle), (result == DEF_SUCCESS), result);
 
 						while (true)
 						{
+							uint32_t write_size = 0;
+							uint32_t read_size = 0;
+
 							free(buffer);
 							buffer = NULL;
 
-							DEF_LOG_RESULT_SMART(result, Util_file_load_from_file(file_name.c_str(), dir_path.c_str(), &buffer, 0x20000, offset, &read_size), (result == DEF_SUCCESS), result);
-							if(result != DEF_SUCCESS || read_size <= 0)
+							DEF_LOG_RESULT_SMART(result, Util_file_load_from_file(filename.buffer, dir_path.buffer, &buffer, 0x20000, offset, &read_size), (result == DEF_SUCCESS), result);
+							if(result != DEF_SUCCESS || read_size == 0)
 								break;
 
 							DEF_LOG_RESULT_SMART(result, FSFILE_Write(am_handle, &write_size, offset, buffer, read_size, FS_WRITE_FLUSH), (result == DEF_SUCCESS), result);
@@ -2833,6 +2901,9 @@ void Sem_update_thread(void* arg)
 					}
 				}
 			}
+
+			Util_str_free(&dir_path);
+			Util_str_free(&filename);
 
 			free(buffer);
 			buffer = NULL;

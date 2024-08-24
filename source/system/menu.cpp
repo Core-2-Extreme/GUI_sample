@@ -4,8 +4,8 @@ extern "C"
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 }
-#include <string>
 
 extern "C"
 {
@@ -153,6 +153,7 @@ void Menu_init(void)
 	Util_file_save_to_file(".", DEF_MENU_MAIN_DIR "screen_recording/", &dummy, 1, true);
 	Util_file_save_to_file(".", DEF_MENU_MAIN_DIR "error/", &dummy, 1, true);
 	Util_file_save_to_file(".", DEF_MENU_MAIN_DIR "logs/", &dummy, 1, true);
+	Util_file_save_to_file(".", DEF_MENU_MAIN_DIR "ver/", &dummy, 1, true);
 
 	//Init our modules.
 	DEF_LOG_RESULT_SMART(result, Util_init(), (result == DEF_SUCCESS), result);
@@ -1229,16 +1230,25 @@ void Menu_update_thread(void* arg)
 
 	if(result == DEF_SUCCESS)
 	{
-		size_t pos[2] = { 0, 0, };
-		std::string data = (char*)http_buffer;
+		char* pos[2] = { 0, };
 
-		pos[0] = data.find("<newest>");
-		pos[1] = data.find("</newest>");
-		if(pos[0] != std::string::npos && pos[1] != std::string::npos)
+		pos[0] = strstr((char*)http_buffer, "<newest>");
+		pos[1] = strstr((char*)http_buffer, "</newest>");
+		if(pos[0] && pos[1])
 		{
-			data = data.substr(pos[0] + 8, pos[1] - (pos[0] + 8));
-			if(DEF_MENU_CURRENT_APP_VER_INT < (uint32_t)atoi(data.c_str()))
-				menu_update_available = true;
+			uint32_t size = 0;
+			char ver[32] = { 0, };
+
+			pos[0] += strlen("<newest>");
+			size = (pos[1] - pos[0]);
+			if((pos[1] > pos[0]) && (size < sizeof(ver)))
+			{
+				memcpy(ver, pos[0], size);
+				ver[size] = 0x00;
+
+				if(DEF_MENU_CURRENT_APP_VER_INT < (uint32_t)atoi(ver))
+					menu_update_available = true;
+			}
 		}
 	}
 
