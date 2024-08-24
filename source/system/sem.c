@@ -189,7 +189,6 @@ void Sem_get_config(Sem_config* config)
 void Sem_set_config(Sem_config* new_config)
 {
 	bool reload_msg = false;
-	bool set_wifi_state = false;
 
 	if(!sem_already_init)
 		return;
@@ -213,7 +212,6 @@ void Sem_set_config(Sem_config* new_config)
 	{
 		//Send a request.
 		sem_should_wifi_enabled = new_config->is_wifi_on;
-		set_wifi_state = true;
 		//Don't update config yet, Sem_hw_config_thread() will do the job later.
 		new_config->is_wifi_on = sem_config.is_wifi_on;
 	}
@@ -266,8 +264,6 @@ void Sem_set_config(Sem_config* new_config)
 		new_config->time_to_enter_sleep = new_config->time_to_turn_off_lcd;
 
 	memcpy(&sem_config, new_config, sizeof(Sem_config));
-	if(set_wifi_state)
-		sem_should_wifi_enabled = true;
 	if(reload_msg)
 		sem_reload_msg_request = true;
 
