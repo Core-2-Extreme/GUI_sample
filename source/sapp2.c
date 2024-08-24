@@ -1,29 +1,30 @@
+//Includes.
+#include "sapp2.h"
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
-extern "C"
-{
-	#include "system/menu.h"
-	#include "system/sem.h"
-	#include "system/draw/draw.h"
-	#include "system/util/cpu_usage.h"
-	#include "system/util/err.h"
-	#include "system/util/expl.h"
-	#include "system/util/hid.h"
-	#include "system/util/hw_config.h"
-	#include "system/util/log.h"
-	#include "system/util/queue.h"
-	#include "system/util/str.h"
-	#include "system/util/thread_types.h"
-	#include "system/util/util.h"
-	#include "system/util/watch.h"
-}
+#include "system/menu.h"
+#include "system/sem.h"
+#include "system/draw/draw.h"
+#include "system/util/cpu_usage.h"
+#include "system/util/err.h"
+#include "system/util/expl.h"
+#include "system/util/hid.h"
+#include "system/util/hw_config.h"
+#include "system/util/log.h"
+#include "system/util/queue.h"
+#include "system/util/str.h"
+#include "system/util/thread_types.h"
+#include "system/util/util.h"
+#include "system/util/watch.h"
 
-//Include myself.
-#include "sapp2.hpp"
+//Defines.
+//N/A.
 
-
+//Typedefs.
 typedef enum
 {
 	NONE,
@@ -59,7 +60,13 @@ DEF_LOG_ENUM_DEBUG
 	MAX
 );
 
+//Prototypes.
+static void Sapp2_draw_init_exit_message(void);
+static void Sapp2_init_thread(void* arg);
+static void Sapp2_exit_thread(void* arg);
+static void Sapp2_worker_thread(void* arg);
 
+//Variables.
 bool sapp2_main_run = false;
 bool sapp2_thread_run = false;
 bool sapp2_already_init = false;
@@ -69,13 +76,7 @@ Queue_data sapp2_command_queue = { 0, };
 Str_data sapp2_status = { 0, };
 Str_data sapp2_msg[DEF_SAPP2_NUM_OF_MSG] = { 0, };
 
-
-static void Sapp2_draw_init_exit_message(void);
-static void Sapp2_init_thread(void* arg);
-static void Sapp2_exit_thread(void* arg);
-static void Sapp2_worker_thread(void* arg);
-
-
+//Code.
 bool Sapp2_query_init_flag(void)
 {
 	return sapp2_already_init;

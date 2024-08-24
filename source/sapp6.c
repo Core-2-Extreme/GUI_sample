@@ -1,27 +1,37 @@
+//Includes.
+#include "sapp6.h"
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
-extern "C"
-{
-	#include "system/menu.h"
-	#include "system/sem.h"
-	#include "system/draw/draw.h"
-	#include "system/util/cpu_usage.h"
-	#include "system/util/err.h"
-	#include "system/util/expl.h"
-	#include "system/util/hid.h"
-	#include "system/util/log.h"
-	#include "system/util/str.h"
-	#include "system/util/thread_types.h"
-	#include "system/util/util.h"
-	#include "system/util/watch.h"
-}
+#include "system/menu.h"
+#include "system/sem.h"
+#include "system/draw/draw.h"
+#include "system/util/cpu_usage.h"
+#include "system/util/err.h"
+#include "system/util/expl.h"
+#include "system/util/hid.h"
+#include "system/util/log.h"
+#include "system/util/str.h"
+#include "system/util/thread_types.h"
+#include "system/util/util.h"
+#include "system/util/watch.h"
 
-//Include myself.
-#include "sapp6.hpp"
+//Defines.
+//N/A.
 
+//Typedefs.
+//N/A.
 
+//Prototypes.
+static void Sapp6_draw_init_exit_message(void);
+static void Sapp6_init_thread(void* arg);
+static void Sapp6_exit_thread(void* arg);
+static void Sapp6_worker_thread(void* arg);
+
+//Variables.
 bool sapp6_main_run = false;
 bool sapp6_thread_run = false;
 bool sapp6_already_init = false;
@@ -30,13 +40,7 @@ Thread sapp6_init_thread = NULL, sapp6_exit_thread = NULL, sapp6_worker_thread =
 Str_data sapp6_status = { 0, };
 Str_data sapp6_msg[DEF_SAPP6_NUM_OF_MSG] = { 0, };
 
-
-static void Sapp6_draw_init_exit_message(void);
-static void Sapp6_init_thread(void* arg);
-static void Sapp6_exit_thread(void* arg);
-static void Sapp6_worker_thread(void* arg);
-
-
+//Code.
 bool Sapp6_query_init_flag(void)
 {
 	return sapp6_already_init;

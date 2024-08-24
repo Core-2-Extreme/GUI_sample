@@ -1,14 +1,11 @@
 //Includes.
-extern "C"
-{
+#include "system/sem.h"
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-}
 
-extern "C"
-{
 #include "3ds.h"
 
 #include "system/menu.h"
@@ -28,22 +25,14 @@ extern "C"
 #include "system/util/thread_types.h"
 #include "system/util/util.h"
 #include "system/util/watch.h"
-}
-
-#include "sapp0.hpp"
-#include "sapp1.hpp"
-#include "sapp2.hpp"
-#include "sapp3.hpp"
-#include "sapp4.hpp"
-#include "sapp5.hpp"
-#include "sapp6.hpp"
-#include "sapp7.hpp"
-
-//Include myself.
-extern "C"
-{
-#include "system/sem.h"
-}
+#include "sapp0.h"
+#include "sapp1.h"
+#include "sapp2.h"
+#include "sapp3.h"
+#include "sapp4.h"
+#include "sapp5.h"
+#include "sapp6.h"
+#include "sapp7.h"
 
 //Defines.
 //N/A.

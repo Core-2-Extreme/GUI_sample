@@ -1,30 +1,40 @@
+//Includes.
+#include "sapp0.h"
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
-extern "C"
-{
-	#include "system/menu.h"
-	#include "system/sem.h"
-	#include "system/draw/draw.h"
-	#include "system/util/converter.h"
-	#include "system/util/cpu_usage.h"
-	#include "system/util/curl.h"
-	#include "system/util/decoder.h"
-	#include "system/util/err.h"
-	#include "system/util/expl.h"
-	#include "system/util/hid.h"
-	#include "system/util/log.h"
-	#include "system/util/str.h"
-	#include "system/util/thread_types.h"
-	#include "system/util/util.h"
-	#include "system/util/watch.h"
-}
+#include "system/menu.h"
+#include "system/sem.h"
+#include "system/draw/draw.h"
+#include "system/util/converter.h"
+#include "system/util/cpu_usage.h"
+#include "system/util/curl.h"
+#include "system/util/decoder.h"
+#include "system/util/err.h"
+#include "system/util/expl.h"
+#include "system/util/hid.h"
+#include "system/util/log.h"
+#include "system/util/str.h"
+#include "system/util/thread_types.h"
+#include "system/util/util.h"
+#include "system/util/watch.h"
 
-//Include myself.
-#include "sapp0.hpp"
+//Defines.
+//N/A.
 
+//Typedefs.
+//N/A.
 
+//Prototypes.
+static void Sapp0_draw_init_exit_message(void);
+static void Sapp0_init_thread(void* arg);
+static void Sapp0_exit_thread(void* arg);
+static void Sapp0_worker_thread(void* arg);
+
+//Variables.
 bool sapp0_main_run = false;
 bool sapp0_thread_run = false;
 bool sapp0_already_init = false;
@@ -34,13 +44,7 @@ Str_data sapp0_status = { 0, };
 Str_data sapp0_msg[DEF_SAPP0_NUM_OF_MSG] = { 0, };
 Draw_image_data sapp0_image[3] = { 0, };
 
-
-static void Sapp0_draw_init_exit_message(void);
-static void Sapp0_init_thread(void* arg);
-static void Sapp0_exit_thread(void* arg);
-static void Sapp0_worker_thread(void* arg);
-
-
+//Code.
 bool Sapp0_query_init_flag(void)
 {
 	return sapp0_already_init;

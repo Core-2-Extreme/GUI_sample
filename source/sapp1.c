@@ -1,27 +1,39 @@
+//Includes.
+#include "sapp1.h"
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
-extern "C"
-{
-	#include "system/menu.h"
-	#include "system/sem.h"
-	#include "system/draw/draw.h"
-	#include "system/util/cpu_usage.h"
-	#include "system/util/err.h"
-	#include "system/util/expl.h"
-	#include "system/util/hid.h"
-	#include "system/util/log.h"
-	#include "system/util/str.h"
-	#include "system/util/thread_types.h"
-	#include "system/util/util.h"
-	#include "system/util/watch.h"
-}
+#include "system/menu.h"
+#include "system/sem.h"
+#include "system/draw/draw.h"
+#include "system/util/cpu_usage.h"
+#include "system/util/err.h"
+#include "system/util/expl.h"
+#include "system/util/hid.h"
+#include "system/util/log.h"
+#include "system/util/str.h"
+#include "system/util/thread_types.h"
+#include "system/util/util.h"
+#include "system/util/watch.h"
 
-//Include myself.
-#include "sapp1.hpp"
+//Defines.
+//N/A.
 
+//Typedefs.
+//N/A.
 
+//Prototypes.
+static void Sapp1_draw_init_exit_message(void);
+static void Sapp1_init_thread(void* arg);
+static void Sapp1_exit_thread(void* arg);
+static void Sapp1_worker_thread(void* arg);
+static void Sapp1_expl_callback(Str_data* file_name, Str_data* dir_path);
+static void Sapp1_expl_cancel_callback(void);
+
+//Variables.
 bool sapp1_main_run = false;
 bool sapp1_thread_run = false;
 bool sapp1_already_init = false;
@@ -32,15 +44,7 @@ Str_data sapp1_msg[DEF_SAPP1_NUM_OF_MSG] = { 0, };
 Str_data sapp1_selected_path = { 0, };
 Str_data sapp1_file_info = { 0, };
 
-
-static void Sapp1_draw_init_exit_message(void);
-static void Sapp1_init_thread(void* arg);
-static void Sapp1_exit_thread(void* arg);
-static void Sapp1_worker_thread(void* arg);
-static void Sapp1_expl_callback(Str_data* file_name, Str_data* dir_path);
-static void Sapp1_expl_cancel_callback(void);
-
-
+//Code.
 bool Sapp1_query_init_flag(void)
 {
 	return sapp1_already_init;

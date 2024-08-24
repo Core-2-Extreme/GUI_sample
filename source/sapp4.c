@@ -1,31 +1,32 @@
+//Includes.
+#include "sapp4.h"
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
-extern "C"
-{
-	#include "system/menu.h"
-	#include "system/sem.h"
-	#include "system/draw/draw.h"
-	#include "system/util/converter.h"
-	#include "system/util/cpu_usage.h"
-	#include "system/util/decoder.h"
-	#include "system/util/err.h"
-	#include "system/util/expl.h"
-	#include "system/util/hid.h"
-	#include "system/util/log.h"
-	#include "system/util/queue.h"
-	#include "system/util/speaker.h"
-	#include "system/util/str.h"
-	#include "system/util/thread_types.h"
-	#include "system/util/util.h"
-	#include "system/util/watch.h"
-}
+#include "system/menu.h"
+#include "system/sem.h"
+#include "system/draw/draw.h"
+#include "system/util/converter.h"
+#include "system/util/cpu_usage.h"
+#include "system/util/decoder.h"
+#include "system/util/err.h"
+#include "system/util/expl.h"
+#include "system/util/hid.h"
+#include "system/util/log.h"
+#include "system/util/queue.h"
+#include "system/util/speaker.h"
+#include "system/util/str.h"
+#include "system/util/thread_types.h"
+#include "system/util/util.h"
+#include "system/util/watch.h"
 
-//Include myself.
-#include "sapp4.hpp"
+//Defines.
+//N/A.
 
-
+//Typedefs.
 typedef enum
 {
 	NONE,
@@ -58,7 +59,13 @@ DEF_LOG_ENUM_DEBUG
 	SPEAKER_PLAYING
 );
 
+//Prototypes.
+static void Sapp4_draw_init_exit_message(void);
+static void Sapp4_init_thread(void* arg);
+static void Sapp4_exit_thread(void* arg);
+static void Sapp4_worker_thread(void* arg);
 
+//Variables.
 bool sapp4_main_run = false;
 bool sapp4_thread_run = false;
 bool sapp4_already_init = false;
@@ -72,13 +79,7 @@ Str_data sapp4_status = { 0, };
 Str_data sapp4_msg[DEF_SAPP4_NUM_OF_MSG] = { 0, };
 Sapp4_speaker_state sapp4_speaker_state = SPEAKER_IDLE;
 
-
-static void Sapp4_draw_init_exit_message(void);
-static void Sapp4_init_thread(void* arg);
-static void Sapp4_exit_thread(void* arg);
-static void Sapp4_worker_thread(void* arg);
-
-
+//Code.
 bool Sapp4_query_init_flag(void)
 {
 	return sapp4_already_init;

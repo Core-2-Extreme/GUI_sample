@@ -1,13 +1,10 @@
 //Includes.
-extern "C"
-{
 #include <stdbool.h>
 #include <stdint.h>
 
 #include "3ds.h"
 
 #include "system/menu.h"
-}
 
 //Defines.
 //N/A.

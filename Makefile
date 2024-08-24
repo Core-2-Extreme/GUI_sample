@@ -68,7 +68,7 @@ ASFLAGS		:= $(ARCH)
 LDFLAGS		= -specs=3dsx.specs $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--wrap,malloc,--wrap,calloc,--wrap,realloc,--wrap,free,--wrap,_free_r,--wrap,memalign,--wrap,linearAlloc,--wrap,linearMemAlign,--wrap,linearRealloc,--wrap,linearGetSize,--wrap,linearFree,--wrap,linearSpaceFree
 LDFLAGS		+= -Wl,--wrap,APT_GetAppCpuTimeLimit,--wrap,APT_SetAppCpuTimeLimit
 
-LIBS		:= -lswresample -lavformat -lswscale -lavcodec -lavutil -lcitro2d -lcitro3d -lm -lx264 -lmp3lame -ldav1d -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lz -lctru
+LIBS		:= -lswresample -lavformat -lswscale -lavcodec -lavutil -lcitro2d -lcitro3d -lx264 -lmp3lame -ldav1d -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lz -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

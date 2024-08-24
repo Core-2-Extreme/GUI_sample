@@ -1,5 +1,5 @@
-#if !defined(DEF_SAPP2_HPP)
-#define DEF_SAPP2_HPP
+#if !defined(DEF_SAPP2_H)
+#define DEF_SAPP2_H
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/hid_types.h"
@@ -31,4 +31,4 @@ void Sapp2_exit(bool draw);
 
 void Sapp2_main(void);
 
-#endif //!defined(DEF_SAPP2_HPP)
+#endif //!defined(DEF_SAPP2_H)

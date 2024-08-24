@@ -1,33 +1,34 @@
+//Includes.
+#include "sapp3.h"
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
-extern "C"
-{
-	#include "system/menu.h"
-	#include "system/sem.h"
-	#include "system/draw/draw.h"
-	#include "system/util/cam.h"
-	#include "system/util/converter.h"
-	#include "system/util/cpu_usage.h"
-	#include "system/util/encoder.h"
-	#include "system/util/err.h"
-	#include "system/util/expl.h"
-	#include "system/util/file.h"
-	#include "system/util/hid.h"
-	#include "system/util/log.h"
-	#include "system/util/mic.h"
-	#include "system/util/queue.h"
-	#include "system/util/str.h"
-	#include "system/util/thread_types.h"
-	#include "system/util/util.h"
-	#include "system/util/watch.h"
-}
+#include "system/menu.h"
+#include "system/sem.h"
+#include "system/draw/draw.h"
+#include "system/util/cam.h"
+#include "system/util/converter.h"
+#include "system/util/cpu_usage.h"
+#include "system/util/encoder.h"
+#include "system/util/err.h"
+#include "system/util/expl.h"
+#include "system/util/file.h"
+#include "system/util/hid.h"
+#include "system/util/log.h"
+#include "system/util/mic.h"
+#include "system/util/queue.h"
+#include "system/util/str.h"
+#include "system/util/thread_types.h"
+#include "system/util/util.h"
+#include "system/util/watch.h"
 
-//Include myself.
-#include "sapp3.hpp"
+//Defines.
+//N/A.
 
-
+//Typedefs.
 typedef enum
 {
 	CAM_NONE,
@@ -98,7 +99,14 @@ DEF_LOG_ENUM_DEBUG
 	MIC_STOPPING_RECORDING
 );
 
+//Prototypes.
+static void Sapp3_draw_init_exit_message(void);
+static void Sapp3_init_thread(void* arg);
+static void Sapp3_exit_thread(void* arg);
+static void Sapp3_camera_thread(void* arg);
+static void Sapp3_mic_thread(void* arg);
 
+//Variables.
 bool sapp3_main_run = false;
 bool sapp3_thread_run = false;
 bool sapp3_already_init = false;
@@ -114,14 +122,7 @@ Str_data sapp3_mic_saved_path = { 0, };
 Sapp3_camera_state sapp3_camera_state = CAM_IDLE;
 Sapp3_mic_state sapp3_mic_state = MIC_IDLE;
 
-
-static void Sapp3_draw_init_exit_message(void);
-static void Sapp3_init_thread(void* arg);
-static void Sapp3_exit_thread(void* arg);
-static void Sapp3_camera_thread(void* arg);
-static void Sapp3_mic_thread(void* arg);
-
-
+//Code.
 bool Sapp3_query_init_flag(void)
 {
 	return sapp3_already_init;
