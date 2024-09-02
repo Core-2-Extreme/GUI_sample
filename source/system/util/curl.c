@@ -457,14 +457,14 @@ static uint32_t Util_curl_request(CURL** curl_handle, const char* url, CURLoptio
 		goto curl_api_failed;
 	}
 
-	if(method == CURLOPT_HTTPPOST)
+	if(method == CURLOPT_POST)
 		result = curl_easy_setopt(*curl_handle, CURLOPT_POST, 1);
 	else
 		result = curl_easy_setopt(*curl_handle, CURLOPT_HTTPGET, 1);
 
 	if (result != CURLE_OK)
 	{
-		if(method == CURLOPT_HTTPPOST)
+		if(method == CURLOPT_POST)
 			DEF_LOG_RESULT(curl_easy_setopt_HTTPPOST, false, result);
 		else
 			DEF_LOG_RESULT(curl_easy_setopt_HTTPGET, false, result);
@@ -507,7 +507,7 @@ static uint32_t Util_curl_request(CURL** curl_handle, const char* url, CURLoptio
 		goto curl_api_failed;
 	}
 
-	if(method == CURLOPT_HTTPPOST)
+	if(method == CURLOPT_POST)
 	{
 		result = curl_easy_setopt(*curl_handle, CURLOPT_POSTFIELDS, NULL);
 		if (result != CURLE_OK)
@@ -566,7 +566,7 @@ static uint32_t Util_curl_get_request(CURL** curl_handle, const char* url, uint1
 
 static uint32_t Util_curl_post_request(CURL** curl_handle, const char* url, Upload_data* upload_data, uint16_t max_redirect)
 {
-	return Util_curl_request(curl_handle, url, CURLOPT_HTTPPOST, max_redirect, upload_data);
+	return Util_curl_request(curl_handle, url, CURLOPT_POST, max_redirect, upload_data);
 }
 
 static void Util_curl_get_response(CURL** curl_handle, uint16_t* status_code, Str_data* new_url)

@@ -10,6 +10,7 @@
 
 #include "mbedtls/base64.h"
 #include "3ds.h"
+#include <unistd.h>
 
 #include "system/util/err_types.h"
 #include "system/util/file.h"
@@ -186,6 +187,43 @@ static void* malloc_heap_only(size_t size)
 	LightLock_Unlock(&util_malloc_mutex);
 
 	return ptr;
+}
+
+int posix_memalign(void** memptr, size_t alignment, size_t size)
+{
+	*memptr = memalign(alignment, size);
+	if(!*memptr)
+		return -1;
+	else
+		return 0;
+}
+
+long sysconf(int name)
+{
+	if(name == _SC_NPROCESSORS_CONF || name == _SC_NPROCESSORS_ONLN)
+	{
+		uint8_t model = 0;
+		CFGU_GetSystemModel(&model);
+
+		if(name == _SC_NPROCESSORS_CONF)
+		{
+			if(model == CFG_MODEL_N2DSXL || model == CFG_MODEL_N3DS || model == CFG_MODEL_N3DSXL)
+				return 4;
+			else
+				return 2;
+		}
+		else if(name == _SC_NPROCESSORS_ONLN)
+		{
+			if(model == CFG_MODEL_N2DSXL || model == CFG_MODEL_N3DS || model == CFG_MODEL_N3DSXL)
+				return 2 + Util_is_core_available(2) + Util_is_core_available(3);
+			else
+				return 2;
+		}
+		else
+			return -1;
+	}
+	else
+		return -1;
 }
 
 void* __wrap_malloc(size_t size)

@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "3ds.h"
 
@@ -51,32 +50,32 @@ void Util_fake_pthread_set_enabled_core(bool enabled_core[4])
 	util_fake_pthread_core_offset = 0;
 }
 
-int	pthread_mutex_init(pthread_mutex_t* __mutex, const pthread_mutexattr_t* __attr)
+int	__wrap_pthread_mutex_init(pthread_mutex_t* __mutex, const pthread_mutexattr_t* __attr)
 {
 	(void)__attr;
 	LightLock_Init((LightLock*)__mutex);
 	return 0;
 }
 
-int	pthread_mutex_lock(pthread_mutex_t* __mutex)
+int	__wrap_pthread_mutex_lock(pthread_mutex_t* __mutex)
 {
 	LightLock_Lock((LightLock*)__mutex);
 	return 0;
 }
 
-int	pthread_mutex_unlock(pthread_mutex_t* __mutex)
+int	__wrap_pthread_mutex_unlock(pthread_mutex_t* __mutex)
 {
 	LightLock_Unlock((LightLock*)__mutex);
 	return 0;
 }
 
-int	pthread_mutex_destroy(pthread_mutex_t* __mutex)
+int	__wrap_pthread_mutex_destroy(pthread_mutex_t* __mutex)
 {
 	(void)__mutex;
 	return 0;
 }
 
-int	pthread_once(pthread_once_t* __once_control, void (*__init_routine)(void))
+int	__wrap_pthread_once(pthread_once_t* __once_control, void (*__init_routine)(void))
 {
 	LightLock_Lock(&util_fake_pthread_mutex);
 	if(__once_control->status != 0)
@@ -96,38 +95,38 @@ int	pthread_once(pthread_once_t* __once_control, void (*__init_routine)(void))
 	return 0;
 }
 
-int	pthread_cond_init(pthread_cond_t* __cond, const pthread_condattr_t* __attr)
+int	__wrap_pthread_cond_init(pthread_cond_t* __cond, const pthread_condattr_t* __attr)
 {
 	(void)__attr;
 	CondVar_Init((CondVar*)__cond);
 	return 0;
 }
 
-int	pthread_cond_wait(pthread_cond_t* __cond, pthread_mutex_t* __mutex)
+int	__wrap_pthread_cond_wait(pthread_cond_t* __cond, pthread_mutex_t* __mutex)
 {
 	CondVar_Wait((CondVar*)__cond, (LightLock*)__mutex);
 	return 0;
 }
 
-int	pthread_cond_signal(pthread_cond_t* __cond)
+int	__wrap_pthread_cond_signal(pthread_cond_t* __cond)
 {
 	CondVar_Signal((CondVar*)__cond);
 	return 0;
 }
 
-int	pthread_cond_broadcast(pthread_cond_t* __cond)
+int	__wrap_pthread_cond_broadcast(pthread_cond_t* __cond)
 {
 	CondVar_Broadcast((CondVar*)__cond);
 	return 0;
 }
 
-int	pthread_cond_destroy(pthread_cond_t* __mutex)
+int	__wrap_pthread_cond_destroy(pthread_cond_t* __mutex)
 {
 	(void)__mutex;
 	return 0;
 }
 
-int	pthread_create(pthread_t* __pthread, const pthread_attr_t * __attr, void* (*__start_routine)(void*), void* __arg)
+int	__wrap_pthread_create(pthread_t* __pthread, const pthread_attr_t * __attr, void* (*__start_routine)(void*), void* __arg)
 {
 	Thread handle = 0;
 
@@ -152,7 +151,7 @@ int	pthread_create(pthread_t* __pthread, const pthread_attr_t * __attr, void* (*
 		return 0;
 }
 
-int	pthread_join(pthread_t __pthread, void** __value_ptr)
+int	__wrap_pthread_join(pthread_t __pthread, void** __value_ptr)
 {
 	(void)__value_ptr;
 	int result = -1;
@@ -164,7 +163,7 @@ int	pthread_join(pthread_t __pthread, void** __value_ptr)
 	}
 }
 
-int pthread_attr_init(pthread_attr_t* attr)
+int __wrap_pthread_attr_init(pthread_attr_t* attr)
 {
 	if(!attr)
 		return -1;
@@ -176,7 +175,7 @@ int pthread_attr_init(pthread_attr_t* attr)
 	return 0;
 }
 
-int pthread_attr_destroy(pthread_attr_t* attr)
+int __wrap_pthread_attr_destroy(pthread_attr_t* attr)
 {
 	if(!attr)
 		return -1;
@@ -185,48 +184,11 @@ int pthread_attr_destroy(pthread_attr_t* attr)
 	return 0;
 }
 
-int pthread_attr_setstacksize(pthread_attr_t* attr, size_t stacksize)
+int __wrap_pthread_attr_setstacksize(pthread_attr_t* attr, size_t stacksize)
 {
 	if(!attr || stacksize < 16384)
 		return -1;
 
 	attr->stacksize = stacksize;
 	return 0;
-}
-
-int posix_memalign(void** memptr, size_t alignment, size_t size)
-{
-	*memptr = memalign(alignment, size);
-	if(!*memptr)
-		return -1;
-	else
-		return 0;
-}
-
-long sysconf(int name)
-{
-	if(name == _SC_NPROCESSORS_CONF || name == _SC_NPROCESSORS_ONLN)
-	{
-		uint8_t model = 0;
-		CFGU_GetSystemModel(&model);
-
-		if(name == _SC_NPROCESSORS_CONF)
-		{
-			if(model == CFG_MODEL_N2DSXL || model == CFG_MODEL_N3DS || model == CFG_MODEL_N3DSXL)
-				return 4;
-			else
-				return 2;
-		}
-		else if(name == _SC_NPROCESSORS_ONLN)
-		{
-			if(model == CFG_MODEL_N2DSXL || model == CFG_MODEL_N3DS || model == CFG_MODEL_N3DSXL)
-				return 2 + Util_is_core_available(2) + Util_is_core_available(3);
-			else
-				return 2;
-		}
-		else
-			return -1;
-	}
-	else
-		return -1;
 }

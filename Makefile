@@ -35,7 +35,7 @@ TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	source source/system source/system/util source/system/draw
 DATA		:=	data
-INCLUDES	:=	include library library/ffmpeg/include library/libctru/include library/curl/include library/portlibs/include
+INCLUDES	:=	include library/include
 GRAPHICS	:=	gfx
 ROMFS		:=	romfs
 GFXBUILD	:=	$(ROMFS)/gfx
@@ -60,22 +60,34 @@ ARCH		:= -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
 CFLAGS		:= -Wall -Wextra -g -O3 -mword-relocations -fomit-frame-pointer -ffunction-sections $(ARCH) $(INCLUDE) -D__3DS__
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++98
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++11
 
 #-U__STRICT_ANSI__ is needed for citro2d.
 CFLAGS		+= -U__STRICT_ANSI__ -std=c99
 
 ASFLAGS		:= $(ARCH)
-LDFLAGS		= -specs=3dsx.specs $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--wrap,malloc,--wrap,calloc,--wrap,realloc,--wrap,free,--wrap,_free_r,--wrap,memalign,--wrap,linearAlloc,--wrap,linearMemAlign,--wrap,linearRealloc,--wrap,linearGetSize,--wrap,linearFree,--wrap,linearSpaceFree
-LDFLAGS		+= -Wl,--wrap,APT_GetAppCpuTimeLimit,--wrap,APT_SetAppCpuTimeLimit
+LDFLAGS		= -specs=3dsx.specs $(ARCH) -Wl,-Map,$(notdir $*.map) -z noexecstack
 
-LIBS		:= -lswresample -lavformat -lswscale -lavcodec -lavutil -lcitro2d -lcitro3d -lx264 -lmp3lame -ldav1d -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lz -lctru -lm
+#Wrap everything.
+#Allocator related.
+LDFLAGS		+= -Wl,--wrap,malloc,--wrap,calloc,--wrap,realloc,--wrap,free,--wrap,_free_r,--wrap,memalign,--wrap,linearAlloc
+LDFLAGS		+= -Wl,--wrap,linearMemAlign,--wrap,linearRealloc,--wrap,linearGetSize,--wrap,linearFree,--wrap,linearSpaceFree
+#CPU usage limit related.
+LDFLAGS		+= -Wl,--wrap,APT_GetAppCpuTimeLimit,--wrap,APT_SetAppCpuTimeLimit
+#pthread related.
+LDFLAGS		+= -Wl,--wrap,pthread_mutex_init,--wrap,pthread_mutex_lock,--wrap,pthread_mutex_unlock,--wrap,pthread_mutex_destroy
+LDFLAGS		+= -Wl,--wrap,pthread_once,--wrap,pthread_cond_init,--wrap,pthread_cond_wait,--wrap,pthread_cond_signal
+LDFLAGS		+= -Wl,--wrap,pthread_cond_broadcast,--wrap,pthread_cond_destroy,--wrap,pthread_create,--wrap,pthread_join
+LDFLAGS		+= -Wl,--wrap,pthread_attr_init,--wrap,pthread_attr_destroy,--wrap,pthread_attr_setstacksize
+
+LIBS		:= -lswresample -lavformat -lswscale -lavcodec -lavutil -lcitro2d -lcitro3d -lx264 -lmp3lame
+LIBS		+= -ldav1d -lcurl -lnghttp2 -lmbedtls -lmbedx509 -lmbedcrypto -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS := library/ffmpeg/lib library/libctru/lib library/x264/lib library/mp3lame/lib library/dav1d/lib library/portlibs/lib library/zlib/lib
+LIBDIRS := library/lib
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional

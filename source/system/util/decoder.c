@@ -21,7 +21,7 @@
 
 #if DEF_DECODER_IMAGE_API_ENABLE
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image/stb_image.h"
+#include "stb_image.h"
 #endif //DEF_DECODER_IMAGE_API_ENABLE
 
 //Defines.
@@ -732,12 +732,6 @@ uint32_t Util_decoder_video_init(uint8_t low_resolution, uint8_t num_of_video_tr
 			Util_fake_pthread_set_enabled_core(util_video_decoder_frame_cores);
 		else if(util_video_decoder_context[session][i]->thread_type == FF_THREAD_SLICE)
 			Util_fake_pthread_set_enabled_core(util_video_decoder_slice_cores);
-
-		//Disable deprecated warning as it needs to be used here.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		util_video_decoder_context[session][i]->thread_safe_callbacks = 1;
-#pragma GCC diagnostic pop
 
 		util_video_decoder_context[session][i]->get_buffer2 = Util_decoder_video_allocate_buffer;
 
