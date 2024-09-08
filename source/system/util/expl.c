@@ -416,60 +416,63 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 						Str_data dir = { 0, };
 
 						Util_expl_query_current_dir(&dir);
-						if(Util_str_has_data(&dir) && strcmp(dir.buffer, "/") == 0)
-							is_root_dir = true;
-
-						if (selected_index == 0 && !is_root_dir)
+						if(Util_str_has_data(&dir))
 						{
-							//Back to parent directory.
-							char* last_slash_pos = strrchr(dir.buffer, '/');
+							if(strcmp(dir.buffer, "/") == 0)
+								is_root_dir = true;
 
-							if(last_slash_pos)
+							if (selected_index == 0 && !is_root_dir)
 							{
-								//Remove last slash first.
-								uint32_t new_length = (last_slash_pos - dir.buffer);
+								//Back to parent directory.
+								char* last_slash_pos = strrchr(dir.buffer, '/');
 
-								Util_str_resize(&dir, new_length);
-
-								last_slash_pos = strrchr(dir.buffer, '/');
 								if(last_slash_pos)
 								{
-									//Then remove until next slash.
-									new_length = (last_slash_pos - dir.buffer) + 1;
+									//Remove last slash first.
+									uint32_t new_length = (last_slash_pos - dir.buffer);
+
 									Util_str_resize(&dir, new_length);
+
+									last_slash_pos = strrchr(dir.buffer, '/');
+									if(last_slash_pos)
+									{
+										//Then remove until next slash.
+										new_length = (last_slash_pos - dir.buffer) + 1;
+										Util_str_resize(&dir, new_length);
+									}
 								}
+								else
+									Util_str_set(&dir, "/");
+
+								Util_str_set(&util_expl_current_dir, dir.buffer);
+								util_expl_y_offset = 0.0;
+								util_expl_selected_file_num = 0.0;
+								util_expl_read_dir_request = true;
+							}
+							else if (util_expl_files.type[selected_index] & EXPL_FILE_TYPE_DIR)
+							{
+								//Go to selected sub directory.
+								Util_str_format_append(&dir, "%s/", util_expl_files.name[selected_index].buffer);
+
+								Util_str_set(&util_expl_current_dir, dir.buffer);
+								util_expl_y_offset = 0.0;
+								util_expl_selected_file_num = 0.0;
+								util_expl_read_dir_request = true;
 							}
 							else
-								Util_str_set(&dir, "/");
+							{
+								//Notify file selection.
+								Str_data file = { 0, };
 
-							Util_str_set(&util_expl_current_dir, dir.buffer);
-							util_expl_y_offset = 0.0;
-							util_expl_selected_file_num = 0.0;
-							util_expl_read_dir_request = true;
-						}
-						else if (util_expl_files.type[selected_index] & EXPL_FILE_TYPE_DIR)
-						{
-							//Go to selected sub directory.
-							Util_str_format_append(&dir, "%s/", util_expl_files.name[selected_index].buffer);
+								Util_expl_query_file_name(selected_index, &file);
 
-							Util_str_set(&util_expl_current_dir, dir.buffer);
-							util_expl_y_offset = 0.0;
-							util_expl_selected_file_num = 0.0;
-							util_expl_read_dir_request = true;
-						}
-						else
-						{
-							//Notify file selection.
-							Str_data file = { 0, };
+								if(Util_str_has_data(&file) && Util_str_has_data(&dir) && util_expl_callback)
+									util_expl_callback(&file, &dir);
 
-							Util_expl_query_file_name(selected_index, &file);
-
-							if(Util_str_has_data(&file) && Util_str_has_data(&dir) && util_expl_callback)
-								util_expl_callback(&file, &dir);
-
-							Util_str_free(&file);
-							util_expl_show_flag = false;
-							Draw_set_refresh_needed(true);
+								Util_str_free(&file);
+								util_expl_show_flag = false;
+								Draw_set_refresh_needed(true);
+							}
 						}
 
 						Util_str_free(&dir);

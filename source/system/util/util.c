@@ -915,7 +915,7 @@ bool Util_is_core_available(uint8_t core_id)
 {
 	if(!util_init)
 		return false;
-	if(core_id > 4)
+	if(core_id > 3)
 		return false;
 	else
 		return util_is_core_available[core_id];
