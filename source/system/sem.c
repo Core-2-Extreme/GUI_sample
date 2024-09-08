@@ -2685,22 +2685,29 @@ void Sem_check_connectivity_thread(void* arg)
 {
 	(void)arg;
 	DEF_LOG_STRING("Thread started.");
-	uint8_t* http_buffer = NULL;
-	uint16_t status_code = 0;
 	uint16_t count = 100;
 
 	while (sem_thread_run)
 	{
 		if (count >= 100)
 		{
+			uint16_t status_code = 0;
+			Net_dl_parameters dl_parameters = { 0, };
+
 			count = 0;
+			dl_parameters.url = DEF_MENU_CHECK_INTERNET_URL;
+			dl_parameters.max_redirect = 0;
+			dl_parameters.max_size = 0x1000;
+			dl_parameters.status_code = &status_code;
+
 #if DEF_HTTPC_API_ENABLE//Curl uses more CPU so prefer to use httpc module here.
-			Util_httpc_dl_data(DEF_MENU_CHECK_INTERNET_URL, &http_buffer, 0x1000, NULL, &status_code, 0, NULL);
+			Util_httpc_dl_data(&dl_parameters);
 #else
-			Util_curl_dl_data(DEF_MENU_CHECK_INTERNET_URL, &http_buffer, 0x1000, NULL, &status_code, 0, NULL);
+			Util_curl_dl_data(&dl_parameters);
 #endif //DEF_HTTPC_API_ENABLE
-			free(http_buffer);
-			http_buffer = NULL;
+
+			free(dl_parameters.data);
+			dl_parameters.data = NULL;
 
 			sem_internal_state.is_connect_test_succes = (status_code == 204);
 		}
@@ -2769,19 +2776,37 @@ void Sem_update_thread(void* arg)
 
 			if(sem_dl_file_request)
 			{
+				Net_save_parameters save_parameters = { 0, };
+
+				save_parameters.url = url.buffer;
+				save_parameters.dir_path = dir_path.buffer;
+				save_parameters.filename = filename.buffer;
+				save_parameters.max_redirect = 5;
+				save_parameters.buffer_size = 0x20000;
+				save_parameters.downloaded_size = &sem_dled_size;
+
 #if DEF_CURL_API_ENABLE
-				DEF_LOG_RESULT_SMART(result, Util_curl_save_data(url.buffer, 0x20000, &sem_dled_size, NULL, 5, NULL, dir_path.buffer, filename.buffer), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_curl_save_data(&save_parameters), (result == DEF_SUCCESS), result);
 #else
-				DEF_LOG_RESULT_SMART(result, Util_httpc_save_data(url.buffer, 0x20000, &sem_dled_size, NULL, 5, NULL, dir_path.buffer, filename.buffer), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_httpc_save_data(&save_parameters), (result == DEF_SUCCESS), result);
 #endif //DEF_CURL_API_ENABLE
 			}
 			else
 			{
+				Net_dl_parameters dl_parameters = { 0, };
+
+				dl_parameters.url = url.buffer;
+				dl_parameters.max_redirect = 5;
+				dl_parameters.max_size = 0x20000;
+				dl_parameters.downloaded_size = &sem_dled_size;
+
 #if DEF_CURL_API_ENABLE
-				DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(url.buffer, &buffer, 0x20000, &sem_dled_size, NULL, 5, NULL), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(&dl_parameters), (result == DEF_SUCCESS), result);
 #else
-				DEF_LOG_RESULT_SMART(result, Util_httpc_dl_data(url.buffer, &buffer, 0x20000, &sem_dled_size, NULL, 5, NULL), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_httpc_dl_data(&dl_parameters), (result == DEF_SUCCESS), result);
 #endif //DEF_CURL_API_ENABLE
+
+				buffer = dl_parameters.data;
 			}
 
 			Util_str_free(&url);

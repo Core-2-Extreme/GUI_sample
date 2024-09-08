@@ -120,7 +120,7 @@ void Menu_init(void)
 
 	result = Util_log_init();
 	DEF_LOG_RESULT(Util_log_init, (result == DEF_SUCCESS), result);
-	DEF_LOG_FORMAT("Initializing...%s", DEF_MENU_CURRENT_APP_VER);
+	DEF_LOG_FORMAT("Initializing...v%s", DEF_MENU_CURRENT_APP_VER);
 
 	osSetSpeedupEnable(true);
 	aptSetSleepAllowed(true);
@@ -1143,13 +1143,21 @@ void Menu_send_app_info_thread(void* arg)
 	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint8_t model = 0;
-	uint8_t* dl_data = NULL;
+	uint32_t result = DEF_ERR_OTHER;
 	char system_ver_char[0x20] = { 0, };
+	char user_agent[128] = { 0, };
 	const char* sem_model_name[DEF_SEM_MODEL_MAX] = { "O3DS", "O3DSXL", "O2DS", "N3DS", "N3DSXL", "N2DSXL", };
 	const char* screen_mode_name[DEF_SEM_SCREEN_MODE_MAX] = { "AUTO", "400PX", "800PX", "3D", };
+	Net_post_dl_parameters post_parameters = { 0, };
 	Str_data send_data = { 0, };
 	Sem_config config = { 0, };
 	Sem_state state = { 0, };
+
+#if DEF_CURL_API_ENABLE
+	snprintf(user_agent, sizeof(user_agent), "%s %s", Util_curl_get_default_user_agent(), DEF_MENU_APP_INFO);
+#else
+	snprintf(user_agent, sizeof(user_agent), "%s %s", Util_httpc_get_default_user_agent(), DEF_MENU_APP_INFO);
+#endif //DEF_CURL_API_ENABLE
 
 	Util_str_init(&send_data);
 
@@ -1177,7 +1185,7 @@ void Menu_send_app_info_thread(void* arg)
 	//Make a json data, then send it.
 	Util_str_format(&send_data, DEF_JSON_START_OBJECT);
 	Util_str_format_append(&send_data, DEF_JSON_NON_STR_DATA_WITH_KEY("fmt_ver", "%" PRIu32, DEF_MENU_SEND_INFO_FMT_VER));
-	Util_str_format_append(&send_data, DEF_JSON_STR_DATA_WITH_KEY("app_ver", "%s", DEF_MENU_CURRENT_APP_VER));
+	Util_str_format_append(&send_data, DEF_JSON_STR_DATA_WITH_KEY("app_ver", "v%s", DEF_MENU_CURRENT_APP_VER));
 	Util_str_format_append(&send_data, DEF_JSON_STR_DATA_WITH_KEY("system_ver", "%s", system_ver_char));
 	Util_str_format_append(&send_data, DEF_JSON_STR_DATA_WITH_KEY("model", "%s", sem_model_name[state.console_model]));
 	Util_str_format_append(&send_data, DEF_JSON_NON_STR_DATA_WITH_KEY("num_of_launch", "%" PRIu32, state.num_of_launch));
@@ -1193,15 +1201,22 @@ void Menu_send_app_info_thread(void* arg)
 	Util_str_format_append(&send_data, DEF_JSON_NON_STR_DATA_WITH_KEY_WITHOUT_COMMA("is_wifi_on", "%s", (config.is_wifi_on ? "true" : "false")));
 	Util_str_format_append(&send_data, DEF_JSON_END_OBJECT);
 
+	post_parameters.dl.url = DEF_MENU_SEND_APP_INFO_URL;
+	post_parameters.dl.max_redirect = 5;
+	post_parameters.dl.max_size = 0x10000;
+	post_parameters.u.data.data = (uint8_t*)send_data.buffer;
+	post_parameters.u.data.size = send_data.length;
+	post_parameters.dl.user_agent = user_agent;
+
 #if DEF_CURL_API_ENABLE
-	Util_curl_post_and_dl_data(DEF_MENU_SEND_APP_INFO_URL, (uint8_t*)send_data.buffer, send_data.length, &dl_data, 0x10000, NULL, NULL, NULL, 5, NULL);
+	DEF_LOG_RESULT_SMART(result, Util_curl_post_and_dl_data(&post_parameters), (result == DEF_SUCCESS), result);
 #else
-	Util_httpc_post_and_dl_data(DEF_MENU_SEND_APP_INFO_URL, (uint8_t*)send_data.buffer, send_data.length, &dl_data, 0x10000, NULL, NULL, 5, NULL);
+	DEF_LOG_RESULT_SMART(result, Util_httpc_post_and_dl_data(&post_parameters), (result == DEF_SUCCESS), result);
 #endif //DEF_CURL_API_ENABLE
 
 	Util_str_free(&send_data);
-	free(dl_data);
-	dl_data = NULL;
+	free(post_parameters.dl.data);
+	post_parameters.dl.data = NULL;
 
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
@@ -1211,21 +1226,25 @@ void Menu_update_thread(void* arg)
 {
 	(void)arg;
 	DEF_LOG_STRING("Thread started.");
-	uint8_t* http_buffer = NULL;
 	uint32_t result = DEF_ERR_OTHER;
+	Net_dl_parameters parameters = { 0, };
+
+	parameters.url = DEF_SEM_CHECK_UPDATE_URL;
+	parameters.max_redirect = 3;
+	parameters.max_size = 0x1000;
 
 #if DEF_CURL_API_ENABLE
-	DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(DEF_SEM_CHECK_UPDATE_URL, &http_buffer, 0x1000, NULL, NULL, 3, NULL), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(&parameters), (result == DEF_SUCCESS), result);
 #else
-	DEF_LOG_RESULT_SMART(result, Util_httpc_dl_data(DEF_SEM_CHECK_UPDATE_URL, &http_buffer, 0x1000, NULL, NULL, 3, NULL), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_httpc_dl_data(&parameters), (result == DEF_SUCCESS), result);
 #endif //DEF_CURL_API_ENABLE
 
 	if(result == DEF_SUCCESS)
 	{
 		char* pos[2] = { 0, };
 
-		pos[0] = strstr((char*)http_buffer, "<newest>");
-		pos[1] = strstr((char*)http_buffer, "</newest>");
+		pos[0] = strstr((char*)parameters.data, "<newest>");
+		pos[1] = strstr((char*)parameters.data, "</newest>");
 		if(pos[0] && pos[1])
 		{
 			uint32_t size = 0;
@@ -1244,8 +1263,8 @@ void Menu_update_thread(void* arg)
 		}
 	}
 
-	free(http_buffer);
-	http_buffer = NULL;
+	free(parameters.data);
+	parameters.data = NULL;
 
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);

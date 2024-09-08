@@ -4,6 +4,7 @@
 #if DEF_HTTPC_API_ENABLE
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -17,32 +18,37 @@
 #include "system/util/util.h"
 
 //Defines.
-//N/A.
+#define DEF_HTTPC_USER_AGENT_FMT			(const char*)("Mozilla/5.0 (Horizon %s; ARMv6K) httpc/1.0.0")
+#define DEF_HTTPC_USER_AGENT_SIZE			(uint32_t)(128)
 
 //Typedefs.
 //N/A.
 
 //Prototypes.
-static uint32_t Util_httpc_request(httpcContext* httpc_context, const char* url, HTTPC_RequestMethod method, uint8_t* post_data, uint32_t post_data_size);
-static uint32_t Util_httpc_get_request(httpcContext* httpc_context, const char* url);
-static uint32_t Util_httpc_post_request(httpcContext* httpc_context, const char* url, uint8_t* post_data, uint32_t post_data_size);
+static uint32_t Util_httpc_request(httpcContext* httpc_context, const char* url, const char* ua, HTTPC_RequestMethod method, uint8_t* post_data, uint32_t post_data_size);
+static uint32_t Util_httpc_get_request(httpcContext* httpc_context, const char* url, const char* ua);
+static uint32_t Util_httpc_post_request(httpcContext* httpc_context, const char* url, const char* ua, uint8_t* post_data, uint32_t post_data_size);
 static void Util_httpc_get_response(httpcContext* httpc_context, uint16_t* status_code, Str_data* new_url, bool* redirected);
 static uint32_t Util_httpc_download_data(httpcContext* httpc_context, uint8_t** data, uint32_t max_size, uint32_t* downloaded_size);
 static void Util_httpc_close(httpcContext* httpc_context);
-static uint32_t Util_httpc_save_data_internal(httpcContext* httpc_context, uint32_t buffer_size, uint32_t* downloaded_size, const char* dir_path, const char* file_name);
+static uint32_t Util_httpc_sv_data_internal(httpcContext* httpc_context, uint32_t buffer_size, uint32_t* downloaded_size, const char* dir_path, const char* file_name);
 
 //Variables.
 bool util_httpc_init = false;
+char util_httpc_default_user_agent[DEF_HTTPC_USER_AGENT_SIZE] = { 0, };
+char util_httpc_empty_char[1] = { 0, };
 
 //Code.
 uint32_t Util_httpc_init(uint32_t buffer_size)
 {
 	uint32_t result = DEF_ERR_OTHER;
+	char system_ver[0x20] = { 0, };
 
 	if(util_httpc_init)
 		goto already_inited;
 
-	if(buffer_size == 0)
+	//Buffer size must be multiple of 0x1000.
+	if((buffer_size % 0x1000) != 0)
 		goto invalid_arg;
 
 	result = httpcInit(buffer_size);
@@ -51,6 +57,10 @@ uint32_t Util_httpc_init(uint32_t buffer_size)
 		DEF_LOG_RESULT(httpcInit, false, result);
 		goto nintendo_api_failed;
 	}
+
+	osGetSystemVersionDataString(NULL, NULL, system_ver, sizeof(system_ver));
+	snprintf(util_httpc_default_user_agent, sizeof(util_httpc_default_user_agent),
+	DEF_HTTPC_USER_AGENT_FMT, system_ver);
 
 	util_httpc_init = true;
 	return result;
@@ -74,8 +84,15 @@ void Util_httpc_exit(void)
 	httpcExit();
 }
 
-uint32_t Util_httpc_dl_data(const char* url, uint8_t** data, uint32_t max_size, uint32_t* downloaded_size,
-uint16_t* status_code, uint16_t max_redirect, Str_data* last_url)
+const char* Util_httpc_get_default_user_agent(void)
+{
+	if(!util_httpc_init)
+		return util_httpc_empty_char;
+
+	return util_httpc_default_user_agent;
+}
+
+uint32_t Util_httpc_dl_data(Net_dl_parameters* parameters)
 {
 	uint16_t redirected = 0;
 	uint32_t result = DEF_ERR_OTHER;
@@ -85,14 +102,16 @@ uint16_t* status_code, uint16_t max_redirect, Str_data* last_url)
 	if(!util_httpc_init)
 		goto not_inited;
 
-	//downloaded_size, status_code and last_url can be NULL.
-	if(!url || !data || max_size == 0)
+	//user_agent, downloaded_size, status_code and last_url can be NULL.
+	if(!parameters || !parameters->url || parameters->max_size == 0)
 		goto invalid_arg;
 
-	if(downloaded_size)
-		*downloaded_size = 0;
-	if(status_code)
-		*status_code = 0;
+	if(parameters->downloaded_size)
+		*parameters->downloaded_size = 0;
+	if(parameters->status_code)
+		*parameters->status_code = 0;
+
+	parameters->data = NULL;
 
 	result = Util_str_init(&current_url);
 	if(result != DEF_SUCCESS)
@@ -101,16 +120,16 @@ uint16_t* status_code, uint16_t max_redirect, Str_data* last_url)
 		goto api_failed;
 	}
 
-	if(last_url)
+	if(parameters->last_url)
 	{
-		result = Util_str_init(last_url);
+		result = Util_str_init(parameters->last_url);
 		if(result != DEF_SUCCESS)
 		{
 			DEF_LOG_RESULT(Util_str_init, false, result);
 			goto api_failed;
 		}
 
-		result = Util_str_set(last_url, url);
+		result = Util_str_set(parameters->last_url, parameters->url);
 		if(result != DEF_SUCCESS)
 		{
 			DEF_LOG_RESULT(Util_str_set, false, result);
@@ -118,7 +137,7 @@ uint16_t* status_code, uint16_t max_redirect, Str_data* last_url)
 		}
 	}
 
-	result = Util_str_set(&current_url, url);
+	result = Util_str_set(&current_url, parameters->url);
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Util_str_set, false, result);
@@ -129,17 +148,20 @@ uint16_t* status_code, uint16_t max_redirect, Str_data* last_url)
 	{
 		bool is_redirected = false;
 
-		result = Util_httpc_get_request(&httpc_context, current_url.buffer);
+		result = Util_httpc_get_request(&httpc_context, current_url.buffer, parameters->user_agent);
 		if(result != DEF_SUCCESS)
-			goto api_failed;
-
-		Util_httpc_get_response(&httpc_context, status_code, &current_url, &is_redirected);
-
-		if (is_redirected && max_redirect > redirected)
 		{
-			if(last_url)
+			DEF_LOG_RESULT(Util_httpc_get_request, false, result);
+			goto api_failed;
+		}
+
+		Util_httpc_get_response(&httpc_context, parameters->status_code, &current_url, &is_redirected);
+
+		if (is_redirected && parameters->max_redirect > redirected)
+		{
+			if(parameters->last_url)
 			{
-				result = Util_str_set(last_url, current_url.buffer);
+				result = Util_str_set(parameters->last_url, current_url.buffer);
 				if(result != DEF_SUCCESS)
 				{
 					DEF_LOG_RESULT(Util_str_set, false, result);
@@ -153,9 +175,12 @@ uint16_t* status_code, uint16_t max_redirect, Str_data* last_url)
 
 		if (!is_redirected)
 		{
-			result = Util_httpc_download_data(&httpc_context, data, max_size, downloaded_size);
+			result = Util_httpc_download_data(&httpc_context, &parameters->data, parameters->max_size, parameters->downloaded_size);
 			if(result != DEF_SUCCESS)
+			{
+				DEF_LOG_RESULT(Util_httpc_download_data, false, result);
 				goto api_failed;
+			}
 		}
 
 		Util_httpc_close(&httpc_context);
@@ -173,15 +198,21 @@ uint16_t* status_code, uint16_t max_redirect, Str_data* last_url)
 	return DEF_ERR_INVALID_ARG;
 
 	api_failed:
+	Util_httpc_close(&httpc_context);
 	Util_str_free(&current_url);
-	if(last_url)
-		Util_str_free(last_url);
+	free(parameters->data);
+	parameters->data = NULL;
+	if(parameters->last_url)
+		Util_str_free(parameters->last_url);
+	if(parameters->downloaded_size)
+		*parameters->downloaded_size = 0;
+	if(parameters->status_code)
+		*parameters->status_code = 0;
 
 	return result;
 }
 
-uint32_t Util_httpc_save_data(const char* url, uint32_t buffer_size, uint32_t* downloaded_size, uint16_t* status_code,
-uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* file_name)
+uint32_t Util_httpc_save_data(Net_save_parameters* parameters)
 {
 	uint16_t redirected = 0;
 	uint32_t result = DEF_ERR_OTHER;
@@ -191,14 +222,15 @@ uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* fil
 	if(!util_httpc_init)
 		goto not_inited;
 
-	//downloaded_size, status_code and last_url can be NULL.
-	if(!url || buffer_size == 0 || !dir_path || !file_name)
+	//user_agent, downloaded_size, status_code and last_url can be NULL.
+	if(!parameters || !parameters->url || parameters->buffer_size == 0
+	|| !parameters->dir_path || !parameters->filename)
 		goto invalid_arg;
 
-	if(downloaded_size)
-		*downloaded_size = 0;
-	if(status_code)
-		*status_code = 0;
+	if(parameters->downloaded_size)
+		*parameters->downloaded_size = 0;
+	if(parameters->status_code)
+		*parameters->status_code = 0;
 
 	result = Util_str_init(&current_url);
 	if(result != DEF_SUCCESS)
@@ -207,16 +239,16 @@ uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* fil
 		goto api_failed;
 	}
 
-	if(last_url)
+	if(parameters->last_url)
 	{
-		result = Util_str_init(last_url);
+		result = Util_str_init(parameters->last_url);
 		if(result != DEF_SUCCESS)
 		{
 			DEF_LOG_RESULT(Util_str_init, false, result);
 			goto api_failed;
 		}
 
-		result = Util_str_set(last_url, url);
+		result = Util_str_set(parameters->last_url, parameters->url);
 		if(result != DEF_SUCCESS)
 		{
 			DEF_LOG_RESULT(Util_str_set, false, result);
@@ -224,7 +256,7 @@ uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* fil
 		}
 	}
 
-	result = Util_str_set(&current_url, url);
+	result = Util_str_set(&current_url, parameters->url);
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Util_str_set, false, result);
@@ -235,17 +267,20 @@ uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* fil
 	{
 		bool is_redirected = false;
 
-		result = Util_httpc_get_request(&httpc_context, current_url.buffer);
+		result = Util_httpc_get_request(&httpc_context, current_url.buffer, parameters->user_agent);
 		if(result != DEF_SUCCESS)
-			goto api_failed;
-
-		Util_httpc_get_response(&httpc_context, status_code, &current_url, &is_redirected);
-
-		if (is_redirected && max_redirect > redirected)
 		{
-			if(last_url)
+			DEF_LOG_RESULT(Util_httpc_get_request, false, result);
+			goto api_failed;
+		}
+
+		Util_httpc_get_response(&httpc_context, parameters->status_code, &current_url, &is_redirected);
+
+		if (is_redirected && parameters->max_redirect > redirected)
+		{
+			if(parameters->last_url)
 			{
-				result = Util_str_set(last_url, current_url.buffer);
+				result = Util_str_set(parameters->last_url, current_url.buffer);
 				if(result != DEF_SUCCESS)
 				{
 					DEF_LOG_RESULT(Util_str_set, false, result);
@@ -259,9 +294,13 @@ uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* fil
 
 		if (!is_redirected)
 		{
-			result = Util_httpc_save_data_internal(&httpc_context, buffer_size, downloaded_size, dir_path, file_name);
+			result = Util_httpc_sv_data_internal(&httpc_context, parameters->buffer_size,
+			parameters->downloaded_size, parameters->dir_path, parameters->filename);
 			if(result != DEF_SUCCESS)
+			{
+				DEF_LOG_RESULT(Util_httpc_sv_data_internal, false, result);
 				goto api_failed;
+			}
 		}
 
 		Util_httpc_close(&httpc_context);
@@ -279,15 +318,19 @@ uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* fil
 	return DEF_ERR_INVALID_ARG;
 
 	api_failed:
+	Util_httpc_close(&httpc_context);
 	Util_str_free(&current_url);
-	if(last_url)
-		Util_str_free(last_url);
+	if(parameters->last_url)
+		Util_str_free(parameters->last_url);
+	if(parameters->downloaded_size)
+		*parameters->downloaded_size = 0;
+	if(parameters->status_code)
+		*parameters->status_code = 0;
 
 	return result;
 }
 
-uint32_t Util_httpc_post_and_dl_data(const char* url, uint8_t* post_data, uint32_t post_size, uint8_t** dl_data, uint32_t max_dl_size,
-uint32_t* downloaded_size, uint16_t* status_code, uint16_t max_redirect, Str_data* last_url)
+uint32_t Util_httpc_post_and_dl_data(Net_post_dl_parameters* parameters)
 {
 	bool post = true;
 	uint16_t redirected = 0;
@@ -298,14 +341,25 @@ uint32_t* downloaded_size, uint16_t* status_code, uint16_t max_redirect, Str_dat
 	if(!util_httpc_init)
 		goto not_inited;
 
-	//downloaded_size, status_code and last_url can be NULL.
-	if(!url || !post_data || post_size == 0 || !dl_data || max_dl_size == 0)
+	//user_agent, downloaded_size, uploaded_size, status_code and last_url can be NULL.
+	if(!parameters || !parameters->dl.url || parameters->dl.max_size == 0)
 		goto invalid_arg;
 
-	if(downloaded_size)
-		*downloaded_size = 0;
-	if(status_code)
-		*status_code = 0;
+	//Callback is NOT supported.
+	if(parameters->is_callback)
+		goto invalid_arg;
+
+	if(!parameters->u.data.data || parameters->u.data.size == 0)
+		goto invalid_arg;
+
+	if(parameters->dl.downloaded_size)
+		*parameters->dl.downloaded_size = 0;
+	if(parameters->uploaded_size)
+		*parameters->uploaded_size = 0;
+	if(parameters->dl.status_code)
+		*parameters->dl.status_code = 0;
+
+	parameters->dl.data = NULL;
 
 	result = Util_str_init(&current_url);
 	if(result != DEF_SUCCESS)
@@ -314,16 +368,16 @@ uint32_t* downloaded_size, uint16_t* status_code, uint16_t max_redirect, Str_dat
 		goto api_failed;
 	}
 
-	if(last_url)
+	if(parameters->dl.last_url)
 	{
-		result = Util_str_init(last_url);
+		result = Util_str_init(parameters->dl.last_url);
 		if(result != DEF_SUCCESS)
 		{
 			DEF_LOG_RESULT(Util_str_init, false, result);
 			goto api_failed;
 		}
 
-		result = Util_str_set(last_url, url);
+		result = Util_str_set(parameters->dl.last_url, parameters->dl.url);
 		if(result != DEF_SUCCESS)
 		{
 			DEF_LOG_RESULT(Util_str_set, false, result);
@@ -331,7 +385,7 @@ uint32_t* downloaded_size, uint16_t* status_code, uint16_t max_redirect, Str_dat
 		}
 	}
 
-	result = Util_str_set(&current_url, url);
+	result = Util_str_set(&current_url, parameters->dl.url);
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Util_str_set, false, result);
@@ -344,22 +398,29 @@ uint32_t* downloaded_size, uint16_t* status_code, uint16_t max_redirect, Str_dat
 
 		if(post)
 		{
-			result = Util_httpc_post_request(&httpc_context, current_url.buffer, post_data, post_size);
+			result = Util_httpc_post_request(&httpc_context, current_url.buffer, parameters->dl.user_agent, parameters->u.data.data, parameters->u.data.size);
 			post = false;
 		}
 		else
-			result = Util_httpc_get_request(&httpc_context, current_url.buffer);
+			result = Util_httpc_get_request(&httpc_context, current_url.buffer, parameters->dl.user_agent);
 
 		if(result != DEF_SUCCESS)
-			goto api_failed;
-
-		Util_httpc_get_response(&httpc_context, status_code, &current_url, &is_redirected);
-
-		if (is_redirected && max_redirect > redirected)
 		{
-			if(last_url)
+			if(post)
+				DEF_LOG_RESULT(Util_httpc_post_request, false, result);
+			else
+				DEF_LOG_RESULT(Util_httpc_get_request, false, result);
+
+			goto api_failed;
+		}
+
+		Util_httpc_get_response(&httpc_context, parameters->dl.status_code, &current_url, &is_redirected);
+
+		if (is_redirected && parameters->dl.max_redirect > redirected)
+		{
+			if(parameters->dl.last_url)
 			{
-				result = Util_str_set(last_url, current_url.buffer);
+				result = Util_str_set(parameters->dl.last_url, current_url.buffer);
 				if(result != DEF_SUCCESS)
 				{
 					DEF_LOG_RESULT(Util_str_set, false, result);
@@ -373,9 +434,12 @@ uint32_t* downloaded_size, uint16_t* status_code, uint16_t max_redirect, Str_dat
 
 		if (!is_redirected)
 		{
-			result = Util_httpc_download_data(&httpc_context, dl_data, max_dl_size, downloaded_size);
+			result = Util_httpc_download_data(&httpc_context, &parameters->dl.data, parameters->dl.max_size, parameters->dl.downloaded_size);
 			if(result != DEF_SUCCESS)
+			{
+				DEF_LOG_RESULT(Util_httpc_download_data, false, result);
 				goto api_failed;
+			}
 		}
 
 		Util_httpc_close(&httpc_context);
@@ -393,15 +457,23 @@ uint32_t* downloaded_size, uint16_t* status_code, uint16_t max_redirect, Str_dat
 	return DEF_ERR_INVALID_ARG;
 
 	api_failed:
+	Util_httpc_close(&httpc_context);
 	Util_str_free(&current_url);
-	if(last_url)
-		Util_str_free(last_url);
+	free(parameters->dl.data);
+	parameters->dl.data = NULL;
+	if(parameters->dl.last_url)
+		Util_str_free(parameters->dl.last_url);
+	if(parameters->dl.downloaded_size)
+		*parameters->dl.downloaded_size = 0;
+	if(parameters->dl.status_code)
+		*parameters->dl.status_code = 0;
+	if(parameters->uploaded_size)
+		*parameters->uploaded_size = 0;
 
 	return result;
 }
 
-uint32_t Util_httpc_post_and_save_data(const char* url, uint8_t* post_data, uint32_t post_size, uint32_t buffer_size, uint32_t* downloaded_size,
-uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* dir_path, const char* file_name)
+uint32_t Util_httpc_post_and_save_data(Net_post_save_parameters* parameters)
 {
 	bool post = true;
 	uint16_t redirected = 0;
@@ -412,14 +484,24 @@ uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* di
 	if(!util_httpc_init)
 		goto not_inited;
 
-	//downloaded_size, status_code and last_url can be NULL.
-	if(!url || !post_data || post_size == 0 || buffer_size == 0 || !dir_path || !file_name)
+	//user_agent, downloaded_size, uploaded_size, status_code and last_url can be NULL.
+	if(!parameters || !parameters->save.url || parameters->save.buffer_size == 0
+	|| !parameters->save.dir_path || !parameters->save.filename)
 		goto invalid_arg;
 
-	if(downloaded_size)
-		*downloaded_size = 0;
-	if(status_code)
-		*status_code = 0;
+	//Callback is NOT supported.
+	if(parameters->is_callback)
+		goto invalid_arg;
+
+	if(!parameters->u.data.data || parameters->u.data.size == 0)
+		goto invalid_arg;
+
+	if(parameters->save.downloaded_size)
+		*parameters->save.downloaded_size = 0;
+	if(parameters->uploaded_size)
+		*parameters->uploaded_size = 0;
+	if(parameters->save.status_code)
+		*parameters->save.status_code = 0;
 
 	result = Util_str_init(&current_url);
 	if(result != DEF_SUCCESS)
@@ -428,16 +510,16 @@ uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* di
 		goto api_failed;
 	}
 
-	if(last_url)
+	if(parameters->save.last_url)
 	{
-		result = Util_str_init(last_url);
+		result = Util_str_init(parameters->save.last_url);
 		if(result != DEF_SUCCESS)
 		{
 			DEF_LOG_RESULT(Util_str_init, false, result);
 			goto api_failed;
 		}
 
-		result = Util_str_set(last_url, url);
+		result = Util_str_set(parameters->save.last_url, parameters->save.url);
 		if(result != DEF_SUCCESS)
 		{
 			DEF_LOG_RESULT(Util_str_set, false, result);
@@ -445,7 +527,7 @@ uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* di
 		}
 	}
 
-	result = Util_str_set(&current_url, url);
+	result = Util_str_set(&current_url, parameters->save.url);
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Util_str_set, false, result);
@@ -458,22 +540,29 @@ uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* di
 
 		if(post)
 		{
-			result = Util_httpc_post_request(&httpc_context, current_url.buffer, post_data, post_size);
+			result = Util_httpc_post_request(&httpc_context, current_url.buffer, parameters->save.user_agent, parameters->u.data.data, parameters->u.data.size);
 			post = false;
 		}
 		else
-			result = Util_httpc_get_request(&httpc_context, current_url.buffer);
+			result = Util_httpc_get_request(&httpc_context, current_url.buffer, parameters->save.user_agent);
 
 		if(result != DEF_SUCCESS)
-			goto api_failed;
-
-		Util_httpc_get_response(&httpc_context, status_code, &current_url, &is_redirected);
-
-		if (is_redirected && max_redirect > redirected)
 		{
-			if(last_url)
+			if(post)
+				DEF_LOG_RESULT(Util_httpc_post_request, false, result);
+			else
+				DEF_LOG_RESULT(Util_httpc_get_request, false, result);
+
+			goto api_failed;
+		}
+
+		Util_httpc_get_response(&httpc_context, parameters->save.status_code, &current_url, &is_redirected);
+
+		if (is_redirected && parameters->save.max_redirect > redirected)
+		{
+			if(parameters->save.last_url)
 			{
-				result = Util_str_set(last_url, current_url.buffer);
+				result = Util_str_set(parameters->save.last_url, current_url.buffer);
 				if(result != DEF_SUCCESS)
 				{
 					DEF_LOG_RESULT(Util_str_set, false, result);
@@ -487,9 +576,13 @@ uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* di
 
 		if (!is_redirected)
 		{
-			result = Util_httpc_save_data_internal(&httpc_context, buffer_size, downloaded_size, dir_path, file_name);
+			result = Util_httpc_sv_data_internal(&httpc_context, parameters->save.buffer_size,
+			parameters->save.downloaded_size, parameters->save.dir_path, parameters->save.filename);
 			if(result != DEF_SUCCESS)
+			{
+				DEF_LOG_RESULT(Util_httpc_sv_data_internal, false, result);
 				goto api_failed;
+			}
 		}
 
 		Util_httpc_close(&httpc_context);
@@ -508,14 +601,21 @@ uint16_t* status_code, uint16_t max_redirect, Str_data* last_url, const char* di
 	return DEF_ERR_INVALID_ARG;
 
 	api_failed:
+	Util_httpc_close(&httpc_context);
 	Util_str_free(&current_url);
-	if(last_url)
-		Util_str_free(last_url);
+	if(parameters->save.last_url)
+		Util_str_free(parameters->save.last_url);
+	if(parameters->save.downloaded_size)
+		*parameters->save.downloaded_size = 0;
+	if(parameters->save.status_code)
+		*parameters->save.status_code = 0;
+	if(parameters->uploaded_size)
+		*parameters->uploaded_size = 0;
 
 	return result;
 }
 
-static uint32_t Util_httpc_request(httpcContext* httpc_context, const char* url, HTTPC_RequestMethod method, uint8_t* post_data, uint32_t post_data_size)
+static uint32_t Util_httpc_request(httpcContext* httpc_context, const char* url, const char* ua, HTTPC_RequestMethod method, uint8_t* post_data, uint32_t post_data_size)
 {
 	uint32_t result = DEF_ERR_OTHER;
 
@@ -526,6 +626,11 @@ static uint32_t Util_httpc_request(httpcContext* httpc_context, const char* url,
 
 	if (result != DEF_SUCCESS)
 	{
+		if(method == HTTPC_METHOD_POST)
+			DEF_LOG_STRING("HTTPC_METHOD_POST");
+		else
+			DEF_LOG_STRING("HTTPC_METHOD_GET");
+
 		DEF_LOG_RESULT(httpcOpenContext, false, result);
 		goto nintendo_api_failed;
 	}
@@ -547,13 +652,15 @@ static uint32_t Util_httpc_request(httpcContext* httpc_context, const char* url,
 	result = httpcAddRequestHeaderField(httpc_context, "Connection", "Keep-Alive");
 	if (result != DEF_SUCCESS)
 	{
+		DEF_LOG_STRING("Connection");
 		DEF_LOG_RESULT(httpcAddRequestHeaderField, false, result);
 		goto nintendo_api_failed;
 	}
 
-	result = httpcAddRequestHeaderField(httpc_context, "User-Agent", DEF_MENU_HTTP_USER_AGENT);
+	result = httpcAddRequestHeaderField(httpc_context, "User-Agent", (ua ? ua : util_httpc_default_user_agent));
 	if (result != DEF_SUCCESS)
 	{
+		DEF_LOG_STRING("User-Agent");
 		DEF_LOG_RESULT(httpcAddRequestHeaderField, false, result);
 		goto nintendo_api_failed;
 	}
@@ -578,18 +685,17 @@ static uint32_t Util_httpc_request(httpcContext* httpc_context, const char* url,
 	return DEF_SUCCESS;
 
 	nintendo_api_failed:
-	Util_httpc_close(httpc_context);
 	return result;
 }
 
-static uint32_t Util_httpc_get_request(httpcContext* httpc_context, const char* url)
+static uint32_t Util_httpc_get_request(httpcContext* httpc_context, const char* url, const char* ua)
 {
-	return Util_httpc_request(httpc_context, url, HTTPC_METHOD_GET, NULL, 0);
+	return Util_httpc_request(httpc_context, url, ua, HTTPC_METHOD_GET, NULL, 0);
 }
 
-static uint32_t Util_httpc_post_request(httpcContext* httpc_context, const char* url, uint8_t* post_data, uint32_t post_data_size)
+static uint32_t Util_httpc_post_request(httpcContext* httpc_context, const char* url, const char* ua, uint8_t* post_data, uint32_t post_data_size)
 {
-	return Util_httpc_request(httpc_context, url, HTTPC_METHOD_POST, post_data, post_data_size);
+	return Util_httpc_request(httpc_context, url, ua, HTTPC_METHOD_POST, post_data, post_data_size);
 }
 
 static void Util_httpc_get_response(httpcContext* httpc_context, uint16_t* status_code, Str_data* new_url, bool* redirected)
@@ -607,22 +713,31 @@ static void Util_httpc_get_response(httpcContext* httpc_context, uint16_t* statu
 		if(result == DEF_SUCCESS)
 			*status_code = (uint16_t)out;
 		else
+		{
+			DEF_LOG_RESULT(httpcGetResponseStatusCode, false, result);
 			*status_code = 0;
+		}
 	}
 
 	result = httpcGetResponseHeader(httpc_context, "location", moved_url, 0x1000);
 	if (result == DEF_SUCCESS)
 	{
-		if(Util_str_set(new_url, moved_url) == DEF_SUCCESS)
+		result = Util_str_set(new_url, moved_url);
+		if(result == DEF_SUCCESS)
 			*redirected = true;
+		else
+			DEF_LOG_RESULT(Util_str_set, false, result);
 	}
 	else
 	{
 		result = httpcGetResponseHeader(httpc_context, "Location", moved_url, 0x1000);
 		if (result == DEF_SUCCESS)
 		{
-			if(Util_str_set(new_url, moved_url) == DEF_SUCCESS)
+			result = Util_str_set(new_url, moved_url);
+			if(result == DEF_SUCCESS)
 				*redirected = true;
+			else
+				DEF_LOG_RESULT(Util_str_set, false, result);
 		}
 	}
 }
@@ -637,8 +752,7 @@ static uint32_t Util_httpc_download_data(httpcContext* httpc_context, uint8_t** 
 	uint32_t result = DEF_ERR_OTHER;
 
 	buffer_size = ((max_size > 0x40000) ? 0x40000 : max_size);
-	free(*data);
-	*data = (uint8_t*)linearAlloc(buffer_size);
+	*data = (uint8_t*)malloc(buffer_size);
 	if (!*data)
 		goto out_of_memory;
 
@@ -663,7 +777,7 @@ static uint32_t Util_httpc_download_data(httpcContext* httpc_context, uint8_t** 
 					goto out_of_memory;
 
 				buffer_size = ((max_size > (buffer_size + 0x40000)) ? (buffer_size + 0x40000) : max_size);
-				new_buffer = (uint8_t*)linearRealloc(*data, buffer_size);
+				new_buffer = (uint8_t*)realloc(*data, buffer_size);
 				remain_buffer_size = buffer_size - buffer_offset;
 				if(!new_buffer)
 					goto out_of_memory;
@@ -686,13 +800,11 @@ static uint32_t Util_httpc_download_data(httpcContext* httpc_context, uint8_t** 
 	out_of_memory:
 	free(*data);
 	*data = NULL;
-	Util_httpc_close(httpc_context);
 	return DEF_ERR_OUT_OF_MEMORY;
 
 	nintendo_api_failed:
 	free(*data);
 	*data = NULL;
-	Util_httpc_close(httpc_context);
 	return result;
 }
 
@@ -704,14 +816,14 @@ static void Util_httpc_close(httpcContext* httpc_context)
 	httpc_context = NULL;
 }
 
-static uint32_t Util_httpc_save_data_internal(httpcContext* httpc_context, uint32_t buffer_size, uint32_t* downloaded_size, const char* dir_path, const char* file_name)
+static uint32_t Util_httpc_sv_data_internal(httpcContext* httpc_context, uint32_t buffer_size, uint32_t* downloaded_size, const char* dir_path, const char* file_name)
 {
 	bool first = true;
 	uint8_t* cache = NULL;
 	uint32_t dl_size = 0;
 	uint32_t result = DEF_ERR_OTHER;
 
-	cache = (uint8_t*)linearAlloc(buffer_size);
+	cache = (uint8_t*)malloc(buffer_size);
 	if (!cache)
 		goto out_of_memory;
 
@@ -765,14 +877,12 @@ static uint32_t Util_httpc_save_data_internal(httpcContext* httpc_context, uint3
 	return DEF_SUCCESS;
 
 	out_of_memory:
-	Util_httpc_close(httpc_context);
 	return DEF_ERR_OUT_OF_MEMORY;
 
 	nintendo_api_failed:
 	api_failed:
 	free(cache);
 	cache = NULL;
-	Util_httpc_close(httpc_context);
 	return result;
 }
 #endif //DEF_HTTPC_API_ENABLE

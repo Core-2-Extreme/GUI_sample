@@ -335,6 +335,7 @@ static void Sapp0_init_thread(void* arg)
 	//If you want to load picture from SD (not from romfs).
 	//char file_path[] = "/test.png";
 	Raw_pixel color_format = RAW_PIXEL_INVALID;
+	Net_dl_parameters dl_parameters = { 0, };
 
 	Util_str_set(&sapp0_status, "Initializing variables...");
 	//Empty.
@@ -389,7 +390,14 @@ static void Sapp0_init_thread(void* arg)
 	//Load picture from the Internet.
 
 	//1. Download png from the Internet.
-	DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(url, &png_data, (1024 * 1024), &dled_size, NULL, 5, NULL), (result == DEF_SUCCESS), result);
+	dl_parameters.url = url;
+	dl_parameters.max_redirect = 5;
+	dl_parameters.max_size = (1024 * 1024);
+	dl_parameters.downloaded_size = &dled_size;
+
+	DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(&dl_parameters), (result == DEF_SUCCESS), result);
+	png_data = dl_parameters.data;
+
 	if(result == DEF_SUCCESS)
 	{
 		//2. Decode a picture.

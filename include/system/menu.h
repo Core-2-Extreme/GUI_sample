@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 #define DEF_MENU_MAIN_DIR				/*(const char*)(*/"/GUI_sample/"/*)*/
-#define DEF_MENU_HTTP_USER_AGENT		/*(const char*)(*/"gui sample " DEF_MENU_CURRENT_APP_VER/*)*/
-#define DEF_MENU_CURRENT_APP_VER		/*(const char*)(*/"v0.0.1"/*)*/
+#define DEF_MENU_APP_INFO				/*(const char*)(*/"GUI_sample/" DEF_MENU_CURRENT_APP_VER/*)*/
+#define DEF_MENU_CURRENT_APP_VER		/*(const char*)(*/"0.0.1"/*)*/
 #define DEF_MENU_CHECK_INTERNET_URL		/*(const char*)(*/"http://connectivitycheck.gstatic.com/generate_204"/*)*/
 #define DEF_MENU_SEND_APP_INFO_URL		/*(const char*)(*/"https://script.google.com/macros/s/AKfycbyn_blFyKWXCgJr6NIF8x6ETs7CHRN5FXKYEAAIrzV6jPYcCkI/exec"/*)*/
 #define DEF_MENU_CURRENT_APP_VER_INT	(uint32_t)(1)
