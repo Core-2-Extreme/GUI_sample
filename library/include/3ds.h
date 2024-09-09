@@ -4,6 +4,12 @@
  */
 #pragma once
 
+#if __GNUC__
+//We don't want to see warnings in 3rd party headers.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif //__GNUC__
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -105,6 +111,11 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#if __GNUC__
+#pragma GCC diagnostic pop
+#endif //__GNUC__
+
 /**
  * @example app_launch/source/main.c
  * @example audio/filters/source/main.c

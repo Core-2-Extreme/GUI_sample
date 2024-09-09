@@ -7,10 +7,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "mbedtls/base64.h"
 #include "3ds.h"
-#include <unistd.h>
 
 #include "system/util/err_types.h"
 #include "system/util/file.h"

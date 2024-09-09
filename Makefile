@@ -58,7 +58,7 @@ RSF_PATH			:= resource/app.rsf
 #---------------------------------------------------------------------------------
 ARCH		:= -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS		:= -Wall -Wextra -g -O3 -mword-relocations -fomit-frame-pointer -ffunction-sections $(ARCH) $(INCLUDE) -D__3DS__
+CFLAGS		:= -Wall -Wextra -Wpedantic -g -O3 -mword-relocations -fomit-frame-pointer -ffunction-sections $(ARCH) $(INCLUDE) -D__3DS__
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++11
 

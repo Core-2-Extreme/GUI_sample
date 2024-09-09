@@ -44,7 +44,7 @@ DEF_LOG_ENUM_DEBUG
 	PLAY_REQUEST,
 	STOP_REQUEST,
 	MAX
-);
+)
 
 typedef enum
 {
@@ -57,7 +57,7 @@ DEF_LOG_ENUM_DEBUG
 	Sapp4_speaker_state,
 	SPEAKER_IDLE,
 	SPEAKER_PLAYING
-);
+)
 
 //Prototypes.
 static void Sapp4_draw_init_exit_message(void);

@@ -294,7 +294,7 @@ DEF_LOG_ENUM_DEBUG
 	RAW_PIXEL_GRAYALPHA1616BE,
 	RAW_PIXEL_GRAYALPHA1616LE,
 	RAW_PIXEL_MAX
-);
+)
 
 //These definitions are based on (stolen from) library\ffmpeg\include\libavutil\smaplefmt.h see it for more information.
 typedef enum
@@ -336,6 +336,6 @@ DEF_LOG_ENUM_DEBUG
 	RAW_SAMPLE_DOUBLE64,
 	RAW_SAMPLE_DOUBLE64P,
 	RAW_SAMPLE_MAX
-);
+)
 
 #endif //!defined(DEF_RAW_TYPES_H)

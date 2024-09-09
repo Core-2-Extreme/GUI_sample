@@ -2,7 +2,7 @@
 #define DEF_QUEUE_TYPES_H
 #include <stdbool.h>
 #include <stdint.h>
-#include "3ds/synchronization.h"
+#include "3ds.h"
 
 typedef uint8_t Queue_option;
 #define QUEUE_OPTION_NONE					(Queue_option)(0 << 0)	//Default.

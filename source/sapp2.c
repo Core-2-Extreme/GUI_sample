@@ -40,7 +40,7 @@ typedef enum
 	TURN_TOP_SCREEN_OFF_REQUEST,
 	TURN_BOTTOM_SCREEN_OFF_REQUEST,
 
-	MAX = 0xFFFFFFFF,
+	MAX = INT32_MAX,
 } Sapp2_command;
 
 DEF_LOG_ENUM_DEBUG
@@ -58,7 +58,7 @@ DEF_LOG_ENUM_DEBUG
 	TURN_TOP_SCREEN_OFF_REQUEST,
 	TURN_BOTTOM_SCREEN_OFF_REQUEST,
 	MAX
-);
+)
 
 //Prototypes.
 static void Sapp2_draw_init_exit_message(void);

@@ -130,13 +130,23 @@ int	__wrap_pthread_create(pthread_t* __pthread, const pthread_attr_t * __attr, v
 {
 	Thread handle = 0;
 
+#if __GNUC__
+	//We can't avoid "-Wcast-function-type".
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+	ThreadFunc entry_point = (ThreadFunc)__start_routine;
+#pragma GCC diagnostic pop
+#else
+	ThreadFunc entry_point = (ThreadFunc)__start_routine;
+#endif //__GNUC__
+
 	if(util_fake_pthread_enabled_cores == 0)
 		return -1;
 
 	if(__attr)
-		handle = threadCreate((void*)__start_routine, __arg, __attr->stacksize, DEF_THREAD_PRIORITY_BELOW_NORMAL, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], true);
+		handle = threadCreate(entry_point, __arg, __attr->stacksize, DEF_THREAD_PRIORITY_BELOW_NORMAL, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], true);
 	else
-		handle = threadCreate((void*)__start_routine, __arg, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_BELOW_NORMAL, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], true);
+		handle = threadCreate(entry_point, __arg, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_BELOW_NORMAL, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], true);
 
 	*__pthread = (pthread_t)handle;
 

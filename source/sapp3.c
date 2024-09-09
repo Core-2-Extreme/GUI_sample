@@ -48,7 +48,7 @@ DEF_LOG_ENUM_DEBUG
 	CAM_ENABLE_REQUEST,
 	CAM_TAKE_A_PICTURE_REQUEST,
 	CAM_MAX
-);
+)
 
 typedef enum
 {
@@ -63,7 +63,7 @@ DEF_LOG_ENUM_DEBUG
 	CAM_IDLE,
 	CAM_ENABLED,
 	CAM_SAVING_A_PICTURE
-);
+)
 
 typedef enum
 {
@@ -82,7 +82,7 @@ DEF_LOG_ENUM_DEBUG
 	MIC_START_RECORDING_REQUEST,
 	MIC_STOP_RECORDING_REQUEST,
 	MIC_MAX
-);
+)
 
 typedef enum
 {
@@ -97,7 +97,7 @@ DEF_LOG_ENUM_DEBUG
 	MIC_IDLE,
 	MIC_RECORDING,
 	MIC_STOPPING_RECORDING
-);
+)
 
 //Prototypes.
 static void Sapp3_draw_init_exit_message(void);

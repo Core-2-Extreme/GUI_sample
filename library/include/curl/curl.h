@@ -29,6 +29,12 @@
  *   https://curl.se/libcurl/
  */
 
+#if __GNUC__
+//We don't want to see warnings in 3rd party headers.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif //__GNUC__
+
 #ifdef CURL_NO_OLDIES
 #define CURL_STRICTER
 #endif
@@ -3254,5 +3260,9 @@ CURL_EXTERN CURLcode curl_easy_pause(CURL *handle, int bitmask);
 #define curl_multi_setopt(handle,opt,param) curl_multi_setopt(handle,opt,param)
 #endif /* __STDC__ >= 1 */
 #endif /* gcc >= 4.3 && !__cplusplus && !CURL_DISABLE_TYPECHECK */
+
+#if __GNUC__
+#pragma GCC diagnostic pop
+#endif //__GNUC__
 
 #endif /* CURLINC_CURL_H */

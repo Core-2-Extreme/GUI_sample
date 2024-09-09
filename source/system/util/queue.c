@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <3ds/synchronization.h>
+#include "3ds.h"
 
 #include "system/util/err_types.h"
 #include "system/util/util.h"

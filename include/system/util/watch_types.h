@@ -43,7 +43,7 @@ DEF_LOG_ENUM_DEBUG
 	WATCH_HANDLE_SUB_APP7,
 	WATCH_HANDLE_MAX,
 	WATCH_HANDLE_FORCE_8BIT
-);
+)
 
 typedef uint16_t Watch_handle_bit;
 #define	DEF_WATCH_HANDLE_BIT_NONE			(Watch_handle_bit)(0 << 0)							//No watch handles.

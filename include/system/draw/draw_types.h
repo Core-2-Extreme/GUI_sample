@@ -2,8 +2,8 @@
 #define DEF_DRAW_TYPES_H
 #include <stdbool.h>
 #include <stdint.h>
-#include <citro2d.h>
-#include <citro3d.h>
+#include "citro2d.h"
+#include "citro3d.h"
 #include "system/util/log_enum_types.h"
 
 #define DEF_DRAW_DMA_ENABLE					/*(bool)(*/true/*)*/	//Enable DMA in draw module for faster processing.
@@ -44,7 +44,7 @@ DEF_LOG_ENUM_DEBUG
 	DRAW_SCREEN_BOTTOM,
 	DRAW_SCREEN_TOP_RIGHT,
 	DRAW_SCREEN_MAX
-);
+)
 
 typedef enum
 {
@@ -65,7 +65,7 @@ DEF_LOG_ENUM_DEBUG
 	DRAW_X_ALIGN_CENTER,
 	DRAW_X_ALIGN_RIGHT,
 	DRAW_X_ALIGN_MAX
-);
+)
 
 typedef enum
 {
@@ -86,7 +86,7 @@ DEF_LOG_ENUM_DEBUG
 	DRAW_Y_ALIGN_CENTER,
 	DRAW_Y_ALIGN_BOTTOM,
 	DRAW_Y_ALIGN_MAX
-);
+)
 
 typedef enum
 {
@@ -107,7 +107,7 @@ DEF_LOG_ENUM_DEBUG
 	DRAW_BACKGROUND_ENTIRE_BOX,
 	DRAW_BACKGROUND_UNDER_TEXT,
 	DRAW_BACKGROUND_MAX
-);
+)
 
 typedef struct
 {
