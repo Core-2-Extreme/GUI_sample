@@ -502,7 +502,7 @@ uint32_t Util_encoder_audio_encode(uint32_t size, uint8_t* raw_data, uint8_t ses
 	else
 		swr_out_cache[0] = raw_audio;
 
-	out_samples = swr_convert(util_audio_encoder_swr_context[session], (uint8_t**)swr_out_cache, max_out_samples, (const uint8_t**)swr_in_cache, in_samples);
+	out_samples = swr_convert(util_audio_encoder_swr_context[session], swr_out_cache, max_out_samples, (const uint8_t**)swr_in_cache, in_samples);
 	if(out_samples < 0)
 	{
 		DEF_LOG_RESULT(swr_convert, false, out_samples);

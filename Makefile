@@ -59,6 +59,11 @@ RSF_PATH			:= resource/app.rsf
 ARCH		:= -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
 CFLAGS		:= -Wall -Wextra -Wpedantic -g -O3 -mword-relocations -fomit-frame-pointer -ffunction-sections $(ARCH) $(INCLUDE) -D__3DS__
+CFLAGS		+= -Wformat=2 -Wformat-overflow=2 -Wformat-signedness -Wnull-dereference -Winit-self -Wimplicit-fallthrough=3 -Wshift-overflow=2
+CFLAGS		+= -Wunused-const-variable=2 -Wuse-after-free=3 -Wuninitialized -Wstrict-aliasing=3 -Wstring-compare -Wstringop-overflow=4
+CFLAGS		+= -Walloca -Warith-conversion -Warray-bounds=2 -Wbidi-chars=any -Wduplicated-cond -Wtrampolines -Wshadow -Wundef -Wunused-macros
+CFLAGS		+= -Wwrite-strings -Wdangling-else -Wdangling-pointer=2 -Wjump-misses-init -Wflex-array-member-not-at-end -Wlogical-op
+CFLAGS		+= -Wstrict-prototypes -Winvalid-utf8
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++11
 

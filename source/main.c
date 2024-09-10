@@ -19,7 +19,7 @@
 //N/A.
 
 //Code.
-int main()
+int main(void)
 {
 	Menu_init();
 

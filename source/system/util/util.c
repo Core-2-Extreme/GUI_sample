@@ -582,7 +582,9 @@ uint32_t Util_parse_file(const char* source_data, uint32_t expected_items, Str_d
 		}
 
 		copy_length = (end_pos - (start_pos + start_text.length));
-		result = Util_str_format(&out_data[i], "%.*s", copy_length, (start_pos + start_text.length));
+		copy_length = (uint32_t)Util_min(copy_length, INT_MAX);
+		//We can't get rid of this "int" because "*" specifier expects "int".
+		result = Util_str_format(&out_data[i], "%.*s", (int)copy_length, (start_pos + start_text.length));
 		if(result != DEF_SUCCESS)
 		{
 			DEF_LOG_RESULT(Util_str_format, false, result);

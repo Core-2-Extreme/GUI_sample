@@ -2843,7 +2843,8 @@ void Sem_update_thread(void* arg)
 							size = (end_pos - start_pos);
 							if(end_pos > start_pos && size < 16384)
 							{
-								Util_str_format(&sem_newest_ver_data[i], "%.*s", size, start_pos);
+								//We can't get rid of this "int" because "*" specifier expects "int".
+								Util_str_format(&sem_newest_ver_data[i], "%.*s", (int)size, start_pos);
 								is_error = false;
 							}
 						}

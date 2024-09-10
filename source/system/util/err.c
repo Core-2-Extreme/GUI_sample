@@ -115,7 +115,7 @@ void Util_err_set_error_message(const char* summary, const char* description, co
 	if(error_code == DEF_ERR_NO_RESULT_CODE)
 		Util_str_set(&util_err_code, "N/A");
 	else
-		Util_str_format(&util_err_code, "0x%X", error_code);
+		Util_str_format(&util_err_code, "0x%" PRIX32, error_code);
 }
 
 void Util_err_set_error_show_flag(bool flag)
