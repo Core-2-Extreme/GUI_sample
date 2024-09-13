@@ -1356,10 +1356,10 @@ static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string,
 		{
 			Draw_image_data font = { 0, };
 			font.c2d = util_exfont_font_images[base_index + offset];
-			Draw_texture(&font, abgr8888, (texture_x + x_offset), texture_y, x_size, y_size);
+			Draw_texture(&font, abgr8888, ((double)texture_x + x_offset), texture_y, x_size, y_size);
 		}
 
-		x_offset += x_size + (interval_offset * texture_size_x);
+		x_offset += x_size + (interval_offset * (double)texture_size_x);
 	}
 
 	*out_width = x_offset;

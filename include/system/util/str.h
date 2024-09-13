@@ -55,7 +55,7 @@ uint32_t Util_str_add(Str_data* string, const char* source_string);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_str_format(Str_data* string, const char* format_string, ...);
+uint32_t Util_str_format(Str_data* string, const char* format_string, ...) DEF_STR_GCC_FMT_CHECK;
 
 /**
  * @brief va_list version of Util_str_format().
@@ -75,7 +75,7 @@ uint32_t Util_str_vformat(Str_data* string, const char* format_string, va_list a
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_str_format_append(Str_data* string, const char* format_string, ...);
+uint32_t Util_str_format_append(Str_data* string, const char* format_string, ...) DEF_STR_GCC_FMT_CHECK;
 
 /**
  * @brief va_list version of Util_str_format_append().

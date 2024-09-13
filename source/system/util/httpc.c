@@ -25,9 +25,9 @@
 //N/A.
 
 //Prototypes.
-static uint32_t Util_httpc_request(httpcContext* httpc_context, const char* url, const char* ua, HTTPC_RequestMethod method, uint8_t* post_data, uint32_t post_data_size);
+static uint32_t Util_httpc_request(httpcContext* httpc_context, const char* url, const char* ua, HTTPC_RequestMethod method, const uint8_t* post_data, uint32_t post_data_size);
 static uint32_t Util_httpc_get_request(httpcContext* httpc_context, const char* url, const char* ua);
-static uint32_t Util_httpc_post_request(httpcContext* httpc_context, const char* url, const char* ua, uint8_t* post_data, uint32_t post_data_size);
+static uint32_t Util_httpc_post_request(httpcContext* httpc_context, const char* url, const char* ua, const uint8_t* post_data, uint32_t post_data_size);
 static void Util_httpc_get_response(httpcContext* httpc_context, uint16_t* status_code, Str_data* new_url, bool* redirected);
 static uint32_t Util_httpc_download_data(httpcContext* httpc_context, uint8_t** data, uint32_t max_size, uint32_t* downloaded_size);
 static void Util_httpc_close(httpcContext* httpc_context);
@@ -615,7 +615,7 @@ uint32_t Util_httpc_post_and_save_data(Net_post_save_parameters* parameters)
 	return result;
 }
 
-static uint32_t Util_httpc_request(httpcContext* httpc_context, const char* url, const char* ua, HTTPC_RequestMethod method, uint8_t* post_data, uint32_t post_data_size)
+static uint32_t Util_httpc_request(httpcContext* httpc_context, const char* url, const char* ua, HTTPC_RequestMethod method, const uint8_t* post_data, uint32_t post_data_size)
 {
 	uint32_t result = DEF_ERR_OTHER;
 
@@ -667,7 +667,7 @@ static uint32_t Util_httpc_request(httpcContext* httpc_context, const char* url,
 
 	if(method == HTTPC_METHOD_POST)
 	{
-		result = httpcAddPostDataRaw(httpc_context, (uint32_t*)post_data, post_data_size);
+		result = httpcAddPostDataRaw(httpc_context, (const uint32_t*)post_data, post_data_size);
 		if (result != DEF_SUCCESS)
 		{
 			DEF_LOG_RESULT(httpcAddPostDataRaw, false, result);
@@ -693,7 +693,7 @@ static uint32_t Util_httpc_get_request(httpcContext* httpc_context, const char* 
 	return Util_httpc_request(httpc_context, url, ua, HTTPC_METHOD_GET, NULL, 0);
 }
 
-static uint32_t Util_httpc_post_request(httpcContext* httpc_context, const char* url, const char* ua, uint8_t* post_data, uint32_t post_data_size)
+static uint32_t Util_httpc_post_request(httpcContext* httpc_context, const char* url, const char* ua, const uint8_t* post_data, uint32_t post_data_size)
 {
 	return Util_httpc_request(httpc_context, url, ua, HTTPC_METHOD_POST, post_data, post_data_size);
 }

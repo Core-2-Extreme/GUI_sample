@@ -5,6 +5,11 @@
 
 #define DEF_STR_INITIAL_CAPACITY			(uint32_t)(16)
 #define DEF_STR_NEVER_NULL(str_ptr)			(const char*)(Util_str_is_valid(str_ptr) ? (str_ptr)->buffer : "")
+#if __GNUC__
+#define DEF_STR_GCC_FMT_CHECK				__attribute__((format(printf, 2, 3)))
+#else
+#define DEF_STR_GCC_FMT_CHECK
+#endif //__GNUC__
 
 typedef struct
 {

@@ -481,7 +481,7 @@ uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Str_data* 
 	if(!utf16_dir_path || !utf8_file_name)
 		goto out_of_memory;
 
-	utf_out_size = utf8_to_utf16(utf16_dir_path, (uint8_t*)dir_path, 2048);
+	utf_out_size = utf8_to_utf16(utf16_dir_path, (const uint8_t*)dir_path, 2048);
 	utf16_dir_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
 	result = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
@@ -503,7 +503,7 @@ uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Str_data* 
 		if(count >= array_length)
 			goto out_of_memory;
 
-		result = FSDIR_Read(handle, &read_entry, read_entry_count, (FS_DirectoryEntry*)&fs_entry);
+		result = FSDIR_Read(handle, &read_entry, read_entry_count, &fs_entry);
 		if(result != DEF_SUCCESS)
 		{
 			DEF_LOG_RESULT(FSDIR_Read, false, result);
@@ -599,7 +599,7 @@ static uint32_t Util_file_make_path(const char* file_name, const char* dir_path,
 			goto error;
 		}
 
-		utf_out_size = utf8_to_utf16(*utf16_dir_path, (uint8_t*)dir_path, dir_length);
+		utf_out_size = utf8_to_utf16(*utf16_dir_path, (const uint8_t*)dir_path, dir_length);
 		(*utf16_dir_path)[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a NULL terminator.
 	}
 	if(utf16_path)

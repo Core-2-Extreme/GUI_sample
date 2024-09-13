@@ -36,7 +36,7 @@ typedef struct
 
 typedef struct
 {
-	uint8_t* data;
+	const uint8_t* data;
 	uint32_t upload_size;
 	uint32_t offset;
 	uint32_t* uploaded_size;

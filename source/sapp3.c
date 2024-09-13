@@ -236,11 +236,11 @@ void Sapp3_init(bool draw)
 	Util_watch_add(WATCH_HANDLE_SUB_APP3, &sapp3_status.sequencial_id, sizeof(sapp3_status.sequencial_id));
 
 	if(DEF_SEM_MODEL_IS_NEW(state.console_model) && Util_is_core_available(2))
-		sapp3_init_thread = threadCreate(Sapp3_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
+		sapp3_init_thread = threadCreate(Sapp3_init_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
 		APT_SetAppCpuTimeLimit(80);
-		sapp3_init_thread = threadCreate(Sapp3_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+		sapp3_init_thread = threadCreate(Sapp3_init_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 	}
 
 	while(!sapp3_already_init)
@@ -268,7 +268,7 @@ void Sapp3_exit(bool draw)
 	DEF_LOG_STRING("Exiting...");
 	uint32_t result = DEF_ERR_OTHER;
 
-	sapp3_exit_thread = threadCreate(Sapp3_exit_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	sapp3_exit_thread = threadCreate(Sapp3_exit_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	while(sapp3_already_init)
 	{
@@ -561,11 +561,11 @@ static void Sapp3_init_thread(void* arg)
 	Util_str_add(&sapp3_status, "\nStarting threads...");
 	sapp3_thread_run = true;
 	if(DEF_SEM_MODEL_IS_NEW(state.console_model) && Util_is_core_available(2))
-		sapp3_camera_thread = threadCreate(Sapp3_camera_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
+		sapp3_camera_thread = threadCreate(Sapp3_camera_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
-		sapp3_camera_thread = threadCreate(Sapp3_camera_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
+		sapp3_camera_thread = threadCreate(Sapp3_camera_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
 
-	sapp3_mic_thread = threadCreate(Sapp3_mic_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_LOW, 0, false);
+	sapp3_mic_thread = threadCreate(Sapp3_mic_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_LOW, 0, false);
 
 	sapp3_already_init = true;
 

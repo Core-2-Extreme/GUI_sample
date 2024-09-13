@@ -127,7 +127,7 @@ uint32_t Util_hid_init(void)
 	}
 
 	util_hid_thread_run = true;
-	util_hid_scan_thread = threadCreate(Util_hid_scan_hid_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 0, false);
+	util_hid_scan_thread = threadCreate(Util_hid_scan_hid_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 0, false);
 	if(!util_hid_scan_thread)
 	{
 		result = DEF_ERR_OTHER;

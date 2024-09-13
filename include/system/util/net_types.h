@@ -6,8 +6,8 @@
 
 typedef struct
 {
-	uint8_t* data;		//(in) Upload data.
-	uint32_t size;		//(in) Data size in bytes.
+	const uint8_t* data;	//(in) Upload data.
+	uint32_t size;			//(in) Data size in bytes.
 } Net_post_data;
 
 typedef struct
@@ -43,26 +43,26 @@ typedef struct
 
 typedef struct
 {
-	bool is_callback;			//Whether use callback function for upload, callback is only supported on curl.
-	uint32_t* uploaded_size;	//Actual uploaded size.
+	bool is_callback;			//(in)  Whether use callback function for upload, callback is only supported on curl.
+	uint32_t* uploaded_size;	//(out) Actual uploaded size.
 	union
 	{
 		Net_post_data data;
 		Net_post_callback_data callback;
 	} u;
-	Net_dl_parameters dl;		//Download related parameters (mostly).
+	Net_dl_parameters dl;		//(in/out) Download related parameters (mostly).
 } Net_post_dl_parameters;
 
 typedef struct
 {
-	bool is_callback;			//Whether use callback function for upload, callback is only supported on curl.
-	uint32_t* uploaded_size;	//Actual uploaded size.
+	bool is_callback;			//(in)  Whether use callback function for upload, callback is only supported on curl.
+	uint32_t* uploaded_size;	//(out) Actual uploaded size.
 	union
 	{
 		Net_post_data data;
 		Net_post_callback_data callback;
 	} u;
-	Net_save_parameters save;	//Download related parameters (mostly).
+	Net_save_parameters save;	//(in/out) Download related parameters (mostly).
 } Net_post_save_parameters;
 
 #endif //!defined(DEF_NET_TYPES_H)

@@ -139,9 +139,10 @@ void Util_cpu_usage_draw(void)
 	char msg_cache[128] = { 0, };
 	Draw_image_data background = Draw_get_empty_image();
 
-	char_length = snprintf(msg_cache, 128, "CPU : %.1f%%", Util_cpu_usage_get_cpu_usage(-1));
-	for(uint8_t i = 0; i < 4; i++)
-		char_length += snprintf((msg_cache + char_length), 128 - char_length, "\nCore #%" PRIu8 " : %.1f%%", i, Util_cpu_usage_get_cpu_usage(i));
+	//%f expects double.
+	char_length = snprintf(msg_cache, 128, "CPU : %.1f%%", (double)Util_cpu_usage_get_cpu_usage(-1));
+	for(uint8_t i = 0; i < 4; i++)//%f expects double.
+		char_length += snprintf((msg_cache + char_length), 128 - char_length, "\nCore #%" PRIu8 " : %.1f%%", i, (double)Util_cpu_usage_get_cpu_usage(i));
 
 	snprintf((msg_cache + char_length), 128 - char_length, "\n(#1 max : %" PRIu8 "%%)", Util_cpu_usage_get_core_1_limit());
 
@@ -238,7 +239,7 @@ void Util_cpu_usage_calculate_thread(void* arg)
 					uint8_t core_1_limit = util_cpu_usage_core_1_limit;
 
 					if(core_1_limit != 0)
-						util_cpu_usage_per_core[i] = cpu_usage_cache / (100.0 / core_1_limit);
+						util_cpu_usage_per_core[i] = (cpu_usage_cache / (100.0f / core_1_limit));
 					else
 						util_cpu_usage_per_core[i] = 0;
 				}

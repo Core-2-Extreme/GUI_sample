@@ -490,7 +490,7 @@ uint32_t Util_init(void)
 	//Check for core availability.
 	for(uint8_t i = 0; i < loop; i++)
 	{
-		Thread thread = threadCreate(Util_check_core_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, i, false);
+		Thread thread = threadCreate(Util_check_core_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, i, false);
 
 		if(!thread)
 			util_is_core_available[i] = false;
@@ -619,7 +619,7 @@ uint32_t Util_convert_seconds_to_time(double input_seconds, Str_data* time_strin
 	if(!time_string)
 		goto invalid_arg;
 
-	if(input_seconds == INFINITY || input_seconds == NAN)
+	if(isinf(input_seconds) || isnan(input_seconds))
 		input_seconds = 0;
 
 	result = Util_str_init(time_string);

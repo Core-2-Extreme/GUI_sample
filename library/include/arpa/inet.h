@@ -1,5 +1,11 @@
 #pragma once
 
+#if __GNUC__
+//We don't want to see warnings in 3rd party headers.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif //__GNUC__
+
 #include <netinet/in.h>
 #include <stdint.h>
 
@@ -21,4 +27,9 @@ extern "C" {
 
 #ifdef __cplusplus
 }
+
+#if __GNUC__
+#pragma GCC diagnostic pop
+#endif //__GNUC__
+
 #endif

@@ -174,11 +174,11 @@ void Sapp4_init(bool draw)
 	Util_watch_add(WATCH_HANDLE_SUB_APP4, &sapp4_status.sequencial_id, sizeof(sapp4_status.sequencial_id));
 
 	if(DEF_SEM_MODEL_IS_NEW(state.console_model) && Util_is_core_available(2))
-		sapp4_init_thread = threadCreate(Sapp4_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
+		sapp4_init_thread = threadCreate(Sapp4_init_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
 		APT_SetAppCpuTimeLimit(80);
-		sapp4_init_thread = threadCreate(Sapp4_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+		sapp4_init_thread = threadCreate(Sapp4_init_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 	}
 
 	while(!sapp4_already_init)
@@ -206,7 +206,7 @@ void Sapp4_exit(bool draw)
 	DEF_LOG_STRING("Exiting...");
 	uint32_t result = DEF_ERR_OTHER;
 
-	sapp4_exit_thread = threadCreate(Sapp4_exit_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	sapp4_exit_thread = threadCreate(Sapp4_exit_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	while(sapp4_already_init)
 	{
@@ -441,7 +441,7 @@ static void Sapp4_init_thread(void* arg)
 
 	Util_str_add(&sapp4_status, "\nStarting threads...");
 	sapp4_thread_run = true;
-	sapp4_worker_thread = threadCreate(Sapp4_worker_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
+	sapp4_worker_thread = threadCreate(Sapp4_worker_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
 
 	sapp4_already_init = true;
 

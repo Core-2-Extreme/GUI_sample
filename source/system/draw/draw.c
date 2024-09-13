@@ -409,12 +409,12 @@ uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* buf, uint
 	else if(image->c2d.tex->fmt == GPU_RGB565)
 		pixel_size = 2;
 
-	image->subtex->width = (uint16_t)pic_width;
-	image->subtex->height = (uint16_t)pic_height;
+	image->subtex->width = pic_width;
+	image->subtex->height = pic_height;
 	image->subtex->left = 0.0;
 	image->subtex->top = 1.0;
-	image->subtex->right = pic_width / (float)image->c2d.tex->width;
-	image->subtex->bottom = 1.0 - pic_height / (float)image->c2d.tex->height;
+	image->subtex->right = (pic_width / (float)image->c2d.tex->width);
+	image->subtex->bottom = (1 - (pic_height / (float)image->c2d.tex->height));
 	image->c2d.subtex = image->subtex;
 
 	copy_size = pic_width * 8 * pixel_size;
@@ -515,8 +515,8 @@ uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pi
 	image->subtex->height = (uint16_t)y_max;
 	image->subtex->left = 0.0;
 	image->subtex->top = 1.0;
-	image->subtex->right = x_max / (float)image->c2d.tex->width;
-	image->subtex->bottom = 1.0 - y_max / (float)image->c2d.tex->height;
+	image->subtex->right = (x_max / (float)image->c2d.tex->width);
+	image->subtex->bottom = (1 - (y_max / (float)image->c2d.tex->height));
 	image->c2d.subtex = image->subtex;
 
 	if(pixel_size == 2)
@@ -525,7 +525,7 @@ uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pi
 		{
 			for(uint32_t i = 0; i < x_max; i += 2)
 			{
-				memcpy_asm_4b(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(((uint8_t*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
+				memcpy_asm_4b(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(buf[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
 				c3d_pos += increase_list_x[count[0]];
 				count[0]++;
 			}
@@ -541,8 +541,8 @@ uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pi
 		{
 			for(uint32_t i = 0; i < x_max; i += 2)
 			{
-				memcpy_asm_4b(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(((uint8_t*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
-				memcpy(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset + 4]), &(((uint8_t*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size) + 4]), 2);
+				memcpy_asm_4b(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(buf[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
+				memcpy(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset + 4]), &(buf[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size) + 4]), 2);
 				c3d_pos += increase_list_x[count[0]];
 				count[0]++;
 			}
@@ -558,8 +558,8 @@ uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pi
 		{
 			for(uint32_t i = 0; i < x_max; i += 2)
 			{
-				memcpy_asm_4b(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(((uint8_t*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
-				memcpy_asm_4b(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset + 4]), &(((uint8_t*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size) + 4]));
+				memcpy_asm_4b(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(buf[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
+				memcpy_asm_4b(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset + 4]), &(buf[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size) + 4]));
 				c3d_pos += increase_list_x[count[0]];
 				count[0]++;
 			}
@@ -625,8 +625,8 @@ void Draw_get_text_size(const char* text, float text_size_x, float text_size_y, 
 	if(!part_text)
 		return;
 
-	text_size_x *= 1.2;
-	text_size_y *= 1.2;
+	text_size_x *= 1.2f;
+	text_size_y *= 1.2f;
 
 	Exfont_text_parse(text, part_text, (length - 1), &array_count);
 	array_count++;
@@ -714,8 +714,8 @@ Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background t
 		return;
 	}
 
-	text_size_x *= 1.2;
-	text_size_y *= 1.2;
+	text_size_x *= 1.2f;
+	text_size_y *= 1.2f;
 
 	Exfont_text_parse(text, part_text, (length - 1), &array_count);
 	array_count++;
@@ -776,11 +776,11 @@ Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background t
 		used_y_max = y_offset + used_y_max;
 
 		if(x_align == DRAW_X_ALIGN_CENTER)
-			x_start[lines] = ((box_size_x - used_x) / 2.0) + x;
+			x_start[lines] = ((box_size_x - used_x) / 2.0f) + x;
 		else if(x_align == DRAW_X_ALIGN_RIGHT)
 			x_start[lines] = box_size_x - used_x + x;
 		if(y_align == DRAW_Y_ALIGN_CENTER)
-			y = ((box_size_y - used_y_max) / 2.0) + y;
+			y = ((box_size_y - used_y_max) / 2.0f) + y;
 		else if(y_align == DRAW_Y_ALIGN_BOTTOM)
 			y = box_size_y - used_y_max + y;
 
@@ -1131,10 +1131,11 @@ void Draw_debug_info(bool is_night, uint32_t free_ram, uint32_t free_linear_ram)
 	Util_str_format(&temp, "START:%c SELET:%c", empty_p_h[key.p_start + (key.h_start * 2)], empty_p_h[key.p_select + (key.h_select * 2)]);
 	Draw_with_background(&temp, 0, 140, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "touch x:%" PRIi32 " y:%" PRIi32, key.touch_x, key.touch_y);
+	Util_str_format(&temp, "touch x:%" PRIi32 " y:%" PRIi32, (int32_t)key.touch_x, (int32_t)key.touch_y);
 	Draw_with_background(&temp, 0, 150, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "CPU:%.3fms GPU:%.3fms", C3D_GetProcessingTime(), C3D_GetDrawingTime());
+	//%f expects double.
+	Util_str_format(&temp, "CPU:%.3fms GPU:%.3fms", (double)C3D_GetProcessingTime(), (double)C3D_GetDrawingTime());
 	Draw_with_background(&temp, 0, 160, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	Util_str_format(&temp, "Frametime:%.4fms", util_draw_frametime);

@@ -28,7 +28,7 @@ typedef struct
 	uint32_t size[DEF_EXPL_MAX_FILES];
 	Str_data name[DEF_EXPL_MAX_FILES];
 	Expl_file_type type[DEF_EXPL_MAX_FILES];
-} Util_expl_file;
+} Util_expl_files;
 
 typedef struct
 {
@@ -56,7 +56,7 @@ double util_expl_y_offset = 0;
 double util_expl_selected_file_num = 0;
 Str_data util_expl_current_dir = { 0, };
 Draw_image_data util_expl_file_button[16] = { 0, };
-Util_expl_file util_expl_files = { 0, };
+Util_expl_files util_expl_files = { 0, };
 
 //Code.
 uint32_t Util_expl_init(void)
@@ -330,7 +330,7 @@ void Util_expl_draw(void)
 			Util_str_format(&message, "%s (%s)", util_expl_files.name[index].buffer, type.buffer);
 		else
 		{
-			float size = util_expl_files.size[index];
+			double size = util_expl_files.size[index];
 
 			if(size < 1000)
 				Util_str_format(&message, "%s(%" PRIu32 "B) (%s)", util_expl_files.name[index].buffer, (uint32_t)size, type.buffer);
@@ -638,8 +638,8 @@ static void Util_expl_generate_file_type_string(Expl_file_type type, Str_data* t
 //We can't get rid of this "int" because library uses "int" type as return value.
 static int Util_expl_compare_name(const void* a, const void* b)
 {
-	Util_expl_file_compare* file_a = (Util_expl_file_compare*)a;
-	Util_expl_file_compare* file_b = (Util_expl_file_compare*)b;
+	const Util_expl_file_compare* file_a = (const Util_expl_file_compare*)a;
+	const Util_expl_file_compare* file_b = (const Util_expl_file_compare*)b;
 	bool is_a_dir = (file_a->type & EXPL_FILE_TYPE_DIR);
 	bool is_b_dir = (file_b->type & EXPL_FILE_TYPE_DIR);
 
@@ -738,8 +738,8 @@ static void Util_expl_read_dir_callback(void)
 			bool is_root_dir = false;
 			uint32_t detected_files = 0;
 			uint32_t result = DEF_ERR_OTHER;
-			Util_expl_file files = { 0, };
-			Util_expl_file_compare sort_cache[DEF_EXPL_MAX_FILES] = { 0, };
+			//We don't want to fly our stack.
+			static Util_expl_files files = { 0, };
 
 			Draw_set_refresh_needed(true);
 			for (uint32_t i = 0; i < DEF_EXPL_MAX_FILES; i++)
@@ -748,6 +748,7 @@ static void Util_expl_read_dir_callback(void)
 				util_expl_files.type[i] = EXPL_FILE_TYPE_NONE;
 				util_expl_files.size[i] = 0;
 			}
+			memset(&files, 0x00, sizeof(files));
 
 			if(strcmp(util_expl_current_dir.buffer, "/") == 0)
 				is_root_dir = true;
@@ -766,7 +767,10 @@ static void Util_expl_read_dir_callback(void)
 				//Non-root directory has a directory named "Go to parent directory".
 				uint8_t offset = (is_root_dir ? 0 : 1);
 				uint32_t loop = 0;
+				//We don't want to fly our stack.
+				static Util_expl_file_compare sort_cache[DEF_EXPL_MAX_FILES] = { 0, };
 
+				memset(sort_cache, 0x00, sizeof(sort_cache));
 				for(uint32_t i = 0; i < detected_files; i++)
 				{
 					sort_cache[i].name = files.name[i];

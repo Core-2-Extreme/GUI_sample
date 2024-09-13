@@ -191,12 +191,12 @@ void Menu_init(void)
 	Exfont_request_load_external_font();
 
 	menu_thread_run = true;
-	menu_worker_thread = threadCreate(Menu_worker_thread, (void*)(""), DEF_THREAD_STACKSIZE * 2, DEF_THREAD_PRIORITY_ABOVE_NORMAL, 0, false);
+	menu_worker_thread = threadCreate(Menu_worker_thread, NULL, DEF_THREAD_STACKSIZE * 2, DEF_THREAD_PRIORITY_ABOVE_NORMAL, 0, false);
 
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
-	menu_update_thread = threadCreate(Menu_update_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, true);
+	menu_update_thread = threadCreate(Menu_update_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, true);
 	if (config.is_send_info_allowed)
-		menu_send_app_info_thread = threadCreate(Menu_send_app_info_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_LOW, 1, true);
+		menu_send_app_info_thread = threadCreate(Menu_send_app_info_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_LOW, 1, true);
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
 	//Load sub application icons.

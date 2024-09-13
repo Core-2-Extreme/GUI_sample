@@ -183,11 +183,11 @@ void Sapp2_init(bool draw)
 	Util_watch_add(WATCH_HANDLE_SUB_APP2, &sapp2_status.sequencial_id, sizeof(sapp2_status.sequencial_id));
 
 	if(DEF_SEM_MODEL_IS_NEW(state.console_model) && Util_is_core_available(2))
-		sapp2_init_thread = threadCreate(Sapp2_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
+		sapp2_init_thread = threadCreate(Sapp2_init_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
 		APT_SetAppCpuTimeLimit(80);
-		sapp2_init_thread = threadCreate(Sapp2_init_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+		sapp2_init_thread = threadCreate(Sapp2_init_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 	}
 
 	while(!sapp2_already_init)
@@ -215,7 +215,7 @@ void Sapp2_exit(bool draw)
 	DEF_LOG_STRING("Exiting...");
 	uint32_t result = DEF_ERR_OTHER;
 
-	sapp2_exit_thread = threadCreate(Sapp2_exit_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	sapp2_exit_thread = threadCreate(Sapp2_exit_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	while(sapp2_already_init)
 	{
@@ -416,7 +416,7 @@ static void Sapp2_init_thread(void* arg)
 
 	Util_str_add(&sapp2_status, "\nStarting threads...");
 	sapp2_thread_run = true;
-	sapp2_worker_thread = threadCreate(Sapp2_worker_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	sapp2_worker_thread = threadCreate(Sapp2_worker_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
 	sapp2_already_init = true;
 

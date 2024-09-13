@@ -203,7 +203,7 @@ static inline const char* enum_name##_get_name(enum_name value) \
 
 #else
 
-#define DEF_LOG_ENUM_DEBUG_DISABLED_MSG					(const char*)("(Enum debug is disabled.)")
+#define DEF_LOG_ENUM_DEBUG_DISABLED_MSG				(const char*)("(Enum debug is disabled.)")
 
 #define DEF_LOG_ENUM_DEBUG(enum_name, ...) \
 static inline const char* enum_name##_get_name(enum_name value) \

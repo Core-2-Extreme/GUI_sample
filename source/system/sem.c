@@ -475,21 +475,21 @@ void Sem_init(void)
 	sem_state = state;
 
 	sem_thread_run = true;
-	sem_hw_config_thread = threadCreate(Sem_hw_config_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
+	sem_hw_config_thread = threadCreate(Sem_hw_config_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
-	sem_check_connectivity_thread = threadCreate(Sem_check_connectivity_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	sem_check_connectivity_thread = threadCreate(Sem_check_connectivity_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
-	sem_update_thread = threadCreate(Sem_update_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
+	sem_update_thread = threadCreate(Sem_update_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
-	sem_record_thread = threadCreate(Sem_record_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
+	sem_record_thread = threadCreate(Sem_record_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
 	if(DEF_SEM_MODEL_IS_NEW(state.console_model))
-		sem_encode_thread = threadCreate(Sem_encode_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 2, false);
+		sem_encode_thread = threadCreate(Sem_encode_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 2, false);
 	else
-		sem_encode_thread = threadCreate(Sem_encode_thread, (void*)(""), DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
+		sem_encode_thread = threadCreate(Sem_encode_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
 	sem_reload_msg_request = true;

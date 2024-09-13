@@ -290,7 +290,7 @@ uint32_t Util_converter_convert_color(Converter_color_parameters* parameters)
 		goto ffmpeg_api_failed;
 	}
 
-	ffmpeg_result = sws_scale(sws_context, (const uint8_t**)src_data, src_line_size, 0, parameters->in_height, dst_data, dst_line_size);
+	ffmpeg_result = sws_scale(sws_context, (const uint8_t* const*)src_data, src_line_size, 0, parameters->in_height, dst_data, dst_line_size);
 	if(ffmpeg_result < 0)
 	{
 		DEF_LOG_RESULT(sws_scale, false, ffmpeg_result);
@@ -376,7 +376,7 @@ uint32_t Util_converter_convert_audio(Converter_audio_parameters* parameters)
 			dst_data[i] = parameters->converted + (parameters->out_samples * util_converter_sample_format_size_table[parameters->out_sample_format] * i);
 	}
 
-	ffmpeg_result = swr_convert(swr_context, dst_data, parameters->out_samples, (const uint8_t**)src_data, parameters->in_samples);
+	ffmpeg_result = swr_convert(swr_context, dst_data, parameters->out_samples, (const uint8_t* const*)src_data, parameters->in_samples);
 	if(ffmpeg_result <= 0)
 	{
 		DEF_LOG_RESULT(swr_convert, false, ffmpeg_result);
@@ -502,10 +502,10 @@ uint32_t Util_converter_rgba8888be_to_rgba8888le(uint8_t* rgba8888, uint32_t wid
 	{
 		for (uint32_t h = 0; h < height; h++)
 		{
-			uint8_t r = *(uint8_t*)(rgba8888 + offset);
-			uint8_t g = *(uint8_t*)(rgba8888 + offset + 1);
-			uint8_t b = *(uint8_t*)(rgba8888 + offset + 2);
-			uint8_t a = *(uint8_t*)(rgba8888 + offset + 3);
+			uint8_t r = *(rgba8888 + offset);
+			uint8_t g = *(rgba8888 + offset + 1);
+			uint8_t b = *(rgba8888 + offset + 2);
+			uint8_t a = *(rgba8888 + offset + 3);
 
 			*(rgba8888 + offset) = a;
 			*(rgba8888 + offset + 1) = b;
@@ -532,9 +532,9 @@ uint32_t Util_converter_rgb888be_to_rgb888le(uint8_t* rgb888, uint32_t width, ui
 	{
 		for (uint32_t h = 0; h < height; h++)
 		{
-			uint8_t r = *(uint8_t*)(rgb888 + offset);
-			uint8_t g = *(uint8_t*)(rgb888 + offset + 1);
-			uint8_t b = *(uint8_t*)(rgb888 + offset + 2);
+			uint8_t r = *(rgb888 + offset);
+			uint8_t g = *(rgb888 + offset + 1);
+			uint8_t b = *(rgb888 + offset + 2);
 
 			*(rgb888 + offset) = b;
 			*(rgb888 + offset + 1) = g;

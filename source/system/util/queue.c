@@ -200,9 +200,9 @@ uint32_t Util_queue_get(Queue_data* queue, uint32_t* event_id, void** data, int6
 		if(queue->data[0])
 		{
 			if(data)
-				*data = (void*)queue->data[0];
+				*data = queue->data[0];
 			else
-				free((void*)queue->data[0]);
+				free(queue->data[0]);
 		}
 
 		//Delete old data as it no longer necessary.
