@@ -1,4 +1,4 @@
-# Bbuild a mbedtls for 3DS
+# Bbuild a curl for 3DS
 
 It works on WSL Ubuntu 20.04, is should also work on real Ubuntu. \
 As of this writing, we are using `devkitARM r64-2`. \
