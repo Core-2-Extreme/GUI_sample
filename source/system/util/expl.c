@@ -44,19 +44,19 @@ static int Util_expl_compare_name(const void* a, const void* b);
 static void Util_expl_read_dir_callback(void);
 
 //Variables.
-void (*util_expl_callback)(Str_data*, Str_data*) = NULL;
-void (*util_expl_cancel_callback)(void) = NULL;
-bool util_expl_read_dir_request = false;
-bool util_expl_show_flag = false;
-bool util_expl_scroll_mode = false;
-bool util_expl_init = false;
-uint32_t util_expl_num_of_file = 0;
-uint32_t util_expl_check_file_size_index = 0;
-double util_expl_y_offset = 0;
-double util_expl_selected_file_num = 0;
-Str_data util_expl_current_dir = { 0, };
-Draw_image_data util_expl_file_button[16] = { 0, };
-Util_expl_files util_expl_files = { 0, };
+static void (*util_expl_callback)(Str_data*, Str_data*) = NULL;
+static void (*util_expl_cancel_callback)(void) = NULL;
+static bool util_expl_read_dir_request = false;
+static bool util_expl_show_flag = false;
+static bool util_expl_scroll_mode = false;
+static bool util_expl_init = false;
+static uint32_t util_expl_num_of_file = 0;
+static uint32_t util_expl_check_file_size_index = 0;
+static double util_expl_y_offset = 0;
+static double util_expl_selected_file_num = 0;
+static Str_data util_expl_current_dir = { 0, };
+static Draw_image_data util_expl_file_button[16] = { 0, };
+static Util_expl_files util_expl_files = { 0, };
 
 //Code.
 uint32_t Util_expl_init(void)

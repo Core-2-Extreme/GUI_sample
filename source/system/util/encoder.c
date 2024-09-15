@@ -38,34 +38,34 @@ static void Util_encoder_video_exit(uint8_t session);
 
 //Variables.
 #if DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
-bool util_audio_encoder_init[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-uint8_t util_audio_stream_index[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-uint8_t* util_audio_encoder_cache[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-uint32_t util_audio_encoder_cache_size[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-int64_t util_audio_pos[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-int64_t util_audio_increase_pts[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-double util_audio_encoder_conversion_size_rate[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-AVPacket* util_audio_encoder_packet[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-AVFrame* util_audio_encoder_raw_data[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-AVCodecContext* util_audio_encoder_context[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-const AVCodec* util_audio_encoder_codec[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-SwrContext* util_audio_encoder_swr_context[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-AVStream* util_audio_encoder_stream[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static bool util_audio_encoder_init[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static uint8_t util_audio_stream_index[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static uint8_t* util_audio_encoder_cache[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static uint32_t util_audio_encoder_cache_size[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static int64_t util_audio_pos[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static int64_t util_audio_increase_pts[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static double util_audio_encoder_conversion_size_rate[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static AVPacket* util_audio_encoder_packet[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static AVFrame* util_audio_encoder_raw_data[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static AVCodecContext* util_audio_encoder_context[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static const AVCodec* util_audio_encoder_codec[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static SwrContext* util_audio_encoder_swr_context[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static AVStream* util_audio_encoder_stream[DEF_ENCODER_MAX_SESSIONS] = { 0, };
 
-bool util_video_encoder_init[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-uint8_t util_video_stream_index[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-int64_t util_video_pos[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-int64_t util_video_increase_pts[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-AVPacket* util_video_encoder_packet[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-AVFrame* util_video_encoder_raw_data[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-AVCodecContext* util_video_encoder_context[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-const AVCodec* util_video_encoder_codec[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-AVStream* util_video_encoder_stream[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static bool util_video_encoder_init[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static uint8_t util_video_stream_index[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static int64_t util_video_pos[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static int64_t util_video_increase_pts[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static AVPacket* util_video_encoder_packet[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static AVFrame* util_video_encoder_raw_data[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static AVCodecContext* util_video_encoder_context[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static const AVCodec* util_video_encoder_codec[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static AVStream* util_video_encoder_stream[DEF_ENCODER_MAX_SESSIONS] = { 0, };
 
-bool util_encoder_created_file[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-bool util_encoder_wrote_header[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-uint8_t util_encoder_next_stream_index[DEF_ENCODER_MAX_SESSIONS] = { 0, };
-AVFormatContext* util_encoder_format_context[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static bool util_encoder_created_file[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static bool util_encoder_wrote_header[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static uint8_t util_encoder_next_stream_index[DEF_ENCODER_MAX_SESSIONS] = { 0, };
+static AVFormatContext* util_encoder_format_context[DEF_ENCODER_MAX_SESSIONS] = { 0, };
 #endif //DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
 
 //Code.

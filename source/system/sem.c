@@ -64,25 +64,25 @@ void Sem_update_thread(void* arg);
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 //Variables.
-bool sem_main_run = false;
-bool sem_already_init = false;
-bool sem_thread_run = false;
-bool sem_thread_suspend = false;
-bool sem_reload_msg_request = false;
-bool sem_scroll_mode = false;
-bool sem_dump_log_request = false;
-bool sem_should_wifi_enabled = false;
-int8_t sem_selected_menu_mode = DEF_SEM_MENU_TOP;
-double sem_y_offset = 0;
-double sem_y_max = 0;
-double sem_touch_x_move_left = 0;
-double sem_touch_y_move_left = 0;
-const char* sem_model_name[6] = { "OLD 3DS", "OLD 3DS XL", "OLD 2DS", "NEW 3DS", "NEW 3DS XL", "NEW 2DS XL", };
-Str_data sem_msg[DEF_SEM_NUM_OF_MSG] = { 0, };
-Str_data sem_newest_ver_data[6] = { 0, };//0 newest version number, 1 3dsx available, 2 cia available, 3 3dsx dl url, 4 cia dl url, 5 patch note.
-LightLock sem_config_state_mutex = 1;//Initially unlocked state.
-Thread sem_hw_config_thread = NULL;
-Draw_image_data sem_back_button = { 0, }, sem_scroll_bar = { 0, }, sem_menu_button[9] = { 0, }, sem_english_button = { 0, },
+static bool sem_main_run = false;
+static bool sem_already_init = false;
+static bool sem_thread_run = false;
+static bool sem_thread_suspend = false;
+static bool sem_reload_msg_request = false;
+static bool sem_scroll_mode = false;
+static bool sem_dump_log_request = false;
+static bool sem_should_wifi_enabled = false;
+static int8_t sem_selected_menu_mode = DEF_SEM_MENU_TOP;
+static double sem_y_offset = 0;
+static double sem_y_max = 0;
+static double sem_touch_x_move_left = 0;
+static double sem_touch_y_move_left = 0;
+static const char* sem_model_name[6] = { "OLD 3DS", "OLD 3DS XL", "OLD 2DS", "NEW 3DS", "NEW 3DS XL", "NEW 2DS XL", };
+static Str_data sem_msg[DEF_SEM_NUM_OF_MSG] = { 0, };
+static Str_data sem_newest_ver_data[6] = { 0, };//0 newest version number, 1 3dsx available, 2 cia available, 3 3dsx dl url, 4 cia dl url, 5 patch note.
+static LightLock sem_config_state_mutex = 1;//Initially unlocked state.
+static Thread sem_hw_config_thread = NULL;
+static Draw_image_data sem_back_button = { 0, }, sem_scroll_bar = { 0, }, sem_menu_button[9] = { 0, }, sem_english_button = { 0, },
 sem_japanese_button = { 0, }, sem_hungarian_button = { 0, }, sem_chinese_button = { 0, }, sem_italian_button = { 0, },
 sem_spanish_button = { 0, }, sem_romanian_button = { 0, }, sem_polish_button = { 0, }, sem_ryukyuan_button = { 0, },
 sem_night_mode_on_button = { 0, }, sem_night_mode_off_button = { 0, }, sem_flash_mode_button = { 0, }, sem_screen_brightness_slider = { 0, },
@@ -93,50 +93,50 @@ sem_unload_all_ex_font_button = { 0, }, sem_ex_font_button[DEF_EXFONT_NUM_OF_FON
 sem_wifi_off_button = { 0, }, sem_allow_send_info_button = { 0, }, sem_deny_send_info_button = { 0, }, sem_debug_mode_on_button = { 0, },
 sem_debug_mode_off_button = { 0, }, sem_eco_mode_on_button = { 0, }, sem_eco_mode_off_button = { 0, }, sem_record_both_lcd_button = { 0, },
 sem_record_top_lcd_button = { 0, }, sem_record_bottom_lcd_button = { 0, }, sem_use_fake_model_button = { 0, }, sem_dump_log_button = { 0, };
-Sem_internal_state sem_internal_state = { 0, };
-Sem_state sem_state = { 0, };
-Sem_config sem_config = { 0, };
+static Sem_internal_state sem_internal_state = { 0, };
+static Sem_state sem_state = { 0, };
+static Sem_config sem_config = { 0, };
 
 #if DEF_CPU_USAGE_API_ENABLE
-bool sem_is_cpu_usage_monitor_running = false;
-bool sem_should_cpu_usage_monitor_running = false;
+static bool sem_is_cpu_usage_monitor_running = false;
+static bool sem_should_cpu_usage_monitor_running = false;
 #endif //DEF_CPU_USAGE_API_ENABLE
 
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
-Thread sem_check_connectivity_thread = NULL;
+static Thread sem_check_connectivity_thread = NULL;
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
-bool sem_check_update_request = false;
-bool sem_new_version_available = false;
-bool sem_show_patch_note_request = false;
-bool sem_select_ver_request = false;
-bool sem_dl_file_request = false;
-int8_t sem_update_progress = -1;
-int8_t sem_selected_edition_num = DEF_SEM_EDTION_NONE;
-uint32_t sem_installed_size = 0;
-uint32_t sem_total_cia_size = 0;
-uint32_t sem_dled_size = 0;
-Thread sem_update_thread = NULL;
-Draw_image_data sem_check_update_button = { 0, }, sem_select_edtion_button = { 0, }, sem_close_updater_button = { 0, },
+static bool sem_check_update_request = false;
+static bool sem_new_version_available = false;
+static bool sem_show_patch_note_request = false;
+static bool sem_select_ver_request = false;
+static bool sem_dl_file_request = false;
+static int8_t sem_update_progress = -1;
+static int8_t sem_selected_edition_num = DEF_SEM_EDTION_NONE;
+static uint32_t sem_installed_size = 0;
+static uint32_t sem_total_cia_size = 0;
+static uint32_t sem_dled_size = 0;
+static Thread sem_update_thread = NULL;
+static Draw_image_data sem_check_update_button = { 0, }, sem_select_edtion_button = { 0, }, sem_close_updater_button = { 0, },
 sem_3dsx_button = { 0, }, sem_cia_button = { 0, }, sem_dl_install_button = { 0, }, sem_back_to_patch_note_button = { 0, },
 sem_close_app_button = { 0, };
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 #if DEF_CPU_USAGE_API_ENABLE
-Draw_image_data sem_monitor_cpu_usage_on_button = { 0, }, sem_monitor_cpu_usage_off_button = { 0, };
+static Draw_image_data sem_monitor_cpu_usage_on_button = { 0, }, sem_monitor_cpu_usage_off_button = { 0, };
 #endif //DEF_CPU_USAGE_API_ENABLE
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
-bool sem_record_request = false;
-bool sem_encode_request = false;
-bool sem_wait_request = false;
-bool sem_stop_record_request = false;
-uint8_t sem_selected_recording_mode = 0;
-uint8_t* sem_yuv420p = NULL;
-uint16_t sem_rec_width = 400;
-uint16_t sem_rec_height = 480;
-Thread sem_record_thread = NULL, sem_encode_thread = NULL;
+static bool sem_record_request = false;
+static bool sem_encode_request = false;
+static bool sem_wait_request = false;
+static bool sem_stop_record_request = false;
+static uint8_t sem_selected_recording_mode = 0;
+static uint8_t* sem_yuv420p = NULL;
+static uint16_t sem_rec_width = 400;
+static uint16_t sem_rec_height = 480;
+static Thread sem_record_thread = NULL, sem_encode_thread = NULL;
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
 //Code.

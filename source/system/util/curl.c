@@ -63,10 +63,10 @@ static uint32_t Util_curl_post_and_dl_data_internal(Net_post_dl_parameters* para
 static uint32_t Util_curl_post_and_save_data_internal(Net_post_save_parameters* parameters, Http_data* http_data, Upload_data* upload_data);
 
 //Variables.
-bool util_curl_init = false;
-uint32_t* util_curl_buffer = NULL;
-char util_curl_default_user_agent[DEF_CURL_USER_AGENT_SIZE] = { 0, };
-char util_curl_empty_char[1] = { 0, };
+static bool util_curl_init = false;
+static uint32_t* util_curl_buffer = NULL;
+static char util_curl_default_user_agent[DEF_CURL_USER_AGENT_SIZE] = { 0, };
+static char util_curl_empty_char[1] = { 0, };
 
 //Code.
 uint32_t Util_curl_init(uint32_t buffer_size)

@@ -107,20 +107,20 @@ static void Sapp3_camera_thread(void* arg);
 static void Sapp3_mic_thread(void* arg);
 
 //Variables.
-bool sapp3_main_run = false;
-bool sapp3_thread_run = false;
-bool sapp3_already_init = false;
-bool sapp3_thread_suspend = true;
-uint8_t sapp3_camera_buffer_index = 0;
-Thread sapp3_init_thread = NULL, sapp3_exit_thread = NULL, sapp3_camera_thread = NULL, sapp3_mic_thread = NULL;
-Draw_image_data sapp3_camera_image[2] = { 0, };
-Queue_data sapp3_camera_command_queue = { 0, }, sapp3_mic_command_queue = { 0, };
-Str_data sapp3_status = { 0, };
-Str_data sapp3_msg[DEF_SAPP3_NUM_OF_MSG] = { 0, };
-Str_data sapp3_camera_saved_path = { 0, };
-Str_data sapp3_mic_saved_path = { 0, };
-Sapp3_camera_state sapp3_camera_state = CAM_IDLE;
-Sapp3_mic_state sapp3_mic_state = MIC_IDLE;
+static bool sapp3_main_run = false;
+static bool sapp3_thread_run = false;
+static bool sapp3_already_init = false;
+static bool sapp3_thread_suspend = true;
+static uint8_t sapp3_camera_buffer_index = 0;
+static Thread sapp3_init_thread = NULL, sapp3_exit_thread = NULL, sapp3_camera_thread = NULL, sapp3_mic_thread = NULL;
+static Draw_image_data sapp3_camera_image[2] = { 0, };
+static Queue_data sapp3_camera_command_queue = { 0, }, sapp3_mic_command_queue = { 0, };
+static Str_data sapp3_status = { 0, };
+static Str_data sapp3_msg[DEF_SAPP3_NUM_OF_MSG] = { 0, };
+static Str_data sapp3_camera_saved_path = { 0, };
+static Str_data sapp3_mic_saved_path = { 0, };
+static Sapp3_camera_state sapp3_camera_state = CAM_IDLE;
+static Sapp3_mic_state sapp3_mic_state = MIC_IDLE;
 
 //Code.
 bool Sapp3_query_init_flag(void)

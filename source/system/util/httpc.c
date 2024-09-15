@@ -34,9 +34,9 @@ static void Util_httpc_close(httpcContext* httpc_context);
 static uint32_t Util_httpc_sv_data_internal(httpcContext* httpc_context, uint32_t buffer_size, uint32_t* downloaded_size, const char* dir_path, const char* file_name);
 
 //Variables.
-bool util_httpc_init = false;
-char util_httpc_default_user_agent[DEF_HTTPC_USER_AGENT_SIZE] = { 0, };
-char util_httpc_empty_char[1] = { 0, };
+static bool util_httpc_init = false;
+static char util_httpc_default_user_agent[DEF_HTTPC_USER_AGENT_SIZE] = { 0, };
+static char util_httpc_empty_char[1] = { 0, };
 
 //Code.
 uint32_t Util_httpc_init(uint32_t buffer_size)

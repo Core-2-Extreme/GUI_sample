@@ -35,14 +35,14 @@ static void Sapp0_exit_thread(void* arg);
 static void Sapp0_worker_thread(void* arg);
 
 //Variables.
-bool sapp0_main_run = false;
-bool sapp0_thread_run = false;
-bool sapp0_already_init = false;
-bool sapp0_thread_suspend = true;
-Thread sapp0_init_thread = NULL, sapp0_exit_thread = NULL, sapp0_worker_thread = NULL;
-Str_data sapp0_status = { 0, };
-Str_data sapp0_msg[DEF_SAPP0_NUM_OF_MSG] = { 0, };
-Draw_image_data sapp0_image[3] = { 0, };
+static bool sapp0_main_run = false;
+static bool sapp0_thread_run = false;
+static bool sapp0_already_init = false;
+static bool sapp0_thread_suspend = true;
+static Thread sapp0_init_thread = NULL, sapp0_exit_thread = NULL, sapp0_worker_thread = NULL;
+static Str_data sapp0_status = { 0, };
+static Str_data sapp0_msg[DEF_SAPP0_NUM_OF_MSG] = { 0, };
+static Draw_image_data sapp0_image[3] = { 0, };
 
 //Code.
 bool Sapp0_query_init_flag(void)

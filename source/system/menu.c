@@ -51,25 +51,25 @@ void Menu_update_thread(void* arg);
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
 //Variables.
-bool menu_thread_run = false;
-bool menu_main_run = true;
-bool menu_must_exit = false;
-bool menu_check_exit_request = false;
-bool menu_update_available = false;
-bool menu_init_request[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
-bool menu_exit_request[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
-uint32_t menu_icon_texture_num[DEF_MENU_NUM_OF_SUB_APP + 1] = { 0, };
-void (*menu_worker_thread_callbacks[DEF_MENU_NUM_OF_CALLBACKS])(void) = { 0, };
-Str_data menu_msg[DEF_MENU_NUM_OF_MSG] = { 0, };
-Thread menu_worker_thread = NULL;
-LightLock menu_callback_mutex = 1;//Initially unlocked state.
-Draw_image_data menu_icon_image[DEF_MENU_NUM_OF_SUB_APP + 2] = { 0, };
-Draw_image_data menu_sapp_button[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
-Draw_image_data menu_sapp_close_button[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
-Draw_image_data menu_sem_button = { 0, };
+static bool menu_thread_run = false;
+static bool menu_main_run = true;
+static bool menu_must_exit = false;
+static bool menu_check_exit_request = false;
+static bool menu_update_available = false;
+static bool menu_init_request[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
+static bool menu_exit_request[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
+static uint32_t menu_icon_texture_num[DEF_MENU_NUM_OF_SUB_APP + 1] = { 0, };
+static void (*menu_worker_thread_callbacks[DEF_MENU_NUM_OF_CALLBACKS])(void) = { 0, };
+static Str_data menu_msg[DEF_MENU_NUM_OF_MSG] = { 0, };
+static Thread menu_worker_thread = NULL;
+static LightLock menu_callback_mutex = 1;//Initially unlocked state.
+static Draw_image_data menu_icon_image[DEF_MENU_NUM_OF_SUB_APP + 2] = { 0, };
+static Draw_image_data menu_sapp_button[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
+static Draw_image_data menu_sapp_close_button[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
+static Draw_image_data menu_sem_button = { 0, };
 
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
-Thread menu_send_app_info_thread = NULL, menu_update_thread = NULL;
+static Thread menu_send_app_info_thread = NULL, menu_update_thread = NULL;
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
 //Code.

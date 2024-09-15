@@ -67,14 +67,14 @@ static void Sapp2_exit_thread(void* arg);
 static void Sapp2_worker_thread(void* arg);
 
 //Variables.
-bool sapp2_main_run = false;
-bool sapp2_thread_run = false;
-bool sapp2_already_init = false;
-bool sapp2_thread_suspend = true;
-Thread sapp2_init_thread = NULL, sapp2_exit_thread = NULL, sapp2_worker_thread = NULL;
-Queue_data sapp2_command_queue = { 0, };
-Str_data sapp2_status = { 0, };
-Str_data sapp2_msg[DEF_SAPP2_NUM_OF_MSG] = { 0, };
+static bool sapp2_main_run = false;
+static bool sapp2_thread_run = false;
+static bool sapp2_already_init = false;
+static bool sapp2_thread_suspend = true;
+static Thread sapp2_init_thread = NULL, sapp2_exit_thread = NULL, sapp2_worker_thread = NULL;
+static Queue_data sapp2_command_queue = { 0, };
+static Str_data sapp2_status = { 0, };
+static Str_data sapp2_msg[DEF_SAPP2_NUM_OF_MSG] = { 0, };
 
 //Code.
 bool Sapp2_query_init_flag(void)

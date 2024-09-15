@@ -24,20 +24,19 @@ static uint32_t Util_keyboard_init_internal(Keyboard_type type, Keyboard_accepta
 uint32_t max_length, const char* hint_text, const char* init_text, Keyboard_password_mode password_mode, Keyboard_features_bit features);
 
 //Variables.
-bool util_keyboard_init = false;
-uint32_t util_keyboard_max_length = 0;
-uint32_t util_keyboard_features = 0;
-int32_t util_keyboard_num_of_buttons = 0;
-const char util_keyboard_empty_str[] = "";
-Str_data util_keyboard_hint_text = { 0, };
-Str_data util_keyboard_init_text = { 0, };
-SwkbdValidInput util_keyboard_valid_type = SWKBD_ANYTHING;
-SwkbdPasswordMode util_keyboard_password_mode = SWKBD_PASSWORD_NONE;
-SwkbdType util_keyboard_type = SWKBD_TYPE_NORMAL;
-SwkbdStatusData util_keyboard_state = { 0, };
-SwkbdLearningData util_keyboard_learn_data = { 0, };
-SwkbdDictWord util_keyboard_user_words[DEF_KEYBOARD_MAX_DIC_WORDS] = { 0, };
-SwkbdState util_keyboard = { 0, };
+static bool util_keyboard_init = false;
+static uint32_t util_keyboard_max_length = 0;
+static uint32_t util_keyboard_features = 0;
+static int32_t util_keyboard_num_of_buttons = 0;
+static Str_data util_keyboard_hint_text = { 0, };
+static Str_data util_keyboard_init_text = { 0, };
+static SwkbdValidInput util_keyboard_valid_type = SWKBD_ANYTHING;
+static SwkbdPasswordMode util_keyboard_password_mode = SWKBD_PASSWORD_NONE;
+static SwkbdType util_keyboard_type = SWKBD_TYPE_NORMAL;
+static SwkbdStatusData util_keyboard_state = { 0, };
+static SwkbdLearningData util_keyboard_learn_data = { 0, };
+static SwkbdDictWord util_keyboard_user_words[DEF_KEYBOARD_MAX_DIC_WORDS] = { 0, };
+static SwkbdState util_keyboard = { 0, };
 
 //Code.
 uint32_t Util_keyboard_init(Keyboard_type type, Keyboard_acceptable_input valid_type, Keyboard_display_button button_type,

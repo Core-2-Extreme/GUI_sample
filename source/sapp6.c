@@ -32,13 +32,13 @@ static void Sapp6_exit_thread(void* arg);
 static void Sapp6_worker_thread(void* arg);
 
 //Variables.
-bool sapp6_main_run = false;
-bool sapp6_thread_run = false;
-bool sapp6_already_init = false;
-bool sapp6_thread_suspend = true;
-Thread sapp6_init_thread = NULL, sapp6_exit_thread = NULL, sapp6_worker_thread = NULL;
-Str_data sapp6_status = { 0, };
-Str_data sapp6_msg[DEF_SAPP6_NUM_OF_MSG] = { 0, };
+static bool sapp6_main_run = false;
+static bool sapp6_thread_run = false;
+static bool sapp6_already_init = false;
+static bool sapp6_thread_suspend = true;
+static Thread sapp6_init_thread = NULL, sapp6_exit_thread = NULL, sapp6_worker_thread = NULL;
+static Str_data sapp6_status = { 0, };
+static Str_data sapp6_msg[DEF_SAPP6_NUM_OF_MSG] = { 0, };
 
 //Code.
 bool Sapp6_query_init_flag(void)

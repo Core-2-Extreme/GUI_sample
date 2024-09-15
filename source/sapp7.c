@@ -32,13 +32,13 @@ static void Sapp7_exit_thread(void* arg);
 static void Sapp7_worker_thread(void* arg);
 
 //Variables.
-bool sapp7_main_run = false;
-bool sapp7_thread_run = false;
-bool sapp7_already_init = false;
-bool sapp7_thread_suspend = true;
-Thread sapp7_init_thread = NULL, sapp7_exit_thread = NULL, sapp7_worker_thread = NULL;
-Str_data sapp7_status = { 0, };
-Str_data sapp7_msg[DEF_SAPP7_NUM_OF_MSG] = { 0, };
+static bool sapp7_main_run = false;
+static bool sapp7_thread_run = false;
+static bool sapp7_already_init = false;
+static bool sapp7_thread_suspend = true;
+static Thread sapp7_init_thread = NULL, sapp7_exit_thread = NULL, sapp7_worker_thread = NULL;
+static Str_data sapp7_status = { 0, };
+static Str_data sapp7_msg[DEF_SAPP7_NUM_OF_MSG] = { 0, };
 
 //Code.
 bool Sapp7_query_init_flag(void)

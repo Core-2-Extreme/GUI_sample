@@ -30,26 +30,25 @@ Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background t
 static void Draw_texture_internal(C2D_Image image, uint32_t abgr8888, float x, float y, float x_size, float y_size, float angle, float center_x, float center_y);
 
 //Variables.
-bool util_draw_init = false;
-bool util_draw_sheet_texture_free[DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS] = { 0, };
-bool util_draw_is_800px = false;
-bool util_draw_is_3d = false;
-bool util_draw_is_refresh_needed = false;
-double util_draw_frametime = 0;
-uint32_t util_draw_rendered_frames = 0;
-uint32_t util_draw_rendered_frames_cache = 0;
-uint64_t util_draw_reset_fps_counter_time = 0;
-C2D_Font util_draw_system_fonts[4] = { 0, };
-C3D_RenderTarget* util_draw_screen[3] = { 0, };
-C2D_SpriteSheet util_draw_sheet_texture[DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS] = { 0, };
-TickCounter util_draw_frame_time_stopwatch = { 0, };
-LightLock util_draw_need_refresh_mutex = 1;//Initially unlocked state.
-Draw_image_data util_draw_wifi_icon_image[9] = { 0, };
-Draw_image_data util_draw_battery_level_icon_image[21] = { 0, };
-Draw_image_data util_draw_battery_charge_icon_image[1] = { 0, };
-Draw_image_data util_draw_eco_image[2] = { 0, };
-Draw_image_data util_draw_bot_ui = { 0, };
-Draw_image_data util_draw_empty_image = { 0, };
+static bool util_draw_init = false;
+static bool util_draw_sheet_texture_free[DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS] = { 0, };
+static bool util_draw_is_800px = false;
+static bool util_draw_is_3d = false;
+static bool util_draw_is_refresh_needed = false;
+static double util_draw_frametime = 0;
+static uint32_t util_draw_rendered_frames = 0;
+static uint32_t util_draw_rendered_frames_cache = 0;
+static uint64_t util_draw_reset_fps_counter_time = 0;
+static C3D_RenderTarget* util_draw_screen[3] = { 0, };
+static C2D_SpriteSheet util_draw_sheet_texture[DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS] = { 0, };
+static TickCounter util_draw_frame_time_stopwatch = { 0, };
+static LightLock util_draw_need_refresh_mutex = 1;//Initially unlocked state.
+static Draw_image_data util_draw_wifi_icon_image[9] = { 0, };
+static Draw_image_data util_draw_battery_level_icon_image[21] = { 0, };
+static Draw_image_data util_draw_battery_charge_icon_image[1] = { 0, };
+static Draw_image_data util_draw_eco_image[2] = { 0, };
+static Draw_image_data util_draw_bot_ui = { 0, };
+static Draw_image_data util_draw_empty_image = { 0, };
 
 //Code.
 uint32_t Draw_init(bool wide, bool _3d)

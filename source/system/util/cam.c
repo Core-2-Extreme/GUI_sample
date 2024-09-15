@@ -22,12 +22,12 @@
 //N/A.
 
 //Variables.
-bool util_cam_init = false;
-uint16_t util_cam_width = 640;
-uint16_t util_cam_height = 480;
-uint32_t util_cam_buffer_size = 0;
-Cam_resolution util_cam_resolution = CAM_RES_640x480;
-Cam_port util_cam_port = CAM_PORT_OUT_RIGHT;
+static bool util_cam_init = false;
+static uint16_t util_cam_width = 640;
+static uint16_t util_cam_height = 480;
+static uint32_t util_cam_buffer_size = 0;
+static Cam_resolution util_cam_resolution = CAM_RES_640x480;
+static Cam_port util_cam_port = CAM_PORT_OUT_RIGHT;
 
 //Code.
 uint32_t Util_cam_init(Raw_pixel color_format)

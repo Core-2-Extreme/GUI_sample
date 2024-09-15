@@ -34,15 +34,15 @@ static void Sapp1_expl_callback(Str_data* file_name, Str_data* dir_path);
 static void Sapp1_expl_cancel_callback(void);
 
 //Variables.
-bool sapp1_main_run = false;
-bool sapp1_thread_run = false;
-bool sapp1_already_init = false;
-bool sapp1_thread_suspend = true;
-Thread sapp1_init_thread = NULL, sapp1_exit_thread = NULL, sapp1_worker_thread = NULL;
-Str_data sapp1_status = { 0, };
-Str_data sapp1_msg[DEF_SAPP1_NUM_OF_MSG] = { 0, };
-Str_data sapp1_selected_path = { 0, };
-Str_data sapp1_file_info = { 0, };
+static bool sapp1_main_run = false;
+static bool sapp1_thread_run = false;
+static bool sapp1_already_init = false;
+static bool sapp1_thread_suspend = true;
+static Thread sapp1_init_thread = NULL, sapp1_exit_thread = NULL, sapp1_worker_thread = NULL;
+static Str_data sapp1_status = { 0, };
+static Str_data sapp1_msg[DEF_SAPP1_NUM_OF_MSG] = { 0, };
+static Str_data sapp1_selected_path = { 0, };
+static Str_data sapp1_file_info = { 0, };
 
 //Code.
 bool Sapp1_query_init_flag(void)

@@ -66,18 +66,18 @@ static void Sapp4_exit_thread(void* arg);
 static void Sapp4_worker_thread(void* arg);
 
 //Variables.
-bool sapp4_main_run = false;
-bool sapp4_thread_run = false;
-bool sapp4_already_init = false;
-bool sapp4_thread_suspend = true;
-double sapp4_buffer_health = 0;
-double sapp4_last_decoded_pos_ms = 0;
-Thread sapp4_init_thread = NULL, sapp4_exit_thread = NULL, sapp4_worker_thread = NULL;
-Media_a_info sapp4_audio_info = { 0, };
-Queue_data sapp4_command_queue = { 0, };
-Str_data sapp4_status = { 0, };
-Str_data sapp4_msg[DEF_SAPP4_NUM_OF_MSG] = { 0, };
-Sapp4_speaker_state sapp4_speaker_state = SPEAKER_IDLE;
+static bool sapp4_main_run = false;
+static bool sapp4_thread_run = false;
+static bool sapp4_already_init = false;
+static bool sapp4_thread_suspend = true;
+static double sapp4_buffer_health = 0;
+static double sapp4_last_decoded_pos_ms = 0;
+static Thread sapp4_init_thread = NULL, sapp4_exit_thread = NULL, sapp4_worker_thread = NULL;
+static Media_a_info sapp4_audio_info = { 0, };
+static Queue_data sapp4_command_queue = { 0, };
+static Str_data sapp4_status = { 0, };
+static Str_data sapp4_msg[DEF_SAPP4_NUM_OF_MSG] = { 0, };
+static Sapp4_speaker_state sapp4_speaker_state = SPEAKER_IDLE;
 
 //Code.
 bool Sapp4_query_init_flag(void)

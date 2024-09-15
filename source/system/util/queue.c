@@ -21,7 +21,7 @@
 //N/A.
 
 //Variables.
-LightLock util_queue_mutex = 1;//Initially unlocked state.
+static LightLock util_queue_mutex = 1;//Initially unlocked state.
 
 //Code.
 uint32_t Util_queue_create(Queue_data* queue, uint32_t max_items)

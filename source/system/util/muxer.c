@@ -21,23 +21,23 @@
 //N/A.
 
 //Variables.
-bool util_audio_muxer_init[DEF_MUXER_MAX_SESSIONS] = { 0, };
-uint8_t util_audio_muxer_stream_num[DEF_MUXER_MAX_SESSIONS] = { 0, };
-AVPacket* util_audio_muxer_packet[DEF_MUXER_MAX_SESSIONS] = { 0, };
-AVFormatContext* util_audio_muxer_format_context[DEF_MUXER_MAX_SESSIONS] = { 0, };
-AVCodecContext* util_audio_muxer_context[DEF_MUXER_MAX_SESSIONS] = { 0, };
-const AVCodec* util_audio_muxer_codec[DEF_MUXER_MAX_SESSIONS] = { 0, };
-AVStream* util_audio_muxer_format_stream[DEF_MUXER_MAX_SESSIONS] = { 0, };
+static bool util_audio_muxer_init[DEF_MUXER_MAX_SESSIONS] = { 0, };
+static uint8_t util_audio_muxer_stream_num[DEF_MUXER_MAX_SESSIONS] = { 0, };
+static AVPacket* util_audio_muxer_packet[DEF_MUXER_MAX_SESSIONS] = { 0, };
+static AVFormatContext* util_audio_muxer_format_context[DEF_MUXER_MAX_SESSIONS] = { 0, };
+static AVCodecContext* util_audio_muxer_context[DEF_MUXER_MAX_SESSIONS] = { 0, };
+static const AVCodec* util_audio_muxer_codec[DEF_MUXER_MAX_SESSIONS] = { 0, };
+static AVStream* util_audio_muxer_format_stream[DEF_MUXER_MAX_SESSIONS] = { 0, };
 
-bool util_video_muxer_init[DEF_MUXER_MAX_SESSIONS] = { 0, };
-uint8_t util_video_muxer_stream_num[DEF_MUXER_MAX_SESSIONS] = { 0, };
-AVPacket* util_video_muxer_packet[DEF_MUXER_MAX_SESSIONS] = { 0, };
-AVFormatContext* util_video_muxer_format_context[DEF_MUXER_MAX_SESSIONS] = { 0, };
-AVCodecContext* util_video_muxer_context[DEF_MUXER_MAX_SESSIONS] = { 0, };
-const AVCodec* util_video_muxer_codec[DEF_MUXER_MAX_SESSIONS] = { 0, };
-AVStream* util_video_muxer_format_stream[DEF_MUXER_MAX_SESSIONS] = { 0, };
+static bool util_video_muxer_init[DEF_MUXER_MAX_SESSIONS] = { 0, };
+static uint8_t util_video_muxer_stream_num[DEF_MUXER_MAX_SESSIONS] = { 0, };
+static AVPacket* util_video_muxer_packet[DEF_MUXER_MAX_SESSIONS] = { 0, };
+static AVFormatContext* util_video_muxer_format_context[DEF_MUXER_MAX_SESSIONS] = { 0, };
+static AVCodecContext* util_video_muxer_context[DEF_MUXER_MAX_SESSIONS] = { 0, };
+static const AVCodec* util_video_muxer_codec[DEF_MUXER_MAX_SESSIONS] = { 0, };
+static AVStream* util_video_muxer_format_stream[DEF_MUXER_MAX_SESSIONS] = { 0, };
 
-AVFormatContext* util_muxer_format_context[DEF_MUXER_MAX_SESSIONS] = { 0, };
+static AVFormatContext* util_muxer_format_context[DEF_MUXER_MAX_SESSIONS] = { 0, };
 
 //Code.
 uint32_t Util_muxer_open_audio_file(const char* file_path, uint8_t session)

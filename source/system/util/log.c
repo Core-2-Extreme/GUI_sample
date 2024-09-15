@@ -21,16 +21,16 @@
 static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, const char* caller, const char* format_string, va_list args);
 
 //Variables.
-bool util_log_show_flag = false;
-bool util_log_init = false;
-uint32_t util_log_current_index = 0;
-uint32_t util_log_y = 0;
-double util_log_x = 0;
-double util_log_uptime_ms = 0;
-double util_log_spend_time[DEF_LOG_BUFFER_LINES] = { 0, };
-Str_data util_log_logs[DEF_LOG_BUFFER_LINES] = { 0, };
-TickCounter util_log_uptime_stopwatch = { 0, };
-LightLock util_log_mutex = 1;//Initially unlocked state.
+static bool util_log_show_flag = false;
+static bool util_log_init = false;
+static uint32_t util_log_current_index = 0;
+static uint32_t util_log_y = 0;
+static double util_log_x = 0;
+static double util_log_uptime_ms = 0;
+static double util_log_spend_time[DEF_LOG_BUFFER_LINES] = { 0, };
+static Str_data util_log_logs[DEF_LOG_BUFFER_LINES] = { 0, };
+static TickCounter util_log_uptime_stopwatch = { 0, };
+static LightLock util_log_mutex = 1;//Initially unlocked state.
 
 //Code.
 uint32_t Util_log_init(void)

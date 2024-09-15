@@ -43,71 +43,71 @@ static void Util_decoder_subtitle_exit(uint8_t session);
 
 //Variables.
 #if DEF_DECODER_VIDEO_AUDIO_API_ENABLE
-bool util_audio_decoder_init[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
-bool util_audio_decoder_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
-bool util_audio_decoder_cache_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
-uint8_t util_audio_decoder_stream_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
-AVPacket* util_audio_decoder_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
-AVPacket* util_audio_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
-AVFrame* util_audio_decoder_raw_data[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
-AVCodecContext* util_audio_decoder_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
-const AVCodec* util_audio_decoder_codec[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
+static bool util_audio_decoder_init[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
+static bool util_audio_decoder_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
+static bool util_audio_decoder_cache_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
+static uint8_t util_audio_decoder_stream_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
+static AVPacket* util_audio_decoder_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
+static AVPacket* util_audio_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
+static AVFrame* util_audio_decoder_raw_data[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
+static AVCodecContext* util_audio_decoder_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
+static const AVCodec* util_audio_decoder_codec[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS] = { 0, };
 
-bool util_video_decoder_init[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
-bool util_video_decoder_frame_cores[4] = { 0, };
-bool util_video_decoder_slice_cores[4] = { 0, };
-bool util_video_decoder_changeable_buffer_size[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
-bool util_video_decoder_cache_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
-bool util_video_decoder_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
-uint8_t util_video_decoder_stream_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
-uint16_t util_video_decoder_available_raw_image[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
-uint16_t util_video_decoder_raw_image_ready_index[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
-uint16_t util_video_decoder_raw_image_current_index[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
-uint16_t util_video_decoder_max_raw_image[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
-LightLock util_video_decoder_raw_image_mutex[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
-AVPacket* util_video_decoder_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
-AVPacket* util_video_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
-AVFrame* util_video_decoder_raw_image[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS][DEF_DECODER_MAX_RAW_IMAGE] = { 0, };
-AVCodecContext* util_video_decoder_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
-const AVCodec* util_video_decoder_codec[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
+static bool util_video_decoder_init[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
+static bool util_video_decoder_frame_cores[4] = { 0, };
+static bool util_video_decoder_slice_cores[4] = { 0, };
+static bool util_video_decoder_changeable_buffer_size[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
+static bool util_video_decoder_cache_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
+static bool util_video_decoder_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
+static uint8_t util_video_decoder_stream_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
+static uint16_t util_video_decoder_available_raw_image[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
+static uint16_t util_video_decoder_raw_image_ready_index[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
+static uint16_t util_video_decoder_raw_image_current_index[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
+static uint16_t util_video_decoder_max_raw_image[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
+static LightLock util_video_decoder_raw_image_mutex[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
+static AVPacket* util_video_decoder_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
+static AVPacket* util_video_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
+static AVFrame* util_video_decoder_raw_image[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS][DEF_DECODER_MAX_RAW_IMAGE] = { 0, };
+static AVCodecContext* util_video_decoder_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
+static const AVCodec* util_video_decoder_codec[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };
 
-bool util_mvd_video_decoder_init = false;
-bool util_mvd_video_decoder_changeable_buffer_size = false;
-bool util_mvd_video_decoder_first = false;
-bool util_mvd_video_decoder_should_skip_process_nal_unit = false;
-uint8_t util_mvd_video_decoder_current_cached_pts_index = 0;
-uint8_t util_mvd_video_decoder_next_cached_pts_index = 0;
-uint8_t* util_mvd_video_decoder_packet = NULL;
-uint16_t util_mvd_video_decoder_available_raw_image[DEF_DECODER_MAX_SESSIONS] = { 0, };
-uint16_t util_mvd_video_decoder_raw_image_ready_index[DEF_DECODER_MAX_SESSIONS] = { 0, };
-uint16_t util_mvd_video_decoder_raw_image_current_index[DEF_DECODER_MAX_SESSIONS] = { 0, };
-uint16_t util_mvd_video_decoder_max_raw_image[DEF_DECODER_MAX_SESSIONS] = { 0, };
-uint32_t util_mvd_video_decoder_packet_size = 0;
-int64_t util_mvd_video_decoder_cached_pts[32] = { 0, };
-LightLock util_mvd_video_decoder_raw_image_mutex[DEF_DECODER_MAX_SESSIONS] = { 0, };
-AVFrame* util_mvd_video_decoder_raw_image[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_RAW_IMAGE] = { 0, };
+static bool util_mvd_video_decoder_init = false;
+static bool util_mvd_video_decoder_changeable_buffer_size = false;
+static bool util_mvd_video_decoder_first = false;
+static bool util_mvd_video_decoder_should_skip_process_nal_unit = false;
+static uint8_t util_mvd_video_decoder_current_cached_pts_index = 0;
+static uint8_t util_mvd_video_decoder_next_cached_pts_index = 0;
+static uint8_t* util_mvd_video_decoder_packet = NULL;
+static uint16_t util_mvd_video_decoder_available_raw_image[DEF_DECODER_MAX_SESSIONS] = { 0, };
+static uint16_t util_mvd_video_decoder_raw_image_ready_index[DEF_DECODER_MAX_SESSIONS] = { 0, };
+static uint16_t util_mvd_video_decoder_raw_image_current_index[DEF_DECODER_MAX_SESSIONS] = { 0, };
+static uint16_t util_mvd_video_decoder_max_raw_image[DEF_DECODER_MAX_SESSIONS] = { 0, };
+static uint32_t util_mvd_video_decoder_packet_size = 0;
+static int64_t util_mvd_video_decoder_cached_pts[32] = { 0, };
+static LightLock util_mvd_video_decoder_raw_image_mutex[DEF_DECODER_MAX_SESSIONS] = { 0, };
+static AVFrame* util_mvd_video_decoder_raw_image[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_RAW_IMAGE] = { 0, };
 
-bool util_subtitle_decoder_init[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
-bool util_subtitle_decoder_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
-bool util_subtitle_decoder_cache_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
-uint8_t util_subtitle_decoder_stream_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
-AVPacket* util_subtitle_decoder_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
-AVPacket* util_subtitle_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
-AVSubtitle* util_subtitle_decoder_raw_data[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
-AVCodecContext* util_subtitle_decoder_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
-const AVCodec* util_subtitle_decoder_codec[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
+static bool util_subtitle_decoder_init[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
+static bool util_subtitle_decoder_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
+static bool util_subtitle_decoder_cache_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
+static uint8_t util_subtitle_decoder_stream_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
+static AVPacket* util_subtitle_decoder_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
+static AVPacket* util_subtitle_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
+static AVSubtitle* util_subtitle_decoder_raw_data[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
+static AVCodecContext* util_subtitle_decoder_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
+static const AVCodec* util_subtitle_decoder_codec[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_SUBTITLE_TRACKS] = { 0, };
 
-bool util_decoder_opened_file[DEF_DECODER_MAX_SESSIONS] = { 0, };
-uint16_t util_decoder_available_cache_packet[DEF_DECODER_MAX_SESSIONS] = { 0, };
-uint16_t util_decoder_cache_packet_ready_index[DEF_DECODER_MAX_SESSIONS] = { 0, };
-uint16_t util_decoder_cache_packet_current_index[DEF_DECODER_MAX_SESSIONS] = { 0, };
-LightLock util_decoder_cache_packet_mutex[DEF_DECODER_MAX_SESSIONS] = { 0, };
-MVDSTD_Config util_decoder_mvd_config = { .input_type = MVD_INPUT_H264, .output_type = MVD_OUTPUT_RGB565, 0, };
-AVPacket* util_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_CACHE_PACKETS] = { 0, };
-AVFormatContext* util_decoder_format_context[DEF_DECODER_MAX_SESSIONS] = { 0, };
+static bool util_decoder_opened_file[DEF_DECODER_MAX_SESSIONS] = { 0, };
+static uint16_t util_decoder_available_cache_packet[DEF_DECODER_MAX_SESSIONS] = { 0, };
+static uint16_t util_decoder_cache_packet_ready_index[DEF_DECODER_MAX_SESSIONS] = { 0, };
+static uint16_t util_decoder_cache_packet_current_index[DEF_DECODER_MAX_SESSIONS] = { 0, };
+static LightLock util_decoder_cache_packet_mutex[DEF_DECODER_MAX_SESSIONS] = { 0, };
+static MVDSTD_Config util_decoder_mvd_config = { .input_type = MVD_INPUT_H264, .output_type = MVD_OUTPUT_RGB565, 0, };
+static AVPacket* util_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_CACHE_PACKETS] = { 0, };
+static AVFormatContext* util_decoder_format_context[DEF_DECODER_MAX_SESSIONS] = { 0, };
 
 //Translation table for AVPixelFormat -> Raw_pixel.
-Raw_pixel util_video_decoder_pixel_format_table[AV_PIX_FMT_NB] =
+static Raw_pixel util_video_decoder_pixel_format_table[AV_PIX_FMT_NB] =
 {
 	RAW_PIXEL_YUV420P,
 	RAW_PIXEL_YUYV422,
@@ -334,7 +334,7 @@ Raw_pixel util_video_decoder_pixel_format_table[AV_PIX_FMT_NB] =
 };
 
 //Translation table for AVSampleFormat -> Raw_sample.
-Raw_sample util_audio_decoder_sample_format_table[AV_SAMPLE_FMT_NB] =
+static Raw_sample util_audio_decoder_sample_format_table[AV_SAMPLE_FMT_NB] =
 {
 	RAW_SAMPLE_U8,
 	RAW_SAMPLE_S16,
@@ -350,7 +350,7 @@ Raw_sample util_audio_decoder_sample_format_table[AV_SAMPLE_FMT_NB] =
 	RAW_SAMPLE_S64P,
 };
 
-uint8_t util_audio_decoder_sample_format_size_table[] =
+static uint8_t util_audio_decoder_sample_format_size_table[] =
 {
 	sizeof(uint8_t),
 	sizeof(int16_t),

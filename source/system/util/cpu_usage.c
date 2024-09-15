@@ -29,16 +29,16 @@ void Util_cpu_usage_counter_thread(void* arg);
 void Util_cpu_usage_calculate_thread(void* arg);
 
 //Variables.
-bool util_cpu_usage_init = false;
-bool util_cpu_usage_show_flag = false;
-bool util_cpu_usage_reset_counter_request[4] = { 0, };
-uint8_t util_cpu_usage_core_1_limit = 0;
-uint8_t util_cpu_usage_core_id[4] = { 0, };
-uint16_t util_cpu_usage_counter_cache[4] = { 0, };
-float util_cpu_usage_per_core[4] = { 0, };
-float util_cpu_usage = NAN;
-Thread util_cpu_usage_thread_handle[5] = { 0, };
-Handle util_cpu_usage_timer_handle = 0;
+static bool util_cpu_usage_init = false;
+static bool util_cpu_usage_show_flag = false;
+static bool util_cpu_usage_reset_counter_request[4] = { 0, };
+static uint8_t util_cpu_usage_core_1_limit = 0;
+static uint8_t util_cpu_usage_core_id[4] = { 0, };
+static uint16_t util_cpu_usage_counter_cache[4] = { 0, };
+static float util_cpu_usage_per_core[4] = { 0, };
+static float util_cpu_usage = NAN;
+static Thread util_cpu_usage_thread_handle[5] = { 0, };
+static Handle util_cpu_usage_timer_handle = 0;
 
 //Code.
 uint32_t Util_cpu_usage_init(void)

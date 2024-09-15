@@ -23,9 +23,9 @@
 //N/A.
 
 //Variables.
-bool util_speaker_init = false;
-uint32_t util_speaker_music_ch[24] = { 0, };
-ndspWaveBuf util_ndsp_buffer[24][DEF_SPEAKER_MAX_BUFFERS] = { 0, };
+static bool util_speaker_init = false;
+static uint32_t util_speaker_music_ch[24] = { 0, };
+static ndspWaveBuf util_ndsp_buffer[24][DEF_SPEAKER_MAX_BUFFERS] = { 0, };
 
 //Code.
 uint32_t Util_speaker_init(void)

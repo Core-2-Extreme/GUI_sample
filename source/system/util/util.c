@@ -62,13 +62,13 @@ void Util_check_core_thread(void* arg);
 //Variables.
 //Set heap size, rest of RAM will be linear RAM, it should be (1024 * 1024 * n).
 uint32_t __ctru_heap_size = (1024 * 1024 * 6);
-
-bool util_init = false;
-bool util_is_core_available[4] = { 0, };
-LightLock util_linear_alloc_mutex = 1;//Initially unlocked state.
-LightLock util_malloc_mutex = 1;//Initially unlocked state.
 void* (*memalign_heap)(size_t align, size_t size) = memalign_heap_only;
 void* (*malloc_heap)(size_t size) = malloc_heap_only;
+
+static bool util_init = false;
+static bool util_is_core_available[4] = { 0, };
+static LightLock util_linear_alloc_mutex = 1;//Initially unlocked state.
+static LightLock util_malloc_mutex = 1;//Initially unlocked state.
 
 //Code.
 static inline bool Util_is_heap_low(void)

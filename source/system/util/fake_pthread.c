@@ -36,10 +36,10 @@ int __wrap_pthread_attr_destroy(pthread_attr_t* attr);
 int __wrap_pthread_attr_setstacksize(pthread_attr_t* attr, size_t stacksize);
 
 //Variables.
-int util_fake_pthread_core_offset = 0;
-int util_fake_pthread_enabled_core_list[4] = { 0, 1, -3, -3, };
-int util_fake_pthread_enabled_cores = 2;
-LightLock util_fake_pthread_mutex = 1;//Initially unlocked state.
+static int util_fake_pthread_core_offset = 0;
+static int util_fake_pthread_enabled_core_list[4] = { 0, 1, -3, -3, };
+static int util_fake_pthread_enabled_cores = 2;
+static LightLock util_fake_pthread_mutex = 1;//Initially unlocked state.
 
 //Code.
 void Util_fake_pthread_set_enabled_core(bool enabled_core[4])

@@ -22,14 +22,14 @@
 static void Util_err_save_callback(void);
 
 //Variables.
-bool util_err_show_flag = false;
-bool util_err_save_request = false;
-bool util_err_init = false;
-Str_data util_err_summary = { 0, };
-Str_data util_err_description = { 0, };
-Str_data util_err_location = { 0, };
-Str_data util_err_code = { 0, };
-Draw_image_data util_err_ok_button = { 0, }, util_err_save_button = { 0, };
+static bool util_err_show_flag = false;
+static bool util_err_save_request = false;
+static bool util_err_init = false;
+static Str_data util_err_summary = { 0, };
+static Str_data util_err_description = { 0, };
+static Str_data util_err_location = { 0, };
+static Str_data util_err_code = { 0, };
+static Draw_image_data util_err_ok_button = { 0, }, util_err_save_button = { 0, };
 
 //Code.
 uint32_t Util_err_init(void)

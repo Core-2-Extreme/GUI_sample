@@ -21,10 +21,10 @@
 //N/A.
 
 //Variables.
-bool util_watch_init = false;
-uint32_t util_watch_num_of_active[WATCH_HANDLE_MAX] = { 0, };
-LightLock util_watch_variables_mutex = 1;//Initially unlocked state.
-Watch_data util_watch_data[DEF_WATCH_MAX_VARIABLES] = { 0, };
+static bool util_watch_init = false;
+static uint32_t util_watch_num_of_active[WATCH_HANDLE_MAX] = { 0, };
+static LightLock util_watch_variables_mutex = 1;//Initially unlocked state.
+static Watch_data util_watch_data[DEF_WATCH_MAX_VARIABLES] = { 0, };
 
 //Code.
 uint32_t Util_watch_init(void)

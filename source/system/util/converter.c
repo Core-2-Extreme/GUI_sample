@@ -47,7 +47,7 @@ extern void yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t* rgb888, uint32_t 
 //Variables.
 #if DEF_CONVERTER_SW_FFMPEG_COLOR_API_ENABLE
 //Translation table for Raw_pixel -> AVPixelFormat.
-enum AVPixelFormat util_converter_pixel_format_table[RAW_PIXEL_MAX] =
+static enum AVPixelFormat util_converter_pixel_format_table[RAW_PIXEL_MAX] =
 {
 	//YUV*
 	AV_PIX_FMT_YUV410P,
@@ -201,7 +201,7 @@ enum AVPixelFormat util_converter_pixel_format_table[RAW_PIXEL_MAX] =
 
 #if DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE
 //Translation table for Raw_sample -> AVSampleFormat.
-enum AVSampleFormat util_converter_sample_format_table[RAW_SAMPLE_MAX] =
+static enum AVSampleFormat util_converter_sample_format_table[RAW_SAMPLE_MAX] =
 {
 	AV_SAMPLE_FMT_U8,
 	AV_SAMPLE_FMT_U8P,
@@ -216,7 +216,7 @@ enum AVSampleFormat util_converter_sample_format_table[RAW_SAMPLE_MAX] =
 	AV_SAMPLE_FMT_DBL,
 	AV_SAMPLE_FMT_DBLP,
 };
-uint8_t util_converter_sample_format_size_table[] =
+static uint8_t util_converter_sample_format_size_table[] =
 {
 	sizeof(uint8_t),
 	sizeof(uint8_t),
@@ -234,7 +234,7 @@ uint8_t util_converter_sample_format_size_table[] =
 #endif //DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE
 
 #if DEF_CONVERTER_HW_API_ENABLE
-bool util_y2r_init = false;
+static bool util_y2r_init = false;
 #endif //DEF_CONVERTER_HW_API_ENABLE
 
 //Code.
