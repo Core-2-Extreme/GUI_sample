@@ -74,7 +74,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++11
 #C only flags.
 #-U__STRICT_ANSI__ is needed for citro2d.
 CFLAGS		+= -U__STRICT_ANSI__ -std=c99
-CFLAGS		+= -Wjump-misses-init -Wstrict-prototypes -Wnested-externs
+CFLAGS		+= -Wjump-misses-init -Wstrict-prototypes -Wnested-externs -Wmissing-prototypes
 
 ASFLAGS		:= $(ARCH)
 LDFLAGS		= -specs=3dsx.specs $(ARCH) -Wl,-Map,$(notdir $*.map) -z noexecstack

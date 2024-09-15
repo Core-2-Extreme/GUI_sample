@@ -19,7 +19,21 @@
 //N/A.
 
 //Prototypes.
-//N/A.
+int	__wrap_pthread_mutex_init(pthread_mutex_t* __mutex, const pthread_mutexattr_t* __attr);
+int	__wrap_pthread_mutex_lock(pthread_mutex_t* __mutex);
+int	__wrap_pthread_mutex_unlock(pthread_mutex_t* __mutex);
+int	__wrap_pthread_mutex_destroy(pthread_mutex_t* __mutex);
+int	__wrap_pthread_once(pthread_once_t* __once_control, void (*__init_routine)(void));
+int	__wrap_pthread_cond_init(pthread_cond_t* __cond, const pthread_condattr_t* __attr);
+int	__wrap_pthread_cond_wait(pthread_cond_t* __cond, pthread_mutex_t* __mutex);
+int	__wrap_pthread_cond_signal(pthread_cond_t* __cond);
+int	__wrap_pthread_cond_broadcast(pthread_cond_t* __cond);
+int	__wrap_pthread_cond_destroy(pthread_cond_t* __mutex);
+int	__wrap_pthread_create(pthread_t* __pthread, const pthread_attr_t * __attr, void* (*__start_routine)(void*), void* __arg);
+int	__wrap_pthread_join(pthread_t __pthread, void** __value_ptr);
+int __wrap_pthread_attr_init(pthread_attr_t* attr);
+int __wrap_pthread_attr_destroy(pthread_attr_t* attr);
+int __wrap_pthread_attr_setstacksize(pthread_attr_t* attr, size_t stacksize);
 
 //Variables.
 int util_fake_pthread_core_offset = 0;

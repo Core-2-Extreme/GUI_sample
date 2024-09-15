@@ -45,6 +45,18 @@ static void* Util_realloc_heap_to_linear(void* ptr, size_t size);
 static void* Util_realloc_linear_to_heap(void* ptr, size_t size);
 static void* memalign_heap_only(size_t align, size_t size);
 static void* malloc_heap_only(size_t size);
+void* __wrap_malloc(size_t size);
+void* __wrap_calloc(size_t items, size_t size);
+void* __wrap_realloc(void* ptr, size_t size);
+void __wrap_free(void* ptr);
+void __wrap__free_r(struct _reent* r, void* ptr);
+void* __wrap_memalign(size_t alignment, size_t size);
+void* __wrap_linearAlloc(size_t size);
+void* __wrap_linearMemAlign(size_t size, size_t alignment);
+void* __wrap_linearRealloc(void* mem, size_t size);
+size_t __wrap_linearGetSize(void* mem);
+void __wrap_linearFree(void* mem);
+uint32_t __wrap_linearSpaceFree(void);
 void Util_check_core_thread(void* arg);
 
 //Variables.

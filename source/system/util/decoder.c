@@ -33,6 +33,8 @@
 //Prototypes.
 #if DEF_DECODER_VIDEO_AUDIO_API_ENABLE
 extern void memcpy_asm(uint8_t*, uint8_t*, uint32_t);
+static void Util_decoder_video_free(void *opaque, uint8_t *data);
+static int Util_decoder_video_allocate_buffer(AVCodecContext *avctx, AVFrame *frame, int flags);
 static void Util_decoder_audio_exit(uint8_t session);
 static void Util_decoder_video_exit(uint8_t session);
 static void Util_decoder_mvd_exit(uint8_t session);
@@ -368,7 +370,7 @@ uint8_t util_audio_decoder_sample_format_size_table[] =
 //Code.
 #if DEF_DECODER_VIDEO_AUDIO_API_ENABLE
 //We can't get rid of this "int" because library uses "int" type as args.
-// void Util_decoder_video_log_callback(void *avcl, int level, const char *fmt, va_list list)
+// static void Util_decoder_video_log_callback(void *avcl, int level, const char *fmt, va_list list)
 // {
 // 	if(level > AV_LOG_TRACE)
 // 		return;
@@ -376,14 +378,14 @@ uint8_t util_audio_decoder_sample_format_size_table[] =
 // 	DEF_LOG_VFORMAT(fmt, list);
 // }
 
-void Util_decoder_video_free(void *opaque, uint8_t *data)
+static void Util_decoder_video_free(void *opaque, uint8_t *data)
 {
 	(void)opaque;
 	free(data);
 }
 
 //We can't get rid of this "int" because library uses "int" type as args.
-int Util_decoder_video_allocate_buffer(AVCodecContext *avctx, AVFrame *frame, int flags)
+static int Util_decoder_video_allocate_buffer(AVCodecContext *avctx, AVFrame *frame, int flags)
 {
 	(void)flags;
 	uint32_t width = 0;

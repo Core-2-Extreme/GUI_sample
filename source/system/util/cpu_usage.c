@@ -23,6 +23,8 @@
 //Prototypes.
 extern Result __real_APT_SetAppCpuTimeLimit(uint32_t percent);
 extern Result __real_APT_GetAppCpuTimeLimit(uint32_t* percent);
+Result __wrap_APT_SetAppCpuTimeLimit(uint32_t percent);
+Result __wrap_APT_GetAppCpuTimeLimit(uint32_t* percent);
 void Util_cpu_usage_counter_thread(void* arg);
 void Util_cpu_usage_calculate_thread(void* arg);
 

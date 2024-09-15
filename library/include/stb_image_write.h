@@ -153,6 +153,7 @@ LICENSE
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-qual"
 #pragma GCC diagnostic ignored "-Wstack-usage="
+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
 #endif //__GNUC__
 
 #ifndef INCLUDE_STB_IMAGE_WRITE_H
