@@ -208,17 +208,13 @@ void Util_cpu_usage_calculate_thread(void* arg)
 	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 
-	uint8_t div = 0;
-	float total_cpu_usage = 0;
-	float cpu_usage_cache = 0;
-
 	svcCreateTimer(&util_cpu_usage_timer_handle, RESET_PULSE);
 	svcSetTimer(util_cpu_usage_timer_handle, 0, 1000000000);//1000ms
 
 	while(util_cpu_usage_init)
 	{
-		total_cpu_usage = 0;
-		div = 0;
+		uint8_t div = 0;
+		float total_cpu_usage = 0;
 
 		//Update cpu usage every 1000ms.
 		svcWaitSynchronization(util_cpu_usage_timer_handle, U64_MAX);
@@ -230,6 +226,8 @@ void Util_cpu_usage_calculate_thread(void* arg)
 				util_cpu_usage_per_core[i] = NAN;
 			else
 			{
+				float cpu_usage_cache = 0;
+
 				//If this flag is not cleared here, it means core usage is kept 100% for a second so that it couldn't reset counter.
 				if(util_cpu_usage_reset_counter_request[i])
 					cpu_usage_cache = 100;

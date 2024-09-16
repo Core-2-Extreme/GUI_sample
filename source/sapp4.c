@@ -507,9 +507,9 @@ static void Sapp4_worker_thread(void* arg)
 					uint8_t num_of_audio = 0;
 					uint8_t num_of_videos = 0;
 					uint8_t num_of_subtitles = 0;
-					char path[] = "romfs:/gfx/sound/sapp4/BigBuckBunny.mp3";
+					const char path[] = "romfs:/gfx/sound/sapp4/BigBuckBunny.mp3";
 					//You can also load a file from SD card.
-					//char path[] = "/test.mp3";
+					//const char path[] = "/test.mp3";
 
 					//1. Open an input file.
 					DEF_LOG_RESULT_SMART(result, Util_decoder_open_file(path, &num_of_audio, &num_of_videos, &num_of_subtitles, 0), (result == DEF_SUCCESS), result);
@@ -578,7 +578,6 @@ static void Sapp4_worker_thread(void* arg)
 
 			while(read_packet_result == DEF_SUCCESS)
 			{
-				bool is_buffer_full = false;
 				bool key_frame = false;
 				uint8_t packet_index = 0;
 				Media_packet_type type = MEDIA_PACKET_TYPE_UNKNOWN;
@@ -587,6 +586,8 @@ static void Sapp4_worker_thread(void* arg)
 				result = Util_decoder_parse_packet(&type, &packet_index, &key_frame, 0);
 				if(result == DEF_SUCCESS)
 				{
+					bool is_buffer_full = false;
+
 					if(type == MEDIA_PACKET_TYPE_AUDIO)
 					{
 						uint8_t* audio = NULL;

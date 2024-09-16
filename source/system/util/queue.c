@@ -249,7 +249,7 @@ uint32_t Util_queue_get(Queue_data* queue, uint32_t* event_id, void** data, int6
 	return DEF_ERR_TRY_AGAIN;
 }
 
-bool Util_queue_check_event_exist(Queue_data* queue, uint32_t event_id)
+bool Util_queue_check_event_exist(const Queue_data* queue, uint32_t event_id)
 {
 	bool exist = false;
 
@@ -278,7 +278,7 @@ bool Util_queue_check_event_exist(Queue_data* queue, uint32_t event_id)
 	return exist;
 }
 
-uint32_t Util_queue_get_free_space(Queue_data* queue)
+uint32_t Util_queue_get_free_space(const Queue_data* queue)
 {
 	uint32_t free = 0;
 

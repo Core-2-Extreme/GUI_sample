@@ -246,7 +246,7 @@ uint32_t Util_file_load_from_rom(const char* file_name, const char* dir_path, ui
 	}
 
 	file_size = ftell(handle);
-	if(file_size <= 0)
+	if(file_size == 0)
 	{
 		DEF_LOG_RESULT(ftell, false, DEF_ERR_OTHER);
 		goto io_failed;

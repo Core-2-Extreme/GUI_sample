@@ -42,7 +42,7 @@ static int util_fake_pthread_enabled_cores = 2;
 static LightLock util_fake_pthread_mutex = 1;//Initially unlocked state.
 
 //Code.
-void Util_fake_pthread_set_enabled_core(bool enabled_core[4])
+void Util_fake_pthread_set_enabled_core(const bool enabled_core[4])
 {
 	int num_of_core = 0;
 
@@ -178,10 +178,9 @@ int	__wrap_pthread_create(pthread_t* __pthread, const pthread_attr_t * __attr, v
 int	__wrap_pthread_join(pthread_t __pthread, void** __value_ptr)
 {
 	(void)__value_ptr;
-	int result = -1;
 	while(true)
 	{
-		result = threadJoin((Thread)__pthread, U64_MAX);
+		int result = threadJoin((Thread)__pthread, U64_MAX);
 		if(result == DEF_SUCCESS)
 			return 0;
 	}

@@ -61,10 +61,10 @@ typedef uint16_t Watch_handle_bit;
 
 typedef struct
 {
-	void* original_address;		//Original data address.
-	void* previous_data;		//Previous data.
-	uint32_t data_length;		//Data length for this data.
-	Watch_handle handle;		//Watch handle.
+	const void* original_address;	//Original data address.
+	void* previous_data;			//Previous data.
+	uint32_t data_length;			//Data length for this data.
+	Watch_handle handle;			//Watch handle.
 } Watch_data;
 
 #endif //!defined(DEF_WATCH_TYPES_H)

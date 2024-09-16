@@ -255,7 +255,7 @@ bool Util_expl_query_show_flag(void)
 	return util_expl_show_flag;
 }
 
-void Util_expl_set_callback(void (*callback)(Str_data*, Str_data*))
+void Util_expl_set_callback(void (*const callback)(Str_data*, Str_data*))
 {
 	if(!util_expl_init)
 		return;
@@ -263,7 +263,7 @@ void Util_expl_set_callback(void (*callback)(Str_data*, Str_data*))
 	util_expl_callback = callback;
 }
 
-void Util_expl_set_cancel_callback(void (*callback)(void))
+void Util_expl_set_cancel_callback(void (*const callback)(void))
 {
 	if(!util_expl_init)
 		return;
@@ -271,7 +271,7 @@ void Util_expl_set_cancel_callback(void (*callback)(void))
 	util_expl_cancel_callback = callback;
 }
 
-void Util_expl_set_current_dir(Str_data* dir_name)
+void Util_expl_set_current_dir(const Str_data* dir_name)
 {
 	if(!util_expl_init)
 		return;
@@ -411,13 +411,14 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 				{
 					if (key.p_a || i == util_expl_selected_file_num)
 					{
-						bool is_root_dir = false;
 						uint32_t selected_index = (util_expl_y_offset + util_expl_selected_file_num);
 						Str_data dir = { 0, };
 
 						Util_expl_query_current_dir(&dir);
 						if(Util_str_has_data(&dir))
 						{
+							bool is_root_dir = false;
+
 							if(strcmp(dir.buffer, "/") == 0)
 								is_root_dir = true;
 

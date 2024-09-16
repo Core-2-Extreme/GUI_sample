@@ -169,7 +169,7 @@ void Draw_get_text_size(const char* text, float text_size_x, float text_size_y, 
  * @warning Call it only from rendering thread.
 */
 void Draw_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888);
-void Draw(Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888);
+void Draw(const Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888);
 
 /**
  * @brief Draw text with specified alignment.
@@ -189,7 +189,7 @@ void Draw(Str_data* text, float x, float y, float text_size_x, float text_size_y
 */
 void Draw_align_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888,
 Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y);
-void Draw_align(Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888,
+void Draw_align(const Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888,
 Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y);
 
 /**
@@ -213,7 +213,7 @@ Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float bo
 */
 void Draw_with_background_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
 Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888);
-void Draw_with_background(Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
+void Draw_with_background(const Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
 Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888);
 
 /**

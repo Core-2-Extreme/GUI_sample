@@ -671,7 +671,7 @@ void Draw_c(const char* text, float x, float y, float text_size_x, float text_si
 	Draw_internal(text, x, y, text_size_x, text_size_y, abgr8888, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_TOP, 0, 0, DRAW_BACKGROUND_NONE, NULL, DEF_DRAW_NO_COLOR);
 }
 
-void Draw(Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888)
+void Draw(const Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888)
 {
 	if(!Util_str_has_data(text))
 		return;
@@ -685,7 +685,7 @@ Draw_text_align_y y_align, float box_size_x, float box_size_y)
 	Draw_internal(text, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, DRAW_BACKGROUND_NONE, NULL, DEF_DRAW_NO_COLOR);
 }
 
-void Draw_align(Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
+void Draw_align(const Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
 Draw_text_align_y y_align, float box_size_x, float box_size_y)
 {
 	if(!Util_str_has_data(text))
@@ -700,7 +700,7 @@ Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background t
 	Draw_internal(text, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, texture_position, background_image, texture_abgr8888);
 }
 
-void Draw_with_background(Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
+void Draw_with_background(const Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
 Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888)
 {
 	if(!Util_str_has_data(text))
@@ -777,7 +777,7 @@ void Draw_free_texture(uint32_t sheet_map_num)
 void Draw_top_ui(bool is_eco, bool is_charging, uint8_t wifi_signal, uint8_t battery_level, const char* message)
 {
 	uint8_t max_wifi_signal = 0;
-	Draw_image_data background = { 0, };
+	Draw_image_data background = Draw_get_empty_image();
 	Str_data temp = { 0, };
 
 	if(!util_draw_init)
@@ -792,7 +792,6 @@ void Draw_top_ui(bool is_eco, bool is_charging, uint8_t wifi_signal, uint8_t bat
 
 	Util_str_init(&temp);
 
-	background = Draw_get_empty_image();
 	Draw_texture(&background, DEF_DRAW_BLACK, 0.0, 0.0, 400.0, 15.0);
 	Draw_texture(&util_draw_wifi_icon_image[wifi_signal], DEF_DRAW_NO_COLOR, 360.0, 0.0, 15.0, 15.0);
 	Draw_texture(&util_draw_battery_level_icon_image[battery_level / 5], DEF_DRAW_NO_COLOR, 315.0, 0.0, 30.0, 15.0);
@@ -857,7 +856,7 @@ void Draw_debug_info(bool is_night, uint32_t free_ram, uint32_t free_linear_ram)
 {
 	uint32_t color = DEF_DRAW_BLACK;
 	Hid_info key = { 0, };
-	Draw_image_data background = { 0, };
+	Draw_image_data background = Draw_get_empty_image();
 	Str_data temp = { 0, };
 	char empty_p_h[4] = { ' ', 'p', 'h', 'h' };
 
@@ -869,8 +868,6 @@ void Draw_debug_info(bool is_night, uint32_t free_ram, uint32_t free_linear_ram)
 
 	if (is_night)
 		color = DEF_DRAW_WHITE;
-
-	background = Draw_get_empty_image();
 
 	Util_str_format(&temp, "A:%c B:%c", empty_p_h[key.p_a + (key.h_a * 2)], empty_p_h[key.p_b + (key.h_b * 2)]);
 	Draw_with_background(&temp, 0, 40, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
@@ -982,11 +979,10 @@ Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background t
 	bool new_line = false;
 	bool eof = false;
 	uint32_t start_pos = UINT32_MAX;
-	uint32_t lines = 0;
 	uint32_t line_count = 0;
 	uint32_t array_count = 0;
 	uint32_t length = 0;
-	float width = 0, height = 0, original_x = 0, original_y = 0, x_min = 0, y_offset = 0, used_x = 0, used_x_max = 0, used_y_max = 0;
+	float width = 0, height = 0, original_x = 0, original_y = 0;
 	float* x_start = NULL;
 	Exfont_one_char* part_text = NULL;
 	original_x = x;
@@ -1025,6 +1021,8 @@ Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background t
 		x = original_x;
 	else
 	{
+		uint32_t lines = 0;
+		float x_min = 0, y_offset = 0, used_x = 0, used_x_max = 0, used_y_max = 0;
 		Draw_image_data* image_data_pointer = NULL;
 
 		new_line = false;
@@ -1159,9 +1157,6 @@ Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background t
 
 static void Draw_texture_internal(C2D_Image image, uint32_t abgr8888, float x, float y, float x_size, float y_size, float angle, float center_x, float center_y)
 {
-	if(!image.tex || !image.subtex || x_size <= 0 || y_size <= 0)
-		return;
-
 	C2D_ImageTint tint = { 0, };
 	C2D_DrawParams c2d_parameter =
 	{
@@ -1178,10 +1173,11 @@ static void Draw_texture_internal(C2D_Image image, uint32_t abgr8888, float x, f
 		0.0f,
 		angle
 	};
+
 	if(!util_draw_init)
 		return;
 
-	if(!image.tex)
+	if(!image.tex || !image.subtex || x_size <= 0 || y_size <= 0)
 		return;
 
 	if(abgr8888 == DEF_DRAW_NO_COLOR)

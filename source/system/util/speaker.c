@@ -99,7 +99,7 @@ uint32_t Util_speaker_set_audio_info(uint8_t play_ch, uint8_t music_ch, uint32_t
 	return DEF_ERR_INVALID_ARG;
 }
 
-uint32_t Util_speaker_add_buffer(uint8_t play_ch, uint8_t* buffer, uint32_t size)
+uint32_t Util_speaker_add_buffer(uint8_t play_ch, const uint8_t* buffer, uint32_t size)
 {
 	uint32_t free_queue = UINT32_MAX;
 

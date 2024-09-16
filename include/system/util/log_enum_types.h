@@ -182,10 +182,6 @@ a120, a121, a122, a123, a124, a125, ...) \
 #define DEF_LOG_ENUM_DEBUG(enum_name, ...) \
 static inline const char* enum_name##_get_name(enum_name value) \
 { \
-	static const char* names[] = \
-	{\
-		DEF_LOG_ENUM_ARGS_TO_STRING(__VA_ARGS__), \
-	}; \
 	static enum_name values[] = \
 	{\
 		__VA_ARGS__, \
@@ -195,7 +191,14 @@ static inline const char* enum_name##_get_name(enum_name value) \
 	for(uint32_t i = 0; i < max_loop; i++) \
 	{ \
 		if(values[i] == value) \
+		{ \
+			static const char* names[] = \
+			{\
+				DEF_LOG_ENUM_ARGS_TO_STRING(__VA_ARGS__), \
+			}; \
+			\
 			return names[i]; \
+		} \
 	} \
 	\
 	return DEF_LOG_ENUM_DEBUG_INVALID_VALUE_MSG; \

@@ -9,6 +9,6 @@
  * @param enabled_core (in) Enabled cores.
  * @warning Thread dangerous (untested)
 */
-void Util_fake_pthread_set_enabled_core(bool enabled_core[4]);
+void Util_fake_pthread_set_enabled_core(const bool enabled_core[4]);
 
 #endif //!defined(DEF_FAKE_PTHREAD_H)

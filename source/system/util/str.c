@@ -16,7 +16,7 @@
 //N/A.
 
 //Prototypes.
-static uint32_t Util_str_get_optimal_buffer_capacity(Str_data* string);
+static uint32_t Util_str_get_optimal_buffer_capacity(const Str_data* string);
 static uint32_t Util_str_vformat_internal(Str_data* string, bool is_append, const char* format_string, va_list args);
 
 //Variables.
@@ -221,7 +221,7 @@ uint32_t Util_str_resize(Str_data* string, uint32_t new_capacity)
 	return DEF_ERR_OUT_OF_MEMORY;
 }
 
-bool Util_str_is_valid(Str_data* string)
+bool Util_str_is_valid(const Str_data* string)
 {
 	if(!string || !string->buffer || string->capacity == 0 || string->capacity == UINT32_MAX)
 		return false;
@@ -229,7 +229,7 @@ bool Util_str_is_valid(Str_data* string)
 		return true;
 }
 
-bool Util_str_has_data(Str_data* string)
+bool Util_str_has_data(const Str_data* string)
 {
 	if(!Util_str_is_valid(string))
 		return false;
@@ -239,7 +239,7 @@ bool Util_str_has_data(Str_data* string)
 		return true;
 }
 
-static uint32_t Util_str_get_optimal_buffer_capacity(Str_data* string)
+static uint32_t Util_str_get_optimal_buffer_capacity(const Str_data* string)
 {
 	uint32_t optimal_capacity = 0;
 

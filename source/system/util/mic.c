@@ -94,7 +94,7 @@ uint32_t Util_mic_start_recording(Mic_sample_rate sample_rate_mode)
 {
 	uint32_t result = DEF_ERR_OTHER;
 	uint32_t sample_rate = 0;
-	MICU_SampleRate mic_sample_rate;
+	MICU_SampleRate mic_sample_rate = MICU_SAMPLE_RATE_8180;
 
 	if(!util_mic_init)
 		goto not_inited;

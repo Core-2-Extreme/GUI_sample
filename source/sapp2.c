@@ -452,11 +452,11 @@ static void Sapp2_worker_thread(void* arg)
 {
 	(void)arg;
 	DEF_LOG_STRING("Thread started.");
-	uint32_t result = DEF_ERR_OTHER;
 
 	while (sapp2_thread_run)
 	{
 		uint32_t event_id = 0;
+		uint32_t result = DEF_ERR_OTHER;
 
 		while (sapp2_thread_suspend)
 			Util_sleep(DEF_THREAD_INACTIVE_SLEEP_TIME);
@@ -523,7 +523,7 @@ static void Sapp2_worker_thread(void* arg)
 
 				Sem_get_config(&config);
 
-				if(config.top_lcd_brightness + 1 <= 180)
+				if(config.top_lcd_brightness < 180)
 				{
 					config.top_lcd_brightness++;
 
@@ -546,7 +546,7 @@ static void Sapp2_worker_thread(void* arg)
 
 				Sem_get_config(&config);
 
-				if(config.top_lcd_brightness - 1 >= 0)
+				if(config.top_lcd_brightness > 0)
 				{
 					config.top_lcd_brightness--;
 
@@ -569,7 +569,7 @@ static void Sapp2_worker_thread(void* arg)
 
 				Sem_get_config(&config);
 
-				if(config.bottom_lcd_brightness + 1 <= 180)
+				if(config.bottom_lcd_brightness < 180)
 				{
 					config.bottom_lcd_brightness++;
 
@@ -592,7 +592,7 @@ static void Sapp2_worker_thread(void* arg)
 
 				Sem_get_config(&config);
 
-				if(config.bottom_lcd_brightness - 1 >= 0)
+				if(config.bottom_lcd_brightness > 0)
 				{
 					config.bottom_lcd_brightness--;
 

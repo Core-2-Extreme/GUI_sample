@@ -21,7 +21,7 @@
  * @warning Thread dangerous (untested)
 */
 uint32_t Util_keyboard_init(Keyboard_type type, Keyboard_acceptable_input valid_type, Keyboard_display_button button_type,
-uint32_t max_length, Str_data* hint_text, Str_data* init_text, Keyboard_password_mode password_mode, Keyboard_features_bit features);
+uint32_t max_length, const Str_data* hint_text, const Str_data* init_text, Keyboard_password_mode password_mode, Keyboard_features_bit features);
 
 /**
  * @brief Set dictionary word.

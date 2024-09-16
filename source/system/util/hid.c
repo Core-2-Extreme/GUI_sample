@@ -296,7 +296,7 @@ void Util_hid_reset_afk_time(void)
 	LightLock_Unlock(&util_hid_callback_mutex);
 }
 
-bool Util_hid_add_callback(void (*callback)(void))
+bool Util_hid_add_callback(void (*const callback)(void))
 {
 	if(!util_hid_init)
 		return false;
@@ -327,7 +327,7 @@ bool Util_hid_add_callback(void (*callback)(void))
 	return true;
 }
 
-void Util_hid_remove_callback(void (*callback)(void))
+void Util_hid_remove_callback(void (*const callback)(void))
 {
 	if(!util_hid_init)
 		return;
@@ -350,11 +350,6 @@ void Util_hid_scan_hid_thread(void* arg)
 {
 	(void)arg;
 	DEF_LOG_STRING("Thread started.");
-	uint32_t key_pressed = 0;
-	uint32_t key_held = 0;
-	uint32_t key_released = 0;
-	touchPosition touch_pos = { 0, };
-	circlePosition circle_pos = { 0, };
 	TickCounter counter = { 0, };
 
 	osTickCounterStart(&counter);
@@ -362,6 +357,12 @@ void Util_hid_scan_hid_thread(void* arg)
 
 	while (util_hid_thread_run)
 	{
+		uint32_t key_pressed = 0;
+		uint32_t key_held = 0;
+		uint32_t key_released = 0;
+		touchPosition touch_pos = { 0, };
+		circlePosition circle_pos = { 0, };
+
 		hidScanInput();
 		hidTouchRead(&touch_pos);
 		hidCircleRead(&circle_pos);

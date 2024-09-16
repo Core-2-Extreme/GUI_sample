@@ -264,7 +264,6 @@ static size_t Util_curl_read_callback(char* output_buffer, size_t size, size_t n
 {
 	uint32_t buffer_size = (size * nitems);
 	int32_t copy_size = 0;
-	int32_t read_size = 0;
 	Upload_data* upload_data = (Upload_data*)user_data;
 
 	if(!user_data)
@@ -273,7 +272,7 @@ static size_t Util_curl_read_callback(char* output_buffer, size_t size, size_t n
 	//if call back is provided, use it
 	if(upload_data->callback)
 	{
-		read_size = upload_data->callback(output_buffer, buffer_size, upload_data->user_data);
+		int32_t read_size = upload_data->callback(output_buffer, buffer_size, upload_data->user_data);
 		if(upload_data->uploaded_size)
 			*upload_data->uploaded_size += read_size;
 
@@ -281,7 +280,7 @@ static size_t Util_curl_read_callback(char* output_buffer, size_t size, size_t n
 	}
 
 	//EOF
-	if(upload_data->upload_size - upload_data->offset <= 0)
+	if(upload_data->upload_size - upload_data->offset == 0)
 		return 0;
 
 	//if buffer size is smaller than available post data size

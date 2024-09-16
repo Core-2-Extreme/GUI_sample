@@ -72,7 +72,7 @@ void Util_hid_reset_afk_time(void);
  * on failure false.
  * @note Thread safe
 */
-bool Util_hid_add_callback(void (*callback)(void));
+bool Util_hid_add_callback(void (*const callback)(void));
 
 /**
  * @brief Remove hid callback.
@@ -80,6 +80,6 @@ bool Util_hid_add_callback(void (*callback)(void));
  * @param callback (in) Pointer for callback function.
  * @note Thread safe
 */
-void Util_hid_remove_callback(void (*callback)(void));
+void Util_hid_remove_callback(void (*const callback)(void));
 
 #endif //!defined(DEF_HID_H)

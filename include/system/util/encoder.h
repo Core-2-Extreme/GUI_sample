@@ -59,7 +59,7 @@ uint32_t Util_encoder_write_header(uint8_t session);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-uint32_t Util_encoder_audio_encode(uint32_t size, uint8_t* raw_data, uint8_t session);
+uint32_t Util_encoder_audio_encode(uint32_t size, const uint8_t* raw_data, uint8_t session);
 
 /**
  * @brief Encode a image.
@@ -68,7 +68,7 @@ uint32_t Util_encoder_audio_encode(uint32_t size, uint8_t* raw_data, uint8_t ses
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-uint32_t Util_encoder_video_encode(uint8_t* raw_image, uint8_t session);
+uint32_t Util_encoder_video_encode(const uint8_t* raw_image, uint8_t session);
 
 /**
  * @brief Uninitialize encoders and close the output file.
@@ -103,7 +103,7 @@ void Util_encoder_close_output_file(uint8_t session);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-uint32_t Util_encoder_image_encode(const char* path, uint8_t* raw_data, uint32_t width, uint32_t height, Media_i_codec codec, uint8_t quality);
+uint32_t Util_encoder_image_encode(const char* path, const uint8_t* raw_data, uint32_t width, uint32_t height, Media_i_codec codec, uint8_t quality);
 
 #else
 

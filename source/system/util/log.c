@@ -205,7 +205,7 @@ uint32_t Util_log_save_result_start(const char* caller, const char* function_nam
 		return Util_log_format(caller, "xxxx()...");
 	else if(omit_args)
 	{
-		char* arg_start = strstr(function_name, "(");
+		const char* arg_start = strstr(function_name, "(");
 
 		if(!arg_start)
 			return Util_log_format(caller, "%s()...", function_name);

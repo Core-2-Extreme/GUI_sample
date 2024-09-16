@@ -1436,7 +1436,7 @@ void Sem_main(void)
 
 void Sem_hid(Hid_info key)
 {
-	int8_t menu_button_list[9] = { DEF_SEM_MENU_UPDATE, DEF_SEM_MENU_LANGAGES, DEF_SEM_MENU_LCD, DEF_SEM_MENU_CONTROL,
+	const int8_t menu_button_list[9] = { DEF_SEM_MENU_UPDATE, DEF_SEM_MENU_LANGAGES, DEF_SEM_MENU_LCD, DEF_SEM_MENU_CONTROL,
 	DEF_SEM_MENU_FONT, DEF_SEM_MENU_WIFI, DEF_SEM_MENU_ADVANCED, DEF_SEM_MENU_BATTERY, DEF_SEM_MENU_RECORDING };
 	Sem_config config = { 0, };
 	Sem_state state = { 0, };
@@ -1513,7 +1513,7 @@ void Sem_hid(Hid_info key)
 				{
 					bool is_3dsx_available = ((DEF_STR_NEVER_NULL(&sem_newest_ver_data[1]))[0] == '1');
 					bool is_cia_available = ((DEF_STR_NEVER_NULL(&sem_newest_ver_data[2]))[0] == '1');
-					bool is_available[2] = { is_3dsx_available, is_cia_available, };
+					const bool is_available[2] = { is_3dsx_available, is_cia_available, };
 
 					if (Util_hid_is_pressed(key, sem_3dsx_button) && is_3dsx_available)
 						sem_3dsx_button.selected = true;
@@ -2088,7 +2088,7 @@ static void Sem_get_system_info(void)
 	uint32_t result = DEF_ERR_OTHER;
 	char* ssid = (char*)malloc(512);
 	time_t unix_time = time(NULL);
-	struct tm* time = gmtime((const time_t*)&unix_time);
+	const struct tm* time = gmtime(&unix_time);
 	Sem_config config = { 0, };
 	Sem_state state = { 0, };
 
@@ -2128,11 +2128,14 @@ static void Sem_get_system_info(void)
 
 	//Connected SSID.
 	memset(state.connected_wifi, 0x00, sizeof(state.connected_wifi));
-	result = ACU_GetSSID(ssid);
-	if(result == DEF_SUCCESS)
+	if(ssid)
 	{
-		uint8_t length = Util_min(strlen(ssid), (sizeof(state.connected_wifi) - 1));
-		memcpy(state.connected_wifi, ssid, length);
+		result = ACU_GetSSID(ssid);
+		if(result == DEF_SUCCESS)
+		{
+			uint8_t length = Util_min(strlen(ssid), (sizeof(state.connected_wifi) - 1));
+			memcpy(state.connected_wifi, ssid, length);
+		}
 	}
 
 	free(ssid);
@@ -2179,10 +2182,10 @@ static void Sem_get_system_info(void)
 
 static void Sem_worker_callback(void)
 {
-	uint32_t result = DEF_ERR_OTHER;
-
 	if (sem_already_init)
 	{
+		uint32_t result = DEF_ERR_OTHER;
+
 		if (sem_reload_msg_request)
 		{
 			Sem_config config = { 0, };
@@ -2428,15 +2431,16 @@ void Sem_encode_thread(void* arg)
 			if(sem_encode_request)
 			{
 				uint8_t* yuv420p = NULL;
-				uint32_t result = DEF_ERR_OTHER;
 
 				sem_wait_request = true;
 				sem_encode_request = false;
 				yuv420p = (uint8_t*)linearAlloc(sem_rec_width * sem_rec_height * 1.5);
-				if(yuv420p == NULL)
+				if(!yuv420p)
 					sem_stop_record_request = true;
 				else
 				{
+					uint32_t result = DEF_ERR_OTHER;
+
 					memcpy(yuv420p, sem_yuv420p, sem_rec_width * sem_rec_height * 1.5);
 
 					result = Util_encoder_video_encode(yuv420p, 0);
@@ -2467,23 +2471,7 @@ void Sem_record_thread(void* arg)
 	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	bool new_3ds = false;
-	uint8_t mode = 0;
-	uint8_t rec_framerate = 10;
-	uint8_t* top_framebuffer = NULL;
-	uint8_t* bot_framebuffer = NULL;
-	uint8_t* top_bgr = NULL;
-	uint8_t* bot_bgr = NULL;
-	uint8_t* both_bgr = NULL;
-	uint16_t rec_width = 400;
-	uint16_t rec_height = 480;
-	uint16_t width = 0;
-	uint16_t height = 0;
-	uint32_t offset = 0;
-	uint32_t bot_bgr_offset = 0;
-	uint32_t new_width = 0;
-	uint32_t new_height = 0;
-	double time = 0;
-	TickCounter counter;
+	TickCounter counter = { 0, };
 	APT_CheckNew3DS(&new_3ds);
 	osTickCounterStart(&counter);
 
@@ -2491,6 +2479,13 @@ void Sem_record_thread(void* arg)
 	{
 		if (sem_record_request)
 		{
+			uint8_t mode = 0;
+			uint8_t rec_framerate = 10;
+			uint8_t* top_bgr = NULL;
+			uint8_t* bot_bgr = NULL;
+			uint8_t* both_bgr = NULL;
+			uint16_t rec_width = 400;
+			uint16_t rec_height = 480;
 			uint32_t result = DEF_ERR_OTHER;
 			Str_data path = { 0, };
 			Sem_state state = { 0, };
@@ -2556,6 +2551,13 @@ void Sem_record_thread(void* arg)
 
 			while(sem_record_request)
 			{
+				uint8_t* top_framebuffer = NULL;
+				uint8_t* bot_framebuffer = NULL;
+				uint16_t width = 0;
+				uint16_t height = 0;
+				uint32_t new_width = 0;
+				uint32_t new_height = 0;
+				double time = 0;
 				Converter_color_parameters parameters = { 0, };
 
 				if(sem_stop_record_request)
@@ -2565,6 +2567,9 @@ void Sem_record_thread(void* arg)
 
 				if(mode == DEF_SEM_RECORD_BOTH)
 				{
+					uint32_t offset = (400 * 240 * 3);
+					uint32_t bot_bgr_offset = 0;
+
 					top_framebuffer = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, &width, &height);
 					result = Util_converter_rgb888_rotate_90_degree(top_framebuffer, &top_bgr, width, height, &new_width, &new_height);
 					if(result != DEF_SUCCESS)
@@ -2588,9 +2593,6 @@ void Sem_record_thread(void* arg)
 					memcpy(both_bgr, top_bgr, 400 * 240 * 3);
 					free(top_bgr);
 					top_bgr = NULL;
-
-					offset = 400 * 240 * 3;
-					bot_bgr_offset = 0;
 
 					for(uint16_t i = 0; i < 240; i++)
 					{
@@ -2727,13 +2729,13 @@ void Sem_update_thread(void* arg)
 {
 	(void)arg;
 	DEF_LOG_STRING("Thread started.");
-	uint32_t result = DEF_ERR_OTHER;
 
 	while (sem_thread_run)
 	{
 		if (sem_check_update_request || sem_dl_file_request)
 		{
 			uint8_t* buffer = NULL;
+			uint32_t result = DEF_ERR_OTHER;
 			Str_data dir_path = { 0, };
 			Str_data filename = { 0, };
 			Str_data url = { 0, };
@@ -2832,8 +2834,8 @@ void Sem_update_thread(void* arg)
 					for (uint8_t i = 0; i < 6; i++)
 					{
 						bool is_error = true;
-						char* start_pos = strstr((char*)buffer, parse_start[i]);
-						char* end_pos = strstr((char*)buffer, parse_end[i]);
+						const char* start_pos = strstr((char*)buffer, parse_start[i]);
+						const char* end_pos = strstr((char*)buffer, parse_end[i]);
 
 						if(start_pos && end_pos)
 						{

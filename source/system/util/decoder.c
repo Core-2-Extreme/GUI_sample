@@ -388,13 +388,14 @@ static void Util_decoder_video_free(void *opaque, uint8_t *data)
 static int Util_decoder_video_allocate_buffer(AVCodecContext *avctx, AVFrame *frame, int flags)
 {
 	(void)flags;
-	uint32_t width = 0;
-	uint32_t height = 0;
-	int32_t buffer_size = 0;
-	uint8_t* buffer = NULL;
 
 	if(avctx->codec_type == AVMEDIA_TYPE_VIDEO)
 	{
+		uint32_t width = 0;
+		uint32_t height = 0;
+		int32_t buffer_size = 0;
+		uint8_t* buffer = NULL;
+
 		for (uint8_t i = 0; i < AV_NUM_DATA_POINTERS; i++)
 		{
 			frame->data[i] = NULL;
@@ -631,7 +632,7 @@ uint32_t Util_decoder_audio_init(uint8_t num_of_audio_tracks, uint8_t session)
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-void Util_decoder_video_set_enabled_cores(bool frame_threading_cores[4], bool slice_threading_cores[4])
+void Util_decoder_video_set_enabled_cores(const bool frame_threading_cores[4], const bool slice_threading_cores[4])
 {
 	if(!frame_threading_cores[0] && !frame_threading_cores[1] && !frame_threading_cores[2] && !frame_threading_cores[3]
 	&& !slice_threading_cores[0] && !slice_threading_cores[1] && !slice_threading_cores[2] && !slice_threading_cores[3])
@@ -2194,7 +2195,7 @@ uint32_t Util_decoder_subtitle_decode(Media_s_data* subtitle_data, uint8_t packe
 
 						while(true)
 						{
-							char* new_line = strstr(source, "\\N");
+							const char* new_line = strstr(source, "\\N");
 							uint32_t copy_size = 0;
 
 							if(!new_line)
@@ -2842,7 +2843,7 @@ uint32_t Util_decoder_image_decode(const char* path, uint8_t** raw_data, uint32_
 	return DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS;
 }
 
-uint32_t Util_decoder_image_decode_data(uint8_t* compressed_data, uint32_t compressed_buffer_size, uint8_t** raw_data, uint32_t* width, uint32_t* height, Raw_pixel* format)
+uint32_t Util_decoder_image_decode_data(const uint8_t* compressed_data, uint32_t compressed_buffer_size, uint8_t** raw_data, uint32_t* width, uint32_t* height, Raw_pixel* format)
 {
 	//We can't get rid of this "int" because library uses "int" type as args.
 	int ch = 0, w = 0, h = 0;

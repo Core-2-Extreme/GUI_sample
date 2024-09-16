@@ -34,7 +34,7 @@ uint32_t Util_decoder_audio_init(uint8_t num_of_audio_tracks, uint8_t session);
  * @param slice_threading_cores (in) Core mask for slice decoding.
  * @warning Thread dangerous (untested)
 */
-void Util_decoder_video_set_enabled_cores(bool frame_threading_cores[4], bool slice_threading_cores[4]);
+void Util_decoder_video_set_enabled_cores(const bool frame_threading_cores[4], const bool slice_threading_cores[4]);
 
 /**
  * @brief Initialize a video decoder.
@@ -443,7 +443,7 @@ uint32_t Util_decoder_image_decode(const char* path, uint8_t** raw_data, uint32_
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-uint32_t Util_decoder_image_decode_data(uint8_t* compressed_data, uint32_t compressed_buffer_size, uint8_t** raw_data, uint32_t* width, uint32_t* height, Raw_pixel* format);
+uint32_t Util_decoder_image_decode_data(const uint8_t* compressed_data, uint32_t compressed_buffer_size, uint8_t** raw_data, uint32_t* width, uint32_t* height, Raw_pixel* format);
 
 #else
 

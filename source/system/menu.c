@@ -380,7 +380,7 @@ void Menu_exit(void)
 	DEF_LOG_STRING("Exited.");
 }
 
-bool Menu_add_worker_thread_callback(void (*callback)(void))
+bool Menu_add_worker_thread_callback(void (*const callback)(void))
 {
 	LightLock_Lock(&menu_callback_mutex);
 
@@ -408,7 +408,7 @@ bool Menu_add_worker_thread_callback(void (*callback)(void))
 	return true;
 }
 
-void Menu_remove_worker_thread_callback(void (*callback)(void))
+void Menu_remove_worker_thread_callback(void (*const callback)(void))
 {
 	LightLock_Lock(&menu_callback_mutex);
 

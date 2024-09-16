@@ -15,7 +15,7 @@ uint32_t Util_queue_create(Queue_data* queue, uint32_t max_items);
 
 /**
  * @brief Add an event to the queue. Data is passed by reference not by copy.
- * @param queue (in) Pointer for the queue.
+ * @param queue (in/out) Pointer for the queue.
  * @param event_id (in) User defined event id.
  * @param data (in) Pointer for user defined data, can be NULL.
  * @param wait_ns (in) Wait time in us when queue is full.
@@ -28,7 +28,7 @@ uint32_t Util_queue_add(Queue_data* queue, uint32_t event_id, void* data, int64_
 
 /**
  * @brief Get an event from the queue. Data is passed by reference not by copy.
- * @param queue (in) Pointer for the queue.
+ * @param queue (in/out) Pointer for the queue.
  * @param event_id (out) Event id.
  * @param data (out) Pointer for data, can be NULL.
  * @param wait_ns (in) Wait time in us when queue is empty.
@@ -44,7 +44,7 @@ uint32_t Util_queue_get(Queue_data* queue, uint32_t* event_id, void** data, int6
  * @param event_id (in) Event id to check.
  * @note Thread safe
 */
-bool Util_queue_check_event_exist(Queue_data* queue, uint32_t event_id);
+bool Util_queue_check_event_exist(const Queue_data* queue, uint32_t event_id);
 
 /**
  * @brief Check how many spaces left in the queue.
@@ -52,12 +52,12 @@ bool Util_queue_check_event_exist(Queue_data* queue, uint32_t event_id);
  * @param queue (in) Pointer for the queue.
  * @note Thread safe
 */
-uint32_t Util_queue_get_free_space(Queue_data* queue);
+uint32_t Util_queue_get_free_space(const Queue_data* queue);
 
 /**
  * @brief Delete the queue and if any, free all data in the queue.
  * Do nothing if queue is not initialized.
- * @param queue (in) Pointer for the queue.
+ * @param queue (in/out) Pointer for the queue.
  * @note Thread safe
 */
 void Util_queue_delete(Queue_data* queue);

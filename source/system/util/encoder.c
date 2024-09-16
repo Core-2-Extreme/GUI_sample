@@ -464,10 +464,10 @@ uint32_t Util_encoder_write_header(uint8_t session)
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-uint32_t Util_encoder_audio_encode(uint32_t size, uint8_t* raw_data, uint8_t session)
+uint32_t Util_encoder_audio_encode(uint32_t size, const uint8_t* raw_data, uint8_t session)
 {
 	uint8_t bytes_per_sample = 0;
-	uint8_t* swr_in_cache[1] = { NULL, };
+	const uint8_t* swr_in_cache[1] = { NULL, };
 	uint8_t* swr_out_cache[1] = { NULL, };
 	uint8_t* raw_audio = NULL;
 	int32_t out_samples = 0;
@@ -585,7 +585,7 @@ uint32_t Util_encoder_audio_encode(uint32_t size, uint8_t* raw_data, uint8_t ses
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-uint32_t Util_encoder_video_encode(uint8_t* raw_image, uint8_t session)
+uint32_t Util_encoder_video_encode(const uint8_t* raw_image, uint8_t session)
 {
 	int32_t ffmpeg_result = 0;
 	uint32_t width = 0;
@@ -696,7 +696,7 @@ static void Util_encoder_video_exit(uint8_t session)
 #endif //DEF_ENCODER_VIDEO_AUDIO_API_ENABLE
 
 #if DEF_ENCODER_IMAGE_API_ENABLE
-uint32_t Util_encoder_image_encode(const char* path, uint8_t* raw_data, uint32_t width, uint32_t height, Media_i_codec codec, uint8_t quality)
+uint32_t Util_encoder_image_encode(const char* path, const uint8_t* raw_data, uint32_t width, uint32_t height, Media_i_codec codec, uint8_t quality)
 {
 	int32_t stbi_result = 0;
 

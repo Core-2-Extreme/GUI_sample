@@ -44,7 +44,7 @@ uint32_t Util_watch_get_total_usage(void);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe
 */
-uint32_t Util_watch_add(Watch_handle handle, void* variable, uint32_t length);
+uint32_t Util_watch_add(Watch_handle handle, const void* variable, uint32_t length);
 
 /**
  * @brief Remove a variable frin watch list.
@@ -53,7 +53,7 @@ uint32_t Util_watch_add(Watch_handle handle, void* variable, uint32_t length);
  * @param variable (in) Pointer for variable to remove from watch list.
  * @note Thread safe
 */
-void Util_watch_remove(Watch_handle handle, void* variable);
+void Util_watch_remove(Watch_handle handle, const void* variable);
 
 /**
  * @brief Check if watched values were changed since last call of this function.

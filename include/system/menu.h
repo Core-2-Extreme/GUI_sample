@@ -33,9 +33,9 @@ uint32_t Menu_load_msg(const char* lang);
 
 void Menu_init(void);
 
-bool Menu_add_worker_thread_callback(void (*callback)(void));
+bool Menu_add_worker_thread_callback(void (*const callback)(void));
 
-void Menu_remove_worker_thread_callback(void (*callback)(void));
+void Menu_remove_worker_thread_callback(void (*const callback)(void));
 
 void Menu_exit(void);
 

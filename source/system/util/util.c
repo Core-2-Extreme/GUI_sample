@@ -718,7 +718,7 @@ uint32_t Util_encode_to_escape(const char* text, Str_data* escaped_text)
 			result = Util_str_add(escaped_text, "\\\\");
 		else
 		{
-			char one_char[2] = { text[i], 0x00 };
+			const char one_char[2] = { text[i], 0x00 };
 			result = Util_str_add(escaped_text, one_char);
 		}
 

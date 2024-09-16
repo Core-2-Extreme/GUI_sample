@@ -102,7 +102,7 @@ uint32_t Util_watch_get_total_usage(void)
 	return used;
 }
 
-uint32_t Util_watch_add(Watch_handle handle, void* variable, uint32_t length)
+uint32_t Util_watch_add(Watch_handle handle, const void* variable, uint32_t length)
 {
 	uint32_t used = 0;
 
@@ -153,7 +153,7 @@ uint32_t Util_watch_add(Watch_handle handle, void* variable, uint32_t length)
 	return DEF_ERR_OUT_OF_MEMORY;
 }
 
-void Util_watch_remove(Watch_handle handle, void* variable)
+void Util_watch_remove(Watch_handle handle, const void* variable)
 {
 	if(!util_watch_init)
 		return;

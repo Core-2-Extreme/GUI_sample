@@ -594,7 +594,6 @@ uint32_t Util_httpc_post_and_save_data(Net_post_save_parameters* parameters)
 	return DEF_SUCCESS;
 
 	not_inited:
-	result = DEF_ERR_NOT_INITIALIZED;
 	return DEF_ERR_NOT_INITIALIZED;
 
 	invalid_arg:
@@ -811,9 +810,11 @@ static uint32_t Util_httpc_download_data(httpcContext* httpc_context, uint8_t** 
 static void Util_httpc_close(httpcContext* httpc_context)
 {
 	if(httpc_context)
+	{
 		httpcCloseContext(httpc_context);
-
-	httpc_context = NULL;
+		httpc_context->httphandle = 0;
+		httpc_context->servhandle = 0;
+	}
 }
 
 static uint32_t Util_httpc_sv_data_internal(httpcContext* httpc_context, uint32_t buffer_size, uint32_t* downloaded_size, const char* dir_path, const char* file_name)

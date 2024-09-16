@@ -330,10 +330,10 @@ static void Sapp0_init_thread(void* arg)
 	uint32_t width = 0, height = 0;
 	uint32_t dled_size = 0;
 	uint32_t result = DEF_ERR_OTHER;
-	char file_path[] = "romfs:/gfx/draw/sapp0/sample.jpg";
-	char url[] = "https://user-images.githubusercontent.com/45873899/167138864-b6a9e25e-2dce-49d0-9b5a-d5986e768ad6.png";
+	const char file_path[] = "romfs:/gfx/draw/sapp0/sample.jpg";
+	const char url[] = "https://user-images.githubusercontent.com/45873899/167138864-b6a9e25e-2dce-49d0-9b5a-d5986e768ad6.png";
 	//If you want to load picture from SD (not from romfs).
-	//char file_path[] = "/test.png";
+	//const char file_path[] = "/test.png";
 	Raw_pixel color_format = RAW_PIXEL_INVALID;
 	Net_dl_parameters dl_parameters = { 0, };
 

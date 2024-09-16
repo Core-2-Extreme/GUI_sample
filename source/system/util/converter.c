@@ -40,8 +40,8 @@
 
 //Prototypes.
 #if DEF_CONVERTER_SW_ASM_API_ENABLE
-extern void yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t* rgb565, uint32_t width, uint32_t height);
-extern void yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t* rgb888, uint32_t width, uint32_t height);
+extern void yuv420p_to_rgb565le_asm(const uint8_t* yuv420p, uint8_t* rgb565, uint32_t width, uint32_t height);
+extern void yuv420p_to_rgb888le_asm(const uint8_t* yuv420p, uint8_t* rgb888, uint32_t width, uint32_t height);
 #endif //DEF_CONVERTER_SW_ASM_API_ENABLE
 
 //Variables.
@@ -407,13 +407,13 @@ uint32_t Util_converter_convert_audio(Converter_audio_parameters* parameters)
 #endif //DEF_CONVERTER_SW_FFMPEG_AUDIO_API_ENABLE
 
 #if DEF_CONVERTER_SW_API_ENABLE
-uint32_t Util_converter_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t** rgb565, uint32_t width, uint32_t height)
+uint32_t Util_converter_yuv420p_to_rgb565le(const uint8_t* yuv420p, uint8_t** rgb565, uint32_t width, uint32_t height)
 {
 	uint32_t index = 0;
 	uint8_t y[4] = { 0, }, u = 0, v = 0, r[4] = { 0, }, g[4] = { 0, }, b[4] = { 0, };
-	uint8_t* ybase = yuv420p;
-	uint8_t* ubase = yuv420p + width * height;
-	uint8_t* vbase = yuv420p + width * height + width * height / 4;
+	const uint8_t* ybase = NULL;
+	const uint8_t* ubase = NULL;
+	const uint8_t* vbase = NULL;
 
 	if(!yuv420p || !rgb565 || width == 0 || height == 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
@@ -422,6 +422,10 @@ uint32_t Util_converter_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t** rgb565, 
 	*rgb565 = (uint8_t*)linearAlloc(width * height * 2);
 	if(!*rgb565)
 		goto out_of_memory;
+
+	ybase = yuv420p;
+	ubase = yuv420p + width * height;
+	vbase = yuv420p + width * height + width * height / 4;
 
 	for (uint32_t h = 0; h < height; h++)
 	{
@@ -451,13 +455,13 @@ uint32_t Util_converter_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t** rgb565, 
 	return DEF_ERR_OUT_OF_MEMORY;
 }
 
-uint32_t Util_converter_yuv420p_to_rgb888le(uint8_t* yuv420p, uint8_t** rgb888, uint32_t width, uint32_t height)
+uint32_t Util_converter_yuv420p_to_rgb888le(const uint8_t* yuv420p, uint8_t** rgb888, uint32_t width, uint32_t height)
 {
 	uint32_t index = 0;
 	uint8_t y[4] = { 0, }, u = 0, v = 0;
-	uint8_t* ybase = yuv420p;
-	uint8_t* ubase = yuv420p + width * height;
-	uint8_t* vbase = yuv420p + width * height + width * height / 4;
+	const uint8_t* ybase = NULL;
+	const uint8_t* ubase = NULL;
+	const uint8_t* vbase = NULL;
 
 	if(!yuv420p || !rgb888 || width == 0 || height == 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
@@ -466,6 +470,10 @@ uint32_t Util_converter_yuv420p_to_rgb888le(uint8_t* yuv420p, uint8_t** rgb888, 
 	*rgb888 = (uint8_t*)linearAlloc(width * height * 3);
 	if(!*rgb888)
 		goto out_of_memory;
+
+	ybase = yuv420p;
+	ubase = yuv420p + width * height;
+	vbase = yuv420p + width * height + width * height / 4;
 
 	for (uint32_t h = 0; h < height; h++)
 	{
@@ -549,7 +557,7 @@ uint32_t Util_converter_rgb888be_to_rgb888le(uint8_t* rgb888, uint32_t width, ui
 	return DEF_ERR_INVALID_ARG;
 }
 
-uint32_t Util_converter_rgb888_rotate_90_degree(uint8_t* rgb888, uint8_t** rotated_rgb888, uint32_t width, uint32_t height, uint32_t* rotated_width, uint32_t* rotated_height)
+uint32_t Util_converter_rgb888_rotate_90_degree(const uint8_t* rgb888, uint8_t** rotated_rgb888, uint32_t width, uint32_t height, uint32_t* rotated_width, uint32_t* rotated_height)
 {
 	uint32_t offset = 0;
 	uint32_t rotated_offset = 0;
@@ -587,7 +595,7 @@ uint32_t Util_converter_rgb888_rotate_90_degree(uint8_t* rgb888, uint8_t** rotat
 #endif //DEF_CONVERTER_SW_API_ENABLE
 
 #if DEF_CONVERTER_SW_ASM_API_ENABLE
-uint32_t Util_converter_yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t** rgb565, uint32_t width, uint32_t height)
+uint32_t Util_converter_yuv420p_to_rgb565le_asm(const uint8_t* yuv420p, uint8_t** rgb565, uint32_t width, uint32_t height)
 {
 	if(!yuv420p || !rgb565 || width == 0 || height == 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
@@ -607,7 +615,7 @@ uint32_t Util_converter_yuv420p_to_rgb565le_asm(uint8_t* yuv420p, uint8_t** rgb5
 	return DEF_ERR_OUT_OF_MEMORY;
 }
 
-uint32_t Util_converter_yuv420p_to_rgb888le_asm(uint8_t* yuv420p, uint8_t** rgb888, uint32_t width, uint32_t height)
+uint32_t Util_converter_yuv420p_to_rgb888le_asm(const uint8_t* yuv420p, uint8_t** rgb888, uint32_t width, uint32_t height)
 {
 	if(!yuv420p || !rgb888 || width == 0 || height == 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
@@ -653,7 +661,7 @@ uint32_t Util_converter_y2r_init(void)
 	return result;
 }
 
-uint32_t Util_converter_y2r_yuv420p_to_rgb565le(uint8_t* yuv420p, uint8_t** rgb565, uint16_t width, uint16_t height, bool texture_format)
+uint32_t Util_converter_y2r_yuv420p_to_rgb565le(const uint8_t* yuv420p, uint8_t** rgb565, uint16_t width, uint16_t height, bool texture_format)
 {
 	uint32_t result = DEF_ERR_OTHER;
 	Y2RU_ConversionParams y2r_parameters;

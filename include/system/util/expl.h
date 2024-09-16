@@ -87,7 +87,7 @@ bool Util_expl_query_show_flag(void);
  * @param callback (in) Call back for file selection.
  * @warning Thread dangerous (untested)
 */
-void Util_expl_set_callback(void (*callback)(Str_data* file, Str_data* dir));
+void Util_expl_set_callback(void (*const callback)(Str_data* file, Str_data* dir));
 
 /**
  * @brief Set call back for cancellation.
@@ -95,7 +95,7 @@ void Util_expl_set_callback(void (*callback)(Str_data* file, Str_data* dir));
  * @param callback (in) Call back for cancellation.
  * @warning Thread dangerous (untested)
 */
-void Util_expl_set_cancel_callback(void (*callback)(void));
+void Util_expl_set_cancel_callback(void (*const callback)(void));
 
 /**
  * @brief Set current directory.
@@ -103,7 +103,7 @@ void Util_expl_set_cancel_callback(void (*callback)(void));
  * @param dir_name (in) Directory name.
  * @warning Thread dangerous (untested)
 */
-void Util_expl_set_current_dir(Str_data* dir_name);
+void Util_expl_set_current_dir(const Str_data* dir_name);
 
 /**
  * @brief Set explorer show flag.

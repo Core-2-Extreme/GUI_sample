@@ -306,6 +306,7 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
 	for (uint32_t k = 0; k < max_loop; k++)
 	{
 		int32_t parse_string_length = 0;
+
 		if(source_string_length <= offset)
 			break;
 
@@ -313,7 +314,6 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
 		if (parse_string_length >= 1)
 		{
 			bool rtl_found = false;
-			uint32_t give_up_pos = 0;
 			Exfont_one_char one_char = { 0, };
 
 			memcpy(one_char.buffer, (source_string + offset), parse_string_length);
@@ -324,6 +324,7 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
 			&& strcmp(one_char.buffer, right_to_left_sample[1].buffer) < 0))
 			{
 				int32_t increment = util_exfont_num_of_right_left_charcters / 10;
+				uint32_t give_up_pos = 0;
 
 				for(uint32_t i = 0; i < util_exfont_num_of_right_left_charcters; i += increment)
 				{
@@ -341,6 +342,8 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
 					{
 						give_up_pos = i - increment;
 						increment = -1;
+						if(i == 0)
+							break;
 					}
 				}
 			}
@@ -418,7 +421,6 @@ static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string,
 {
 	double interval_offset = 1;
 	double x_offset = 0.0;
-	uint8_t block = UINT8_MAX;
 
 	if(!util_exfont_init)
 		return;
@@ -435,6 +437,7 @@ static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string,
 	for (uint32_t s = 0; s < num_of_characters; s++)
 	{
 		bool unknown = true;
+		uint8_t block = UINT8_MAX;
 		uint32_t base_index = 0;
 		uint32_t offset = 0;
 		uint32_t length = strlen(in_part_string[s].buffer);
@@ -443,8 +446,6 @@ static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string,
 
 		if(length == 0)
 			break;
-
-		block = UINT8_MAX;
 
 		if (length == 1)
 		{
@@ -1350,8 +1351,8 @@ static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string,
 			offset = 0;
 		}
 
-		x_size = util_exfont_font_images[base_index + offset].subtex->width * texture_size_x;
-		y_size = util_exfont_font_images[base_index + offset].subtex->height * texture_size_y;
+		x_size = util_exfont_font_images[base_index + offset].subtex->width * (double)texture_size_x;
+		y_size = util_exfont_font_images[base_index + offset].subtex->height * (double)texture_size_y;
 		if(!size_only)
 		{
 			Draw_image_data font = { 0, };
@@ -1511,8 +1512,6 @@ static void Exfont_unload_exfont(uint16_t exfont_id)
 
 static void Exfont_load_font_callback(void)
 {
-	uint32_t result = DEF_ERR_OTHER;
-
 	if(util_exfont_init)
 	{
 		if(util_exfont_load_external_font_request)
@@ -1521,6 +1520,8 @@ static void Exfont_load_font_callback(void)
 			{
 				if(util_exfont_request_external_font_state[i] && !util_exfont_loaded_external_font[i])
 				{
+					uint32_t result = DEF_ERR_OTHER;
+
 					DEF_LOG_RESULT_SMART(result, Exfont_load_exfont(i), (result == DEF_SUCCESS), result);
 					Draw_set_refresh_needed(true);
 				}

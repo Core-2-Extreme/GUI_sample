@@ -32,7 +32,7 @@ uint32_t Util_speaker_set_audio_info(uint8_t play_ch, uint8_t music_ch, uint32_t
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-uint32_t Util_speaker_add_buffer(uint8_t play_ch, uint8_t* buffer, uint32_t size);
+uint32_t Util_speaker_add_buffer(uint8_t play_ch, const uint8_t* buffer, uint32_t size);
 
 /**
  * @brief Get a number of audio buffer.
