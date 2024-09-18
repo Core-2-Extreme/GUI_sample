@@ -126,8 +126,8 @@ If you want to make changes to the libraries, then follow [this guide](library/0
 
 After having all dependencies, do :
 * Clone this repository (`git clone https://github.com/core-2-extreme/{project_name}`).
-  * On windows run `build.bat`.
-  * On other system, type `make`.
+  * On windows run `build_3dsx.bat` for `.3dsx` only build or `build.bat` for `.3dsx`+`.cia` build.
+  * On other system, run `make 3dsx` for `.3dsx` only build or `make all` for `.3dsx`+`.cia` build..
 
 ## License
 This software is licensed under GNU General Public License v3.0 or later.
