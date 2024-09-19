@@ -22,6 +22,8 @@
 #define DEF_EXPL_SORT_TYPE_NUMBER			(uint8_t)(2)	//0-9.
 #define DEF_EXPL_SORT_TYPE_ALPHABET			(uint8_t)(3)	//a-z or A-Z.
 
+#define DEF_EXPL_NUM_OF_DISPLAYED_ITEMS		(uint8_t)(16)	//Number of displayed files on the screen.
+
 //Typedefs.
 typedef struct
 {
@@ -50,12 +52,13 @@ static bool util_expl_read_dir_request = false;
 static bool util_expl_show_flag = false;
 static bool util_expl_scroll_mode = false;
 static bool util_expl_init = false;
-static uint32_t util_expl_num_of_file = 0;
+static double util_expl_move_remaining = 0;
+static uint8_t util_expl_active_index = 0;
+static uint32_t util_expl_num_of_files = 0;
 static uint32_t util_expl_check_file_size_index = 0;
-static double util_expl_y_offset = 0;
-static double util_expl_selected_file_num = 0;
+static uint32_t util_expl_y_offset = 0;
 static Str_data util_expl_current_dir = { 0, };
-static Draw_image_data util_expl_file_button[16] = { 0, };
+static Draw_image_data util_expl_file_button[DEF_EXPL_NUM_OF_DISPLAYED_ITEMS] = { 0, };
 static Util_expl_files util_expl_files = { 0, };
 
 //Code.
@@ -71,10 +74,10 @@ uint32_t Util_expl_init(void)
 	util_expl_read_dir_request = false;
 	util_expl_show_flag = false;
 	util_expl_scroll_mode = false;
-	util_expl_num_of_file = 0;
+	util_expl_num_of_files = 0;
 	util_expl_check_file_size_index = 0;
-	util_expl_y_offset = 0.0;
-	util_expl_selected_file_num = 0.0;
+	util_expl_y_offset = 0;
+	util_expl_active_index = 0;
 
 	result = Util_str_init(&util_expl_current_dir);
 	if(result != DEF_SUCCESS)
@@ -103,7 +106,7 @@ uint32_t Util_expl_init(void)
 		}
 	}
 
-	for(uint8_t i = 0; i < 16; i++)
+	for(uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
 		util_expl_file_button[i] = Draw_get_empty_image();
 
 	if(!Menu_add_worker_thread_callback(Util_expl_read_dir_callback))
@@ -179,7 +182,7 @@ uint32_t Util_expl_query_num_of_file(void)
 	if(!util_expl_init)
 		return 0;
 
-	return util_expl_num_of_file;
+	return util_expl_num_of_files;
 }
 
 uint32_t Util_expl_query_current_file_index(void)
@@ -187,7 +190,7 @@ uint32_t Util_expl_query_current_file_index(void)
 	if(!util_expl_init)
 		return DEF_EXPL_INVALID_INDEX;
 
-	return (uint32_t)util_expl_selected_file_num + (uint32_t)util_expl_y_offset;
+	return (util_expl_active_index + util_expl_y_offset);
 }
 
 uint32_t Util_expl_query_file_name(uint32_t index, Str_data* file_name)
@@ -297,6 +300,9 @@ void Util_expl_draw(void)
 {
 	Draw_image_data background = Draw_get_empty_image();
 	uint32_t color = DEF_DRAW_BLACK;
+	float offset = 0;
+	float item_size = (160.0f / DEF_EXPL_NUM_OF_DISPLAYED_ITEMS);
+	float text_size = ((item_size / 16.0f) * 0.68f);
 
 	if(!util_expl_init)
 	{
@@ -309,11 +315,13 @@ void Util_expl_draw(void)
 	Draw_c("A : OK, B : Back, Y : Close, ↑↓→← : Move", 12.5, 185.0, 0.425, 0.425, DEF_DRAW_BLACK);
 	Draw(&util_expl_current_dir, 12.5, 195.0, 0.45, 0.45, DEF_DRAW_BLACK);
 
-	for (uint8_t i = 0; i < 16; i++)
+	for (uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
 	{
 		Str_data message = { 0, };
 		Str_data type = { 0, };
-		uint32_t index = (i + (uint32_t)util_expl_y_offset);
+		uint32_t index = (i + util_expl_y_offset);
+		uint32_t text_color = DEF_DRAW_NO_COLOR;
+		uint32_t texture_color = DEF_DRAW_NO_COLOR;
 
 		if(Util_str_init(&message) != DEF_SUCCESS
 		|| Util_str_init(&type) != DEF_SUCCESS)
@@ -325,7 +333,6 @@ void Util_expl_draw(void)
 
 		Util_expl_generate_file_type_string(util_expl_files.type[index], &type);
 
-		Draw_texture(&util_expl_file_button[i], util_expl_file_button[i].selected ? DEF_DRAW_GREEN : DEF_DRAW_AQUA, 10, 20 + (i * 10), 290, 10);
 		if(util_expl_files.type[index] & EXPL_FILE_TYPE_DIR)
 			Util_str_format(&message, "%s (%s)", util_expl_files.name[index].buffer, type.buffer);
 		else
@@ -354,7 +361,13 @@ void Util_expl_draw(void)
 		}
 		Util_str_free(&type);
 
-		Draw(&message, 12.5, 19 + (i * 10), 0.425, 0.425, i == (uint8_t)util_expl_selected_file_num ? DEF_DRAW_RED : color);
+		text_color = (i == util_expl_active_index ? DEF_DRAW_RED : color);
+		texture_color = (util_expl_file_button[i].selected ? DEF_DRAW_GREEN : DEF_DRAW_AQUA);
+
+		Draw_with_background(&message, 12.5, (20 + offset), text_size, text_size, text_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+		290, item_size, DRAW_BACKGROUND_ENTIRE_BOX, &util_expl_file_button[i], texture_color);
+
+		offset += item_size;
 		Util_str_free(&message);
 	}
 }
@@ -383,35 +396,53 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 	{
 		if(util_expl_scroll_mode)
 		{
-			if (key.touch_y_move > 0)
+			if(util_expl_num_of_files > DEF_EXPL_NUM_OF_DISPLAYED_ITEMS && key.touch_y_move != 0)
 			{
-				if ((util_expl_y_offset + (key.touch_y_move * scroll_speed / 8)) < util_expl_num_of_file - 15)
-					util_expl_y_offset += (key.touch_y_move * scroll_speed / 8);
+				uint32_t new_offset = util_expl_y_offset;
+				int32_t changes = 0;
 
-				Draw_set_refresh_needed(true);
-			}
-			else if (key.touch_y_move < 0)
-			{
-				if ((util_expl_y_offset + (key.touch_y_move * scroll_speed / 8)) > -1.0)
-					util_expl_y_offset += (key.touch_y_move * scroll_speed / 8);
+				//Store value less than integer (e.g. if input value is 4.6
+				//remaining will be 0.6 and changes will be 4).
+				util_expl_move_remaining += (key.touch_y_move * scroll_speed / 8);
+				changes = (int32_t)util_expl_move_remaining;
+				util_expl_move_remaining -= changes;
+
+				if(changes >= 0)
+				{
+					if((new_offset + changes) > (util_expl_num_of_files - DEF_EXPL_NUM_OF_DISPLAYED_ITEMS))
+						new_offset = (util_expl_num_of_files - DEF_EXPL_NUM_OF_DISPLAYED_ITEMS);
+					else
+						new_offset += changes;
+				}
+				else
+				{
+					if(new_offset >= (uint32_t)(-changes))
+						new_offset -= (uint32_t)(-changes);
+					else
+						new_offset = 0;
+				}
+
+				util_expl_y_offset = new_offset;
 
 				Draw_set_refresh_needed(true);
 			}
 		}
 		else
 		{
-			for (uint8_t i = 0; i < 16; i++)
+			for (uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
 			{
-				if(Util_hid_is_pressed(key, util_expl_file_button[i]) && util_expl_num_of_file > (i + (uint32_t)util_expl_y_offset))
+				if(Util_hid_is_pressed(key, util_expl_file_button[i]) && util_expl_num_of_files > (i + util_expl_y_offset))
 				{
+					//User has selected the button.
 					util_expl_file_button[i].selected = true;
 					Draw_set_refresh_needed(true);
 				}
 				else if (key.p_a || (Util_hid_is_released(key, util_expl_file_button[i]) && util_expl_file_button[i].selected))
 				{
-					if (key.p_a || i == util_expl_selected_file_num)
+					if (key.p_a || i == util_expl_active_index)
 					{
-						uint32_t selected_index = (util_expl_y_offset + util_expl_selected_file_num);
+						//User has released the button on the active item (i.e. file or dir), open it.
+						uint32_t selected_index = (util_expl_y_offset + util_expl_active_index);
 						Str_data dir = { 0, };
 
 						Util_expl_query_current_dir(&dir);
@@ -446,8 +477,8 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 									Util_str_set(&dir, "/");
 
 								Util_str_set(&util_expl_current_dir, dir.buffer);
-								util_expl_y_offset = 0.0;
-								util_expl_selected_file_num = 0.0;
+								util_expl_y_offset = 0;
+								util_expl_active_index = 0;
 								util_expl_read_dir_request = true;
 							}
 							else if (util_expl_files.type[selected_index] & EXPL_FILE_TYPE_DIR)
@@ -456,8 +487,8 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 								Util_str_format_append(&dir, "%s/", util_expl_files.name[selected_index].buffer);
 
 								Util_str_set(&util_expl_current_dir, dir.buffer);
-								util_expl_y_offset = 0.0;
-								util_expl_selected_file_num = 0.0;
+								util_expl_y_offset = 0;
+								util_expl_active_index = 0;
 								util_expl_read_dir_request = true;
 							}
 							else
@@ -482,8 +513,9 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 					}
 					else
 					{
-						if (util_expl_num_of_file > (i + (uint32_t)util_expl_y_offset))
-							util_expl_selected_file_num = i;
+						//User has released the button on inactive item, mark selected item as active.
+						if (util_expl_num_of_files > (i + util_expl_y_offset))
+							util_expl_active_index = i;
 
 						Draw_set_refresh_needed(true);
 					}
@@ -534,8 +566,8 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 					Util_str_set(&dir, "/");
 
 				Util_str_set(&util_expl_current_dir, dir.buffer);
-				util_expl_y_offset = 0.0;
-				util_expl_selected_file_num = 0.0;
+				util_expl_y_offset = 0;
+				util_expl_active_index = 0;
 				util_expl_read_dir_request = true;
 				Draw_set_refresh_needed(true);
 			}
@@ -544,44 +576,56 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 		}
 		else if (key.p_d_down || key.h_d_down || key.p_c_down || key.h_c_down || key.p_d_right || key.h_d_right || key.p_c_right || key.h_c_right)
 		{
-			if ((util_expl_selected_file_num + 1.0) < 16.0 && (util_expl_selected_file_num + 1.0) < util_expl_num_of_file)
+			if (util_expl_active_index < (DEF_EXPL_NUM_OF_DISPLAYED_ITEMS - 1) && ((uint32_t)util_expl_active_index + 1) < util_expl_num_of_files)
 			{
 				if (key.p_d_down || key.h_d_down || key.p_c_down || key.h_c_down)
-					util_expl_selected_file_num += 0.125;
+				{
+					if((key.held_time % 8) == 0)
+						util_expl_active_index++;
+				}
 				else if (key.p_d_right || key.h_d_right || key.p_c_right || key.h_c_right)
-					util_expl_selected_file_num += 1.0;
+					util_expl_active_index++;
 			}
-			else if ((util_expl_y_offset + util_expl_selected_file_num + 1.0) < util_expl_num_of_file)
+			else if ((util_expl_y_offset + util_expl_active_index + 1) < util_expl_num_of_files)
 			{
 				if (key.p_d_down || key.h_d_down || key.p_c_down || key.h_c_down)
-					util_expl_y_offset += 0.125;
+				{
+					if((key.held_time % 8) == 0)
+						util_expl_y_offset++;
+				}
 				else if (key.p_d_right || key.h_d_right || key.p_c_right || key.h_c_right)
-					util_expl_y_offset += 1.0;
+					util_expl_y_offset++;
 			}
 			Draw_set_refresh_needed(true);
 		}
 		else if (key.p_d_up || key.h_d_up || key.p_c_up || key.h_c_up || key.p_d_left || key.h_d_left || key.p_c_left || key.h_c_left)
 		{
-			if ((util_expl_selected_file_num - 1.0) > -1.0)
+			if (util_expl_active_index > 0)
 			{
 				if (key.p_d_up || key.h_d_up || key.p_c_up || key.h_c_up)
-					util_expl_selected_file_num -= 0.125;
+				{
+					if((key.held_time % 8) == 0)
+						util_expl_active_index--;
+				}
 				else if (key.p_d_left || key.h_d_left || key.p_c_left || key.h_c_left)
-					util_expl_selected_file_num -= 1.0;
+					util_expl_active_index--;
 			}
-			else if ((util_expl_y_offset - 1.0) > -1.0)
+			else if (util_expl_y_offset > 0)
 			{
 				if (key.p_d_up || key.h_d_up || key.p_c_up || key.h_c_up)
-					util_expl_y_offset -= 0.125;
+				{
+					if((key.held_time % 8) == 0)
+						util_expl_y_offset--;
+				}
 				else if (key.p_d_left || key.h_d_left || key.p_c_left || key.h_c_left)
-					util_expl_y_offset -= 1.0;
+					util_expl_y_offset--;
 			}
 			Draw_set_refresh_needed(true);
 		}
 
 		if(!key.p_touch && !key.h_touch)
 		{
-			for(uint8_t i = 0; i < 16; i++)
+			for(uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
 			{
 				if(util_expl_file_button[i].selected)
 					Draw_set_refresh_needed(true);
@@ -590,17 +634,6 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 			}
 			util_expl_scroll_mode = false;
 		}
-
-		if (util_expl_selected_file_num <= -1)
-			util_expl_selected_file_num = 0;
-		else if (util_expl_selected_file_num >= 16)
-			util_expl_selected_file_num = 15;
-		else if (util_expl_selected_file_num >= util_expl_num_of_file)
-			util_expl_selected_file_num = util_expl_num_of_file - 1;
-		if (util_expl_y_offset <= -1)
-			util_expl_y_offset = 0;
-		else if (util_expl_y_offset + util_expl_selected_file_num >= util_expl_num_of_file)
-			util_expl_y_offset = util_expl_num_of_file - 16;
 	}
 }
 
@@ -788,10 +821,10 @@ static void Util_expl_read_dir_callback(void)
 					source_index++;
 				}
 
-				util_expl_num_of_file = (detected_files + offset);
+				util_expl_num_of_files = (detected_files + offset);
 			}
 			else
-				util_expl_num_of_file = 1;
+				util_expl_num_of_files = 1;
 
 			for(uint32_t i = 0; i < DEF_EXPL_MAX_FILES; i++)
 				Util_str_free(&files.name[i]);
@@ -800,9 +833,9 @@ static void Util_expl_read_dir_callback(void)
 			Draw_set_refresh_needed(true);
 			util_expl_read_dir_request = false;
 		}
-		else if(util_expl_check_file_size_index < util_expl_num_of_file)
+		else if(util_expl_check_file_size_index < util_expl_num_of_files)
 		{
-			while(util_expl_check_file_size_index < util_expl_num_of_file)
+			while(util_expl_check_file_size_index < util_expl_num_of_files)
 			{
 				if(util_expl_files.type[util_expl_check_file_size_index] & EXPL_FILE_TYPE_FILE || util_expl_files.type[util_expl_check_file_size_index] & EXPL_FILE_TYPE_NONE)
 				{
