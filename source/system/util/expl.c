@@ -15,6 +15,7 @@
 #include "system/util/log.h"
 #include "system/util/str.h"
 #include "system/util/util.h"
+#include "system/util/watch.h"
 
 //Defines.
 #define DEF_EXPL_SORT_TYPE_UNDEFINED		(uint8_t)(0)	//Unknown.
@@ -23,6 +24,36 @@
 #define DEF_EXPL_SORT_TYPE_ALPHABET			(uint8_t)(3)	//a-z or A-Z.
 
 #define DEF_EXPL_NUM_OF_DISPLAYED_ITEMS		(uint8_t)(16)	//Number of displayed files on the screen.
+
+//Close.
+#define DEF_EXPL_HID_NOT_INITED_CLOSE_CFM(k)		(bool)(DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a))
+//Cancel (close).
+#define DEF_EXPL_HID_CANCEL_CFM(k)					(bool)(DEF_HID_PR_EM(k.y, 1) || DEF_HID_HD(k.y))
+//File selection.
+#define DEF_EXPL_HID_FILE_SELECTED_TOUCH(k, id)		(bool)((DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(util_expl_file_button[id], k)))
+#define DEF_EXPL_HID_FILE_CONFIRMED_BUTTON(k)		(bool)(DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a))
+#define DEF_EXPL_HID_FILE_CONFIRMED_TOUCH(k, id)	(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(util_expl_file_button[id], k))
+#define DEF_EXPL_HID_FILE_DESELECTED_TOUCH(k)		(bool)(DEF_HID_PHY_NP(k.touch))
+//Back to parent directory.
+#define DEF_EXPL_HID_PARENT_DIR_CFM(k)				(bool)(DEF_HID_PR_EM(k.b, 1) || DEF_HID_HD(k.b))
+//Scroll mode.
+#define DEF_EXPL_HID_SCROLL_MODE_SEL(k)				(bool)(DEF_HID_PHY_HE(k.touch) && ((abs(k.touch_x_initial - k.touch_x) > 6) || (abs(k.touch_y_initial - k.touch_y) > 6)))
+#define DEF_EXPL_HID_SCROLL_MODE_DESEL(k)			(bool)(DEF_HID_PHY_NP(k.touch))
+//Go to next file.
+#define DEF_EXPL_HID_NEXT_FILE_PRE_CFM(k)			(bool)(DEF_HID_PHY_PR(k.d_down) || DEF_HID_PHY_PR(k.c_down) || DEF_HID_PHY_PR(k.d_right) \
+|| DEF_HID_PHY_PR(k.c_right) || DEF_HID_HE(k.d_down) || DEF_HID_HE(k.c_down) || DEF_HID_PHY_HE(k.d_right) || DEF_HID_PHY_HE(k.c_right))
+
+#define DEF_EXPL_HID_NEXT_FILE_UPDATE_RANGE(k)		DEF_HID_HE_NEW_INTERVAL(k.d_down, 100, is_new_range[0]); DEF_HID_HE_NEW_INTERVAL(k.c_down, 200, is_new_range[1])
+#define DEF_EXPL_HID_NEXT_FILE_CFM(k)				(bool)(DEF_HID_PHY_PR(k.d_down) || DEF_HID_PHY_PR(k.c_down) || DEF_HID_PHY_PR(k.d_right) \
+|| DEF_HID_PHY_PR(k.c_right) || DEF_HID_PHY_HE(k.d_right) || DEF_HID_PHY_HE(k.c_right) || is_new_range[0] || is_new_range[1])
+
+//Go to previous file.
+#define DEF_EXPL_HID_PRE_FILE_PRE_CFM(k)			(bool)(DEF_HID_PHY_PR(k.d_up) || DEF_HID_PHY_PR(k.c_up) || DEF_HID_PHY_PR(k.d_left) \
+|| DEF_HID_PHY_PR(k.c_left) || DEF_HID_HE(k.d_up) || DEF_HID_HE(k.c_up) || DEF_HID_PHY_HE(k.d_left) || DEF_HID_PHY_HE(k.c_left))
+
+#define DEF_EXPL_HID_PRE_FILE_UPDATE_RANGE(k)		DEF_HID_HE_NEW_INTERVAL(k.d_up, 100, is_new_range[0]); DEF_HID_HE_NEW_INTERVAL(k.c_up, 200, is_new_range[1])
+#define DEF_EXPL_HID_PRE_FILE_CFM(k)				(bool)(DEF_HID_PHY_PR(k.d_up) || DEF_HID_PHY_PR(k.c_up) || DEF_HID_PHY_PR(k.d_left) \
+|| DEF_HID_PHY_PR(k.c_left) || DEF_HID_PHY_HE(k.d_left) || DEF_HID_PHY_HE(k.c_left) || is_new_range[0] || is_new_range[1])
 
 //Typedefs.
 typedef struct
@@ -116,6 +147,12 @@ uint32_t Util_expl_init(void)
 		goto other;
 	}
 
+	Util_watch_add(WATCH_HANDLE_GLOBAL, &util_expl_show_flag, sizeof(util_expl_show_flag));
+	Util_watch_add(WATCH_HANDLE_EXPL, &util_expl_y_offset, sizeof(util_expl_y_offset));
+	Util_watch_add(WATCH_HANDLE_EXPL, &util_expl_active_index, sizeof(util_expl_active_index));
+	for (uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
+		Util_watch_add(WATCH_HANDLE_EXPL, &util_expl_file_button[i].selected, sizeof(util_expl_file_button[i].selected));
+
 	util_expl_init = true;
 	return DEF_SUCCESS;
 
@@ -138,6 +175,12 @@ void Util_expl_exit(void)
 	Util_str_free(&util_expl_current_dir);
 	for(uint32_t i = 0; i < DEF_EXPL_MAX_FILES; i++)
 		Util_str_free(&util_expl_files.name[i]);
+
+	Util_watch_remove(WATCH_HANDLE_GLOBAL, &util_expl_show_flag);
+	Util_watch_remove(WATCH_HANDLE_EXPL, &util_expl_y_offset);
+	Util_watch_remove(WATCH_HANDLE_EXPL, &util_expl_active_index);
+	for (uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
+		Util_watch_remove(WATCH_HANDLE_EXPL, &util_expl_file_button[i].selected);
 }
 
 uint32_t Util_expl_query_current_dir(Str_data* dir_name)
@@ -376,21 +419,40 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 {
 	if(!util_expl_init)
 	{
-		if (key.p_a)
+		//Execute functions if conditions are satisfied.
+		if (DEF_EXPL_HID_NOT_INITED_CLOSE_CFM(key))
 		{
 			util_expl_show_flag = false;
-			Draw_set_refresh_needed(true);
+			//Reset key state on scene change.
+			Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 		}
 		return;
 	}
 
-	if (key.p_y)
+	//Notify user that button is being pressed.
+	if (!util_expl_read_dir_request)
+	{
+		if(!util_expl_scroll_mode)
+		{
+			for (uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
+			{
+				if(DEF_EXPL_HID_FILE_SELECTED_TOUCH(key, i) && util_expl_num_of_files > (i + util_expl_y_offset))
+					util_expl_file_button[i].selected = true;
+			}
+		}
+	}
+	if(DEF_EXPL_HID_SCROLL_MODE_SEL(key))
+		util_expl_scroll_mode = true;
+
+	//Execute functions if conditions are satisfied.
+	if (DEF_EXPL_HID_CANCEL_CFM(key))
 	{
 		if(util_expl_cancel_callback)
 			util_expl_cancel_callback();
 
 		util_expl_show_flag = false;
-		Draw_set_refresh_needed(true);
+		//Reset key state on scene change.
+		Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 	}
 	else if (!util_expl_read_dir_request)
 	{
@@ -423,23 +485,15 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 				}
 
 				util_expl_y_offset = new_offset;
-
-				Draw_set_refresh_needed(true);
 			}
 		}
 		else
 		{
 			for (uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
 			{
-				if(Util_hid_is_pressed(key, util_expl_file_button[i]) && util_expl_num_of_files > (i + util_expl_y_offset))
+				if (DEF_EXPL_HID_FILE_CONFIRMED_TOUCH(key, i) || DEF_EXPL_HID_FILE_CONFIRMED_BUTTON(key))
 				{
-					//User has selected the button.
-					util_expl_file_button[i].selected = true;
-					Draw_set_refresh_needed(true);
-				}
-				else if (key.p_a || (Util_hid_is_released(key, util_expl_file_button[i]) && util_expl_file_button[i].selected))
-				{
-					if (key.p_a || i == util_expl_active_index)
+					if (DEF_EXPL_HID_FILE_CONFIRMED_BUTTON(key) || (i == util_expl_active_index))
 					{
 						//User has released the button on the active item (i.e. file or dir), open it.
 						uint32_t selected_index = (util_expl_y_offset + util_expl_active_index);
@@ -503,32 +557,26 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 
 								Util_str_free(&file);
 								util_expl_show_flag = false;
-								Draw_set_refresh_needed(true);
 							}
 						}
 
 						Util_str_free(&dir);
-
-						break;
 					}
 					else
 					{
 						//User has released the button on inactive item, mark selected item as active.
 						if (util_expl_num_of_files > (i + util_expl_y_offset))
 							util_expl_active_index = i;
-
-						Draw_set_refresh_needed(true);
 					}
-				}
-				else if(!Util_hid_is_held(key, util_expl_file_button[i]) && util_expl_file_button[i].selected)
-				{
-					util_expl_file_button[i].selected = false;
-					util_expl_scroll_mode = true;
-					Draw_set_refresh_needed(true);
+
+					//Reset key state on scene change.
+					Util_hid_reset_key_state(HID_KEY_BIT_ALL);
+
+					break;
 				}
 			}
 		}
-		if (key.p_b)
+		if (DEF_EXPL_HID_PARENT_DIR_CFM(key))
 		{
 			bool is_root_dir = false;
 			Str_data dir = { 0, };
@@ -569,72 +617,48 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 				util_expl_y_offset = 0;
 				util_expl_active_index = 0;
 				util_expl_read_dir_request = true;
-				Draw_set_refresh_needed(true);
 			}
 
 			Util_str_free(&dir);
 		}
-		else if (key.p_d_down || key.h_d_down || key.p_c_down || key.h_c_down || key.p_d_right || key.h_d_right || key.p_c_right || key.h_c_right)
+		else if (DEF_EXPL_HID_NEXT_FILE_PRE_CFM(key))
 		{
-			if (util_expl_active_index < (DEF_EXPL_NUM_OF_DISPLAYED_ITEMS - 1) && ((uint32_t)util_expl_active_index + 1) < util_expl_num_of_files)
+			bool is_new_range[2] = { 0, };//Used by UPDATE_RANGE and CONFIRMED macro.
+
+			DEF_EXPL_HID_NEXT_FILE_UPDATE_RANGE(key);
+
+			if (DEF_EXPL_HID_NEXT_FILE_CFM(key))
 			{
-				if (key.p_d_down || key.h_d_down || key.p_c_down || key.h_c_down)
-				{
-					if((key.held_time % 8) == 0)
-						util_expl_active_index++;
-				}
-				else if (key.p_d_right || key.h_d_right || key.p_c_right || key.h_c_right)
-					util_expl_active_index++;
-			}
-			else if ((util_expl_y_offset + util_expl_active_index + 1) < util_expl_num_of_files)
-			{
-				if (key.p_d_down || key.h_d_down || key.p_c_down || key.h_c_down)
-				{
-					if((key.held_time % 8) == 0)
-						util_expl_y_offset++;
-				}
-				else if (key.p_d_right || key.h_d_right || key.p_c_right || key.h_c_right)
+				if (util_expl_active_index < (DEF_EXPL_NUM_OF_DISPLAYED_ITEMS - 1) && ((uint32_t)util_expl_active_index + 1) < util_expl_num_of_files)
+					util_expl_active_index++; 
+				else if ((util_expl_y_offset + util_expl_active_index + 1) < util_expl_num_of_files)
 					util_expl_y_offset++;
 			}
-			Draw_set_refresh_needed(true);
 		}
-		else if (key.p_d_up || key.h_d_up || key.p_c_up || key.h_c_up || key.p_d_left || key.h_d_left || key.p_c_left || key.h_c_left)
+		else if (DEF_EXPL_HID_PRE_FILE_PRE_CFM(key))
 		{
-			if (util_expl_active_index > 0)
+			bool is_new_range[2] = { 0, };//Used by UPDATE_RANGE and CONFIRMED macro.
+
+			DEF_EXPL_HID_PRE_FILE_UPDATE_RANGE(key);
+
+			if (DEF_EXPL_HID_PRE_FILE_CFM(key))
 			{
-				if (key.p_d_up || key.h_d_up || key.p_c_up || key.h_c_up)
-				{
-					if((key.held_time % 8) == 0)
-						util_expl_active_index--;
-				}
-				else if (key.p_d_left || key.h_d_left || key.p_c_left || key.h_c_left)
+				if (util_expl_active_index > 0)
 					util_expl_active_index--;
-			}
-			else if (util_expl_y_offset > 0)
-			{
-				if (key.p_d_up || key.h_d_up || key.p_c_up || key.h_c_up)
-				{
-					if((key.held_time % 8) == 0)
-						util_expl_y_offset--;
-				}
-				else if (key.p_d_left || key.h_d_left || key.p_c_left || key.h_c_left)
+				else if (util_expl_y_offset > 0)
 					util_expl_y_offset--;
 			}
-			Draw_set_refresh_needed(true);
-		}
-
-		if(!key.p_touch && !key.h_touch)
-		{
-			for(uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
-			{
-				if(util_expl_file_button[i].selected)
-					Draw_set_refresh_needed(true);
-
-				util_expl_file_button[i].selected = false;
-			}
-			util_expl_scroll_mode = false;
 		}
 	}
+
+	//Notify user that button is NOT being pressed anymore.
+	if(DEF_EXPL_HID_FILE_DESELECTED_TOUCH(key) || util_expl_scroll_mode)
+	{
+		for(uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
+			util_expl_file_button[i].selected = false;
+	}
+	if(DEF_EXPL_HID_SCROLL_MODE_DESEL(key))
+		util_expl_scroll_mode = false;
 }
 
 static void Util_expl_generate_file_type_string(Expl_file_type type, Str_data* type_string)
@@ -775,13 +799,14 @@ static void Util_expl_read_dir_callback(void)
 			//We don't want to fly our stack.
 			static Util_expl_files files = { 0, };
 
-			Draw_set_refresh_needed(true);
 			for (uint32_t i = 0; i < DEF_EXPL_MAX_FILES; i++)
 			{
 				Util_str_clear(&util_expl_files.name[i]);
 				util_expl_files.type[i] = EXPL_FILE_TYPE_NONE;
 				util_expl_files.size[i] = 0;
 			}
+			Draw_set_refresh_needed(true);
+
 			memset(&files, 0x00, sizeof(files));
 
 			if(strcmp(util_expl_current_dir.buffer, "/") == 0)

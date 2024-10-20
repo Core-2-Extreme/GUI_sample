@@ -11,9 +11,19 @@
 #include "system/util/hid.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
+#include "system/util/watch.h"
 
 //Defines.
-//N/A.
+//Close.
+#define DEF_ERR_HID_NOT_INITED_CLOSE_CFM(k)	(bool)(DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a))
+//OK (close).
+#define DEF_ERR_HID_OK_SEL(k)				(bool)((DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(util_err_ok_button, k)) || DEF_HID_PHY_PR(k.a))
+#define DEF_ERR_HID_OK_CFM(k)				(bool)(((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(util_err_ok_button, k)) || (DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a)))
+#define DEF_ERR_HID_OK_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch) && DEF_HID_PHY_NP(k.a))
+//Save.
+#define DEF_ERR_HID_SAVE_SEL(k)				(bool)((DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(util_err_save_button, k)) || DEF_HID_PHY_PR(k.x))
+#define DEF_ERR_HID_SAVE_CFM(k)				(bool)(((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(util_err_save_button, k)) || (DEF_HID_PR_EM(k.x, 1) || DEF_HID_HD(k.x)))
+#define DEF_ERR_HID_SAVE_DESEL(k)			(bool)(DEF_HID_PHY_NP(k.touch) && DEF_HID_PHY_NP(k.x))
 
 //Typedefs.
 //N/A.
@@ -63,6 +73,10 @@ uint32_t Util_err_init(void)
 		goto error_other;
 	}
 
+	Util_watch_add(WATCH_HANDLE_GLOBAL, &util_err_show_flag, sizeof(util_err_show_flag));
+	Util_watch_add(WATCH_HANDLE_ERR, &util_err_ok_button.selected, sizeof(util_err_ok_button.selected));
+	Util_watch_add(WATCH_HANDLE_ERR, &util_err_save_button.selected, sizeof(util_err_save_button.selected));
+
 	util_err_init = true;
 	return result;
 
@@ -89,9 +103,13 @@ void Util_err_exit(void)
 		Util_str_free(str_list[i]);
 
 	Menu_remove_worker_thread_callback(Util_err_save_callback);
+
+	Util_watch_remove(WATCH_HANDLE_GLOBAL, &util_err_show_flag);
+	Util_watch_remove(WATCH_HANDLE_ERR, &util_err_ok_button.selected);
+	Util_watch_remove(WATCH_HANDLE_ERR, &util_err_save_button.selected);
 }
 
-bool Util_err_query_error_show_flag(void)
+bool Util_err_query_show_flag(void)
 {
 	if(!util_err_init)
 		return false;
@@ -118,7 +136,7 @@ void Util_err_set_error_message(const char* summary, const char* description, co
 		Util_str_format(&util_err_code, "0x%" PRIX32, error_code);
 }
 
-void Util_err_set_error_show_flag(bool flag)
+void Util_err_set_show_flag(bool flag)
 {
 	if(!util_err_init)
 		return;
@@ -197,42 +215,37 @@ void Util_err_main(Hid_info key)
 {
 	if(!util_err_init)
 	{
-		if (key.p_a)
+		//Execute functions if conditions are satisfied.
+		if (DEF_ERR_HID_NOT_INITED_CLOSE_CFM(key))
 		{
 			util_err_show_flag = false;
-			Draw_set_refresh_needed(true);
+			//Reset key state on scene change.
+			Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 		}
 		return;
 	}
 
-	if(Util_hid_is_pressed(key, util_err_ok_button) && !util_err_save_request)
-	{
+	//Notify user that button is being pressed.
+	if(DEF_ERR_HID_OK_SEL(key) && !util_err_save_request)
 		util_err_ok_button.selected = true;
-		Draw_set_refresh_needed(true);
-	}
-	else if ((key.p_a || (Util_hid_is_released(key, util_err_ok_button) && util_err_ok_button.selected)) && !util_err_save_request)
+	if(DEF_ERR_HID_SAVE_SEL(key) && !util_err_save_request)
+		util_err_save_button.selected = true;
+
+	//Execute functions if conditions are satisfied.
+	if (DEF_ERR_HID_OK_CFM(key) && !util_err_save_request)
 	{
 		util_err_show_flag = false;
-		Draw_set_refresh_needed(true);
+		//Reset key state on scene change.
+		Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 	}
-	else if(Util_hid_is_pressed(key, util_err_save_button) && !util_err_save_request)
-	{
-		util_err_save_button.selected = true;
-		Draw_set_refresh_needed(true);
-	}
-	else if ((key.p_x || (Util_hid_is_released(key, util_err_save_button) && util_err_save_button.selected)) && !util_err_save_request)
-	{
+	else if (DEF_ERR_HID_SAVE_CFM(key) && !util_err_save_request)
 		Util_err_save_error();
-		Draw_set_refresh_needed(true);
-	}
 
-	if(!key.p_touch && !key.h_touch)
-	{
-		if(util_err_ok_button.selected || util_err_save_button.selected)
-			Draw_set_refresh_needed(true);
-
-		util_err_ok_button.selected = util_err_save_button.selected = false;
-	}
+	//Notify user that button is NOT being pressed anymore.
+	if(DEF_ERR_HID_OK_DESEL(key))
+		util_err_ok_button.selected = false;
+	if(DEF_ERR_HID_SAVE_DESEL(key))
+		util_err_save_button.selected = false;
 }
 
 void Util_err_draw(void)
@@ -299,7 +312,7 @@ static void Util_err_save_callback(void)
 			if(result != DEF_SUCCESS)
 				DEF_LOG_RESULT(Util_file_save_to_file, false, result);
 
-			Util_err_set_error_show_flag(false);
+			Util_err_set_show_flag(false);
 			util_err_save_request = false;
 		}
 

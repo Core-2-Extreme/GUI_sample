@@ -65,6 +65,14 @@ uint32_t Util_hid_query_key_state(Hid_info* out_key_state);
 void Util_hid_reset_afk_time(void);
 
 /**
+ * @brief Reset key state to NOT_PRESSED.
+ * Do nothing if hid api is not initialized.
+ * @param keys (in) Key to reset.
+ * @note Thread safe
+*/
+void Util_hid_reset_key_state(Hid_key_bit keys);
+
+/**
  * @brief Add hid callback.
  * Always return false if hid api is not initialized.
  * @param callback (in) Pointer for callback function.

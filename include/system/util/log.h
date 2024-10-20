@@ -34,7 +34,7 @@ uint32_t Util_log_dump(const char* file_name, const char* dir_path);
  * @return Internal log show flag.
  * @warning Thread dangerous (untested)
 */
-bool Util_log_query_log_show_flag(void);
+bool Util_log_query_show_flag(void);
 
 /**
  * @brief Set log show flag.
@@ -42,7 +42,7 @@ bool Util_log_query_log_show_flag(void);
  * @param flag (in) When true, internal log show flag will be set to true otherwise set to false.
  * @warning Thread dangerous (untested)
 */
-void Util_log_set_log_show_flag(bool flag);
+void Util_log_set_show_flag(bool flag);
 
 /**
  * @brief Save a new log.

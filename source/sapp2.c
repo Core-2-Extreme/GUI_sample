@@ -22,7 +22,33 @@
 #include "system/util/watch.h"
 
 //Defines.
-//N/A.
+//System UI.
+#define DEF_SAPP2_HID_SYSTEM_UI_SEL(k)			(bool)((DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), k)) || DEF_HID_PHY_PR(k.start))
+#define DEF_SAPP2_HID_SYSTEM_UI_CFM(k)			(bool)(((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), k)) || (DEF_HID_PR_EM(k.start, 1) || DEF_HID_HD(k.start)))
+#define DEF_SAPP2_HID_SYSTEM_UI_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch) && DEF_HID_PHY_NP(k.start))
+//Enter sleep mode.
+#define DEF_SAPP2_HID_SLEEP_WAKE_SHELL_CFM(k)	(bool)(DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a))
+#define DEF_SAPP2_HID_SLEEP_WAKE_BUTTON_CFM(k)	(bool)(DEF_HID_PR_EM(k.b, 1) || DEF_HID_HD(k.b))
+#define DEF_SAPP2_HID_SLEEP_WAKE_ANY_CFM(k)		(bool)(DEF_HID_PR_EM(k.y, 1) || DEF_HID_HD(k.y))
+//Toggle Wi-Fi state.
+#define DEF_SAPP2_HID_TOGGLE_WIFI_CFM(k)		(bool)(DEF_HID_PR_EM(k.x, 1) || DEF_HID_HD(k.x))
+//Change brightness (top LCD).
+#define DEF_SAPP2_HID_INCREASE_BRIGHTNESS_TOP_PRE_CFM(k)			(bool)(DEF_HID_PHY_PR(k.c_up) || DEF_HID_HE(k.c_up))
+#define DEF_SAPP2_HID_INCREASE_BRIGHTNESS_TOP_UPDATE_RANGE(k)		DEF_HID_HE_NEW_INTERVAL(k.c_up, 150, is_new_range)
+#define DEF_SAPP2_HID_INCREASE_BRIGHTNESS_TOP_CFM(k)				(bool)(DEF_HID_PHY_PR(k.c_up) || DEF_HID_HE_MT(k.c_up, 1000) || is_new_range)
+#define DEF_SAPP2_HID_DECREASE_BRIGHTNESS_TOP_PRE_CFM(k)			(bool)(DEF_HID_PHY_PR(k.c_down) || DEF_HID_HE(k.c_down))
+#define DEF_SAPP2_HID_DECREASE_BRIGHTNESS_TOP_UPDATE_RANGE(k)		DEF_HID_HE_NEW_INTERVAL(k.c_down, 150, is_new_range)
+#define DEF_SAPP2_HID_DECREASE_BRIGHTNESS_TOP_CFM(k)				(bool)(DEF_HID_PHY_PR(k.c_down) || DEF_HID_HE_MT(k.c_down, 1000) || is_new_range)
+//Change brightness (bottom LCD).
+#define DEF_SAPP2_HID_INCREASE_BRIGHTNESS_BOTTOM_PRE_CFM(k)			(bool)(DEF_HID_PHY_PR(k.d_up) || DEF_HID_HE(k.d_up))
+#define DEF_SAPP2_HID_INCREASE_BRIGHTNESS_BOTTOM_UPDATE_RANGE(k)	DEF_HID_HE_NEW_INTERVAL(k.d_up, 150, is_new_range)
+#define DEF_SAPP2_HID_INCREASE_BRIGHTNESS_BOTTOM_CFM(k)				(bool)(DEF_HID_PHY_PR(k.d_up) || DEF_HID_HE_MT(k.d_up, 1000) || is_new_range)
+#define DEF_SAPP2_HID_DECREASE_BRIGHTNESS_BOTTOM_PRE_CFM(k)			(bool)(DEF_HID_PHY_PR(k.d_down) || DEF_HID_HE(k.d_down))
+#define DEF_SAPP2_HID_DECREASE_BRIGHTNESS_BOTTOM_UPDATE_RANGE(k)	DEF_HID_HE_NEW_INTERVAL(k.d_down, 150, is_new_range)
+#define DEF_SAPP2_HID_DECREASE_BRIGHTNESS_BOTTOM_CFM(k)				(bool)(DEF_HID_PHY_PR(k.d_down) || DEF_HID_HE_MT(k.d_down, 1000) || is_new_range)
+//Turn off LCDs.
+#define DEF_SAPP2_HID_TURN_OFF_TOP_CFM(k)		(bool)(DEF_HID_PR_EM(k.l, 1) || DEF_HID_HD(k.l))
+#define DEF_SAPP2_HID_TURN_OFF_BOTTOM_CFM(k)	(bool)(DEF_HID_PR_EM(k.r, 1) || DEF_HID_HD(k.r))
 
 //Typedefs.
 typedef enum
@@ -97,38 +123,61 @@ void Sapp2_hid(Hid_info key)
 
 	Sem_get_config(&config);
 
-	if(Util_err_query_error_show_flag())
+	if(Util_err_query_show_flag())
 		Util_err_main(key);
 	else if(Util_expl_query_show_flag())
 		Util_expl_main(key, config.scroll_speed);
 	else
 	{
+		bool is_new_range = false;//Used by UPDATE_RANGE and CONFIRMED macro.
 		Sapp2_command command = NONE;
 
-		if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
+		//Notify user that button is being pressed.
+		if(DEF_SAPP2_HID_SYSTEM_UI_SEL(key))
 			Draw_get_bot_ui_button()->selected = true;
-		else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
-			Sapp2_suspend();
 
-		if(key.p_a)
+		//Execute functions if conditions are satisfied.
+		if(DEF_SAPP2_HID_SYSTEM_UI_CFM(key))
+			Sapp2_suspend();
+		else if(DEF_SAPP2_HID_SLEEP_WAKE_SHELL_CFM(key))
 			command = SLEEP_WAKE_UP_WITH_SHELL_REQUEST;
-		else if(key.p_b)
+		else if(DEF_SAPP2_HID_SLEEP_WAKE_BUTTON_CFM(key))
 			command = SLEEP_WAKE_UP_WITH_BUTTON_REQUEST;
-		else if(key.p_y)
+		else if(DEF_SAPP2_HID_SLEEP_WAKE_ANY_CFM(key))
 			command = SLEEP_WAKE_UP_WITH_SHELL_OR_BUTTON_REQUEST;
-		else if(key.p_x)
+		else if(DEF_SAPP2_HID_TOGGLE_WIFI_CFM(key))
 			command = CHANGE_WIFI_STATE_REQUEST;
-		else if(key.p_c_up || (key.h_c_up && key.held_time >= 18 && key.held_time % 3 == 0))
-			command = INCREASE_TOP_SCREEN_BRIGHTNESS_REQUEST;
-		else if(key.p_c_down || (key.h_c_down && key.held_time >= 18 && key.held_time % 3 == 0))
-			command = DECREASE_TOP_SCREEN_BRIGHTNESS_REQUEST;
-		else if(key.p_d_up || (key.h_d_up && key.held_time >= 18 && key.held_time % 3 == 0))
-			command = INCREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST;
-		else if(key.p_d_down || (key.h_d_down && key.held_time >= 18 && key.held_time % 3 == 0))
-			command = DECREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST;
-		else if(key.p_l)
+		else if(DEF_SAPP2_HID_INCREASE_BRIGHTNESS_TOP_PRE_CFM(key))
+		{
+			DEF_SAPP2_HID_INCREASE_BRIGHTNESS_TOP_UPDATE_RANGE(key);
+
+			if(DEF_SAPP2_HID_INCREASE_BRIGHTNESS_TOP_CFM(key))
+				command = INCREASE_TOP_SCREEN_BRIGHTNESS_REQUEST;
+		}
+		else if(DEF_SAPP2_HID_DECREASE_BRIGHTNESS_TOP_PRE_CFM(key))
+		{
+			DEF_SAPP2_HID_DECREASE_BRIGHTNESS_TOP_UPDATE_RANGE(key);
+
+			if(DEF_SAPP2_HID_DECREASE_BRIGHTNESS_TOP_CFM(key))
+				command = DECREASE_TOP_SCREEN_BRIGHTNESS_REQUEST;
+		}
+		else if(DEF_SAPP2_HID_INCREASE_BRIGHTNESS_BOTTOM_PRE_CFM(key))
+		{
+			DEF_SAPP2_HID_INCREASE_BRIGHTNESS_BOTTOM_UPDATE_RANGE(key);
+
+			if(DEF_SAPP2_HID_INCREASE_BRIGHTNESS_BOTTOM_CFM(key))
+				command = INCREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST;
+		}
+		else if(DEF_SAPP2_HID_DECREASE_BRIGHTNESS_BOTTOM_PRE_CFM(key))
+		{
+			DEF_SAPP2_HID_DECREASE_BRIGHTNESS_BOTTOM_UPDATE_RANGE(key);
+
+			if(DEF_SAPP2_HID_DECREASE_BRIGHTNESS_BOTTOM_CFM(key))
+				command = DECREASE_BOTTOM_SCREEN_BRIGHTNESS_REQUEST;
+		}
+		else if(DEF_SAPP2_HID_TURN_OFF_TOP_CFM(key))
 			command = TURN_TOP_SCREEN_OFF_REQUEST;
-		else if(key.p_r)
+		else if(DEF_SAPP2_HID_TURN_OFF_BOTTOM_CFM(key))
 			command = TURN_BOTTOM_SCREEN_OFF_REQUEST;
 
 		if(command != NONE)
@@ -140,10 +189,11 @@ void Sapp2_hid(Hid_info key)
 		}
 	}
 
-	if(!key.p_touch && !key.h_touch)
+	//Notify user that button is NOT being pressed anymore.
+	if(DEF_SAPP2_HID_SYSTEM_UI_DESEL(key))
 		Draw_get_bot_ui_button()->selected = false;
 
-	if(Util_log_query_log_show_flag())
+	if(Util_log_query_show_flag())
 		Util_log_main(key);
 }
 
@@ -151,6 +201,8 @@ void Sapp2_resume(void)
 {
 	sapp2_thread_suspend = false;
 	sapp2_main_run = true;
+	//Reset key state on scene change.
+	Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 	Draw_set_refresh_needed(true);
 	Menu_suspend();
 }
@@ -243,6 +295,13 @@ void Sapp2_main(void)
 	Sem_config config = { 0, };
 	Sem_state state = { 0, };
 
+	if(Util_err_query_show_flag())
+		watch_handle_bit |= DEF_WATCH_HANDLE_BIT_ERR;
+	if(Util_expl_query_show_flag())
+		watch_handle_bit |= DEF_WATCH_HANDLE_BIT_EXPL;
+	if(Util_log_query_show_flag())
+		watch_handle_bit |= DEF_WATCH_HANDLE_BIT_LOG;
+
 	Sem_get_config(&config);
 	Sem_get_state(&state);
 
@@ -288,7 +347,7 @@ void Sapp2_main(void)
 
 			Draw_c("Changing screen brightness and state may not work on O2DS.", 0, 220, 0.45, 0.45, DEF_DRAW_RED);
 
-			if(Util_log_query_log_show_flag())
+			if(Util_log_query_show_flag())
 				Util_log_draw();
 
 			Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
@@ -303,7 +362,7 @@ void Sapp2_main(void)
 			{
 				Draw_screen_ready(DRAW_SCREEN_TOP_RIGHT, back_color);
 
-				if(Util_log_query_log_show_flag())
+				if(Util_log_query_show_flag())
 					Util_log_draw();
 
 				Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
@@ -325,7 +384,7 @@ void Sapp2_main(void)
 			if(Util_expl_query_show_flag())
 				Util_expl_draw();
 
-			if(Util_err_query_error_show_flag())
+			if(Util_err_query_show_flag())
 				Util_err_draw();
 
 			Draw_bot_ui();
@@ -362,7 +421,7 @@ static void Sapp2_draw_init_exit_message(void)
 
 		Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
-		if(Util_log_query_log_show_flag())
+		if(Util_log_query_show_flag())
 			Util_log_draw();
 
 		Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
@@ -381,7 +440,7 @@ static void Sapp2_draw_init_exit_message(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_TOP_RIGHT, back_color);
 
-			if(Util_log_query_log_show_flag())
+			if(Util_log_query_show_flag())
 				Util_log_draw();
 
 			Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);

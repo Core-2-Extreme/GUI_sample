@@ -25,7 +25,7 @@ void Util_err_exit(void);
  * @return Internal error show flag.
  * @warning Thread dangerous (untested)
 */
-bool Util_err_query_error_show_flag(void);
+bool Util_err_query_show_flag(void);
 
 /**
  * @brief Set error message.
@@ -44,7 +44,7 @@ void Util_err_set_error_message(const char* summary, const char* description, co
  * @param flag (in) When true, internal error show flag will be set to true otherwise set to false.
  * @warning Thread dangerous (untested)
 */
-void Util_err_set_error_show_flag(bool flag);
+void Util_err_set_show_flag(bool flag);
 
 /**
  * @brief Clear error message.

@@ -9,10 +9,23 @@
 #include "system/draw/draw.h"
 #include "system/util/err_types.h"
 #include "system/util/file.h"
+#include "system/util/hid.h"
 #include "system/util/str.h"
+#include "system/util/watch.h"
 
 //Defines.
-#define DEF_LOG_DISPLAYED_LINES 23
+#define DEF_LOG_DISPLAYED_LINES			(uint8_t)(23)
+
+//Close.
+#define DEF_LOG_HID_NOT_INITED_CLOSE_CFM(k)		(bool)(DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a))
+//Next item.
+#define DEF_LOG_HID_NEXT_ITEM_CFM(k)			(bool)(DEF_HID_PHY_PR(k.c_up) || DEF_HID_PHY_HE(k.c_up))
+//Previous item.
+#define DEF_LOG_HID_PRE_ITEM_CFM(k)				(bool)(DEF_HID_PHY_PR(k.c_down) || DEF_HID_PHY_HE(k.c_down))
+//Pan left.
+#define DEF_LOG_HID_PAN_LEFT_CFM(k)				(bool)(DEF_HID_PHY_PR(k.c_left) || DEF_HID_PHY_HE(k.c_left))
+//Pan Right.
+#define DEF_LOG_HID_PAN_RIGHT_CFM(k)			(bool)(DEF_HID_PHY_PR(k.c_right) || DEF_HID_PHY_HE(k.c_right))
 
 //Typedefs.
 //N/A.
@@ -59,6 +72,10 @@ uint32_t Util_log_init(void)
 
 	LightLock_Init(&util_log_mutex);
 
+	Util_watch_add(WATCH_HANDLE_GLOBAL, &util_log_show_flag, sizeof(util_log_show_flag));
+	Util_watch_add(WATCH_HANDLE_LOG, &util_log_x, sizeof(util_log_x));
+	Util_watch_add(WATCH_HANDLE_LOG, &util_log_y, sizeof(util_log_y));
+
 	util_log_init = true;
 	return DEF_SUCCESS;
 
@@ -81,6 +98,10 @@ void Util_log_exit(void)
 
 	for(uint32_t i = 0; i < DEF_LOG_BUFFER_LINES; i++)
 		Util_str_free(&util_log_logs[i]);
+
+	Util_watch_remove(WATCH_HANDLE_GLOBAL, &util_log_show_flag);
+	Util_watch_remove(WATCH_HANDLE_LOG, &util_log_x);
+	Util_watch_remove(WATCH_HANDLE_LOG, &util_log_y);
 }
 
 uint32_t Util_log_dump(const char* file_name, const char* dir_path)
@@ -131,7 +152,7 @@ uint32_t Util_log_dump(const char* file_name, const char* dir_path)
 	return result;
 }
 
-bool Util_log_query_log_show_flag(void)
+bool Util_log_query_show_flag(void)
 {
 	if(!util_log_init)
 		return false;
@@ -139,7 +160,7 @@ bool Util_log_query_log_show_flag(void)
 		return util_log_show_flag;
 }
 
-void Util_log_set_log_show_flag(bool flag)
+void Util_log_set_show_flag(bool flag)
 {
 	if(!util_log_init)
 		return;
@@ -284,47 +305,41 @@ void Util_log_main(Hid_info key)
 {
 	if(!util_log_init)
 	{
-		if (key.p_a)
+		//Execute functions if conditions are satisfied.
+		if (DEF_LOG_HID_NOT_INITED_CLOSE_CFM(key))
 		{
 			util_log_show_flag = false;
-			Draw_set_refresh_needed(true);
+			//Reset key state on scene change.
+			Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 		}
 		return;
 	}
 
-	if (key.h_c_up)
+	//Execute functions if conditions are satisfied.
+	if(DEF_LOG_HID_NEXT_ITEM_CFM(key))
 	{
 		if (util_log_y > 0)
-		{
-			Draw_set_refresh_needed(true);
 			util_log_y--;
-		}
 	}
-	if (key.h_c_down)
+	else if(DEF_LOG_HID_PRE_ITEM_CFM(key))
 	{
 		if (util_log_y + 1 <= DEF_LOG_BUFFER_LINES - DEF_LOG_DISPLAYED_LINES)
-		{
-			Draw_set_refresh_needed(true);
 			util_log_y++;
-		}
 	}
-	if (key.h_c_left)
+
+	if(DEF_LOG_HID_PAN_LEFT_CFM(key))
 	{
 		if (util_log_x + 5.0 < 0.0)
 			util_log_x += 5.0;
 		else
 			util_log_x = 0.0;
-
-		Draw_set_refresh_needed(true);
 	}
-	if (key.h_c_right)
+	else if (DEF_LOG_HID_PAN_RIGHT_CFM(key))
 	{
-		if (util_log_x - 5.0 > -1000.0)
+		if (util_log_x - 5.0 > -2000.0)
 			util_log_x -= 5.0;
 		else
-			util_log_x = -1000.0;
-
-		Draw_set_refresh_needed(true);
+			util_log_x = -2000.0;
 	}
 }
 

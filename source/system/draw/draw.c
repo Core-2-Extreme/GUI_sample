@@ -19,7 +19,27 @@
 //N/A.
 
 //Typedefs.
-//N/A.
+//Define shorter state name for hid state.
+typedef enum
+{
+	NP = HID_STATE_NOT_PRESSED,
+	PR = HID_STATE_PRESSED,
+	PD = HID_STATE_PRESSED_DONE,
+	HE = HID_STATE_HELD,
+	HD = HID_STATE_HELD_DONE,
+	PE = HID_STATE_PENDING,
+} Short_hid_state;
+
+DEF_LOG_ENUM_DEBUG
+(
+	Short_hid_state,
+	NP,
+	PR,
+	PD,
+	HE,
+	HD,
+	PE
+)
 
 //Prototypes.
 extern void memcpy_asm(uint8_t*, uint8_t*, uint32_t);
@@ -858,7 +878,6 @@ void Draw_debug_info(bool is_night, uint32_t free_ram, uint32_t free_linear_ram)
 	Hid_info key = { 0, };
 	Draw_image_data background = Draw_get_empty_image();
 	Str_data temp = { 0, };
-	char empty_p_h[4] = { ' ', 'p', 'h', 'h' };
 
 	if(!util_draw_init)
 		return;
@@ -869,40 +888,52 @@ void Draw_debug_info(bool is_night, uint32_t free_ram, uint32_t free_linear_ram)
 	if (is_night)
 		color = DEF_DRAW_WHITE;
 
-	Util_str_format(&temp, "A:%c B:%c", empty_p_h[key.p_a + (key.h_a * 2)], empty_p_h[key.p_b + (key.h_b * 2)]);
+	Util_str_format(&temp, "A:%s (%" PRIu16 ", %" PRIu32 "ms) B:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.a.state),
+	key.a.click_count, key.a.held_ms, Short_hid_state_get_name((Short_hid_state)key.b.state), key.b.click_count, key.b.held_ms);
 	Draw_with_background(&temp, 0, 40, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "X:%c Y:%c", empty_p_h[key.p_x + (key.h_x * 2)], empty_p_h[key.p_y + (key.h_y * 2)]);
+	Util_str_format(&temp, "X:%s (%" PRIu16 ", %" PRIu32 "ms) Y:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.x.state),
+	key.x.click_count, key.x.held_ms, Short_hid_state_get_name((Short_hid_state)key.y.state), key.y.click_count, key.y.held_ms);
 	Draw_with_background(&temp, 0, 50, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "L:%c R:%c", empty_p_h[key.p_l + (key.h_l * 2)], empty_p_h[key.p_r + (key.h_r * 2)]);
+	Util_str_format(&temp, "L:%s (%" PRIu16 ", %" PRIu32 "ms) R:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.l.state),
+	key.l.click_count, key.l.held_ms, Short_hid_state_get_name((Short_hid_state)key.r.state), key.r.click_count, key.r.held_ms);
 	Draw_with_background(&temp, 0, 60, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "ZL:%c ZR:%c", empty_p_h[key.p_zl + (key.h_zl * 2)], empty_p_h[key.p_zr + (key.h_zr * 2)]);
+	Util_str_format(&temp, "ZL:%s (%" PRIu16 ", %" PRIu32 "ms) ZR:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.zl.state),
+	key.zl.click_count, key.zl.held_ms, Short_hid_state_get_name((Short_hid_state)key.zr.state), key.zr.click_count, key.zr.held_ms);
 	Draw_with_background(&temp, 0, 70, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "C↓:%c C→:%c", empty_p_h[key.p_c_down + (key.h_c_down * 2)], empty_p_h[key.p_c_right + (key.h_c_right * 2)]);
+	Util_str_format(&temp, "C↓:%s (%" PRIu16 ", %" PRIu32 "ms) C→:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.c_down.state),
+	key.c_down.click_count, key.c_down.held_ms, Short_hid_state_get_name((Short_hid_state)key.c_right.state), key.c_right.click_count, key.c_right.held_ms);
 	Draw_with_background(&temp, 0, 80, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "C↑:%c C←:%c", empty_p_h[key.p_c_up + (key.h_c_up * 2)], empty_p_h[key.p_c_left + (key.h_c_left * 2)]);
+	Util_str_format(&temp, "C↑:%s (%" PRIu16 ", %" PRIu32 "ms) C←:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.c_up.state),
+	key.c_up.click_count, key.c_up.held_ms, Short_hid_state_get_name((Short_hid_state)key.c_left.state), key.c_left.click_count, key.c_left.held_ms);
 	Draw_with_background(&temp, 0, 90, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "D↓:%c D→:%c", empty_p_h[key.p_d_down + (key.h_d_down * 2)], empty_p_h[key.p_d_right + (key.h_d_right * 2)]);
+	Util_str_format(&temp, "D↓:%s (%" PRIu16 ", %" PRIu32 "ms) D→:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.d_down.state),
+	key.d_down.click_count, key.d_down.held_ms, Short_hid_state_get_name((Short_hid_state)key.d_right.state), key.d_right.click_count, key.d_right.held_ms);
 	Draw_with_background(&temp, 0, 100, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "D↑:%c D←:%c", empty_p_h[key.p_d_up + (key.h_d_up * 2)], empty_p_h[key.p_d_left + (key.h_d_left * 2)]);
+	Util_str_format(&temp, "D↑:%s (%" PRIu16 ", %" PRIu32 "ms) D←:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.d_up.state),
+	key.d_up.click_count, key.d_up.held_ms, Short_hid_state_get_name((Short_hid_state)key.d_left.state), key.d_left.click_count, key.d_left.held_ms);
 	Draw_with_background(&temp, 0, 110, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "CS↓:%c CS→:%c", empty_p_h[key.p_cs_down + (key.h_cs_down * 2)], empty_p_h[key.p_cs_right + (key.h_cs_right * 2)]);
+	Util_str_format(&temp, "CS↓:%s (%" PRIu16 ", %" PRIu32 "ms) CS→:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.cs_down.state),
+	key.cs_down.click_count, key.cs_down.held_ms, Short_hid_state_get_name((Short_hid_state)key.cs_right.state), key.cs_right.click_count, key.cs_right.held_ms);
 	Draw_with_background(&temp, 0, 120, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "CS↑:%c CS←:%c", empty_p_h[key.p_cs_up + (key.h_cs_up * 2)], empty_p_h[key.p_cs_left + (key.h_cs_left * 2)]);
+	Util_str_format(&temp, "CS↑:%s (%" PRIu16 ", %" PRIu32 "ms) CS←:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.cs_up.state),
+	key.cs_up.click_count, key.cs_up.held_ms, Short_hid_state_get_name((Short_hid_state)key.cs_left.state), key.cs_left.click_count, key.cs_left.held_ms);
 	Draw_with_background(&temp, 0, 130, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "START:%c SELET:%c", empty_p_h[key.p_start + (key.h_start * 2)], empty_p_h[key.p_select + (key.h_select * 2)]);
+	Util_str_format(&temp, "START:%s (%" PRIu16 ", %" PRIu32 "ms) SELET:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.start.state),
+	key.start.click_count, key.start.held_ms, Short_hid_state_get_name((Short_hid_state)key.select.state), key.select.click_count, key.select.held_ms);
 	Draw_with_background(&temp, 0, 140, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "touch x:%" PRIi32 " y:%" PRIi32, (int32_t)key.touch_x, (int32_t)key.touch_y);
+	Util_str_format(&temp, "TOUCH:%s (%" PRIu16 ", %" PRIu32 "ms) XY:%" PRIi16 ", %" PRIi16, Short_hid_state_get_name((Short_hid_state)key.touch.state),
+	key.touch.click_count, key.touch.held_ms, key.touch_x, key.touch_y);
 	Draw_with_background(&temp, 0, 150, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
 	//%f expects double.

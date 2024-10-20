@@ -20,7 +20,12 @@
 #include "system/util/watch.h"
 
 //Defines.
-//N/A.
+//System UI.
+#define DEF_SAPP1_HID_SYSTEM_UI_SEL(k)			(bool)((DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), k)) || DEF_HID_PHY_PR(k.start))
+#define DEF_SAPP1_HID_SYSTEM_UI_CFM(k)			(bool)(((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), k)) || (DEF_HID_PR_EM(k.start, 1) || DEF_HID_HD(k.start)))
+#define DEF_SAPP1_HID_SYSTEM_UI_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch) && DEF_HID_PHY_NP(k.start))
+//Open file explorer.
+#define DEF_SAPP1_HID_OPEN_EXPLORER_CFM(k)		(bool)(DEF_HID_PR_EM(k.x, 1) || DEF_HID_HD(k.x))
 
 //Typedefs.
 //N/A.
@@ -65,29 +70,35 @@ void Sapp1_hid(Hid_info key)
 
 	Sem_get_config(&config);
 
-	if(Util_err_query_error_show_flag())
+	if(Util_err_query_show_flag())
 		Util_err_main(key);
 	else if(Util_expl_query_show_flag())//Handle file explorer key input here.
 		Util_expl_main(key, config.scroll_speed);
 	else
 	{
-		if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
+		//Notify user that button is being pressed.
+		if(DEF_SAPP1_HID_SYSTEM_UI_SEL(key))
 			Draw_get_bot_ui_button()->selected = true;
-		else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
+
+		//Execute functions if conditions are satisfied.
+		if(DEF_SAPP1_HID_SYSTEM_UI_CFM(key))
 			Sapp1_suspend();
-		else if (key.p_x)
+		else if(DEF_SAPP1_HID_OPEN_EXPLORER_CFM(key))
 		{
 			//Set callbacks and open file explorer.
 			Util_expl_set_callback(Sapp1_expl_callback);
 			Util_expl_set_cancel_callback(Sapp1_expl_cancel_callback);
 			Util_expl_set_show_flag(true);
+			//Reset key state on scene change.
+			Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 		}
 	}
 
-	if(!key.p_touch && !key.h_touch)
+	//Notify user that button is NOT being pressed anymore.
+	if(DEF_SAPP1_HID_SYSTEM_UI_DESEL(key))
 		Draw_get_bot_ui_button()->selected = false;
 
-	if(Util_log_query_log_show_flag())
+	if(Util_log_query_show_flag())
 		Util_log_main(key);
 }
 
@@ -95,6 +106,8 @@ void Sapp1_resume(void)
 {
 	sapp1_thread_suspend = false;
 	sapp1_main_run = true;
+	//Reset key state on scene change.
+	Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 	Draw_set_refresh_needed(true);
 	Menu_suspend();
 }
@@ -187,6 +200,13 @@ void Sapp1_main(void)
 	Sem_config config = { 0, };
 	Sem_state state = { 0, };
 
+	if(Util_err_query_show_flag())
+		watch_handle_bit |= DEF_WATCH_HANDLE_BIT_ERR;
+	if(Util_expl_query_show_flag())
+		watch_handle_bit |= DEF_WATCH_HANDLE_BIT_EXPL;
+	if(Util_log_query_show_flag())
+		watch_handle_bit |= DEF_WATCH_HANDLE_BIT_LOG;
+
 	Sem_get_config(&config);
 	Sem_get_state(&state);
 
@@ -212,7 +232,7 @@ void Sapp1_main(void)
 			Draw(&sapp1_selected_path, 0, 40, 0.45, 0.45, color);
 			Draw(&sapp1_file_info, 0, 90, 0.45, 0.45, color);
 
-			if(Util_log_query_log_show_flag())
+			if(Util_log_query_show_flag())
 				Util_log_draw();
 
 			Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
@@ -227,7 +247,7 @@ void Sapp1_main(void)
 			{
 				Draw_screen_ready(DRAW_SCREEN_TOP_RIGHT, back_color);
 
-				if(Util_log_query_log_show_flag())
+				if(Util_log_query_show_flag())
 					Util_log_draw();
 
 				Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
@@ -249,7 +269,7 @@ void Sapp1_main(void)
 			if(Util_expl_query_show_flag())//Draw file explorer.
 				Util_expl_draw();
 
-			if(Util_err_query_error_show_flag())
+			if(Util_err_query_show_flag())
 				Util_err_draw();
 
 			Draw_bot_ui();
@@ -286,7 +306,7 @@ static void Sapp1_draw_init_exit_message(void)
 
 		Draw_screen_ready(DRAW_SCREEN_TOP_LEFT, back_color);
 
-		if(Util_log_query_log_show_flag())
+		if(Util_log_query_show_flag())
 			Util_log_draw();
 
 		Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
@@ -305,7 +325,7 @@ static void Sapp1_draw_init_exit_message(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_TOP_RIGHT, back_color);
 
-			if(Util_log_query_log_show_flag())
+			if(Util_log_query_show_flag())
 				Util_log_draw();
 
 			Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);

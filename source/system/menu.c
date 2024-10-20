@@ -38,6 +38,28 @@
 #define DEF_MENU_NUM_OF_SUB_APP		(uint8_t)(8)
 #define DEF_MENU_SEND_INFO_FMT_VER	(uint32_t)(1)
 
+//Exit check.
+#define DEF_MENU_HID_EXIT_CFM(k)			(bool)(DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a))
+#define DEF_MENU_HID_EXIT_CANCEL_CFM(k)		(bool)(DEF_HID_PR_EM(k.b,1 ) || DEF_HID_HD(k.b))
+//System UI.
+#define DEF_MENU_HID_SYSTEM_UI_SEL(k)		(bool)((DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), k)) || DEF_HID_PHY_PR(k.start))
+#define DEF_MENU_HID_SYSTEM_UI_CFM(k)		(bool)(((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), k)) || (DEF_HID_PR_EM(k.start, 1) || DEF_HID_HD(k.start)))
+#define DEF_MENU_HID_SYSTEM_UI_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch) && DEF_HID_PHY_NP(k.start))
+//Toggle log.
+#define DEF_MENU_HID_LOG_CFM(k)				(bool)(DEF_HID_PR_EM(k.select, 1) || DEF_HID_HD(k.select))
+//Settings menu.
+#define DEF_MENU_HID_SEM_SEL(k)				(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(menu_sem_button, k))
+#define DEF_MENU_HID_SEM_CFM(k)				(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(menu_sem_button, k))
+#define DEF_MENU_HID_SEM_DESEL(k)			(bool)(DEF_HID_PHY_NP(k.touch))
+//Sub applications : Close.
+#define DEF_MENU_HID_SAPP_CLOSE_SEL(k, id)	(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(menu_sapp_close_button[id], k))
+#define DEF_MENU_HID_SAPP_CLOSE_CFM(k, id)	(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(menu_sapp_close_button[id], k))
+#define DEF_MENU_HID_SAPP_CLOSE_DESEL(k)	(bool)(DEF_HID_PHY_NP(k.touch))
+//Sub applications : Open.
+#define DEF_MENU_HID_SAPP_OPEN_SEL(k, id)	(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(menu_sapp_button[id], k))
+#define DEF_MENU_HID_SAPP_OPEN_CFM(k, id)	(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(menu_sapp_button[id], k) && !menu_sapp_close_button[id].selected)
+#define DEF_MENU_HID_SAPP_OPEN_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
+
 //Typedefs.
 //N/A.
 
@@ -86,6 +108,8 @@ void Menu_set_must_exit_flag(bool flag)
 void Menu_resume(void)
 {
 	menu_main_run = true;
+	//Reset key state on scene change.
+	Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 	Draw_set_refresh_needed(true);
 }
 
@@ -118,6 +142,7 @@ void Menu_init(void)
 	for(uint16_t i = 0; i < (DEF_MENU_NUM_OF_SUB_APP + 1); i++)
 		menu_icon_texture_num[i] = UINT32_MAX;
 
+	Util_watch_init();
 	result = Util_log_init();
 	DEF_LOG_RESULT(Util_log_init, (result == DEF_SUCCESS), result);
 	DEF_LOG_FORMAT("Initializing...v%s", DEF_MENU_CURRENT_APP_VER);
@@ -146,7 +171,6 @@ void Menu_init(void)
 
 	//Init our modules.
 	DEF_LOG_RESULT_SMART(result, Util_init(), (result == DEF_SUCCESS), result);
-	DEF_LOG_RESULT_SMART(result, Util_watch_init(), (result == DEF_SUCCESS), result);
 
 	Sem_init();
 	Sem_suspend();
@@ -481,6 +505,11 @@ void Menu_main(void)
 	{
 		Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_MAIN_MENU);
 
+		if(Util_err_query_show_flag())
+			watch_handle_bit |= DEF_WATCH_HANDLE_BIT_ERR;
+		if(Util_log_query_show_flag())
+			watch_handle_bit |= DEF_WATCH_HANDLE_BIT_LOG;
+
 		//Check if we should update the screen.
 		if(Util_watch_is_changed(watch_handle_bit) || Draw_is_refresh_needed() || !config.is_eco)
 		{
@@ -507,7 +536,7 @@ void Menu_main(void)
 				Draw(&menu_msg[DEF_MENU_HOW_TO_UPDATE_MSG], 10, 60, 0.5, 0.5, color);
 			}
 
-			if(Util_log_query_log_show_flag())
+			if(Util_log_query_show_flag())
 				Util_log_draw();
 
 			Draw_top_ui(config.is_eco, state.is_charging, state.wifi_signal, state.battery_level, state.msg);
@@ -665,7 +694,7 @@ void Menu_main(void)
 			Draw_c(DEF_SEM_NAME, 270, 205, 0.4, 0.4, color);
 #endif //DEF_SEM_ENABLE_NAME
 
-			if(Util_err_query_error_show_flag())
+			if(Util_err_query_show_flag())
 				Util_err_draw();
 
 			Draw_bot_ui();
@@ -835,37 +864,100 @@ static void Menu_hid_callback(void)
 	{
 		if(!aptShouldJumpToHome())
 		{
-			if (Util_err_query_error_show_flag())
+			if (Util_err_query_show_flag())
 				Util_err_main(key);
 			else
 			{
+				//Notify user that button is being pressed.
+				if(!menu_check_exit_request)
+				{
+					if(DEF_MENU_HID_SYSTEM_UI_SEL(key))
+						Draw_get_bot_ui_button()->selected = true;
+					if(DEF_MENU_HID_SEM_SEL(key))
+						menu_sem_button.selected = true;
+
+#ifdef DEF_SAPP0_ENABLE
+					if (DEF_MENU_HID_SAPP_CLOSE_SEL(key, 0) && Sapp0_query_init_flag())
+						menu_sapp_close_button[0].selected = true;
+					else if (DEF_MENU_HID_SAPP_OPEN_SEL(key, 0))
+						menu_sapp_button[0].selected = true;
+#endif //DEF_SAPP0_ENABLE
+
+#ifdef DEF_SAPP1_ENABLE
+					if (DEF_MENU_HID_SAPP_CLOSE_SEL(key, 1) && Sapp1_query_init_flag())
+						menu_sapp_close_button[1].selected = true;
+					else if (DEF_MENU_HID_SAPP_OPEN_SEL(key, 1))
+						menu_sapp_button[1].selected = true;
+#endif //DEF_SAPP1_ENABLE
+
+#ifdef DEF_SAPP2_ENABLE
+					if (DEF_MENU_HID_SAPP_CLOSE_SEL(key, 2) && Sapp2_query_init_flag())
+						menu_sapp_close_button[2].selected = true;
+					else if (DEF_MENU_HID_SAPP_OPEN_SEL(key, 2))
+						menu_sapp_button[2].selected = true;
+#endif //DEF_SAPP2_ENABLE
+
+#ifdef DEF_SAPP3_ENABLE
+					if (DEF_MENU_HID_SAPP_CLOSE_SEL(key, 3) && Sapp3_query_init_flag())
+						menu_sapp_close_button[3].selected = true;
+					else if (DEF_MENU_HID_SAPP_OPEN_SEL(key, 3))
+						menu_sapp_button[3].selected = true;
+#endif //DEF_SAPP3_ENABLE
+
+#ifdef DEF_SAPP4_ENABLE
+					if (DEF_MENU_HID_SAPP_CLOSE_SEL(key, 4) && Sapp4_query_init_flag())
+						menu_sapp_close_button[4].selected = true;
+					else if (DEF_MENU_HID_SAPP_OPEN_SEL(key, 4))
+						menu_sapp_button[4].selected = true;
+#endif //DEF_SAPP4_ENABLE
+
+#ifdef DEF_SAPP5_ENABLE
+					if (DEF_MENU_HID_SAPP_CLOSE_SEL(key, 5) && Sapp5_query_init_flag())
+						menu_sapp_close_button[5].selected = true;
+					else if (DEF_MENU_HID_SAPP_OPEN_SEL(key, 5))
+						menu_sapp_button[5].selected = true;
+#endif //DEF_SAPP5_ENABLE
+
+#ifdef DEF_SAPP6_ENABLE
+					if (DEF_MENU_HID_SAPP_CLOSE_SEL(key, 6) && Sapp6_query_init_flag())
+						menu_sapp_close_button[6].selected = true;
+					else if (DEF_MENU_HID_SAPP_OPEN_SEL(key, 6))
+						menu_sapp_button[6].selected = true;
+#endif //DEF_SAPP6_ENABLE
+
+#ifdef DEF_SAPP7_ENABLE
+					if (DEF_MENU_HID_SAPP_CLOSE_SEL(key, 7) && Sapp7_query_init_flag())
+						menu_sapp_close_button[7].selected = true;
+					else if (DEF_MENU_HID_SAPP_OPEN_SEL(key, 7))
+						menu_sapp_button[7].selected = true;
+#endif //DEF_SAPP7_ENABLE
+				}
+
+				//Execute functions if conditions are satisfied.
 				if(menu_check_exit_request)
 				{
-					if (key.p_a)
+					if (DEF_MENU_HID_EXIT_CFM(key))
 						menu_must_exit = true;
-					else if (key.p_b)
+					else if (DEF_MENU_HID_EXIT_CANCEL_CFM(key))
 						menu_check_exit_request = false;
 				}
 				else
 				{
-					if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
-						Draw_get_bot_ui_button()->selected = true;
-					else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
+					if(DEF_MENU_HID_SYSTEM_UI_CFM(key))
 						menu_check_exit_request = true;
-					else if (key.p_select)
-						Util_log_set_log_show_flag(!Util_log_query_log_show_flag());
+					else if (DEF_MENU_HID_LOG_CFM(key))
+						Util_log_set_show_flag(!Util_log_query_show_flag());
+					else if (DEF_MENU_HID_SEM_CFM(key))
+						Sem_resume();
+
 #ifdef DEF_SAPP0_ENABLE
-					else if (Util_hid_is_pressed(key, menu_sapp_close_button[0]) && Sapp0_query_init_flag())
-						menu_sapp_close_button[0].selected = true;
-					else if (Util_hid_is_released(key, menu_sapp_close_button[0]) && Sapp0_query_init_flag() && menu_sapp_close_button[0].selected)
+					else if (DEF_MENU_HID_SAPP_CLOSE_CFM(key, 0) && Sapp0_query_init_flag())
 					{
 						menu_exit_request[0] = true;
 						while(menu_exit_request[0])
 							Util_sleep(20000);
 					}
-					else if (Util_hid_is_pressed(key, menu_sapp_button[0]))
-						menu_sapp_button[0].selected = true;
-					else if (Util_hid_is_released(key, menu_sapp_button[0]) && menu_sapp_button[0].selected)
+					else if (DEF_MENU_HID_SAPP_OPEN_CFM(key, 0))
 					{
 						if (!Sapp0_query_init_flag())
 						{
@@ -879,17 +971,13 @@ static void Menu_hid_callback(void)
 #endif //DEF_SAPP0_ENABLE
 
 #ifdef DEF_SAPP1_ENABLE
-					else if (Util_hid_is_pressed(key, menu_sapp_close_button[1]) && Sapp1_query_init_flag())
-						menu_sapp_close_button[1].selected = true;
-					else if (Util_hid_is_released(key, menu_sapp_close_button[1]) && Sapp1_query_init_flag() && menu_sapp_close_button[1].selected)
+					else if (DEF_MENU_HID_SAPP_CLOSE_CFM(key, 1) && Sapp1_query_init_flag())
 					{
 						menu_exit_request[1] = true;
 						while(menu_exit_request[1])
 							Util_sleep(20000);
 					}
-					else if (Util_hid_is_pressed(key, menu_sapp_button[1]))
-						menu_sapp_button[1].selected = true;
-					else if (Util_hid_is_released(key, menu_sapp_button[1]) && menu_sapp_button[1].selected)
+					else if (DEF_MENU_HID_SAPP_OPEN_CFM(key, 1))
 					{
 						if (!Sapp1_query_init_flag())
 						{
@@ -903,17 +991,13 @@ static void Menu_hid_callback(void)
 #endif //DEF_SAPP1_ENABLE
 
 #ifdef DEF_SAPP2_ENABLE
-					else if (Util_hid_is_pressed(key, menu_sapp_close_button[2]) && Sapp2_query_init_flag())
-						menu_sapp_close_button[2].selected = true;
-					else if (Util_hid_is_released(key, menu_sapp_close_button[2]) && Sapp2_query_init_flag() && menu_sapp_close_button[2].selected)
+					else if (DEF_MENU_HID_SAPP_CLOSE_CFM(key, 2) && Sapp2_query_init_flag())
 					{
 						menu_exit_request[2] = true;
 						while(menu_exit_request[2])
 							Util_sleep(20000);
 					}
-					else if (Util_hid_is_pressed(key, menu_sapp_button[2]))
-						menu_sapp_button[2].selected = true;
-					else if (Util_hid_is_released(key, menu_sapp_button[2]) && menu_sapp_button[2].selected)
+					else if (DEF_MENU_HID_SAPP_OPEN_CFM(key, 2))
 					{
 						if (!Sapp2_query_init_flag())
 						{
@@ -927,17 +1011,13 @@ static void Menu_hid_callback(void)
 #endif //DEF_SAPP2_ENABLE
 
 #ifdef DEF_SAPP3_ENABLE
-					else if (Util_hid_is_pressed(key, menu_sapp_close_button[3]) && Sapp3_query_init_flag())
-						menu_sapp_close_button[3].selected = true;
-					else if (Util_hid_is_released(key, menu_sapp_close_button[3]) && Sapp3_query_init_flag() && menu_sapp_close_button[3].selected)
+					else if (DEF_MENU_HID_SAPP_CLOSE_CFM(key, 3) && Sapp3_query_init_flag())
 					{
 						menu_exit_request[3] = true;
 						while(menu_exit_request[3])
 							Util_sleep(20000);
 					}
-					else if (Util_hid_is_pressed(key, menu_sapp_button[3]))
-						menu_sapp_button[3].selected = true;
-					else if (Util_hid_is_released(key, menu_sapp_button[3]) && menu_sapp_button[3].selected)
+					else if (DEF_MENU_HID_SAPP_OPEN_CFM(key, 3))
 					{
 						if (!Sapp3_query_init_flag())
 						{
@@ -951,17 +1031,13 @@ static void Menu_hid_callback(void)
 #endif //DEF_SAPP3_ENABLE
 
 #ifdef DEF_SAPP4_ENABLE
-					else if (Util_hid_is_pressed(key, menu_sapp_close_button[4]) && Sapp4_query_init_flag())
-						menu_sapp_close_button[4].selected = true;
-					else if (Util_hid_is_released(key, menu_sapp_close_button[4]) && Sapp4_query_init_flag() && menu_sapp_close_button[4].selected)
+					else if (DEF_MENU_HID_SAPP_CLOSE_CFM(key, 4) && Sapp4_query_init_flag())
 					{
 						menu_exit_request[4] = true;
 						while(menu_exit_request[4])
 							Util_sleep(20000);
 					}
-					else if (Util_hid_is_pressed(key, menu_sapp_button[4]))
-						menu_sapp_button[4].selected = true;
-					else if (Util_hid_is_released(key, menu_sapp_button[4]) && menu_sapp_button[4].selected)
+					else if (DEF_MENU_HID_SAPP_OPEN_CFM(key, 4))
 					{
 						if (!Sapp4_query_init_flag())
 						{
@@ -975,17 +1051,13 @@ static void Menu_hid_callback(void)
 #endif //DEF_SAPP4_ENABLE
 
 #ifdef DEF_SAPP5_ENABLE
-					else if (Util_hid_is_pressed(key, menu_sapp_close_button[5]) && Sapp5_query_init_flag())
-						menu_sapp_close_button[5].selected = true;
-					else if (Util_hid_is_released(key, menu_sapp_close_button[5]) && Sapp5_query_init_flag() && menu_sapp_close_button[5].selected)
+					else if (DEF_MENU_HID_SAPP_CLOSE_CFM(key, 5) && Sapp5_query_init_flag())
 					{
 						menu_exit_request[5] = true;
 						while(menu_exit_request[5])
 							Util_sleep(20000);
 					}
-					else if (Util_hid_is_pressed(key, menu_sapp_button[5]))
-						menu_sapp_button[5].selected = true;
-					else if (Util_hid_is_released(key, menu_sapp_button[5]) && menu_sapp_button[5].selected)
+					else if (DEF_MENU_HID_SAPP_OPEN_CFM(key, 5))
 					{
 						if (!Sapp5_query_init_flag())
 						{
@@ -999,17 +1071,13 @@ static void Menu_hid_callback(void)
 #endif //DEF_SAPP5_ENABLE
 
 #ifdef DEF_SAPP6_ENABLE
-					else if (Util_hid_is_pressed(key, menu_sapp_close_button[6]) && Sapp6_query_init_flag())
-						menu_sapp_close_button[6].selected = true;
-					else if (Util_hid_is_released(key, menu_sapp_close_button[6]) && Sapp6_query_init_flag() && menu_sapp_close_button[6].selected)
+					else if (DEF_MENU_HID_SAPP_CLOSE_CFM(key, 6) && Sapp6_query_init_flag())
 					{
 						menu_exit_request[6] = true;
 						while(menu_exit_request[6])
 							Util_sleep(20000);
 					}
-					else if (Util_hid_is_pressed(key, menu_sapp_button[6]))
-						menu_sapp_button[6].selected = true;
-					else if (Util_hid_is_released(key, menu_sapp_button[6]) && menu_sapp_button[6].selected)
+					else if (DEF_MENU_HID_SAPP_OPEN_CFM(key, 6))
 					{
 						if (!Sapp6_query_init_flag())
 						{
@@ -1023,17 +1091,13 @@ static void Menu_hid_callback(void)
 #endif //DEF_SAPP6_ENABLE
 
 #ifdef DEF_SAPP7_ENABLE
-					else if (Util_hid_is_pressed(key, menu_sapp_close_button[7]) && Sapp7_query_init_flag())
-						menu_sapp_close_button[7].selected = true;
-					else if (Util_hid_is_released(key, menu_sapp_close_button[7]) && Sapp7_query_init_flag() && menu_sapp_close_button[7].selected)
+					else if (DEF_MENU_HID_SAPP_CLOSE_CFM(key, 7) && Sapp7_query_init_flag())
 					{
 						menu_exit_request[7] = true;
 						while(menu_exit_request[7])
 							Util_sleep(20000);
 					}
-					else if (Util_hid_is_pressed(key, menu_sapp_button[7]))
-						menu_sapp_button[7].selected = true;
-					else if (Util_hid_is_released(key, menu_sapp_button[7]) && menu_sapp_button[7].selected)
+					else if (DEF_MENU_HID_SAPP_OPEN_CFM(key, 7))
 					{
 						if (!Sapp7_query_init_flag())
 						{
@@ -1045,25 +1109,26 @@ static void Menu_hid_callback(void)
 							Sapp7_resume();
 					}
 #endif //DEF_SAPP7_ENABLE
-					else if (Util_hid_is_pressed(key, menu_sem_button))
-						menu_sem_button.selected = true;
-					else if (Util_hid_is_released(key, menu_sem_button) && menu_sem_button.selected)
-						Sem_resume();
 				}
 
-				if(!key.p_touch && !key.h_touch)
+				//Notify user that button is NOT being pressed anymore.
+				if(DEF_MENU_HID_SYSTEM_UI_DESEL(key))
+					Draw_get_bot_ui_button()->selected = false;
+				if(DEF_MENU_HID_SEM_DESEL(key))
+					menu_sem_button.selected = false;
+				if(DEF_MENU_HID_SAPP_CLOSE_DESEL(key))
 				{
 					for(uint8_t i = 0; i < DEF_MENU_NUM_OF_SUB_APP; i++)
-					{
-						menu_sapp_button[i].selected = false;
 						menu_sapp_close_button[i].selected = false;
-					}
-					menu_sem_button.selected = false;
-					Draw_get_bot_ui_button()->selected = false;
+				}
+				if(DEF_MENU_HID_SAPP_OPEN_DESEL(key))
+				{
+					for(uint8_t i = 0; i < DEF_MENU_NUM_OF_SUB_APP; i++)
+						menu_sapp_button[i].selected = false;
 				}
 			}
 
-			if(Util_log_query_log_show_flag())
+			if(Util_log_query_show_flag())
 				Util_log_main(key);
 		}
 	}

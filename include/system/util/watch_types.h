@@ -11,16 +11,19 @@ typedef enum
 	WATCH_HANDLE_INVALID = -1,
 
 	WATCH_HANDLE_GLOBAL,			//Watch handle for global data.
-	WATCH_HANDLE_MAIN_MENU,			//(menu.cpp) Watch handle for main menu.
-	WATCH_HANDLE_SETTINGS_MENU,		//(setting_menu.cpp) Watch handle for settings menu.
-	WATCH_HANDLE_SUB_APP0,			//(sub_app0.cpp) Watch handle for sub app0.
-	WATCH_HANDLE_SUB_APP1,			//(sub_app1.cpp) Watch handle for sub app1.
-	WATCH_HANDLE_SUB_APP2,			//(sub_app2.cpp) Watch handle for sub app2.
-	WATCH_HANDLE_SUB_APP3,			//(sub_app3.cpp) Watch handle for sub app3.
-	WATCH_HANDLE_SUB_APP4,			//(sub_app4.cpp) Watch handle for sub app4.
-	WATCH_HANDLE_SUB_APP5,			//(sub_app5.cpp) Watch handle for sub app5.
-	WATCH_HANDLE_SUB_APP6,			//(sub_app6.cpp) Watch handle for sub app6.
-	WATCH_HANDLE_SUB_APP7,			//(sub_app7.cpp) Watch handle for sub app7.
+	WATCH_HANDLE_ERR,				//(err.c) Watch handle for error API.
+	WATCH_HANDLE_EXPL,				//(expl.c) Watch handle for file explorer API.
+	WATCH_HANDLE_LOG,				//(log.c) Watch handle for log API.
+	WATCH_HANDLE_MAIN_MENU,			//(menu.c) Watch handle for main menu.
+	WATCH_HANDLE_SETTINGS_MENU,		//(setting_menu.c) Watch handle for settings menu.
+	WATCH_HANDLE_SUB_APP0,			//(sub_app0.c) Watch handle for sub app0.
+	WATCH_HANDLE_SUB_APP1,			//(sub_app1.c) Watch handle for sub app1.
+	WATCH_HANDLE_SUB_APP2,			//(sub_app2.c) Watch handle for sub app2.
+	WATCH_HANDLE_SUB_APP3,			//(sub_app3.c) Watch handle for sub app3.
+	WATCH_HANDLE_SUB_APP4,			//(sub_app4.c) Watch handle for sub app4.
+	WATCH_HANDLE_SUB_APP5,			//(sub_app5.c) Watch handle for sub app5.
+	WATCH_HANDLE_SUB_APP6,			//(sub_app6.c) Watch handle for sub app6.
+	WATCH_HANDLE_SUB_APP7,			//(sub_app7.c) Watch handle for sub app7.
 
 	WATCH_HANDLE_MAX,
 	WATCH_HANDLE_FORCE_8BIT = INT8_MAX,
@@ -31,6 +34,9 @@ DEF_LOG_ENUM_DEBUG
 	Watch_handle,
 	WATCH_HANDLE_INVALID,
 	WATCH_HANDLE_GLOBAL,
+	WATCH_HANDLE_ERR,
+	WATCH_HANDLE_EXPL,
+	WATCH_HANDLE_LOG,
 	WATCH_HANDLE_MAIN_MENU,
 	WATCH_HANDLE_SETTINGS_MENU,
 	WATCH_HANDLE_SUB_APP0,
@@ -48,6 +54,9 @@ DEF_LOG_ENUM_DEBUG
 typedef uint16_t Watch_handle_bit;
 #define	DEF_WATCH_HANDLE_BIT_NONE			(Watch_handle_bit)(0 << 0)							//No watch handles.
 #define	DEF_WATCH_HANDLE_BIT_GLOBAL			(Watch_handle_bit)(1 << WATCH_HANDLE_GLOBAL)		//Watch handle bit for WATCH_HANDLE_GLOBAL.
+#define	DEF_WATCH_HANDLE_BIT_ERR			(Watch_handle_bit)(1 << WATCH_HANDLE_ERR)			//Watch handle bit for WATCH_HANDLE_ERR.
+#define	DEF_WATCH_HANDLE_BIT_EXPL			(Watch_handle_bit)(1 << WATCH_HANDLE_EXPL)			//Watch handle bit for WATCH_HANDLE_EXPL.
+#define	DEF_WATCH_HANDLE_BIT_LOG			(Watch_handle_bit)(1 << WATCH_HANDLE_LOG)			//Watch handle bit for WATCH_HANDLE_LOG.
 #define	DEF_WATCH_HANDLE_BIT_MAIN_MENU		(Watch_handle_bit)(1 << WATCH_HANDLE_MAIN_MENU)		//Watch handle bit for WATCH_HANDLE_MAIN_MENU.
 #define	DEF_WATCH_HANDLE_BIT_SETTINGS_MENU	(Watch_handle_bit)(1 << WATCH_HANDLE_SETTINGS_MENU)	//Watch handle bit for WATCH_HANDLE_SETTINGS_MENU.
 #define	DEF_WATCH_HANDLE_BIT_SUB_APP0		(Watch_handle_bit)(1 << WATCH_HANDLE_SUB_APP0)		//Watch handle bit for WATCH_HANDLE_SUB_APP0.
