@@ -60,14 +60,14 @@ ARCH		:= -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
 # We don't use :
 # -Wfloat-equal -Wunsuffixed-float-constants -Wpacked -Wpadded -Waggregate-return -Wdate-time -Wconversion -Wcast-align
-# -Wbad-function-cast -Wtraditional -Wstrict-overflow=5 -Wuseless-cast
+# -Wbad-function-cast -Wtraditional -Wstrict-overflow=5 -Wuseless-cast -Wformat-nonliteral
 CFLAGS		:= -Wall -Wextra -Wpedantic -g -O3 -mword-relocations -fomit-frame-pointer -ffunction-sections $(ARCH) $(INCLUDE) -D__3DS__
 CFLAGS		+= -Wformat=2 -Wformat-overflow=2 -Wformat-signedness -Wnull-dereference -Winit-self -Wimplicit-fallthrough=3 -Wshift-overflow=2
 CFLAGS		+= -Wunused-const-variable=2 -Wuse-after-free=3 -Wuninitialized -Wstrict-aliasing=3 -Wstring-compare -Wstringop-overflow=4
 CFLAGS		+= -Walloca -Warith-conversion -Warray-bounds=2 -Wbidi-chars=any -Wduplicated-cond -Wtrampolines -Wshadow -Wundef -Wunused-macros
 CFLAGS		+= -Wwrite-strings -Wdangling-else -Wdangling-pointer=2 -Wflex-array-member-not-at-end -Wlogical-op -Winvalid-utf8
 CFLAGS		+= -Wdouble-promotion -Wdisabled-optimization -Winline -Winvalid-pch -Wredundant-decls -Wcast-qual -Wduplicated-branches
-CFLAGS		+= -Walloc-zero -Wformat-truncation=1 -Wstack-usage=16384
+CFLAGS		+= -Walloc-zero -Wformat-truncation=1 -Wstack-usage=16384 -Wno-format-nonliteral
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++11
 
