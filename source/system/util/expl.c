@@ -377,27 +377,27 @@ void Util_expl_draw(void)
 		Util_expl_generate_file_type_string(util_expl_files.type[index], &type);
 
 		if(util_expl_files.type[index] & EXPL_FILE_TYPE_DIR)
-			Util_str_format(&message, "%s (%s)", util_expl_files.name[index].buffer, type.buffer);
+			Util_str_format(&message, "%s (%s)", DEF_STR_NEVER_NULL(&util_expl_files.name[index]), DEF_STR_NEVER_NULL(&type));
 		else
 		{
 			double size = util_expl_files.size[index];
 
 			if(size < 1000)
-				Util_str_format(&message, "%s(%" PRIu32 "B) (%s)", util_expl_files.name[index].buffer, (uint32_t)size, type.buffer);
+				Util_str_format(&message, "%s(%" PRIu32 "B) (%s)", DEF_STR_NEVER_NULL(&util_expl_files.name[index]), (uint32_t)size, DEF_STR_NEVER_NULL(&type));
 			else
 			{
 				size /= 1000.0;
 				if(size < 1000)
-					Util_str_format(&message, "%s(%.1fKB) (%s)", util_expl_files.name[index].buffer, size, type.buffer);
+					Util_str_format(&message, "%s(%.1fKB) (%s)", DEF_STR_NEVER_NULL(&util_expl_files.name[index]), size, DEF_STR_NEVER_NULL(&type));
 				else
 				{
 					size /= 1000.0;
 					if(size < 1000)
-						Util_str_format(&message, "%s(%.1fMB) (%s)", util_expl_files.name[index].buffer, size, type.buffer);
+						Util_str_format(&message, "%s(%.1fMB) (%s)", DEF_STR_NEVER_NULL(&util_expl_files.name[index]), size, DEF_STR_NEVER_NULL(&type));
 					else
 					{
 						size /= 1000.0;
-						Util_str_format(&message, "%s(%.1fGB) (%s)", util_expl_files.name[index].buffer, size, type.buffer);
+						Util_str_format(&message, "%s(%.1fGB) (%s)", DEF_STR_NEVER_NULL(&util_expl_files.name[index]), size, DEF_STR_NEVER_NULL(&type));
 					}
 				}
 			}
@@ -538,7 +538,7 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 							else if (util_expl_files.type[selected_index] & EXPL_FILE_TYPE_DIR)
 							{
 								//Go to selected sub directory.
-								Util_str_format_append(&dir, "%s/", util_expl_files.name[selected_index].buffer);
+								Util_str_format_append(&dir, "%s/", DEF_STR_NEVER_NULL(&util_expl_files.name[selected_index]));
 
 								Util_str_set(&util_expl_current_dir, dir.buffer);
 								util_expl_y_offset = 0;

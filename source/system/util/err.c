@@ -302,7 +302,8 @@ static void Util_err_save_callback(void)
 			time->tm_year, time->tm_mon, time->tm_mday, time->tm_hour, time->tm_min, time->tm_sec);
 
 			Util_str_format(&save_data, "\n\n##ERROR MESSAGE##\n%s\n%s\n%s\n%s\n",
-			util_err_summary.buffer, util_err_description.buffer, util_err_location.buffer, util_err_code.buffer);
+			DEF_STR_NEVER_NULL(&util_err_summary), DEF_STR_NEVER_NULL(&util_err_description),
+			DEF_STR_NEVER_NULL(&util_err_location), DEF_STR_NEVER_NULL(&util_err_code));
 
 			result = Util_log_dump(file_name.buffer, (DEF_MENU_MAIN_DIR "error/"));
 			if(result != DEF_SUCCESS)
