@@ -2569,7 +2569,7 @@ static void Sem_worker_callback(void)
 				}
 				else
 				{
-					Util_err_set_error_message(Util_err_get_error_msg(result), "", DEF_LOG_GET_FUNCTION_NAME(), result);
+					Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't start cpu usage module!!!!!", DEF_LOG_GET_FUNCTION_NAME(), result);
 					Util_err_set_show_flag(true);
 					sem_should_cpu_usage_monitor_running = false;
 					//Reset key state on scene change.
@@ -3122,7 +3122,7 @@ void Sem_update_thread(void* arg)
 
 			if (result != DEF_SUCCESS)
 			{
-				Util_err_set_error_message(Util_err_get_error_msg(result), "", DEF_LOG_GET_FUNCTION_NAME(), result);
+				Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't download the data!!!!!", DEF_LOG_GET_FUNCTION_NAME(), result);
 				Util_err_set_show_flag(true);
 				if (sem_check_update_request)
 					sem_update_progress = -1;
